@@ -1,0 +1,7 @@
+{
+  "name": "PB- Fuel Your Body",
+  "description": "A premium health food e-commerce experience featuring high-protein, zero-sugar muesli and nut butters.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
