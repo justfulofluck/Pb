@@ -4,25 +4,31 @@ import React from 'react';
 interface FooterProps {
   onShopClick: () => void;
   onHomeClick: () => void;
-  onContactClick: () => void;
   onFAQClick?: () => void;
   onDistributorClick?: () => void;
   onBlogsClick?: () => void;
   onEventBlogsClick?: () => void;
   onAdminClick?: () => void;
   onJourneyClick: () => void;
+  onPrivacyClick?: () => void;
+  onTermsClick?: () => void;
+  onRefundClick?: () => void;
+  onShippingClick?: () => void;
 }
 
 const Footer: React.FC<FooterProps> = ({ 
   onShopClick, 
   onHomeClick, 
-  onContactClick, 
   onFAQClick, 
   onDistributorClick, 
-  onBlogsClick,
-  onEventBlogsClick,
-  onAdminClick,
-  onJourneyClick
+  onBlogsClick, 
+  onEventBlogsClick, 
+  onAdminClick, 
+  onJourneyClick, 
+  onPrivacyClick, 
+  onTermsClick,
+  onRefundClick,
+  onShippingClick
 }) => {
   return (
     <footer className="bg-slate-950 text-slate-400 py-16">
@@ -35,7 +41,6 @@ const Footer: React.FC<FooterProps> = ({
               <li><button onClick={onJourneyClick} className="hover:text-white transition-colors uppercase font-bold tracking-widest">OUR STORY</button></li>
               <li><button onClick={onBlogsClick} className="hover:text-white transition-colors uppercase font-bold tracking-widest">RECIPES & LIFESTYLE</button></li>
               <li><button onClick={onEventBlogsClick} className="hover:text-white transition-colors uppercase font-bold tracking-widest">EVENT BLOGS</button></li>
-              <li><button onClick={onContactClick} className="hover:text-white transition-colors uppercase font-bold tracking-widest">CONTACT US</button></li>
             </ul>
           </div>
           <div>
@@ -48,24 +53,49 @@ const Footer: React.FC<FooterProps> = ({
           <div>
             <h3 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Policies</h3>
             <ul className="space-y-4 text-xs">
-              <li><a className="hover:text-white transition-colors uppercase font-bold tracking-widest" href="#">TERMS & CONDITIONS</a></li>
+              <li><button onClick={onTermsClick} className="hover:text-white transition-colors uppercase font-bold tracking-widest">TERMS & CONDITIONS</button></li>
               <li><button onClick={onFAQClick} className="hover:text-white transition-colors uppercase font-bold tracking-widest">FAQ'S</button></li>
-              <li><a className="hover:text-white transition-colors uppercase font-bold tracking-widest" href="#">SHIPPING</a></li>
-              <li><a className="hover:text-white transition-colors uppercase font-bold tracking-widest" href="#">PRIVACY POLICY</a></li>
+              <li><button onClick={onShippingClick} className="hover:text-white transition-colors uppercase font-bold tracking-widest">SHIPPING</button></li>
+              <li><button onClick={onRefundClick} className="hover:text-white transition-colors uppercase font-bold tracking-widest">RETURNS & REFUNDS</button></li>
+              <li><button onClick={onPrivacyClick} className="hover:text-white transition-colors uppercase font-bold tracking-widest">PRIVACY POLICY</button></li>
             </ul>
           </div>
           <div>
-            <h3 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Join The Club</h3>
-            <p className="text-sm mb-4">Stay updated with the latest from the Pinobite world.</p>
-            <p className="text-primary font-black text-lg tracking-tighter">@PINOBITEHEALTHFOODS</p>
+            <h3 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Contact</h3>
+            <div className="space-y-4 text-sm">
+              <p className="leading-relaxed">
+                <span className="text-white font-bold block mb-1">Address:</span>
+                Fairyland School Dabhoi – Sinor Chowkdi, Sathod – Dist. Dabhoi Dabhoi, India 391110 Gujarat
+              </p>
+              <p>
+                <span className="text-white font-bold block mb-1">Phone:</span>
+                <a href="tel:+919328173747" className="hover:text-white transition-colors">+91 9328173747</a>
+              </p>
+              <p>
+                <span className="text-white font-bold block mb-1">E-mail:</span>
+                <a href="mailto:pinobites@gmail.com" className="hover:text-white transition-colors underline underline-offset-4 decoration-primary/50">pinobites@gmail.com</a>
+              </p>
+              
+              <div className="flex flex-wrap gap-2 pt-4">
+                <div className="bg-white px-2 py-1.5 rounded flex items-center justify-center w-[70px] h-8 shadow-sm">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" className="w-full h-auto object-contain" />
+                </div>
+                <div className="bg-white px-2 py-1.5 rounded flex items-center justify-center w-[70px] h-8 shadow-sm">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Meesho_Logo.svg" alt="Meesho" className="w-full h-auto object-contain" />
+                </div>
+                <div className="bg-white px-2 py-1.5 rounded flex items-center justify-center w-[70px] h-8 shadow-sm">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Flipkart_logo.svg" alt="Flipkart" className="w-full h-auto object-contain" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-          <p>© 2024 Pinobite Health Foods. All Rights Reserved.</p>
+          <p>© 2025 Pinobite. All Rights Reserved.</p>
           <div className="flex gap-4 opacity-50 grayscale hover:grayscale-0 transition-all duration-300">
-             <div className="w-10 h-6 bg-slate-800 rounded flex items-center justify-center text-[8px] font-bold">VISA</div>
-             <div className="w-10 h-6 bg-slate-800 rounded flex items-center justify-center text-[8px] font-bold">MASTER</div>
-             <div className="w-10 h-6 bg-slate-800 rounded flex items-center justify-center text-[8px] font-bold">PAYPAL</div>
+             <div className="w-10 h-6 bg-slate-800 rounded flex items-center justify-center text-[8px] font-bold text-white">VISA</div>
+             <div className="w-10 h-6 bg-slate-800 rounded flex items-center justify-center text-[8px] font-bold text-white">MASTER</div>
+             <div className="w-10 h-6 bg-slate-800 rounded flex items-center justify-center text-[8px] font-bold text-white">PAYPAL</div>
           </div>
         </div>
       </div>

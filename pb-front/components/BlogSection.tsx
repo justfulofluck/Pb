@@ -13,11 +13,11 @@ const BlogSection: React.FC<BlogSectionProps> = ({ posts, onPostClick, onViewAll
   const displayPosts = posts.slice(0, 3);
 
   return (
-    <section className="py-24 bg-white relative overflow-hidden">
+    <section className="py-24 bg-slate-50 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
           <div className="max-w-2xl">
-            <span className="font-handdrawn text-2xl text-secondary transform -rotate-1 inline-block mb-2">Read, Cook, Eat</span>
+            <span className="font-handdrawn text-2xl text-primary transform -rotate-1 inline-block mb-2">Knowledge Base</span>
             <h2 className="text-5xl font-black text-slate-900 uppercase tracking-tight leading-none">
               The Daily Crunch
             </h2>
@@ -39,38 +39,41 @@ const BlogSection: React.FC<BlogSectionProps> = ({ posts, onPostClick, onViewAll
           {displayPosts.map((post) => (
             <div 
               key={post.id} 
-              className="group cursor-pointer flex flex-col h-full"
+              className="group cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col hover:shadow-lg transition-all duration-300 p-6"
               onClick={() => onPostClick(post)}
             >
-              <div className="aspect-[4/3] rounded-3xl overflow-hidden mb-6 relative">
+              {/* Header: Type and Read Time */}
+              <div className="flex justify-between items-center mb-5">
+                 <span className="text-slate-400 font-bold text-[13px]">
+                   {post.type === 'Recipe' ? 'Article' : post.type}
+                 </span>
+                 <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[13px]">
+                    <span className="material-symbols-outlined text-[18px]">hourglass_empty</span>
+                    {post.readTime}
+                 </div>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-xl font-bold text-slate-900 leading-snug mb-5 group-hover:text-primary transition-colors min-h-[3.5rem]">
+                {post.title}
+              </h3>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2 mb-8">
+                 {(post.tags || ["Health", "Nutrition"]).map((tag, idx) => (
+                   <span key={idx} className="bg-slate-100 text-slate-600 px-3 py-1 rounded-md text-[11px] font-bold">
+                     {tag}
+                   </span>
+                 ))}
+              </div>
+              
+              {/* Image at the Bottom */}
+              <div className="mt-auto aspect-[16/9] rounded-xl overflow-hidden">
                 <img 
                   src={post.image} 
                   alt={post.title} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
-                <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-900">
-                  {post.type}
-                </span>
-              </div>
-              
-              <div className="flex-1 flex flex-col">
-                <div className="flex items-center gap-3 text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
-                  <span>{post.date}</span>
-                  <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                  <span>{post.readTime}</span>
-                </div>
-                
-                <h3 className="text-xl font-black uppercase text-slate-900 leading-tight mb-3 group-hover:text-primary transition-colors line-clamp-2">
-                  {post.title}
-                </h3>
-                
-                <p className="text-slate-500 font-medium text-sm leading-relaxed line-clamp-2 mb-4">
-                  {post.excerpt}
-                </p>
-                
-                <span className="text-primary font-bold text-xs uppercase tracking-widest mt-auto group-hover:underline">
-                  Read Article
-                </span>
               </div>
             </div>
           ))}

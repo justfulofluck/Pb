@@ -9,7 +9,6 @@ interface NavbarProps {
   onLogoClick: () => void;
   onProductsClick: () => void;
   onDashboardClick: () => void;
-  onContactClick: () => void;
   onStoriesClick?: () => void;
   onJourneyClick: () => void;
   onSearch: (query: string) => void;
@@ -23,7 +22,6 @@ const Navbar: React.FC<NavbarProps> = ({
   onLogoClick, 
   onProductsClick,
   onDashboardClick,
-  onContactClick,
   onStoriesClick,
   onJourneyClick,
   onSearch
@@ -65,7 +63,6 @@ const Navbar: React.FC<NavbarProps> = ({
               <button onClick={onJourneyClick} className="hover:text-primary transition-colors uppercase">OUR JOURNEY</button>
               <button onClick={onProductsClick} className="hover:text-primary transition-colors uppercase">PRODUCTS</button>
               <button onClick={onStoriesClick} className="hover:text-primary transition-colors uppercase">STORIES</button>
-              <button onClick={onContactClick} className="hover:text-primary transition-colors uppercase">CONTACT</button>
               {isLoggedIn && (
                 <button onClick={onDashboardClick} className="hover:text-primary transition-colors uppercase text-primary font-black">MY DASHBOARD</button>
               )}

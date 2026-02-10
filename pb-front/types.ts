@@ -54,7 +54,6 @@ export interface ComparisonRow {
 export interface EventBlog {
   id: string;
   title: string;
-  date: string;
   location: string;
   image: string;
   summary: string;
@@ -64,6 +63,7 @@ export interface EventBlog {
   }[];
   gallery: string[];
   featuredProducts: string[]; // IDs of products
+  date: string;
 }
 
 export interface HeroSlide {
@@ -101,6 +101,15 @@ export interface BlogPost {
   readTime: string;
   author: string;
   content: string[]; // Array of paragraphs
+  tags?: string[];
+}
+
+// Added Story interface to fix missing export errors
+export interface Story {
+  id: string;
+  mediaUrl: string;
+  mediaType: 'image' | 'video';
+  productId: string;
 }
 
 export const CATEGORY_DISPLAY_DATA: CategoryDisplay[] = [
@@ -147,8 +156,9 @@ export const BLOG_DATA: BlogPost[] = [
     excerpt: "Start your morning with a power-packed bowl of antioxidants and protein. Secret ingredient: Our chunky peanut butter!",
     image: "https://images.unsplash.com/photo-1626078436812-78d2b9d0999d?q=80&w=800&auto=format&fit=crop",
     date: "Oct 24, 2023",
-    readTime: "5 min prep",
+    readTime: "5 min",
     author: "Chef Riya",
+    tags: ["High Protein", "Quick Prep"],
     content: [
       "Smoothie bowls are the perfect canvas for a nutrient-dense breakfast. They are hydrating, packed with fiber, and if you do it right—loaded with protein.",
       "For this recipe, we're using frozen bananas for that creamy texture, a handful of spinach (you won't taste it, promise!), and a generous scoop of Pinobite Super Peanut Butter Chunky.",
@@ -159,12 +169,13 @@ export const BLOG_DATA: BlogPost[] = [
   {
     id: '2',
     type: 'Lifestyle',
-    title: "Why We Said 'No' to Refined Sugar",
+    title: "Why We Said 'No' to Refined Sugar in our snacks",
     excerpt: "Refined sugar is the silent energy killer. Here’s how switching to natural sweeteners like honey and jaggery changed our energy levels.",
     image: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=800&auto=format&fit=crop",
     date: "Oct 18, 2023",
-    readTime: "4 min read",
+    readTime: "4 min",
     author: "Dr. A. Singh",
+    tags: ["Health Insight", "Zero Sugar"],
     content: [
       "We've all experienced the dreaded 3 PM crash. You eat a sugary snack for a quick boost, but an hour later, you're more tired than before. That's the insulin rollercoaster caused by refined sugar.",
       "At Pinobite, we made a conscious choice to exclude refined white sugar from all our products. Instead, we rely on the complex sweetness of dates, the richness of jaggery, and raw honey.",
@@ -175,12 +186,13 @@ export const BLOG_DATA: BlogPost[] = [
   {
     id: '3',
     type: 'Recipe',
-    title: "No-Bake Muesli Energy Balls",
+    title: "No-Bake Muesli Energy Balls for the weekend",
     excerpt: "The perfect mid-day snack that doesn't require an oven. Just mix, roll, and chill. Great for kids' lunchboxes!",
     image: "https://images.unsplash.com/photo-1604423043492-4130b788de80?q=80&w=800&auto=format&fit=crop",
     date: "Oct 10, 2023",
-    readTime: "15 min prep",
+    readTime: "15 min",
     author: "Chef Riya",
+    tags: ["Kids Special", "No Bake"],
     content: [
       "Energy balls are the ultimate meal-prep hack. Make a batch on Sunday, and you have healthy snacks for the entire week.",
       "Ingredients: 1 cup Pinobite Super Muesli, 1/2 cup Creamy Almond Butter, 1/4 cup honey, and a pinch of salt.",
@@ -195,8 +207,9 @@ export const BLOG_DATA: BlogPost[] = [
     excerpt: "We are thrilled to announce our expansion into the Middle East. Find out where you can spot us in Dubai.",
     image: "https://images.unsplash.com/photo-1512453979798-5ea904ac66de?q=80&w=800&auto=format&fit=crop",
     date: "Sep 28, 2023",
-    readTime: "2 min read",
+    readTime: "2 min",
     author: "Team Pinobite",
+    tags: ["Global Update", "Expansion"],
     content: [
       "It started as a DM on Instagram. A cafe owner in Dubai wanted to stock our muesli. One thing led to another, and today we are officially launching shipping to the UAE!",
       "You can now find Pinobite products in select specialized health stores in Downtown Dubai and Jumeirah. We are working on getting our full range available online for our Middle Eastern customers soon.",
@@ -211,8 +224,9 @@ export const BLOG_DATA: BlogPost[] = [
     excerpt: "Not all fats make you fat. Learn why the monounsaturated fats in nuts are essential for brain health and glowing skin.",
     image: "https://images.unsplash.com/photo-1615486777798-fa3274dc5d5c?q=80&w=800&auto=format&fit=crop",
     date: "Sep 15, 2023",
-    readTime: "6 min read",
+    readTime: "6 min",
     author: "Sarah Nutrition",
+    tags: ["Keto Tips", "Brain Food"],
     content: [
       "For decades, 'fat' was the enemy. We bought low-fat everything, only to replace it with sugar and refined carbs. The result? A health crisis.",
       "The truth is, your body needs fat. Your brain is 60% fat. Your hormones rely on cholesterol to function. The key is choosing the *right* fats.",
@@ -227,11 +241,12 @@ export const BLOG_DATA: BlogPost[] = [
     excerpt: "Who said peanut butter is only for breakfast? Try this savory, creamy, and spicy dinner recipe ready in 20 minutes.",
     image: "https://images.unsplash.com/photo-1552611052-33e04de081de?q=80&w=800&auto=format&fit=crop",
     date: "Aug 30, 2023",
-    readTime: "20 min cook",
+    readTime: "20 min",
     author: "Chef Riya",
+    tags: ["Vegan Dinner", "Easy Cook"],
     content: [
       "This sauce is liquid gold. It's creamy, savory, spicy, and tangy all at once. And the base? Our Creamy Peanut Butter.",
-      "Whisk together: 1/3 cup peanut butter, 2 tbsp soy sauce, 1 tbsp lime juice, 1 tsp chili flakes, and a splash of warm water to thin it out.",
+      "Whisk together: 1/3 cup peanut butter, 2 tbsp soy sauce, 1 tbsp line juice, 1 tsp chili flakes, and a splash of warm water to thin it out.",
       "Toss this sauce with cooked noodles (rice noodles work great!), shredded carrots, purple cabbage, and edamame.",
       "Top with crushed peanuts and fresh cilantro. It's better than takeout, healthier, and ready in the time it takes to boil water."
     ]

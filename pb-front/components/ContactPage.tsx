@@ -1,7 +1,12 @@
 
 import React, { useState } from 'react';
+import Breadcrumbs from './Breadcrumbs';
 
-const ContactPage: React.FC = () => {
+interface ContactPageProps {
+  onHomeClick: () => void;
+}
+
+const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -13,7 +18,6 @@ const ContactPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('submitting');
-    // Simulate API call
     setTimeout(() => {
       setStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' });
@@ -22,8 +26,10 @@ const ContactPage: React.FC = () => {
 
   return (
     <div className="bg-background-light min-h-screen">
-      {/* Header */}
-      <div className="bg-secondary/10 py-20 px-4 relative overflow-hidden">
+      <div className="bg-secondary/10 pt-10 pb-20 px-4 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto mb-6">
+           <Breadcrumbs onHomeClick={onHomeClick} steps={[{ label: 'Contact' }]} />
+        </div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <span className="font-handdrawn text-3xl text-primary transform -rotate-2 inline-block mb-4">We don't bite! (Unless it's muesli)</span>
           <h1 className="text-5xl md:text-7xl font-black uppercase text-slate-900 tracking-tight mb-6">
@@ -39,8 +45,6 @@ const ContactPage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 py-16">
         <div className="grid lg:grid-cols-2 gap-16">
-          
-          {/* Contact Form */}
           <div className="order-2 lg:order-1">
             <div className="bg-white p-8 md:p-12 rounded-[40px] doodle-border shadow-xl relative">
               <div className="absolute -top-6 -left-6 bg-secondary text-slate-900 w-20 h-20 rounded-full flex items-center justify-center transform -rotate-12 shadow-lg z-10 hidden md:flex">
@@ -64,7 +68,6 @@ const ContactPage: React.FC = () => {
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <h3 className="text-2xl font-black uppercase text-slate-900 mb-8">Drop us a line</h3>
-                  
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Your Name</label>
@@ -89,7 +92,6 @@ const ContactPage: React.FC = () => {
                       />
                     </div>
                   </div>
-
                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Subject</label>
                     <select 
@@ -104,7 +106,6 @@ const ContactPage: React.FC = () => {
                       <option value="other">Other</option>
                     </select>
                   </div>
-
                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Message</label>
                     <textarea 
@@ -116,7 +117,6 @@ const ContactPage: React.FC = () => {
                       placeholder="Tell us what's on your mind..."
                     ></textarea>
                   </div>
-
                   <button 
                     disabled={status === 'submitting'}
                     className="w-full bg-primary text-white py-5 rounded-2xl font-black text-xl hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
@@ -138,7 +138,6 @@ const ContactPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Contact Info */}
           <div className="order-1 lg:order-2 space-y-10">
             <div className="relative rounded-3xl overflow-hidden aspect-video shadow-lg group">
               <img 
@@ -153,7 +152,6 @@ const ContactPage: React.FC = () => {
                 </div>
               </div>
             </div>
-
             <div className="grid sm:grid-cols-2 gap-6">
               <div className="bg-white p-6 rounded-3xl border-2 border-slate-50 hover:border-secondary transition-colors group">
                 <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center text-secondary mb-4 group-hover:bg-secondary group-hover:text-slate-900 transition-colors">
@@ -166,7 +164,6 @@ const ContactPage: React.FC = () => {
                   Maharashtra - 400013
                 </p>
               </div>
-
               <div className="bg-white p-6 rounded-3xl border-2 border-slate-50 hover:border-secondary transition-colors group">
                 <div className="w-12 h-12 bg-secondary/10 rounded-full flex items-center justify-center text-secondary mb-4 group-hover:bg-secondary group-hover:text-slate-900 transition-colors">
                   <span className="material-symbols-outlined text-2xl">call</span>
@@ -177,7 +174,6 @@ const ContactPage: React.FC = () => {
                 </p>
                 <a href="tel:+919876543210" className="text-primary font-bold text-lg hover:underline">+91 98765 43210</a>
               </div>
-
               <div className="bg-white p-6 rounded-3xl border-2 border-slate-50 hover:border-secondary transition-colors group sm:col-span-2">
                 <div className="flex items-start justify-between">
                   <div>
@@ -193,8 +189,6 @@ const ContactPage: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Social Proof */}
             <div className="bg-primary text-white p-8 rounded-3xl relative overflow-hidden">
                <div className="relative z-10 flex items-center justify-between gap-4">
                  <div>
@@ -214,7 +208,6 @@ const ContactPage: React.FC = () => {
                </div>
                <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80"></div>
             </div>
-
           </div>
         </div>
       </div>

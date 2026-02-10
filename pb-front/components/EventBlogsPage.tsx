@@ -1,13 +1,15 @@
 
 import React, { useState } from 'react';
 import { EventBlog } from '../types';
+import Breadcrumbs from './Breadcrumbs';
 
 interface EventBlogsPageProps {
   events: EventBlog[];
   onEventClick: (event: EventBlog) => void;
+  onHomeClick: () => void;
 }
 
-const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick }) => {
+const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick, onHomeClick }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredEvents = events.filter(event => 
@@ -17,8 +19,14 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick })
 
   return (
     <div className="bg-background-light min-h-screen animate-in fade-in duration-500">
-      {/* Header Banner */}
-      <div className="bg-slate-900 text-white py-24 px-4 relative overflow-hidden">
+      <div className="bg-slate-900 text-white pt-10 pb-24 px-4 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto mb-6">
+           <Breadcrumbs 
+             onHomeClick={onHomeClick} 
+             steps={[{ label: 'Stories' }]} 
+             className="text-white/60 !py-0"
+           />
+        </div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <span className="font-handdrawn text-3xl text-secondary transform -rotate-2 inline-block mb-4">Reliving the Vibes</span>
           <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tight mb-6">
@@ -28,14 +36,11 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick })
             Explore our community gatherings, workshops, and high-energy sessions across the globe.
           </p>
         </div>
-        
-        {/* Decorative elements */}
         <span className="absolute top-10 left-10 text-9xl opacity-10 font-black text-white select-none hidden md:block rotate-12">LIVE</span>
         <span className="absolute bottom-10 right-10 text-9xl opacity-10 font-black text-secondary select-none hidden md:block -rotate-12">PINO</span>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-16">
-        {/* Search */}
         <div className="max-w-xl mx-auto mb-16">
           <div className="relative group">
             <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">
@@ -51,7 +56,6 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick })
           </div>
         </div>
 
-        {/* Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
           {filteredEvents.map((event) => (
             <div 
@@ -59,7 +63,6 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick })
               onClick={() => onEventClick(event)}
               className="group bg-white rounded-[40px] border-2 border-slate-100 overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer flex flex-col h-full"
             >
-              {/* Image Container */}
               <div className="h-72 overflow-hidden relative">
                 <img 
                   src={event.image} 
@@ -69,14 +72,13 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick })
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
 
-              {/* Info Container */}
               <div className="p-8 space-y-5 flex-1 flex flex-col">
                 <div className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-widest">
                   <span className="material-symbols-outlined text-sm">calendar_today</span>
                   {event.date}
                 </div>
                 
-                <h3 className="text-2xl font-black uppercase text-slate-900 leading-tight group-hover:text-primary transition-colors">
+                <h3 className="text-2xl font-black uppercase text-slate-900 leading-tight mb-2 group-hover:text-primary transition-colors">
                   {event.title}
                 </h3>
                 
@@ -114,7 +116,6 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick })
         )}
       </div>
 
-      {/* Newsletter */}
       <div className="bg-secondary/10 py-24 border-t border-slate-100">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-4xl font-black uppercase text-slate-900 mb-6">Want to Join the Next One?</h2>

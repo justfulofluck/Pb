@@ -10,6 +10,8 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [view, setView] = useState<'login' | 'reset'>('login');
+  const [resetSent, setResetSent] = useState(false);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,6 +20,16 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
     setTimeout(() => {
       setIsLoggingIn(false);
       onLoginSuccess();
+    }, 1500);
+  };
+
+  const handleResetRequest = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoggingIn(true);
+    // Simulate reset request
+    setTimeout(() => {
+      setIsLoggingIn(false);
+      setResetSent(true);
     }, 1500);
   };
 
@@ -33,78 +45,159 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
         <div className="text-center mb-10">
           <div className="flex items-center justify-center gap-3 text-white mb-4">
             <span className="material-symbols-outlined text-4xl text-primary">eco</span>
-            <span className="text-3xl font-black tracking-tighter">PINOBITE <span className="text-slate-500">GLOBAL</span></span>
+            <span className="text-3xl font-black tracking-tighter uppercase">PINOBITE <span className="text-slate-500">GLOBAL</span></span>
           </div>
-          <p className="text-slate-400 font-medium uppercase tracking-widest text-xs">Internal Team Access Portal</p>
+          <p className="text-slate-400 font-medium uppercase tracking-widest text-[10px]">
+            {view === 'login' ? 'Internal Team Access Portal' : 'Security Recovery Protocol'}
+          </p>
         </div>
 
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl shadow-2xl">
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Corporate ID / Email</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
-                  <span className="material-symbols-outlined text-lg">badge</span>
-                </span>
-                <input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@pinobite.global"
-                  className="w-full bg-slate-950/50 border border-slate-700 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-medium placeholder:text-slate-700"
-                  required
-                />
+        <div className="bg-[#1a2333]/60 backdrop-blur-xl border border-white/5 p-8 md:p-10 rounded-[32px] shadow-2xl">
+          {view === 'login' ? (
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Corporate ID / Email</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                    <span className="material-symbols-outlined text-lg">badge</span>
+                  </span>
+                  <input 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@pinobite.global"
+                    className="w-full bg-[#0f172a]/80 border border-slate-700/50 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all font-medium placeholder:text-slate-700"
+                    required
+                  />
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Access Key</label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
-                  <span className="material-symbols-outlined text-lg">vpn_key</span>
-                </span>
-                <input 
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full bg-slate-950/50 border border-slate-700 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all font-medium placeholder:text-slate-700"
-                  required
-                />
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Access Key</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                    <span className="material-symbols-outlined text-lg">vpn_key</span>
+                  </span>
+                  <input 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full bg-[#0f172a]/80 border border-slate-700/50 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all font-medium placeholder:text-slate-700"
+                    required
+                  />
+                </div>
               </div>
-            </div>
 
-            <div className="flex items-center justify-between text-xs">
-              <label className="flex items-center gap-2 text-slate-400 cursor-pointer hover:text-white transition-colors">
-                <input type="checkbox" className="rounded border-slate-700 bg-slate-900 text-primary focus:ring-offset-slate-900" />
-                Remember Device
-              </label>
-              <a href="#" className="text-primary font-bold hover:underline">Lost Key?</a>
-            </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <label className="flex items-center gap-2 text-slate-400 cursor-pointer hover:text-white transition-colors">
+                  <input type="checkbox" className="rounded border-slate-700 bg-slate-900 text-primary focus:ring-offset-slate-900" />
+                  Remember Device
+                </label>
+                <button 
+                  type="button"
+                  onClick={() => setView('reset')}
+                  className="text-primary font-bold hover:text-primary/80 transition-colors"
+                >
+                  Lost Key?
+                </button>
+              </div>
 
-            <button 
-              disabled={isLoggingIn}
-              className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(0,138,69,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isLoggingIn ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                  Authenticating...
-                </>
+              <button 
+                disabled={isLoggingIn}
+                className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(0,138,69,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
+              >
+                {isLoggingIn ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    VERIFYING...
+                  </>
+                ) : (
+                  <>
+                    Access Panel
+                    <span className="material-symbols-outlined text-lg">logout</span>
+                  </>
+                )}
+              </button>
+            </form>
+          ) : (
+            <div className="space-y-6">
+              {resetSent ? (
+                <div className="text-center py-4 space-y-6 animate-in fade-in zoom-in duration-500">
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                    <span className="material-symbols-outlined text-3xl text-primary">mail</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2">Instructions Sent</h3>
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                      Check your corporate inbox for recovery instructions. Secure link expires in 15 minutes.
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => { setView('login'); setResetSent(false); }}
+                    className="text-primary font-black uppercase tracking-widest text-[10px] hover:underline"
+                  >
+                    Back to Secure Login
+                  </button>
+                </div>
               ) : (
-                <>
-                  Access Panel
-                  <span className="material-symbols-outlined text-lg">login</span>
-                </>
+                <form onSubmit={handleResetRequest} className="space-y-6">
+                  <div>
+                    <p className="text-slate-400 text-xs text-center mb-8 leading-relaxed">
+                      Enter your registered Corporate ID. A temporary access key or recovery link will be dispatched to your encrypted mail.
+                    </p>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Corporate ID / Email</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+                        <span className="material-symbols-outlined text-lg">badge</span>
+                      </span>
+                      <input 
+                        type="email" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="admin@pinobite.global"
+                        className="w-full bg-[#0f172a]/80 border border-slate-700/50 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all font-medium placeholder:text-slate-700"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    disabled={isLoggingIn}
+                    className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(0,138,69,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
+                  >
+                    {isLoggingIn ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                        PROCESSING...
+                      </>
+                    ) : (
+                      <>
+                        Request Recovery
+                        <span className="material-symbols-outlined text-lg">send</span>
+                      </>
+                    )}
+                  </button>
+
+                  <div className="text-center">
+                    <button 
+                      type="button"
+                      onClick={() => setView('login')}
+                      className="text-slate-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest"
+                    >
+                      Return to Access Panel
+                    </button>
+                  </div>
+                </form>
               )}
-            </button>
-          </form>
+            </div>
+          )}
         </div>
 
-        <div className="text-center mt-8">
+        <div className="text-center mt-10">
           <button 
             onClick={onBackToSite}
-            className="text-slate-600 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 mx-auto"
+            className="text-slate-600 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 mx-auto"
           >
             <span className="material-symbols-outlined text-sm">arrow_back</span>
             Return to Public Site
@@ -112,8 +205,10 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
         </div>
       </div>
 
-      <div className="absolute bottom-6 left-0 w-full text-center">
-        <p className="text-slate-700 text-[10px] uppercase font-bold tracking-widest">Authorized Personnel Only • Secure Connection v2.4</p>
+      <div className="absolute bottom-8 left-0 w-full text-center">
+        <p className="text-slate-700 text-[9px] uppercase font-bold tracking-[0.3em]">
+          Authorized Personnel Only • Secure 256-bit Encrypted Connection
+        </p>
       </div>
     </div>
   );

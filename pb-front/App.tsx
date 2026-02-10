@@ -3,7 +3,9 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import CategoryList from './components/CategoryList';
+import StoryCarousel from './components/StoryCarousel';
 import ProductGrid from './components/ProductGrid';
+import LatestProductShowcase from './components/LatestProductShowcase';
 import ComparisonTable from './components/ComparisonTable';
 import Testimonials from './components/Testimonials';
 import Newsletter from './components/Newsletter';
@@ -16,7 +18,6 @@ import ProductPage from './components/ProductPage';
 import ShopPage from './components/ShopPage';
 import CheckoutPage from './components/CheckoutPage';
 import Dashboard from './components/Dashboard';
-import ContactPage from './components/ContactPage';
 import FAQPage from './components/FAQPage';
 import DistributorPage from './components/DistributorPage';
 import BlogsPage from './components/BlogsPage';
@@ -29,13 +30,16 @@ import EventModal from './components/EventModal';
 import AdminLoginPage from './components/AdminLoginPage';
 import AdminDashboard from './components/AdminDashboard';
 import JourneyPage from './components/JourneyPage';
-import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, BLOG_DATA } from './types';
+import PrivacyPolicyPage from './components/PrivacyPolicyPage';
+import TermsAndConditionsPage from './components/TermsAndConditionsPage';
+import RefundPolicyPage from './components/RefundPolicyPage';
+import ShippingPolicyPage from './components/ShippingPolicyPage';
+import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, BLOG_DATA, Story } from './types';
 
-// Initial Data
 const INITIAL_PRODUCTS: Product[] = [
   {
     id: '1',
-    name: "SUPER MUESLI NUT & SEEDS",
+    name: "Super Muesli Nut & Seeds",
     price: 510,
     originalPrice: 550,
     rating: 4.9,
@@ -44,26 +48,27 @@ const INITIAL_PRODUCTS: Product[] = [
     category: 'Muesli',
     stock: 120,
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDlO7xgHzKyGEDOxeOScyOxN5vN6FXzx20a7SvpB5ecScwr4qW694FWHi28IthZVEaSbiDhq9U0eZ9ceBRcSATV1Ki-QuUg0XRUsfYd8o5L6LHcWQXasygvM_759LZu5o47H_FdjhQUqOtdsJr_Mdie3B1H-9h5Xm9kVjvlPMNRwwZkGgnF95HxRp2B-e3wC4qGMh-c_DtEjWEZdvmjtkysZyG-fw96D-tczHQAuR8nFehAenohxeOj74GHSHzTgUA6Ht8G4JYY93l_",
-    description: "Our signature blend of premium nuts and heart-healthy seeds, slow-roasted to perfection. Zero refined sugar, 100% natural goodness.",
+    description: "Premium slow-roasted nut blend with high-fiber seeds and zero refined sugar.",
     benefits: ["High Fiber", "Zero White Sugar", "Omega-3 Rich", "Vegan Friendly"],
     nutrients: [{label: "Protein", value: "18g"}, {label: "Carbs", value: "42g"}, {label: "Healthy Fats", value: "22g"}, {label: "Energy", value: "480kcal"}]
   },
   {
     id: '2',
-    name: "SUPER PEANUT BUTTER CHUNKY",
+    name: "Dark Chocolate Chunky Peanut Butter",
     price: 680,
     rating: 4.8,
     reviewCount: 119,
     category: 'Nut Butters',
+    isTopRated: true,
     stock: 85,
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCP7V5MszmhehKHONysdx4EeXIINOTiNn8Vz0A5WtMtC5U15SIefWSxwqAbYTWPoft9SYq26_rh38aCtNrrmu40qNkrU6zsV5jcvcFteB5STzIIF3UGVwStHYCi0mRIqS4r4x9IHb1IJcTkZhjHhcL4XGczrd8k4eGW0u9rFGJzNFdSQZvufHuSFWCWtMiBxADQJs1dS8lMy-KwjajLg2jPe0YVJjDDmFi6sIVZlq5UWSMwylmPhJ32RySGU3TDs6QWd41oY6qPtng8",
-    description: "Hand-picked roasted peanuts blended with a touch of dark chocolate. No palm oil, no preservatives. Just the crunch you love.",
+    description: "Hand-picked roasted peanuts blended with premium dark cocoa and protein chunks.",
     benefits: ["No Palm Oil", "Whey Protein Added", "Gluten Free", "Dark Chocolate"],
     nutrients: [{label: "Protein", value: "32g"}, {label: "Carbs", value: "12g"}, {label: "Healthy Fats", value: "48g"}, {label: "Sugar", value: "4g"}]
   },
   {
     id: '3',
-    name: "HIGH PROTEIN ROLLED OATS",
+    name: "High Protein Rolled Oats",
     price: 449,
     originalPrice: 520,
     rating: 5,
@@ -71,50 +76,30 @@ const INITIAL_PRODUCTS: Product[] = [
     category: 'Oats',
     stock: 200,
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCNiD74c8_tEGvm33_Hj4lsDcPCTXKYrcvnmhVcJmDwASTO4WH7pyx_vWDolXKZRH1aacdTaCpmgdOItJGddIS5gZF6a_XVXlebwu-ohwefHDF6uX4Mjp2x1PpiFaev9waP_XSKc1UyZyqw0pRsTAQHX0bxfVYMRGpJd6A7Htf5mLGyQ2QkiA-ZCFWPOSdK8oGoGmVzjfvK9RXS5ANbLPi4N89hC-P7FQrqUrvmxuiyKxt9l8V2asTwQgQ1l29FihpAOP94VSP19PCW",
-    description: "100% Whole Grain Rolled Oats boosted with plant-based protein. The perfect base for your morning fuel bowl.",
+    description: "100% whole grain oats boosted with plant protein for a sustained morning energy.",
     benefits: ["Complex Carbs", "Slow Digestion", "Non-GMO", "No Additives"],
     nutrients: [{label: "Protein", value: "14g"}, {label: "Carbs", value: "66g"}, {label: "Healthy Fats", value: "7g"}, {label: "Fiber", value: "11g"}]
   },
   {
     id: '4',
-    name: "CREAMY ALMOND BUTTER",
+    name: "Creamy Stone-Ground Almond Butter",
     price: 899,
     rating: 4.7,
     reviewCount: 56,
     category: 'Nut Butters',
     stock: 5,
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuC36Ps7aMot5-GXznDvelGditD07FcxqmsLUDCww78ftzXv6wSqu2tdIjbahIB3N5iK37NtvJQXdCOnLTNZ7hPT-YBK4JEMa53fvnzytOZqq28jFCTDOhR37W3FMPmOt7xLn4hpt1AUcBNxzkW7oPmx9ZNsB5mf_uR6_Kj1624i-WvnHZ_HQ22K2tds_wmKQECT4e8d7rzOkqE00zOTTJkipKovCEuql_GY2ctR9FpnxXxIiaali-2EAF6m3ELAHfYIZPOzZMOeud0q",
-    description: "Pure Californian almonds stone-ground into a silky smooth butter. Rich in Vitamin E and antioxidants.",
+    description: "Pure Californian almonds stone-ground into a silky smooth, heart-healthy spread.",
     benefits: ["Heart Healthy", "Keto Friendly", "Vitamin E Rich", "Antioxidant Pack"],
     nutrients: [{label: "Protein", value: "21g"}, {label: "Carbs", value: "10g"}, {label: "Healthy Fats", value: "54g"}, {label: "Iron", value: "4mg"}]
-  },
-  {
-    id: '5',
-    name: "DARK CHOCOLATE ALMOND BUTTER",
-    price: 749,
-    originalPrice: 849,
-    rating: 4.9,
-    reviewCount: 312,
-    category: 'Nut Butters',
-    stock: 45,
-    image: "https://images.unsplash.com/photo-1614691467766-c56dfd8d6447?q=80&w=800&auto=format&fit=crop", 
-    description: "Rich roasted almonds blended with premium dark cocoa. A guilt-free dessert on a spoon.",
-    benefits: ["Rich in Protein", "Healthy Fats", "Low Sugar", "Vegan"],
-    nutrients: [{label: "Protein", value: "20g"}, {label: "Carbs", value: "15g"}, {label: "Healthy Fats", value: "48g"}, {label: "Iron", value: "3mg"}]
-  },
-  {
-    id: '6',
-    name: "BERRY BLAST SUPER MUESLI",
-    price: 540,
-    rating: 4.7,
-    reviewCount: 156,
-    category: 'Muesli',
-    stock: 60,
-    image: "https://images.unsplash.com/photo-1590779033100-9f60a05a013d?q=80&w=800&auto=format&fit=crop",
-    description: "Loaded with cranberries, blueberries, and strawberries for an antioxidant punch.",
-    benefits: ["Antioxidants", "High Fiber", "Vitamin C", "No Added Sugar"],
-    nutrients: [{label: "Protein", value: "14g"}, {label: "Fiber", value: "8g"}, {label: "Carbs", value: "50g"}, {label: "Vit C", value: "15mg"}]
   }
+];
+
+const INITIAL_STORIES: Story[] = [
+  { id: 's1', mediaUrl: 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=800&auto=format&fit=crop', mediaType: 'image', productId: '3' },
+  { id: 's2', mediaUrl: 'https://images.unsplash.com/photo-1594824476967-48c8b964273f?q=80&w=800&auto=format&fit=crop', mediaType: 'image', productId: '2' },
+  { id: 's3', mediaUrl: 'https://player.vimeo.com/external/370331493.sd.mp4?s=338c3539d01f9d4536735c05c08006e8902d1844&profile_id=164&oauth2_token_id=57447761', mediaType: 'video', productId: '1' },
+  { id: 's4', mediaUrl: 'https://images.unsplash.com/photo-1520174246167-93d970c0e5c2?q=80&w=800&auto=format&fit=crop', mediaType: 'image', productId: '3' },
 ];
 
 const INITIAL_REVIEWS: Review[] = [
@@ -210,7 +195,7 @@ const INITIAL_SLIDES: HeroSlide[] = [
     description: "Zero refined sugar. Loaded with real coffee and high protein. The ultimate fuel for your busy mornings.",
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDlO7xgHzKyGEDOxeOScyOxN5vN6FXzx20a7SvpB5ecScwr4qW694FWHi28IthZVEaSbiDhq9U0eZ9ceBRcSATV1Ki-QuUg0XRUsfYd8o5L6LHcWQXasygvM_759LZu5o47H_FdjhQUqOtdsJr_Mdie3B1H-9h5Xm9kVjvlPMNRwwZkGgnF95HxRp2B-e3wC4qGMh-c_DtEjWEZdvmjtkysZyG-fw96D-tczHQAuR8nFehAenohxeOj74GHSHzTgUA6Ht8G4JYY93l_",
     cta: "SHOP MUESLI",
-    bgColor: "bg-[#fff7ed]", // Orange-50
+    bgColor: "bg-[#fff7ed]", 
     accentColor: "text-orange-600",
     blobColor: "bg-orange-200",
     isActive: true
@@ -222,7 +207,7 @@ const INITIAL_SLIDES: HeroSlide[] = [
     description: "Stone-ground Californian almonds. 100% natural, keto-friendly, and impossibly creamy. No added oil.",
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuC36Ps7aMot5-GXznDvelGditD07FcxqmsLUDCww78ftzXv6wSqu2tdIjbahIB3N5iK37NtvJQXdCOnLTNZ7hPT-YBK4JEMa53fvnzytOZqq28jFCTDOhR37W3FMPmOt7xLn4hpt1AUcBNxzkW7oPmx9ZNsB5mf_uR6_Kj1624i-WvnHZ_HQ22K2tds_wmKQECT4e8d7rzOkqE00zOTTJkipKovCEuql_GY2ctR9FpnxXxIiaali-2EAF6m3ELAHfYIZPOzZMOeud0q",
     cta: "TASTE IT",
-    bgColor: "bg-[#fefce8]", // Yellow-50
+    bgColor: "bg-[#fefce8]", 
     accentColor: "text-yellow-600",
     blobColor: "bg-yellow-200",
     isActive: true
@@ -234,7 +219,7 @@ const INITIAL_SLIDES: HeroSlide[] = [
     description: "Roasted peanuts meeting dark chocolate chunks. High protein, high energy, and absolutely delicious.",
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCP7V5MszmhehKHONysdx4EeXIINOTiNn8Vz0A5WtMtC5U15SIefWSxwqAbYTWPoft9SYq26_rh38aCtNrrmu40qNkrU6zsV5jcvcFteB5STzIIF3UGVwStHYCi0mRIqS4r4x9IHb1IJcTkZhjHhcL4XGczrd8k4eGW0u9rFGJzNFdSQZvufHuSFWCWtMiBxADQJs1dS8lMy-KwjajLg2jPe0YVJjDDmFi6sIVZlq5UWSMwylmPhJ32RySGU3TDs6QWd41oY6qPtng8",
     cta: "GRAB A JAR",
-    bgColor: "bg-[#faf5ff]", // Purple-50
+    bgColor: "bg-[#faf5ff]", 
     accentColor: "text-purple-600",
     blobColor: "bg-purple-200",
     isActive: true
@@ -246,7 +231,7 @@ const INITIAL_SLIDES: HeroSlide[] = [
     description: "Slow-releasing energy from 100% whole grain rolled oats. The perfect base for porridge or baking.",
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCNiD74c8_tEGvm33_Hj4lsDcPCTXKYrcvnmhVcJmDwASTO4WH7pyx_vWDolXKZRH1aacdTaCpmgdOItJGddIS5gZF6a_XVXlebwu-ohwefHDF6uX4Mjp2x1PpiFaev9waP_XSKc1UyZyqw0pRsTAQHX0bxfVYMRGpJd6A7Htf5mLGyQ2QkiA-ZCFWPOSdK8oGoGmVzjfvK9RXS5ANbLPi4N89hC-P7FQrqUrvmxuiyKxt9l8V2asTwQgQ1l29FihpAOP94VSP19PCW",
     cta: "START HEALTHY",
-    bgColor: "bg-[#fff1f2]", // Rose-50
+    bgColor: "bg-[#fff1f2]", 
     accentColor: "text-rose-600",
     blobColor: "bg-rose-200",
     isActive: true
@@ -258,7 +243,7 @@ const INITIAL_SLIDES: HeroSlide[] = [
     description: "Curated assortment boxes for your loved ones. Why choose one when you can have them all?",
     image: "https://images.unsplash.com/photo-1620916297397-a4a5402a3c6c?q=80&w=800&auto=format&fit=crop",
     cta: "VIEW BUNDLES",
-    bgColor: "bg-[#ecfdf5]", // Emerald-50
+    bgColor: "bg-[#ecfdf5]", 
     accentColor: "text-emerald-600",
     blobColor: "bg-emerald-200",
     isActive: true
@@ -267,14 +252,13 @@ const INITIAL_SLIDES: HeroSlide[] = [
 
 const INITIAL_CATEGORIES = ['Muesli', 'Nut Butters', 'Oats'];
 
-// Current user stub
 const CURRENT_USER = {
   name: "Alex Fueler",
   role: "Pro Member",
   avatar: "https://ui-avatars.com/api/?name=Alex+Fueler&background=008a45&color=fff"
 };
 
-type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'contact' | 'faq' | 'distributor' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey';
+type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'distributor' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey' | 'privacy-policy' | 'terms-and-conditions' | 'refund-policy' | 'shipping-policy';
 
 const App: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
@@ -283,6 +267,7 @@ const App: React.FC = () => {
   const [categories, setCategories] = useState<string[]>(INITIAL_CATEGORIES);
   const [slides, setSlides] = useState<HeroSlide[]>(INITIAL_SLIDES);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(BLOG_DATA);
+  const [stories, setStories] = useState<Story[]>(INITIAL_STORIES);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -297,7 +282,6 @@ const App: React.FC = () => {
   const [shopCategory, setShopCategory] = useState('All');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simulate initial data loading
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -305,12 +289,10 @@ const App: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  // Sync scroll to top on view change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentView, selectedProduct, selectedEvent, selectedBlogPost]);
 
-  // Admin Actions
   const handleAddProduct = (newProduct: Product) => {
     setProducts(prev => [newProduct, ...prev]);
   };
@@ -361,6 +343,10 @@ const App: React.FC = () => {
     setReviews(prev => [review, ...prev]);
   };
 
+  const handleUpdateStories = (newStories: Story[]) => {
+    setStories(newStories);
+  };
+
   const addToCart = (product: Product) => {
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
@@ -395,7 +381,7 @@ const App: React.FC = () => {
     setShopCategory('All');
     setCurrentView('shop');
     setSelectedProduct(null);
-    setGlobalSearchQuery(''); // Reset search when clicking shop manually
+    setGlobalSearchQuery(''); 
   };
 
   const navigateToShopCategory = (category: string) => {
@@ -420,11 +406,6 @@ const App: React.FC = () => {
 
   const navigateToDashboard = () => {
     setCurrentView('dashboard');
-    setSelectedProduct(null);
-  };
-
-  const navigateToContact = () => {
-    setCurrentView('contact');
     setSelectedProduct(null);
   };
 
@@ -473,6 +454,26 @@ const App: React.FC = () => {
     setSelectedEvent(null);
   }
 
+  const navigateToPrivacy = () => {
+    setCurrentView('privacy-policy');
+    setSelectedProduct(null);
+  }
+
+  const navigateToTerms = () => {
+    setCurrentView('terms-and-conditions');
+    setSelectedProduct(null);
+  }
+
+  const navigateToRefund = () => {
+    setCurrentView('refund-policy');
+    setSelectedProduct(null);
+  }
+
+  const navigateToShipping = () => {
+    setCurrentView('shipping-policy');
+    setSelectedProduct(null);
+  }
+
   const goHome = () => {
     setCurrentView('home');
     setSelectedProduct(null);
@@ -506,7 +507,6 @@ const App: React.FC = () => {
     setCart([]);
   };
 
-  // If viewing admin pages, do not render standard layout
   if (currentView === 'admin-login') {
     return <AdminLoginPage onLoginSuccess={handleAdminLogin} onBackToSite={goHome} />;
   }
@@ -530,6 +530,8 @@ const App: React.FC = () => {
         onAddBlog={handleAddBlog}
         onUpdateBlog={handleUpdateBlog}
         onDeleteBlog={handleDeleteBlog}
+        stories={stories}
+        onUpdateStories={handleUpdateStories}
       />
     );
   }
@@ -545,7 +547,6 @@ const App: React.FC = () => {
           onLogoClick={goHome}
           onProductsClick={navigateToShop}
           onDashboardClick={navigateToDashboard}
-          onContactClick={navigateToContact}
           onStoriesClick={navigateToEventBlogs}
           onJourneyClick={navigateToJourney}
           onSearch={handleGlobalSearch}
@@ -557,12 +558,14 @@ const App: React.FC = () => {
           <>
             <Hero onShopClick={navigateToShop} slides={slides} />
             <CategoryList onCategoryClick={navigateToShopCategory} />
+            <StoryCarousel stories={stories} products={products} onProductClick={navigateToProduct} />
             <ProductGrid 
               products={products}
               onAddToCart={addToCart} 
               onProductClick={navigateToProduct} 
               isLoading={isLoading}
             />
+            <LatestProductShowcase />
             <ComparisonTable />
             <Testimonials reviews={reviews} />
             <BlogSection 
@@ -615,24 +618,21 @@ const App: React.FC = () => {
         )}
 
         {currentView === 'dashboard' && (
-          <Dashboard onLogout={handleLogout} />
-        )}
-
-        {currentView === 'contact' && (
-          <ContactPage />
+          <Dashboard onLogout={handleLogout} onHomeClick={goHome} />
         )}
 
         {currentView === 'faq' && (
-          <FAQPage onContactClick={navigateToContact} />
+          <FAQPage onHomeClick={goHome} />
         )}
 
         {currentView === 'distributor' && (
-          <DistributorPage />
+          <DistributorPage onHomeClick={goHome} />
         )}
 
         {currentView === 'blogs' && (
           <BlogsPage 
             onBlogClick={navigateToBlogDetail}
+            onHomeClick={goHome}
           />
         )}
 
@@ -640,6 +640,7 @@ const App: React.FC = () => {
           <BlogDetailPage 
             post={selectedBlogPost}
             onBack={navigateToBlogs}
+            onHomeClick={goHome}
           />
         )}
 
@@ -647,6 +648,7 @@ const App: React.FC = () => {
           <EventBlogsPage 
             events={events}
             onEventClick={navigateToEventDetail}
+            onHomeClick={goHome}
           />
         )}
 
@@ -654,11 +656,28 @@ const App: React.FC = () => {
           <EventDetailsPage 
             event={selectedEvent}
             onBack={navigateToEventBlogs}
+            onHomeClick={goHome}
           />
         )}
 
         {currentView === 'journey' && (
-          <JourneyPage onShopClick={navigateToShop} />
+          <JourneyPage onShopClick={navigateToShop} onHomeClick={goHome} />
+        )}
+
+        {currentView === 'privacy-policy' && (
+          <PrivacyPolicyPage onHomeClick={goHome} />
+        )}
+
+        {currentView === 'terms-and-conditions' && (
+          <TermsAndConditionsPage onHomeClick={goHome} />
+        )}
+
+        {currentView === 'refund-policy' && (
+          <RefundPolicyPage onHomeClick={goHome} />
+        )}
+
+        {currentView === 'shipping-policy' && (
+          <ShippingPolicyPage onHomeClick={goHome} />
         )}
       </main>
 
@@ -666,13 +685,16 @@ const App: React.FC = () => {
         <Footer 
           onShopClick={navigateToShop} 
           onHomeClick={goHome} 
-          onContactClick={navigateToContact}
           onFAQClick={navigateToFAQ}
           onDistributorClick={navigateToDistributor}
           onBlogsClick={navigateToBlogs}
           onEventBlogsClick={navigateToEventBlogs}
           onAdminClick={navigateToAdmin}
           onJourneyClick={navigateToJourney}
+          onPrivacyClick={navigateToPrivacy}
+          onTermsClick={navigateToTerms}
+          onRefundClick={navigateToRefund}
+          onShippingClick={navigateToShipping}
         />
       )}
       

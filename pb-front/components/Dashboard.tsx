@@ -1,12 +1,13 @@
 
 import React from 'react';
+import Breadcrumbs from './Breadcrumbs';
 
 interface DashboardProps {
   onLogout: () => void;
+  onHomeClick: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
-  // Dummy user data
+const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
   const user = {
     name: "Alex Fueler",
     points: 1240,
@@ -29,6 +30,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
+      <Breadcrumbs onHomeClick={onHomeClick} steps={[{ label: 'My Account' }]} className="mb-6" />
+
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
         <div>
           <h1 className="text-5xl font-black uppercase text-slate-900 tracking-tighter">
@@ -46,7 +49,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Left Column: Stats & Profile */}
         <div className="space-y-8">
           <div className="bg-white doodle-border p-8 space-y-6 shadow-lg">
             <div className="flex items-center gap-4">
@@ -99,9 +101,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
           </div>
         </div>
 
-        {/* Middle/Right: Orders & Rewards */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Recent Orders */}
           <section className="bg-white rounded-3xl p-8 border-2 border-slate-50 shadow-sm">
             <div className="flex justify-between items-center mb-8">
               <h3 className="text-2xl font-black uppercase tracking-tight">Recent Orders</h3>
@@ -142,7 +142,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             </div>
           </section>
 
-          {/* Reward Perks */}
           <section className="bg-white rounded-3xl p-8 border-2 border-slate-50 shadow-sm">
             <h3 className="text-2xl font-black uppercase tracking-tight mb-8">Available Rewards</h3>
             <div className="grid md:grid-cols-3 gap-6">

@@ -2,7 +2,8 @@
 import { GoogleGenAI } from "@google/genai";
 
 export const getHealthAdvice = async (userQuery: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  // Always use process.env.API_KEY directly for initialization as per guidelines.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
@@ -13,7 +14,9 @@ export const getHealthAdvice = async (userQuery: string) => {
       },
     });
     
+    // Access the generated text directly from the response.text property.
     let text = response.text || "I'm doing some healthy research, one moment...";
+    // Extract website URLs from grounding chunks to display search references.
     const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
     
     return { text, sources };

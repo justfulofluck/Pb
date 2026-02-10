@@ -13,9 +13,9 @@ const COMPARISON_DATA: ComparisonRow[] = [
 
 const ComparisonTable: React.FC = () => {
   return (
-    <section className="py-24 bg-white overflow-hidden">
+    <section className="py-24 bg-slate-50 overflow-hidden">
       <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-4xl md:text-5xl font-black text-center mb-20 uppercase italic tracking-tight">
+        <h2 className="text-4xl md:text-5xl font-black text-center mb-20 uppercase italic tracking-tight text-slate-900">
           PINOBITE <span className="text-primary italic">VS.</span> THE REST
         </h2>
         
@@ -24,37 +24,42 @@ const ComparisonTable: React.FC = () => {
             <thead>
               <tr className="text-slate-900 uppercase">
                 <th className="p-6 text-left font-handdrawn text-3xl align-bottom w-1/4">Features</th>
-                <th className="p-6 text-center bg-[#f1f5f9] rounded-t-3xl font-black text-sm tracking-widest w-1/4">Ghar Ka Khaana</th>
+                <th className="p-6 text-center bg-white/50 backdrop-blur rounded-t-3xl font-black text-sm tracking-widest w-1/4">Ghar Ka Khaana</th>
                 <th className="relative p-0 w-1/4">
                   <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-10 bg-secondary text-slate-900 px-4 py-1.5 rounded-full text-[10px] font-black shadow-sm whitespace-nowrap transform -rotate-1">
                     THE BEST
                   </div>
-                  <div className="p-6 bg-primary text-white rounded-t-3xl font-black text-sm tracking-widest h-full flex items-center justify-center">
+                  <div className="p-6 bg-primary text-white rounded-t-3xl font-black text-sm tracking-widest h-full flex items-center justify-center shadow-lg">
                     PINOBITE
                   </div>
                 </th>
-                <th className="p-6 text-center bg-[#f1f5f9] rounded-t-3xl font-black text-sm tracking-widest w-1/4">Junk Food</th>
+                <th className="p-6 text-center bg-white/50 backdrop-blur rounded-t-3xl font-black text-sm tracking-widest w-1/4">Junk Food</th>
               </tr>
             </thead>
             <tbody className="text-slate-600 font-medium text-sm">
               {COMPARISON_DATA.map((row, i) => (
                 <tr key={i} className="group">
-                  <td className="p-6 border-b border-slate-100 font-bold text-slate-900 group-last:border-none">
+                  <td className="p-6 border-b border-slate-200/50 font-bold text-slate-900 group-last:border-none">
                     {row.feature}
                   </td>
-                  <td className="p-6 text-center bg-[#f8fafc] group-last:rounded-b-3xl border-b border-white">
+                  <td className="p-6 text-center bg-white/40 group-last:rounded-b-3xl border-b border-slate-100">
                     {row.ghar}
                   </td>
-                  <td className="p-6 text-center bg-[#f0fdf4] border-x-2 border-primary border-b border-primary/10 font-black text-primary group-last:rounded-b-3xl group-last:border-b-2">
+                  <td className="p-6 text-center bg-[#f0fdf4] border-x-2 border-primary border-b border-primary/10 font-black text-primary group-last:rounded-b-3xl group-last:border-b-2 shadow-sm">
                     {row.pino}
                   </td>
-                  <td className="p-6 text-center bg-[#f8fafc] group-last:rounded-b-3xl border-b border-white">
+                  <td className="p-6 text-center bg-white/40 group-last:rounded-b-3xl border-b border-slate-100">
                     {row.junk}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Bottom Annotation */}
+        <div className="mt-12 text-center">
+           <p className="font-handdrawn text-xl text-slate-400 transform -rotate-1">Data based on internal testing & common nutritional benchmarks 🧪</p>
         </div>
       </div>
     </section>

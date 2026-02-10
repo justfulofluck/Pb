@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Product, Review } from '../types';
+import Breadcrumbs from './Breadcrumbs';
 
 interface ProductPageProps {
   product: Product;
@@ -21,46 +22,34 @@ const ProductPage: React.FC<ProductPageProps> = ({
   isLoggedIn,
   currentUser
 }) => {
-  // Construct gallery list: Main image + gallery images
-  // If no gallery, fallback to duplicating the main image so the UI still looks full
   const galleryImages = [product.image, ...(product.gallery || [])];
   const displayImages = galleryImages.length > 1 
     ? galleryImages 
     : [product.image, product.image, product.image, product.image];
 
   const [activeIndex, setActiveIndex] = useState(0);
-  
-  // Zoom & Hover State
   const [isHovering, setIsHovering] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
-
-  // Review Form State
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Reset state when product changes
   useEffect(() => {
     setActiveIndex(0);
     setRating(5);
     setComment('');
   }, [product]);
 
-  // Auto-play Carousel Logic
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
-    
-    // Only auto-play if not hovering and we have multiple images (or duplicates)
     if (!isHovering) {
       interval = setInterval(() => {
         setActiveIndex((prev) => (prev + 1) % displayImages.length);
-      }, 3000); // Change image every 3 seconds
+      }, 3000);
     }
-
     return () => clearInterval(interval);
   }, [isHovering, displayImages.length]);
 
-  // Handle Zoom Mouse Movement
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - left) / width) * 100;
@@ -68,26 +57,19 @@ const ProductPage: React.FC<ProductPageProps> = ({
     setZoomPos({ x, y });
   };
 
-  // Handle Click to Email
   const handleMainImageClick = () => {
     const currentImage = displayImages[activeIndex];
     const subject = `Inquiry: ${product.name} Image`;
     const body = `Hi,\n\nI am viewing this product image and would like to inquire about it:\n${currentImage}`;
-    
-    // Using mailto to open default email client
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
-  // Filter reviews for this product
   const productReviews = reviews.filter(r => r.productId === product.id || r.productId === 'general');
 
   const handleReviewSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLoggedIn || !currentUser) return;
-
     setIsSubmitting(true);
-
-    // Simulate network delay
     setTimeout(() => {
       const newReview: Review = {
         id: Date.now().toString(),
@@ -100,7 +82,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         avatar: currentUser.avatar
       };
-
       onAddReview(newReview);
       setComment('');
       setRating(5);
@@ -110,21 +91,19 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
   return (
     <div className="pb-24">
-      {/* Breadcrumb / Back Navigation */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <button 
-          onClick={onBack}
-          className="flex items-center gap-2 text-slate-400 hover:text-primary font-bold text-xs tracking-widest transition-colors uppercase"
-        >
-          <span className="material-symbols-outlined text-sm">arrow_back</span>
-          Back to all products
-        </button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        <Breadcrumbs 
+          onHomeClick={onBack} 
+          steps={[
+            { label: 'Products', onClick: onBack },
+            { label: product.category, onClick: onBack },
+            { label: product.name }
+          ]} 
+        />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
         <div className="grid lg:grid-cols-2 gap-16 items-start">
-          
-          {/* Left: Product Images (Carousel & Zoom) */}
           <div className="space-y-6">
             <div 
               className="bg-white rounded-[40px] p-8 doodle-border overflow-hidden relative group h-[500px] flex items-center justify-center cursor-pointer"
@@ -134,7 +113,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
               onClick={handleMainImageClick}
               title="Click to email this image"
             >
-              {/* Image Container for Zoom */}
               <div 
                 className="w-full h-full relative overflow-hidden rounded-[32px]"
                 style={{ cursor: isHovering ? 'crosshair' : 'pointer' }}
@@ -149,16 +127,12 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   }}
                 />
               </div>
-
-              {/* Email Hint Overlay (Visible on hover) */}
               {!isHovering && (
                 <div className="absolute bottom-6 right-6 bg-slate-900/10 text-slate-400 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-sm pointer-events-none">
                   Hover to Zoom • Click to Email
                 </div>
               )}
             </div>
-
-            {/* Thumbnails */}
             <div className="grid grid-cols-4 gap-4">
               {displayImages.slice(0, 4).map((img, i) => (
                 <div 
@@ -172,7 +146,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
             </div>
           </div>
 
-          {/* Right: Product Info */}
           <div className="space-y-10">
             <div className="space-y-4">
               <div className="flex items-center gap-4">
@@ -243,7 +216,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
           </div>
         </div>
 
-        {/* Detailed Description / Story */}
         <section className="mt-32 border-t pt-32 grid md:grid-cols-3 gap-16">
           <div className="md:col-span-2 space-y-8">
             <h2 className="text-4xl font-black uppercase">Why we made this</h2>
@@ -264,7 +236,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
           </div>
         </section>
 
-        {/* REVIEWS SECTION */}
         <section className="mt-24 pt-24 border-t border-slate-100">
            <div className="flex items-center justify-between mb-12">
               <h2 className="text-4xl font-black uppercase text-slate-900">
@@ -273,7 +244,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
            </div>
 
            <div className="grid lg:grid-cols-2 gap-16">
-             {/* Review List */}
              <div className="space-y-8">
                {productReviews.length > 0 ? (
                  productReviews.map((review) => (
@@ -305,7 +275,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
                )}
              </div>
 
-             {/* Add Review Form */}
              <div className="bg-white p-8 rounded-[40px] doodle-border shadow-xl h-fit border-2 border-slate-50">
                 <h3 className="text-2xl font-black uppercase text-slate-900 mb-2">Write a Review</h3>
                 <p className="text-slate-500 text-sm font-medium mb-8">Tried {product.name}? Let the community know what you think!</p>

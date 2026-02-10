@@ -1,28 +1,30 @@
 
 import React from 'react';
 import { BlogPost } from '../types';
+import Breadcrumbs from './Breadcrumbs';
 
 interface BlogDetailPageProps {
   post: BlogPost;
   onBack: () => void;
+  onHomeClick: () => void;
 }
 
-const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack }) => {
+const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeClick }) => {
   return (
     <div className="bg-white min-h-screen pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Scroll Progress Bar (Simulated) */}
       <div className="fixed top-20 left-0 w-full h-1 bg-slate-100 z-30">
         <div className="h-full bg-primary w-1/3"></div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 pt-12">
-        <button 
-          onClick={onBack}
-          className="flex items-center gap-2 text-slate-400 hover:text-primary font-bold text-xs tracking-widest transition-colors uppercase mb-8"
-        >
-          <span className="material-symbols-outlined text-sm">arrow_back</span>
-          Back to Articles
-        </button>
+        <Breadcrumbs 
+          onHomeClick={onHomeClick} 
+          steps={[
+            { label: 'Articles', onClick: onBack },
+            { label: post.title }
+          ]} 
+          className="mb-8"
+        />
 
         <header className="text-center mb-12">
            <div className="inline-flex items-center gap-3 mb-6">
