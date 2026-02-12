@@ -1,77 +1,261 @@
 
 import React, { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
 
 interface AdminLoginPageProps {
   onLoginSuccess: () => void;
   onBackToSite: () => void;
 }
 
-import { useAuth } from '../hooks/useAuth';
+type ViewState = 'login' | 'reset-email' | 'reset-otp' | 'reset-password';
 
 const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackToSite }) => {
   const { login } = useAuth();
+
+  // Login State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [view, setView] = useState<'login' | 'reset'>('login');
-  const [resetSent, setResetSent] = useState(false);
+
+  // Reset Flow State
+  const [resetEmail, setResetEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [view, setView] = useState<ViewState>('login');
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoggingIn(true);
+    setIsLoading(true);
     setError(null);
 
     try {
-      // 1. Get Token
       const response = await fetch('http://localhost:8000/api/token/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: email, password }),
       });
 
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
-      }
+      if (!response.ok) throw new Error('Invalid credentials');
 
       const tokens = await response.json();
 
-      // 2. Verify Admin Status
+      // Verify Admin Status
       const userResponse = await fetch('http://localhost:8000/api/users/me/', {
         headers: { 'Authorization': `Bearer ${tokens.access}` }
       });
 
       if (!userResponse.ok) throw new Error('Failed to verify permissions');
-
       const userData = await userResponse.json();
 
       if (!userData.is_staff) {
         throw new Error('Access Denied: Administrative privileges required.');
       }
 
-      // 3. Login
       login(tokens.access, tokens.refresh);
       onLoginSuccess();
-
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
-      setIsLoggingIn(false);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleResetRequest = (e: React.FormEvent) => {
+  const handleRequestOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoggingIn(true);
-    // Simulate reset request
-    setTimeout(() => {
-      setIsLoggingIn(false);
-      setResetSent(true);
-    }, 1500);
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('http://localhost:8000/api/password-reset/request/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail })
+      });
+      if (!res.ok) throw new Error('Failed to send OTP. Check email.');
+      setSuccessMsg(`OTP sent to ${resetEmail}. Valid for 5 minutes.`);
+      setView('reset-otp');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('http://localhost:8000/api/password-reset/verify/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail, otp })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Invalid OTP');
+
+      setSuccessMsg('OTP Verified. Please set a new password.');
+      setView('reset-password');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSetNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('http://localhost:8000/api/password-reset/confirm/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail, otp, new_password: newPassword })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to reset password');
+
+      setSuccessMsg('Password reset successful. Please login.');
+      setView('login');
+      setEmail(resetEmail);
+      setPassword('');
+      // cleanup
+      setResetEmail('');
+      setOtp('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderResetEmail = () => (
+    <form onSubmit={handleRequestOTP} className="space-y-6">
+      <div>
+        <p className="text-slate-400 text-xs text-center mb-8 leading-relaxed">
+          Enter your registered Corporate ID. A temporary access key will be dispatched to your encrypted mail.
+        </p>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Corporate ID / Email</label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+            <span className="material-symbols-outlined text-lg">badge</span>
+          </span>
+          <input
+            type="email"
+            value={resetEmail}
+            onChange={(e) => setResetEmail(e.target.value)}
+            placeholder="admin@pinobite.global"
+            className="w-full bg-[#0f172a]/80 border border-slate-700/50 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all font-medium placeholder:text-slate-700"
+            required
+          />
+        </div>
+      </div>
+
+      <button
+        disabled={isLoading}
+        className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(0,138,69,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
+      >
+        {isLoading ? 'SENDING...' : 'SEND OTP'}
+        <span className="material-symbols-outlined text-lg">send</span>
+      </button>
+      <div className="text-center">
+        <button type="button" onClick={() => setView('login')} className="text-slate-500 hover:text-white text-[10px] uppercase font-black tracking-widest">Cancel</button>
+      </div>
+    </form>
+  );
+
+  const renderResetOTP = () => (
+    <form onSubmit={handleVerifyOTP} className="space-y-6">
+      <div>
+        <p className="text-slate-400 text-xs text-center mb-8 leading-relaxed">
+          Enter the 6-digit OTP sent to {resetEmail}
+        </p>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">One-Time Password</label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+            <span className="material-symbols-outlined text-lg">lock_clock</span>
+          </span>
+          <input
+            type="text"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            placeholder="123456"
+            maxLength={6}
+            className="w-full bg-[#0f172a]/80 border border-slate-700/50 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all font-medium placeholder:text-slate-700 tracking-[0.5em] text-center text-lg"
+            required
+          />
+        </div>
+      </div>
+
+      <button
+        disabled={isLoading}
+        className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(0,138,69,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
+      >
+        {isLoading ? 'VERIFYING...' : 'VERIFY OTP'}
+      </button>
+      <div className="text-center">
+        <button type="button" onClick={() => setView('reset-email')} className="text-slate-500 hover:text-white text-[10px] uppercase font-black tracking-widest">Back</button>
+      </div>
+    </form>
+  );
+
+  const renderResetPassword = () => (
+    <form onSubmit={handleSetNewPassword} className="space-y-6">
+      <div>
+        <p className="text-slate-400 text-xs text-center mb-8 leading-relaxed">Create a new secure password.</p>
+
+        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">New Password</label>
+        <div className="relative mb-4">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+            <span className="material-symbols-outlined text-lg">vpn_key</span>
+          </span>
+          <input
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            className="w-full bg-[#0f172a]/80 border border-slate-700/50 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all font-medium"
+            required
+            minLength={8}
+          />
+        </div>
+
+        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Confirm Password</label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
+            <span className="material-symbols-outlined text-lg">check_circle</span>
+          </span>
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="w-full bg-[#0f172a]/80 border border-slate-700/50 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all font-medium"
+            required
+            minLength={8}
+          />
+        </div>
+      </div>
+
+      <button
+        disabled={isLoading}
+        className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(0,138,69,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
+      >
+        {isLoading ? 'RESETTING...' : 'RESET PASSWORD'}
+      </button>
+    </form>
+  );
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Effect */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-10 blur-sm"></div>
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 to-slate-900"></div>
@@ -94,7 +278,13 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
               {error}
             </div>
           )}
-          {view === 'login' ? (
+          {successMsg && (
+            <div className="mb-6 bg-green-500/10 border border-green-500/50 text-green-200 p-4 rounded-xl text-xs font-bold text-center tracking-wide">
+              {successMsg}
+            </div>
+          )}
+
+          {view === 'login' && (
             <form onSubmit={handleLogin} className="space-y-6">
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Corporate ID / Email</label>
@@ -137,7 +327,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                 </label>
                 <button
                   type="button"
-                  onClick={() => setView('reset')}
+                  onClick={() => { setView('reset-email'); setError(null); setSuccessMsg(null); }}
                   className="text-primary font-bold hover:text-primary/80 transition-colors"
                 >
                   Lost Key?
@@ -145,10 +335,10 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
               </div>
 
               <button
-                disabled={isLoggingIn}
+                disabled={isLoading}
                 className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(0,138,69,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
               >
-                {isLoggingIn ? (
+                {isLoading ? (
                   <>
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                     VERIFYING...
@@ -161,78 +351,12 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                 )}
               </button>
             </form>
-          ) : (
-            <div className="space-y-6">
-              {resetSent ? (
-                <div className="text-center py-4 space-y-6 animate-in fade-in zoom-in duration-500">
-                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                    <span className="material-symbols-outlined text-3xl text-primary">mail</span>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2">Instructions Sent</h3>
-                    <p className="text-slate-400 text-sm leading-relaxed">
-                      Check your corporate inbox for recovery instructions. Secure link expires in 15 minutes.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => { setView('login'); setResetSent(false); }}
-                    className="text-primary font-black uppercase tracking-widest text-[10px] hover:underline"
-                  >
-                    Back to Secure Login
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleResetRequest} className="space-y-6">
-                  <div>
-                    <p className="text-slate-400 text-xs text-center mb-8 leading-relaxed">
-                      Enter your registered Corporate ID. A temporary access key or recovery link will be dispatched to your encrypted mail.
-                    </p>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Corporate ID / Email</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
-                        <span className="material-symbols-outlined text-lg">badge</span>
-                      </span>
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="admin@pinobite.global"
-                        className="w-full bg-[#0f172a]/80 border border-slate-700/50 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all font-medium placeholder:text-slate-700"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    disabled={isLoggingIn}
-                    className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(0,138,69,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
-                  >
-                    {isLoggingIn ? (
-                      <>
-                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                        PROCESSING...
-                      </>
-                    ) : (
-                      <>
-                        Request Recovery
-                        <span className="material-symbols-outlined text-lg">send</span>
-                      </>
-                    )}
-                  </button>
-
-                  <div className="text-center">
-                    <button
-                      type="button"
-                      onClick={() => setView('login')}
-                      className="text-slate-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest"
-                    >
-                      Return to Access Panel
-                    </button>
-                  </div>
-                </form>
-              )}
-            </div>
           )}
+
+          {view === 'reset-email' && renderResetEmail()}
+          {view === 'reset-otp' && renderResetOTP()}
+          {view === 'reset-password' && renderResetPassword()}
+
         </div>
 
         <div className="text-center mt-10">

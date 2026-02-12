@@ -80,3 +80,15 @@ class VisitorFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = VisitorForm
         fields = ['id', 'title', 'event_name', 'status', 'created_at', 'submissions']
+
+class RequestPasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+class VerifyOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=6)
+
+class SetNewPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=6)
+    new_password = serializers.CharField(min_length=8)

@@ -174,3 +174,8 @@ EMAIL_HOST_PASSWORD = 'cwkrporemlfzmywo'
 # Yagmail Configuration
 YAGMAIL_USER = EMAIL_HOST_USER
 YAGMAIL_PASSWORD = EMAIL_HOST_PASSWORD
+
+AUTHENTICATION_BACKENDS = [
+    'api.backends.EmailBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]

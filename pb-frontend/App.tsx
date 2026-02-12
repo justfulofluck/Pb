@@ -28,6 +28,7 @@ import EventsSection from './components/EventsSection';
 import EventModal from './components/EventModal';
 import AdminLoginPage from './components/AdminLoginPage';
 import AdminDashboard from './components/AdminDashboard';
+import VisitorFormPage from './components/VisitorFormPage';
 import JourneyPage from './components/JourneyPage';
 import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import TermsAndConditionsPage from './components/TermsAndConditionsPage';
@@ -257,7 +258,7 @@ const CURRENT_USER = {
   avatar: "https://ui-avatars.com/api/?name=Alex+Fueler&background=008a45&color=fff"
 };
 
-type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'distributor' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey' | 'privacy-policy' | 'terms-and-conditions' | 'refund-policy' | 'shipping-policy';
+type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'distributor' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey' | 'privacy-policy' | 'terms-and-conditions' | 'refund-policy' | 'shipping-policy' | 'visitor-form';
 
 import { AuthProvider, useAuth } from './hooks/useAuth';
 
@@ -280,10 +281,23 @@ const AppContent: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventBlog | null>(null);
   const [selectedBlogPost, setSelectedBlogPost] = useState<BlogPost | null>(null);
+  const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<View>('home');
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [shopCategory, setShopCategory] = useState('All');
   const [isLoading, setIsLoading] = useState(true);
+
+  // Handle URL routing for manual links
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path.startsWith('/forms/')) {
+      const formId = path.split('/forms/')[1];
+      if (formId) {
+        setSelectedFormId(formId);
+        setCurrentView('visitor-form');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     setIsLoggedIn(!!user);
@@ -949,7 +963,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen selection:bg-primary/20 bg-background-light">
-      {currentView !== 'checkout' && (
+      {currentView !== 'checkout' && currentView !== 'visitor-form' && (
         <Navbar
           cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
           isLoggedIn={isLoggedIn}
@@ -1090,9 +1104,12 @@ const AppContent: React.FC = () => {
         {currentView === 'shipping-policy' && (
           <ShippingPolicyPage onHomeClick={goHome} />
         )}
+        {currentView === 'visitor-form' && selectedFormId && (
+          <VisitorFormPage formId={selectedFormId} onHomeClick={goHome} />
+        )}
       </main>
 
-      {currentView !== 'checkout' && (
+      {currentView !== 'checkout' && currentView !== 'visitor-form' && (
         <Footer
           onShopClick={navigateToShop}
           onHomeClick={goHome}

@@ -7,7 +7,8 @@ from .serializers import (
     CategorySerializer, ProductSerializer, ReviewSerializer,
     EventSerializer, BlogPostSerializer, StorySerializer,
     HeroSlideSerializer, OrderSerializer, OrderItemSerializer,
-    UserSerializer, UserProfileSerializer, VisitorFormSerializer, VisitorSubmissionSerializer
+    UserSerializer, UserProfileSerializer, VisitorFormSerializer, VisitorSubmissionSerializer,
+    RequestPasswordResetSerializer, VerifyOTPSerializer, SetNewPasswordSerializer
 )
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -77,3 +78,147 @@ class VisitorSubmissionViewSet(viewsets.ModelViewSet):
     queryset = VisitorSubmission.objects.all()
     serializer_class = VisitorSubmissionSerializer
     permission_classes = [permissions.AllowAny]
+
+from .models import PasswordResetOTP
+from django.core.mail import send_mail
+from django.conf import settings
+import random
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth.models import User
+
+class RequestPasswordResetView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = RequestPasswordResetSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            try:
+                user = User.objects.get(email=email)
+                if not user.is_staff:
+                     return Response({"error": "Only staff members can reset passwords here."}, status=status.HTTP_403_FORBIDDEN)
+                
+                # Generate OTP
+                otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+                PasswordResetOTP.objects.create(user=user, otp=otp)
+
+                # Modern HTML Email Template
+                html_message = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Password Reset OTP</title>
+                    <style>
+                        body {{ font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }}
+                        .container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }}
+                        .header {{ background-color: #1a2333; padding: 40px 20px; text-align: center; }}
+                        .logo {{ color: #ffffff; font-size: 24px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }}
+                        .logo span {{ color: #008a45; }}
+                        .content {{ padding: 40px 30px; color: #333333; }}
+                        .greeting {{ font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #1a2333; }}
+                        .message {{ line-height: 1.6; margin-bottom: 30px; color: #555555; }}
+                        .otp-box {{ background-color: #f0fdf4; border: 2px dashed #008a45; border-radius: 12px; padding: 20px; text-align: center; margin: 30px 0; }}
+                        .otp-code {{ font-size: 32px; font-weight: 800; color: #008a45; letter-spacing: 5px; }}
+                        .expiry {{ font-size: 12px; color: #666666; margin-top: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }}
+                        .footer {{ background-color: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #999999; border-top: 1px solid #eeeeee; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <div class="logo">Pino<span>bite</span> Global</div>
+                        </div>
+                        <div class="content">
+                            <div class="greeting">Secure Access Request</div>
+                            <p class="message">
+                                We received a request to reset the password for your administrative account. 
+                                Use the One-Time Password (OTP) below to verify your identity.
+                            </p>
+                            
+                            <div class="otp-box">
+                                <div class="otp-code">{otp}</div>
+                                <div class="expiry">Valid for 5 Minutes</div>
+                            </div>
+                            
+                            <p class="message" style="margin-bottom: 0; font-size: 14px;">
+                                If you did not request this, please ignore this email or contact the system administrator immediately.
+                            </p>
+                        </div>
+                        <div class="footer">
+                            &copy; 2026 Pinobite Global. All rights reserved.<br>
+                            Internal Administrative System
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+
+                # Send Email
+                send_mail(
+                    'Password Reset OTP - Pinobite Admin',
+                    f'Your OTP is: {otp}. Valid for 5 minutes.',
+                    settings.EMAIL_HOST_USER,
+                    [email],
+                    fail_silently=False,
+                    html_message=html_message
+                )
+                return Response({"message": "OTP sent to email."})
+
+            except User.DoesNotExist:
+                # Security: Don't reveal user existence
+                return Response({"message": "OTP sent to email."})
+            except Exception as e:
+                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class VerifyOTPView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = VerifyOTPSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            otp = serializer.validated_data['otp']
+            try:
+                user = User.objects.get(email=email)
+                otp_record = PasswordResetOTP.objects.filter(user=user, otp=otp).order_by('-created_at').first()
+                
+                if otp_record and otp_record.is_valid():
+                    return Response({"message": "OTP verified.", "valid": True})
+                else:
+                    return Response({"error": "Invalid or expired OTP."}, status=status.HTTP_400_BAD_REQUEST)
+            except User.DoesNotExist:
+                 return Response({"error": "Invalid details."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SetNewPasswordView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = SetNewPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            otp = serializer.validated_data['otp']
+            new_password = serializer.validated_data['new_password']
+
+            try:
+                user = User.objects.get(email=email)
+                otp_record = PasswordResetOTP.objects.filter(user=user, otp=otp).order_by('-created_at').first()
+
+                if otp_record and otp_record.is_valid():
+                    user.set_password(new_password)
+                    user.save()
+                    # Invalidate OTP - or just rely on expiry. Deleting ensures one-time use.
+                    otp_record.delete() 
+                    return Response({"message": "Password reset successfully."})
+                else:
+                    return Response({"error": "Invalid or expired OTP."}, status=status.HTTP_400_BAD_REQUEST)
+            except User.DoesNotExist:
+                return Response({"error": "Invalid details."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
