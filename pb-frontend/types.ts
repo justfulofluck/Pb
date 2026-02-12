@@ -113,9 +113,9 @@ export interface Story {
 }
 
 export const CATEGORY_DISPLAY_DATA: CategoryDisplay[] = [
-  { 
-    id: "Nut Butters", 
-    display: "Nut Butters", 
+  {
+    id: "Nut Butters",
+    display: "Nut Butters",
     image: "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=600&auto=format&fit=crop",
     count: "4 Flavors",
     bgClass: "bg-[#fff7ed]",
@@ -124,9 +124,9 @@ export const CATEGORY_DISPLAY_DATA: CategoryDisplay[] = [
     accentClass: "bg-orange-600",
     rotation: "rotate-2"
   },
-  { 
-    id: "Muesli", 
-    display: "Super Muesli", 
+  {
+    id: "Muesli",
+    display: "Super Muesli",
     image: "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?q=80&w=600&auto=format&fit=crop",
     count: "6 Blends",
     bgClass: "bg-[#fefce8]",
@@ -135,9 +135,9 @@ export const CATEGORY_DISPLAY_DATA: CategoryDisplay[] = [
     accentClass: "bg-yellow-500",
     rotation: "-rotate-2"
   },
-  { 
-    id: "Oats", 
-    display: "Super Oats", 
+  {
+    id: "Oats",
+    display: "Super Oats",
     image: "https://images.unsplash.com/photo-1613769049987-b31b641f25b1?q=80&w=600&auto=format&fit=crop",
     count: "3 Varieties",
     bgClass: "bg-[#f0fdf4]",
@@ -252,3 +252,21 @@ export const BLOG_DATA: BlogPost[] = [
     ]
   }
 ];
+export interface VisitorSubmission {
+  id: string;
+  form: string;
+  name: string;
+  email: string;
+  phone: string;
+  submittedAt: string;
+}
+
+export interface VisitorForm {
+  id: string;
+  title: string;
+  eventName: string;
+  status: 'Draft' | 'Published';
+  createdAt: string;
+  link: string;
+  submissions: VisitorSubmission[];
+}

@@ -7,13 +7,17 @@ interface DashboardProps {
   onHomeClick: () => void;
 }
 
+import { useAuth } from '../hooks/useAuth';
+
 const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
+  const { user: authUser } = useAuth();
+
   const user = {
-    name: "Alex Fueler",
-    points: 1240,
-    tier: "Pro Elite",
-    savings: 850,
-    ordersCount: 12
+    name: authUser?.first_name ? `${authUser.first_name} ${authUser.last_name}` : authUser?.username || "Guest",
+    points: authUser?.profile?.points || 0,
+    tier: authUser?.profile?.tier || "Bronze",
+    savings: authUser?.profile?.savings || 0,
+    ordersCount: 0 // Mock for now as we don't have order history in user profile yet
   };
 
   const recentOrders = [
@@ -39,7 +43,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
           </h1>
           <p className="font-handdrawn text-2xl text-slate-500 mt-2">Fueling your ambition since 2022 ✨</p>
         </div>
-        <button 
+        <button
           onClick={onLogout}
           className="flex items-center gap-2 text-slate-400 hover:text-red-500 font-bold text-xs tracking-widest uppercase transition-colors"
         >
@@ -126,9 +130,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
                     </div>
                     <div className="text-center">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-                        order.status === 'Delivered' ? 'bg-green-100 text-green-600' : 'bg-secondary/20 text-accent-brown'
-                      }`}>
+                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${order.status === 'Delivered' ? 'bg-green-100 text-green-600' : 'bg-secondary/20 text-accent-brown'
+                        }`}>
                         {order.status}
                       </span>
                     </div>

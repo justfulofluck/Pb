@@ -6,21 +6,57 @@ interface AdminLoginPageProps {
   onBackToSite: () => void;
 }
 
+import { useAuth } from '../hooks/useAuth';
+
 const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackToSite }) => {
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [view, setView] = useState<'login' | 'reset'>('login');
   const [resetSent, setResetSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoggingIn(true);
-    // Simulate API verification
-    setTimeout(() => {
-      setIsLoggingIn(false);
+    setError(null);
+
+    try {
+      // 1. Get Token
+      const response = await fetch('http://localhost:8000/api/token/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Invalid credentials');
+      }
+
+      const tokens = await response.json();
+
+      // 2. Verify Admin Status
+      const userResponse = await fetch('http://localhost:8000/api/users/me/', {
+        headers: { 'Authorization': `Bearer ${tokens.access}` }
+      });
+
+      if (!userResponse.ok) throw new Error('Failed to verify permissions');
+
+      const userData = await userResponse.json();
+
+      if (!userData.is_staff) {
+        throw new Error('Access Denied: Administrative privileges required.');
+      }
+
+      // 3. Login
+      login(tokens.access, tokens.refresh);
       onLoginSuccess();
-    }, 1500);
+
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed');
+      setIsLoggingIn(false);
+    }
   };
 
   const handleResetRequest = (e: React.FormEvent) => {
@@ -53,6 +89,11 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
         </div>
 
         <div className="bg-[#1a2333]/60 backdrop-blur-xl border border-white/5 p-8 md:p-10 rounded-[32px] shadow-2xl">
+          {error && (
+            <div className="mb-6 bg-red-500/10 border border-red-500/50 text-red-200 p-4 rounded-xl text-xs font-bold text-center tracking-wide">
+              {error}
+            </div>
+          )}
           {view === 'login' ? (
             <form onSubmit={handleLogin} className="space-y-6">
               <div>
@@ -61,8 +102,8 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
                     <span className="material-symbols-outlined text-lg">badge</span>
                   </span>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin@pinobite.global"
@@ -78,8 +119,8 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
                     <span className="material-symbols-outlined text-lg">vpn_key</span>
                   </span>
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
@@ -94,7 +135,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                   <input type="checkbox" className="rounded border-slate-700 bg-slate-900 text-primary focus:ring-offset-slate-900" />
                   Remember Device
                 </label>
-                <button 
+                <button
                   type="button"
                   onClick={() => setView('reset')}
                   className="text-primary font-bold hover:text-primary/80 transition-colors"
@@ -103,7 +144,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                 </button>
               </div>
 
-              <button 
+              <button
                 disabled={isLoggingIn}
                 className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(0,138,69,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
               >
@@ -133,7 +174,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                       Check your corporate inbox for recovery instructions. Secure link expires in 15 minutes.
                     </p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => { setView('login'); setResetSent(false); }}
                     className="text-primary font-black uppercase tracking-widest text-[10px] hover:underline"
                   >
@@ -151,8 +192,8 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
                         <span className="material-symbols-outlined text-lg">badge</span>
                       </span>
-                      <input 
-                        type="email" 
+                      <input
+                        type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="admin@pinobite.global"
@@ -162,7 +203,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                     </div>
                   </div>
 
-                  <button 
+                  <button
                     disabled={isLoggingIn}
                     className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(0,138,69,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
                   >
@@ -180,7 +221,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                   </button>
 
                   <div className="text-center">
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setView('login')}
                       className="text-slate-500 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest"
@@ -195,7 +236,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
         </div>
 
         <div className="text-center mt-10">
-          <button 
+          <button
             onClick={onBackToSite}
             className="text-slate-600 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 mx-auto"
           >

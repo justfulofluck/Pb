@@ -10,7 +10,6 @@ import ComparisonTable from './components/ComparisonTable';
 import Testimonials from './components/Testimonials';
 import Newsletter from './components/Newsletter';
 import Footer from './components/Footer';
-
 import CartDrawer from './components/CartDrawer';
 import ProductModal from './components/ProductModal';
 import AuthModal from './components/AuthModal';
@@ -34,7 +33,7 @@ import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import TermsAndConditionsPage from './components/TermsAndConditionsPage';
 import RefundPolicyPage from './components/RefundPolicyPage';
 import ShippingPolicyPage from './components/ShippingPolicyPage';
-import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, BLOG_DATA, Story } from './types';
+import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, BLOG_DATA, Story, VisitorForm } from './types';
 
 const INITIAL_PRODUCTS: Product[] = [
   {
@@ -260,7 +259,10 @@ const CURRENT_USER = {
 
 type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'distributor' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey' | 'privacy-policy' | 'terms-and-conditions' | 'refund-policy' | 'shipping-policy';
 
-const App: React.FC = () => {
+import { AuthProvider, useAuth } from './hooks/useAuth';
+
+const AppContent: React.FC = () => {
+  const { user, logout } = useAuth();
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [events, setEvents] = useState<EventBlog[]>(INITIAL_EVENTS);
@@ -269,6 +271,7 @@ const App: React.FC = () => {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(BLOG_DATA);
   const [stories, setStories] = useState<Story[]>(INITIAL_STORIES);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [visitorForms, setVisitorForms] = useState<VisitorForm[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
@@ -283,68 +286,472 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
+    setIsLoggedIn(!!user);
+  }, [user]);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const [eventsRes, blogsRes, storiesRes, productsRes, vFormsRes] = await Promise.all([
+          fetch('http://localhost:8000/api/events/'),
+          fetch('http://localhost:8000/api/blog-posts/'),
+          fetch('http://localhost:8000/api/stories/'),
+          fetch('http://localhost:8000/api/products/'),
+          fetch('http://localhost:8000/api/visitor-forms/')
+        ]);
+
+        if (vFormsRes.ok) {
+          const vFormsData = await vFormsRes.json();
+          const mappedVForms = vFormsData.map((f: any) => ({
+            id: String(f.id),
+            title: f.title,
+            eventName: f.event_name,
+            status: f.status,
+            createdAt: f.created_at,
+            link: `http://localhost:5173/forms/${f.id}`, // or handle link generation
+            submissions: f.submissions || []
+          }));
+          if (mappedVForms.length > 0) setVisitorForms(mappedVForms);
+        }
+
+        if (productsRes.ok) {
+          const productsData = await productsRes.json();
+          const mappedProducts = productsData.map((p: any) => ({
+            ...p,
+            id: String(p.id),
+            originalPrice: p.original_price,
+            reviewCount: p.review_count,
+            isTopRated: p.is_top_rated,
+            gallery: p.gallery || [],
+            benefits: p.benefits || [],
+            nutrients: p.nutrients || []
+          }));
+          if (mappedProducts.length > 0) setProducts(mappedProducts);
+        }
+
+        if (eventsRes.ok) {
+          const eventsData = await eventsRes.json();
+          const mappedEvents = eventsData.map((e: any) => ({
+            ...e,
+            id: String(e.id),
+            fullStory: e.full_story || [],
+            featuredProducts: (e.featured_products || []).map(String),
+            gallery: e.gallery || [],
+          }));
+          if (mappedEvents.length > 0) setEvents(mappedEvents);
+        }
+
+        if (blogsRes.ok) {
+          const blogsData = await blogsRes.json();
+          const mappedBlogs = blogsData.map((b: any) => ({
+            ...b,
+            id: String(b.id),
+            type: b.post_type,
+            readTime: b.read_time,
+            content: b.content || [],
+            tags: b.tags || [],
+          }));
+          if (mappedBlogs.length > 0) setBlogPosts(mappedBlogs);
+        }
+
+        if (storiesRes.ok) {
+          const storiesData = await storiesRes.json();
+          const mappedStories = storiesData.map((s: any) => ({
+            id: String(s.id),
+            mediaUrl: s.media_url,
+            mediaType: s.media_type,
+            productId: String(s.product_id),
+          }));
+          if (mappedStories.length > 0) setStories(mappedStories);
+        }
+      } catch (error) {
+        console.error('Failed to fetch CMS content:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchContent();
   }, []);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentView, selectedProduct, selectedEvent, selectedBlogPost]);
 
-  const handleAddProduct = (newProduct: Product) => {
-    setProducts(prev => [newProduct, ...prev]);
+  const handleAddProduct = async (newProduct: Product) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch('http://localhost:8000/api/products/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: newProduct.name,
+          price: newProduct.price,
+          original_price: newProduct.originalPrice,
+          rating: newProduct.rating,
+          review_count: newProduct.reviewCount,
+          image: newProduct.image,
+          gallery: newProduct.gallery,
+          description: newProduct.description,
+          benefits: newProduct.benefits,
+          nutrients: newProduct.nutrients,
+          is_top_rated: newProduct.isTopRated,
+          category: newProduct.category,
+          stock: newProduct.stock
+        })
+      });
+      if (response.ok) {
+        const savedProduct = await response.json();
+        const mappedProduct = {
+          ...savedProduct,
+          id: String(savedProduct.id),
+          originalPrice: savedProduct.original_price,
+          reviewCount: savedProduct.review_count,
+          isTopRated: savedProduct.is_top_rated,
+          gallery: savedProduct.gallery || [],
+          benefits: savedProduct.benefits || [],
+          nutrients: savedProduct.nutrients || []
+        };
+        setProducts(prev => [mappedProduct, ...prev]);
+      }
+    } catch (err) {
+      console.error("Failed to add product", err);
+    }
   };
 
-  const handleUpdateProduct = (updatedProduct: Product) => {
-    setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+  const handleUpdateProduct = async (updatedProduct: Product) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`http://localhost:8000/api/products/${updatedProduct.id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: updatedProduct.name,
+          price: updatedProduct.price,
+          original_price: updatedProduct.originalPrice,
+          rating: updatedProduct.rating,
+          review_count: updatedProduct.reviewCount,
+          image: updatedProduct.image,
+          gallery: updatedProduct.gallery,
+          description: updatedProduct.description,
+          benefits: updatedProduct.benefits,
+          nutrients: updatedProduct.nutrients,
+          is_top_rated: updatedProduct.isTopRated,
+          category: updatedProduct.category,
+          stock: updatedProduct.stock
+        })
+      });
+      if (response.ok) {
+        const savedProduct = await response.json();
+        const mappedProduct = {
+          ...savedProduct,
+          id: String(savedProduct.id),
+          originalPrice: savedProduct.original_price,
+          reviewCount: savedProduct.review_count,
+          isTopRated: savedProduct.is_top_rated,
+          gallery: savedProduct.gallery || [],
+          benefits: savedProduct.benefits || [],
+          nutrients: savedProduct.nutrients || []
+        };
+        setProducts(prev => prev.map(p => p.id === mappedProduct.id ? mappedProduct : p));
+      }
+    } catch (err) {
+      console.error("Failed to update product", err);
+    }
   };
 
-  const handleDeleteProduct = (id: string) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      await fetch(`http://localhost:8000/api/products/${id}/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setProducts(prev => prev.filter(p => p.id !== id));
+    } catch (err) {
+      console.error("Failed to delete product", err);
+    }
+  };
+  const handleAddVisitorForm = async (newForm: VisitorForm) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch('http://localhost:8000/api/visitor-forms/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: newForm.title,
+          event_name: newForm.eventName,
+          status: newForm.status
+        })
+      });
+      if (response.ok) {
+        const savedForm = await response.json();
+        const mappedForm = {
+          id: String(savedForm.id),
+          title: savedForm.title,
+          eventName: savedForm.event_name,
+          status: savedForm.status,
+          createdAt: savedForm.created_at,
+          link: `http://localhost:5173/forms/${savedForm.id}`,
+          submissions: savedForm.submissions || []
+        };
+        setVisitorForms(prev => [mappedForm, ...prev]);
+      }
+    } catch (err) {
+      console.error("Failed to add visitor form", err);
+    }
   };
 
+  const handleDeleteVisitorForm = async (id: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      await fetch(`http://localhost:8000/api/visitor-forms/${id}/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setVisitorForms(prev => prev.filter(f => f.id !== id));
+    } catch (err) {
+      console.error("Failed to delete visitor form", err);
+    }
+  };
   const handleAddCategory = (category: string) => {
     if (!categories.includes(category)) {
       setCategories(prev => [...prev, category]);
     }
   };
 
-  const handleAddEvent = (newEvent: EventBlog) => {
-    setEvents(prev => [newEvent, ...prev]);
+  const handleAddEvent = async (newEvent: EventBlog) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch('http://localhost:8000/api/events/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: newEvent.title,
+          location: newEvent.location,
+          image: newEvent.image,
+          summary: newEvent.summary,
+          full_story: newEvent.fullStory,
+          gallery: newEvent.gallery,
+          featured_products: newEvent.featuredProducts,
+          date: newEvent.date
+        })
+      });
+      if (response.ok) {
+        const savedEvent = await response.json();
+        const mappedEvent = {
+          ...savedEvent,
+          id: String(savedEvent.id),
+          fullStory: savedEvent.full_story || [],
+          featuredProducts: (savedEvent.featured_products || []).map(String),
+          gallery: savedEvent.gallery || []
+        };
+        setEvents(prev => [mappedEvent, ...prev]);
+      }
+    } catch (err) {
+      console.error("Failed to add event", err);
+    }
   };
 
-  const handleUpdateEvent = (updatedEvent: EventBlog) => {
-    setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+  const handleUpdateEvent = async (updatedEvent: EventBlog) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`http://localhost:8000/api/events/${updatedEvent.id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          title: updatedEvent.title,
+          location: updatedEvent.location,
+          image: updatedEvent.image,
+          summary: updatedEvent.summary,
+          full_story: updatedEvent.fullStory,
+          gallery: updatedEvent.gallery,
+          featured_products: updatedEvent.featuredProducts,
+          date: updatedEvent.date
+        })
+      });
+      if (response.ok) {
+        const savedEvent = await response.json();
+        const mappedEvent = {
+          ...savedEvent,
+          id: String(savedEvent.id),
+          fullStory: savedEvent.full_story || [],
+          featuredProducts: (savedEvent.featured_products || []).map(String),
+          gallery: savedEvent.gallery || []
+        };
+        setEvents(prev => prev.map(e => e.id === mappedEvent.id ? mappedEvent : e));
+      }
+    } catch (err) {
+      console.error("Failed to update event", err);
+    }
   };
 
-  const handleDeleteEvent = (id: string) => {
-    setEvents(prev => prev.filter(e => e.id !== id));
+  const handleDeleteEvent = async (id: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      await fetch(`http://localhost:8000/api/events/${id}/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setEvents(prev => prev.filter(e => e.id !== id));
+    } catch (err) {
+      console.error("Failed to delete event", err);
+    }
   };
 
   const handleUpdateSlides = (newSlides: HeroSlide[]) => {
     setSlides(newSlides);
   };
 
-  const handleAddBlog = (newBlog: BlogPost) => {
-    setBlogPosts(prev => [newBlog, ...prev]);
+  const handleAddBlog = async (newBlog: BlogPost) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch('http://localhost:8000/api/blog-posts/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          post_type: newBlog.type,
+          title: newBlog.title,
+          excerpt: newBlog.excerpt,
+          image: newBlog.image,
+          date: newBlog.date,
+          read_time: newBlog.readTime,
+          author: newBlog.author,
+          content: newBlog.content,
+          tags: newBlog.tags
+        })
+      });
+      if (response.ok) {
+        const savedBlog = await response.json();
+        const mappedBlog = {
+          ...savedBlog,
+          id: String(savedBlog.id),
+          type: savedBlog.post_type,
+          readTime: savedBlog.read_time,
+          content: savedBlog.content || [],
+          tags: savedBlog.tags || []
+        };
+        setBlogPosts(prev => [mappedBlog, ...prev]);
+      }
+    } catch (err) {
+      console.error("Failed to add blog", err);
+    }
   };
 
-  const handleUpdateBlog = (updatedBlog: BlogPost) => {
-    setBlogPosts(prev => prev.map(b => b.id === updatedBlog.id ? updatedBlog : b));
+  const handleUpdateBlog = async (updatedBlog: BlogPost) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`http://localhost:8000/api/blog-posts/${updatedBlog.id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          post_type: updatedBlog.type,
+          title: updatedBlog.title,
+          excerpt: updatedBlog.excerpt,
+          image: updatedBlog.image,
+          date: updatedBlog.date,
+          read_time: updatedBlog.readTime,
+          author: updatedBlog.author,
+          content: updatedBlog.content,
+          tags: updatedBlog.tags
+        })
+      });
+      if (response.ok) {
+        const savedBlog = await response.json();
+        const mappedBlog = {
+          ...savedBlog,
+          id: String(savedBlog.id),
+          type: savedBlog.post_type,
+          readTime: savedBlog.read_time,
+          content: savedBlog.content || [],
+          tags: savedBlog.tags || []
+        };
+        setBlogPosts(prev => prev.map(b => b.id === mappedBlog.id ? mappedBlog : b));
+      }
+    } catch (err) {
+      console.error("Failed to update blog", err);
+    }
   };
 
-  const handleDeleteBlog = (id: string) => {
-    setBlogPosts(prev => prev.filter(b => b.id !== id));
+  const handleDeleteBlog = async (id: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      await fetch(`http://localhost:8000/api/blog-posts/${id}/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setBlogPosts(prev => prev.filter(b => b.id !== id));
+    } catch (err) {
+      console.error("Failed to delete blog", err);
+    }
   };
 
   const handleAddReview = (review: Review) => {
     setReviews(prev => [review, ...prev]);
   };
 
-  const handleUpdateStories = (newStories: Story[]) => {
-    setStories(newStories);
+  const handleAddStory = async (newStory: Story) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch('http://localhost:8000/api/stories/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          media_url: newStory.mediaUrl,
+          media_type: newStory.mediaType,
+          product_id: newStory.productId
+        })
+      });
+      if (response.ok) {
+        const savedStory = await response.json();
+        const mappedStory = {
+          id: String(savedStory.id),
+          mediaUrl: savedStory.media_url,
+          mediaType: savedStory.media_type,
+          productId: String(savedStory.product_id)
+        };
+        setStories(prev => [...prev, mappedStory]);
+      }
+    } catch (err) {
+      console.error("Failed to add story", err);
+    }
+  };
+
+  const handleDeleteStory = async (id: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      await fetch(`http://localhost:8000/api/stories/${id}/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setStories(prev => prev.filter(s => s.id !== id));
+    } catch (err) {
+      console.error("Failed to delete story", err);
+    }
   };
 
   const addToCart = (product: Product) => {
@@ -483,13 +890,13 @@ const App: React.FC = () => {
   };
 
   const handleLogin = () => {
-    setIsLoggedIn(true);
+    // setIsLoggedIn is handled by useEffect
     setIsAuthOpen(false);
     setCurrentView('dashboard');
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
+    logout();
     setCurrentView('home');
   };
 
@@ -531,7 +938,11 @@ const App: React.FC = () => {
         onUpdateBlog={handleUpdateBlog}
         onDeleteBlog={handleDeleteBlog}
         stories={stories}
-        onUpdateStories={handleUpdateStories}
+        onAddStory={handleAddStory}
+        onDeleteStory={handleDeleteStory}
+        visitorForms={visitorForms}
+        onAddVisitorForm={handleAddVisitorForm}
+        onDeleteVisitorForm={handleDeleteVisitorForm}
       />
     );
   }
@@ -721,6 +1132,14 @@ const App: React.FC = () => {
         events={events}
       />
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 
