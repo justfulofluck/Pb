@@ -21,8 +21,7 @@ interface AdminDashboardProps {
   onUpdateBlog: (b: BlogPost) => void;
   onDeleteBlog: (id: string) => void;
   stories: Story[];
-  onAddStory: (s: Story) => void;
-  onDeleteStory: (id: string) => void;
+  onUpdateStories: (s: Story[]) => void;
   visitorForms: VisitorForm[];
   onAddVisitorForm: (f: VisitorForm) => void;
   onDeleteVisitorForm: (id: string) => void;
@@ -70,8 +69,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateBlog,
   onDeleteBlog,
   stories,
-  onAddStory,
-  onDeleteStory,
+  onUpdateStories,
   visitorForms,
   onAddVisitorForm,
   onDeleteVisitorForm
@@ -91,6 +89,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const storyFileInputRef = useRef<HTMLInputElement>(null);
 
   // Visitor Forms State
+  // visitorForms is now passed via props
   const [visitorFormView, setVisitorFormView] = useState<'list' | 'create' | 'details'>('list');
   const [selectedVisitorForm, setSelectedVisitorForm] = useState<VisitorForm | null>(null);
   const [newFormData, setNewFormData] = useState({ title: '', eventName: '' });
@@ -174,13 +173,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       mediaType: newStoryForm.mediaType || 'image',
       productId: newStoryForm.productId || ''
     };
-
-    onAddStory(newStory);
+    onUpdateStories([...stories, newStory]);
     setNewStoryForm({ mediaUrl: '', mediaType: 'image', productId: '' });
   };
 
   const deleteStory = (id: string) => {
-    onDeleteStory(id);
+    onUpdateStories(stories.filter(s => s.id !== id));
   };
 
   const handleStoryFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -426,6 +424,54 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       console.error('Error downloading QR code:', error);
       alert('Failed to download QR code');
     }
+  };
+
+  const handleExportCSV = () => {
+    if (!selectedVisitorForm) return;
+
+    const headers = [
+      'Name',
+      'Email',
+      'Phone',
+      'Address/City',
+      'Buying Source',
+      'Brand Awareness',
+      'Current Usage',
+      'Flavor Preferences',
+      'Reviewed Product',
+      'Review Content',
+      'Marketing Consent',
+      'Submitted At'
+    ];
+
+    const rows = selectedVisitorForm.submissions.map(sub => [
+      sub.name,
+      sub.email,
+      sub.phone,
+      sub.addressDetails || '',
+      sub.buyingSource || '',
+      sub.brandAwareness ? 'Yes' : 'No',
+      sub.currentUsage || '',
+      sub.flavorPreferences || '',
+      sub.reviewedProduct || '',
+      sub.reviewContent || '',
+      sub.marketingConsent ? 'Agreed' : 'Not Agreed',
+      new Date(sub.submittedAt || Date.now()).toLocaleString()
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')) // Quote cells and escape existing quotes
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${selectedVisitorForm.title.replace(/\s+/g, '_')}_submissions.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Handlers for Events
@@ -1018,12 +1064,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {visitorFormView === 'list' && (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {visitorForms.map(form => (
-                    <div key={form.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow relative group">
-                      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => onDeleteVisitorForm(form.id)} className="w-8 h-8 rounded-full bg-slate-100 text-red-500 flex items-center justify-center hover:bg-red-50 hover:scale-110 transition-all">
-                          <span className="material-symbols-outlined text-lg">delete</span>
-                        </button>
-                      </div>
+                    <div key={form.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
                       <div className="p-6 border-b border-slate-50 flex justify-between items-start">
                         <div>
                           <h4 className="font-black text-lg text-slate-900 mb-1">{form.title}</h4>
@@ -1094,6 +1135,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <span className="material-symbols-outlined text-sm">content_copy</span>
                         </button>
                       </div>
+
+                      <button
+                        onClick={() => {
+                          onDeleteVisitorForm(selectedVisitorForm.id);
+                          setSelectedVisitorForm(null);
+                          setVisitorFormView('list');
+                        }}
+                        className="mt-6 text-red-500 text-xs font-bold uppercase tracking-widest hover:underline"
+                      >
+                        Delete Form
+                      </button>
                     </div>
 
                     {/* Submissions Panel */}
@@ -1103,7 +1155,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <h4 className="font-black uppercase text-slate-900">Visitor Submissions</h4>
                           <p className="text-xs text-slate-500 font-medium mt-1">Total: {selectedVisitorForm.submissions.length}</p>
                         </div>
-                        <button className="text-primary font-bold text-xs uppercase tracking-widest hover:underline flex items-center gap-1">
+                        <button onClick={handleExportCSV} className="text-primary font-bold text-xs uppercase tracking-widest hover:underline flex items-center gap-1">
                           <span className="material-symbols-outlined text-sm">download</span> Export CSV
                         </button>
                       </div>
@@ -1129,7 +1181,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     <p className="text-xs text-slate-400 mt-0.5">{sub.phone}</p>
                                   </td>
                                   <td className="p-4 text-right">
-                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">{sub.time}</p>
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                                      {new Date(sub.submittedAt || Date.now()).toLocaleDateString()}
+                                    </p>
                                   </td>
                                 </tr>
                               ))
@@ -2044,155 +2098,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* ----- VISITOR FORMS TAB ----- */}
-      {activeTab === 'visitor-forms' && (
-        <div className="space-y-6 animate-in fade-in duration-300">
-          {/* Toolbar */}
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-            <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
-              <button
-                onClick={() => setVisitorFormView('list')}
-                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${visitorFormView === 'list' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                All Forms
-              </button>
-              <button
-                onClick={() => setVisitorFormView('create')}
-                className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${visitorFormView === 'create' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-              >
-                Create Form
-              </button>
-            </div>
-          </div>
-
-          {/* View: List */}
-          {visitorFormView === 'list' && (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {visitorForms.map(form => (
-                <div key={form.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col relative group">
-                  <div className="p-6 flex-1">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${form.status === 'Published' ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'}`}>
-                        {form.status}
-                      </div>
-                      <button onClick={() => onDeleteVisitorForm(form.id)} className="text-slate-300 hover:text-red-500 transition-colors">
-                        <span className="material-symbols-outlined">delete</span>
-                      </button>
-                    </div>
-                    <h4 className="font-black uppercase text-lg mb-1">{form.title}</h4>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Event: {form.eventName}</p>
-
-                    <div className="bg-slate-50 rounded-xl p-4 flex items-center gap-4 mb-4">
-                      <div className="bg-white p-2 rounded-lg border border-slate-200">
-                        {/* QR Placeholder - In real app use a library */}
-                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(form.link)}`} className="w-16 h-16" alt="QR" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Scan to Register</p>
-                        <button
-                          onClick={() => downloadQRCode(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(form.link)}`, `${form.title}-QR.png`)}
-                          className="text-primary font-bold text-xs hover:underline flex items-center gap-1"
-                        >
-                          Download QR <span className="material-symbols-outlined text-sm">download</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                      <span>{form.submissions?.length || 0} Submissions</span>
-                      <button onClick={() => { setSelectedVisitorForm(form); setVisitorFormView('details'); }} className="text-primary hover:underline">View Data</button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              <div
-                onClick={() => setVisitorFormView('create')}
-                className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors min-h-[300px]"
-              >
-                <span className="material-symbols-outlined text-4xl mb-2">add_circle</span>
-                <span className="font-bold uppercase tracking-widest text-sm">Create New Form</span>
-              </div>
-            </div>
-          )}
-
-          {/* View: Create */}
-          {visitorFormView === 'create' && (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-2xl mx-auto">
-              <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">Create Visitor Form</h3>
-              <form onSubmit={handleCreateForm} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Form Title</label>
-                  <input required type="text" value={newFormData.title} onChange={e => setNewFormData({ ...newFormData, title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. CES 2026 Registration" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Linked Event</label>
-                  <select required value={newFormData.eventName} onChange={e => setNewFormData({ ...newFormData, eventName: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white">
-                    <option value="">Select an Event...</option>
-                    {events.map(e => <option key={e.id} value={e.title}>{e.title}</option>)}
-                    <option value="General">General / No Specific Event</option>
-                  </select>
-                </div>
-
-                <div className="pt-6 flex justify-end gap-4 border-t border-slate-100">
-                  <button type="button" onClick={() => setVisitorFormView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
-                  <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Create Form</button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* View: Details */}
-          {visitorFormView === 'details' && selectedVisitorForm && (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <div>
-                  <h3 className="text-xl font-black uppercase text-slate-900">{selectedVisitorForm.title}</h3>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{selectedVisitorForm.eventName} • {selectedVisitorForm.submissions?.length || 0} Entries</p>
-                </div>
-                <button onClick={() => setVisitorFormView('list')} className="text-slate-400 hover:text-slate-600 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-                  <span className="material-symbols-outlined">arrow_back</span> Back
-                </button>
-              </div>
-              <div className="p-0">
-                {selectedVisitorForm.submissions && selectedVisitorForm.submissions.length > 0 ? (
-                  <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Visitor Name</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Contact Info</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Date</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {selectedVisitorForm.submissions.map((sub, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="p-4 font-bold text-slate-700">{sub.name}</td>
-                          <td className="p-4">
-                            <p className="text-sm font-bold text-slate-900">{sub.email}</p>
-                            <p className="text-xs text-slate-500">{sub.phone}</p>
-                          </td>
-                          <td className="p-4 text-sm font-bold text-slate-500">
-                            {new Date(sub.submittedAt).toLocaleDateString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <div className="p-12 text-center">
-                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                      <span className="material-symbols-outlined text-3xl">folder_off</span>
-                    </div>
-                    <p className="text-slate-500 font-bold">No submissions yet.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>

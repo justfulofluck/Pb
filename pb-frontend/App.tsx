@@ -323,7 +323,13 @@ const AppContent: React.FC = () => {
             status: f.status,
             createdAt: f.created_at,
             link: `http://localhost:5173/forms/${f.id}`, // or handle link generation
-            submissions: f.submissions || []
+            submissions: f.submissions ? f.submissions.map((s: any) => ({
+              id: String(s.id),
+              name: s.name,
+              email: s.email,
+              phone: s.phone,
+              submittedAt: s.submitted_at
+            })) : []
           }));
           if (mappedVForms.length > 0) setVisitorForms(mappedVForms);
         }
@@ -387,6 +393,46 @@ const AppContent: React.FC = () => {
 
     fetchContent();
   }, []);
+
+  useEffect(() => {
+    if (currentView === 'admin-dashboard') {
+      const refreshVisitorForms = async () => {
+        try {
+          const response = await fetch('http://localhost:8000/api/visitor-forms/');
+          if (response.ok) {
+            const data = await response.json();
+            const mappedVForms = data.map((f: any) => ({
+              id: String(f.id),
+              title: f.title,
+              eventName: f.event_name,
+              status: f.status,
+              createdAt: f.created_at,
+              link: `http://localhost:5173/forms/${f.id}`,
+              submissions: f.submissions ? f.submissions.map((s: any) => ({
+                id: String(s.id),
+                name: s.name,
+                email: s.email,
+                phone: s.phone,
+                submittedAt: s.submitted_at,
+                addressDetails: s.address_details,
+                buyingSource: s.buying_source,
+                brandAwareness: s.brand_awareness,
+                currentUsage: s.current_usage,
+                flavorPreferences: s.flavor_preferences,
+                reviewedProduct: s.reviewed_product,
+                reviewContent: s.review_content,
+                marketingConsent: s.marketing_consent
+              })) : []
+            }));
+            setVisitorForms(mappedVForms);
+          }
+        } catch (error) {
+          console.error("Failed to refresh visitor forms:", error);
+        }
+      };
+      refreshVisitorForms();
+    }
+  }, [currentView]);
 
   useEffect(() => {
     window.scrollTo(0, 0);

@@ -79,6 +79,61 @@ class VisitorSubmissionViewSet(viewsets.ModelViewSet):
     serializer_class = VisitorSubmissionSerializer
     permission_classes = [permissions.AllowAny]
 
+    def perform_create(self, serializer):
+        submission = serializer.save()
+        
+        # Send Confirmation Email
+        try:
+            subject = f"Registration Confirmed: {submission.form.title}"
+            
+            html_message = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: sans-serif; background-color: #f9f9f9; padding: 20px; }}
+                    .container {{ max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }}
+                    .header {{ text-align: center; margin-bottom: 30px; }}
+                    .logo {{ font-size: 24px; font-weight: bold; color: #1a2333; }}
+                    .logo span {{ color: #008a45; }}
+                    .content {{ color: #444; line-height: 1.6; }}
+                    .footer {{ margin-top: 30px; text-align: center; font-size: 12px; color: #888; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <div class="logo">Pino<span>bite</span> Global</div>
+                    </div>
+                    <div class="content">
+                        <h2>Hello {submission.name},</h2>
+                        <p>Thank you for registering for <strong>{submission.form.title}</strong>.</p>
+                        <p>We have successfully received your details.</p>
+                        <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <p style="margin: 0; color: #166534;"><strong>Event:</strong> {submission.form.event_name}</p>
+                            <p style="margin: 5px 0 0; color: #166534;"><strong>Date:</strong> {submission.submitted_at.strftime('%B %d, %Y')}</p>
+                        </div>
+                        <p>We look forward to seeing you there!</p>
+                    </div>
+                    <div class="footer">
+                        &copy; 2026 Pinobite Global. All rights reserved.
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+            
+            send_mail(
+                subject,
+                f"Thank you for registering for {submission.form.title}.",
+                settings.EMAIL_HOST_USER,
+                [submission.email],
+                fail_silently=True,
+                html_message=html_message
+            )
+        except Exception as e:
+            print(f"Error sending email: {e}")
+
 from .models import PasswordResetOTP
 from django.core.mail import send_mail
 from django.conf import settings

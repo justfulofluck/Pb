@@ -258,7 +258,15 @@ export interface VisitorSubmission {
   name: string;
   email: string;
   phone: string;
-  submittedAt: string;
+  submittedAt?: string;
+  addressDetails?: string;
+  buyingSource?: string;
+  brandAwareness?: boolean;
+  currentUsage?: string;
+  flavorPreferences?: string; // Comma separated
+  reviewedProduct?: string;
+  reviewContent?: string;
+  marketingConsent?: boolean;
 }
 
 export interface VisitorForm {

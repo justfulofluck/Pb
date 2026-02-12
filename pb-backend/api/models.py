@@ -180,6 +180,14 @@ class VisitorSubmission(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField()
     phone = models.CharField(max_length=20)
+    address_details = models.CharField(max_length=255, default='')
+    buying_source = models.CharField(max_length=50, default='')
+    brand_awareness = models.BooleanField(default=False)
+    current_usage = models.CharField(max_length=255, default='')
+    flavor_preferences = models.TextField(default='')
+    reviewed_product = models.CharField(max_length=100, default='')
+    review_content = models.TextField(default='')
+    marketing_consent = models.BooleanField(default=False)
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
