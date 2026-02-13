@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useAuth } from '../hooks/useAuth';
+
 
 interface AdminLoginPageProps {
   onLoginSuccess: () => void;
@@ -10,8 +10,6 @@ interface AdminLoginPageProps {
 type ViewState = 'login' | 'reset-email' | 'reset-otp' | 'reset-password';
 
 const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackToSite }) => {
-  const { login } = useAuth();
-
   // Login State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -55,7 +53,10 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
         throw new Error('Access Denied: Administrative privileges required.');
       }
 
-      login(tokens.access, tokens.refresh);
+      // Store Admin Tokens specifically
+      localStorage.setItem('admin_access_token', tokens.access);
+      localStorage.setItem('admin_refresh_token', tokens.refresh);
+
       onLoginSuccess();
     } catch (err: any) {
       setError(err.message || 'Authentication failed');

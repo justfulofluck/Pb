@@ -277,3 +277,9 @@ class SetNewPasswordView(APIView):
                 return Response({"error": "Invalid details."}, status=status.HTTP_400_BAD_REQUEST)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+from django.views.generic import TemplateView
+from django.views.decorators.cache import never_cache
+
+# Serve Single Page Application
+index_view = never_cache(TemplateView.as_view(template_name='index.html'))
