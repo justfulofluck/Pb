@@ -1,6 +1,7 @@
 
-import React, { useState, useRef } from 'react';
-import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order } from '../types';
+import { API_BASE_URL } from '../config';
 import { jsPDF } from "jspdf";
 
 interface AdminDashboardProps {
@@ -27,15 +28,7 @@ interface AdminDashboardProps {
   onDeleteVisitorForm: (id: string) => void;
 }
 
-const INITIAL_ORDERS = [
-  { id: '#PB-8821', customer: 'Sarah Jenkins', date: 'Oct 24, 2023', status: 'Delivered', total: 1240, items: 3, payment: 'Paid' },
-  { id: '#PB-8822', customer: 'Mike Ross', date: 'Oct 24, 2023', status: 'Processing', total: 850, items: 1, payment: 'Paid' },
-  { id: '#PB-8823', customer: 'Rachel Zane', date: 'Oct 23, 2023', status: 'Shipped', total: 2400, items: 4, payment: 'Paid' },
-  { id: '#PB-8824', customer: 'Harvey Specter', date: 'Oct 23, 2023', status: 'Pending', total: 5600, items: 12, payment: 'Pending' },
-  { id: '#PB-8825', customer: 'Louis Litt', date: 'Oct 22, 2023', status: 'Cancelled', total: 450, items: 1, payment: 'Refunded' },
-  { id: '#PB-8826', customer: 'Jessica Pearson', date: 'Oct 21, 2023', status: 'Delivered', total: 3100, items: 6, payment: 'Paid' },
-  { id: '#PB-8827', customer: 'Donna Paulsen', date: 'Oct 20, 2023', status: 'Delivered', total: 920, items: 2, payment: 'Paid' },
-];
+// Removed INITIAL_ORDERS mock data
 
 const ORDER_STATUSES = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
@@ -81,8 +74,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [uiView, setUiView] = useState<'hero' | 'stories'>('hero');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [orders, setOrders] = useState(INITIAL_ORDERS);
-  const [viewingOrder, setViewingOrder] = useState<typeof INITIAL_ORDERS[0] | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
 
@@ -93,6 +86,33 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [visitorFormView, setVisitorFormView] = useState<'list' | 'create' | 'details'>('list');
   const [selectedVisitorForm, setSelectedVisitorForm] = useState<VisitorForm | null>(null);
   const [newFormData, setNewFormData] = useState({ title: '', eventName: '' });
+  const [visitorSubmissionPage, setVisitorSubmissionPage] = useState(1);
+  const VISITOR_SUBMISSIONS_PER_PAGE = 6;
+
+  // Fetch Orders when tab is active
+  useEffect(() => {
+    if (activeTab === 'orders') {
+      const fetchOrders = async () => {
+        try {
+          const token = localStorage.getItem('access_token') || localStorage.getItem('admin_access_token');
+          if (!token) return;
+
+          const response = await fetch(`${API_BASE_URL}/api/orders/`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            // Sort by date desc
+            const sortedData = data.sort((a: Order, b: Order) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+            setOrders(sortedData);
+          }
+        } catch (error) {
+          console.error("Failed to fetch orders", error);
+        }
+      };
+      fetchOrders();
+    }
+  }, [activeTab]);
 
   // Slide Management State
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null);
@@ -593,14 +613,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     doc.setFontSize(10);
     doc.setTextColor(100);
     doc.text(`Order ID: ${viewingOrder.id}`, 20, 40);
-    doc.text(`Date: ${viewingOrder.date}`, 20, 46);
+    doc.text(`Date: ${new Date(viewingOrder.created_at).toLocaleDateString()}`, 20, 46);
     doc.text(`Status: ${viewingOrder.status}`, 20, 52);
-    doc.text(`Payment: ${viewingOrder.payment}`, 20, 58);
+    doc.text(`Payment: ${viewingOrder.razorpay_payment_id ? 'Paid' : 'Pending'}`, 20, 58);
 
     // Customer Details
-    doc.text(`Customer: ${viewingOrder.customer}`, 150, 40);
-    doc.text(`102, Green Valley Apts`, 150, 46);
-    doc.text(`Bangalore, 560038`, 150, 52);
+    doc.text(`Customer: ${viewingOrder.user_name}`, 150, 40);
+    doc.text(viewingOrder.shipping_address || 'No Address', 150, 46);
 
     // Divider
     doc.setDrawColor(220, 220, 220);
@@ -621,15 +640,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     doc.setFontSize(10);
     doc.setTextColor(60);
 
-    // Simulating items based on count since order object only has total count
-    const itemPrice = viewingOrder.total / viewingOrder.items;
-
-    for (let i = 0; i < viewingOrder.items; i++) {
-      doc.text(`Pinobite Super Product ${i + 1}`, 20, y);
-      doc.text("1", 130, y);
-      doc.text(`Rs. ${itemPrice.toFixed(0)}`, 160, y);
+    viewingOrder.items.forEach((item) => {
+      doc.text(item.product_name, 20, y);
+      doc.text(item.quantity.toString(), 130, y);
+      doc.text(`Rs. ${item.price}`, 160, y);
       y += 10;
-    }
+    });
 
     // Divider
     doc.line(20, y, 190, y);
@@ -640,7 +656,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     doc.setTextColor(0);
     doc.text("Total Amount:", 110, y + 5);
     doc.setTextColor(0, 138, 69);
-    doc.text(`Rs. ${viewingOrder.total.toLocaleString()}`, 160, y + 5);
+    doc.text(`Rs. ${viewingOrder.total_amount.toLocaleString()}`, 160, y + 5);
 
     // Footer
     doc.setFontSize(9);
@@ -648,28 +664,45 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     doc.text("Thank you for your business!", 20, y + 30);
     doc.text("This is a computer generated invoice.", 20, y + 35);
 
-    doc.save(`Invoice-${viewingOrder.id.replace('#', '')}.pdf`);
+    doc.save(`Invoice-${viewingOrder.id}.pdf`);
   };
 
   // Update Status Logic
-  const handleStatusUpdate = (newStatus: string) => {
+  // Update Status Logic
+  const handleStatusUpdate = async (newStatus: string) => {
     if (!viewingOrder) return;
-
-    // Update local orders list
-    const updatedOrders = orders.map(o =>
-      o.id === viewingOrder.id ? { ...o, status: newStatus } : o
-    );
-    setOrders(updatedOrders);
-
-    // Update currently viewing order
-    setViewingOrder({ ...viewingOrder, status: newStatus });
-    setShowStatusMenu(false);
+    try {
+      const token = localStorage.getItem('access_token') || localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/orders/${viewingOrder.id}/`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (response.ok) {
+        // Update local orders list
+        const updatedOrders = orders.map(o =>
+          o.id === viewingOrder.id ? { ...o, status: newStatus } : o
+        );
+        setOrders(updatedOrders);
+        // Update currently viewing order
+        setViewingOrder({ ...viewingOrder, status: newStatus });
+        setShowStatusMenu(false);
+      }
+    } catch (error) {
+      console.error("Failed to update status", error);
+      alert("Failed to update status");
+    }
   };
 
   // Filter orders based on search query
+  // Filter orders based on search query
   const filteredOrders = orders.filter(order =>
-    order.id.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
-    order.customer.toLowerCase().includes(orderSearchQuery.toLowerCase())
+    order.id.toString().includes(orderSearchQuery) ||
+    order.user_email?.toLowerCase().includes(orderSearchQuery.toLowerCase()) ||
+    order.user_name?.toLowerCase().includes(orderSearchQuery.toLowerCase())
   );
 
   const getPageTitle = () => {
@@ -1131,7 +1164,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                       <div className="w-full bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-center justify-between gap-2">
                         <p className="text-xs text-slate-500 truncate font-mono">{selectedVisitorForm.link}</p>
-                        <button className="text-primary hover:text-primary/80" title="Copy Link">
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(selectedVisitorForm.link);
+                            // Visual feedback could be added here, e.g. toast
+                            alert("Link copied to clipboard!");
+                          }}
+                          className="text-primary hover:text-primary/80"
+                          title="Copy Link"
+                        >
                           <span className="material-symbols-outlined text-sm">content_copy</span>
                         </button>
                       </div>
@@ -1171,22 +1212,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </thead>
                           <tbody className="divide-y divide-slate-50">
                             {selectedVisitorForm.submissions.length > 0 ? (
-                              selectedVisitorForm.submissions.map((sub, i) => (
-                                <tr key={i} className="hover:bg-slate-50/50">
-                                  <td className="p-4">
-                                    <p className="font-bold text-slate-900 text-sm">{sub.name}</p>
-                                  </td>
-                                  <td className="p-4">
-                                    <p className="text-sm text-slate-600">{sub.email}</p>
-                                    <p className="text-xs text-slate-400 mt-0.5">{sub.phone}</p>
-                                  </td>
-                                  <td className="p-4 text-right">
-                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">
-                                      {new Date(sub.submittedAt || Date.now()).toLocaleDateString()}
-                                    </p>
-                                  </td>
-                                </tr>
-                              ))
+                              selectedVisitorForm.submissions
+                                .slice((visitorSubmissionPage - 1) * VISITOR_SUBMISSIONS_PER_PAGE, visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE)
+                                .map((sub, i) => (
+                                  <tr key={i} className="hover:bg-slate-50/50">
+                                    <td className="p-4">
+                                      <p className="font-bold text-slate-900 text-sm">{sub.name}</p>
+                                    </td>
+                                    <td className="p-4">
+                                      <p className="text-sm text-slate-600">{sub.email}</p>
+                                      <p className="text-xs text-slate-400 mt-0.5">{sub.phone}</p>
+                                    </td>
+                                    <td className="p-4 text-right">
+                                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                                        {new Date(sub.submittedAt || Date.now()).toLocaleDateString()}
+                                      </p>
+                                    </td>
+                                  </tr>
+                                ))
                             ) : (
                               <tr>
                                 <td colSpan={3} className="p-12 text-center text-slate-400 font-medium">
@@ -1197,6 +1240,31 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </tbody>
                         </table>
                       </div>
+
+
+                      {selectedVisitorForm.submissions.length > VISITOR_SUBMISSIONS_PER_PAGE && (
+                        <div className="p-4 border-t border-slate-50 flex items-center justify-between bg-white">
+                          <p className="text-xs text-slate-500 font-bold">
+                            Showing {(visitorSubmissionPage - 1) * VISITOR_SUBMISSIONS_PER_PAGE + 1} - {Math.min(visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE, selectedVisitorForm.submissions.length)} of {selectedVisitorForm.submissions.length}
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              disabled={visitorSubmissionPage === 1}
+                              onClick={() => setVisitorSubmissionPage(p => p - 1)}
+                              className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Previous
+                            </button>
+                            <button
+                              disabled={visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE >= selectedVisitorForm.submissions.length}
+                              onClick={() => setVisitorSubmissionPage(p => p + 1)}
+                              className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Next
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1205,902 +1273,919 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           )}
 
           {/* ----- BLOG MANAGER TAB ----- */}
-          {activeTab === 'blogs' && (
-            <div className="space-y-6 animate-in fade-in duration-300">
-              {/* Toolbar */}
-              <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
-                  <button
-                    onClick={() => setBlogView('list')}
-                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${blogView === 'list' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    All Posts
-                  </button>
-                  <button
-                    onClick={openAddBlog}
-                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${blogView === 'form' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    Create New Post
-                  </button>
+          {
+            activeTab === 'blogs' && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                {/* Toolbar */}
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                  <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
+                    <button
+                      onClick={() => setBlogView('list')}
+                      className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${blogView === 'list' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      All Posts
+                    </button>
+                    <button
+                      onClick={openAddBlog}
+                      className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${blogView === 'form' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      Create New Post
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* View: List */}
-              {blogView === 'list' && (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {blogPosts.map(post => (
-                    <div key={post.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col group">
-                      <div className="h-48 overflow-hidden relative">
-                        <img src={post.image} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={post.title} />
-                        <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-900">
-                          {post.type}
-                        </span>
-                        <div className="absolute top-4 right-4 flex gap-2">
-                          <button onClick={() => onDeleteBlog(post.id)} className="w-8 h-8 rounded-full bg-white text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                            <span className="material-symbols-outlined text-lg">delete</span>
-                          </button>
-                        </div>
-                      </div>
-                      <div className="p-6 flex-1 flex flex-col">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{post.date}</span>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{post.readTime}</span>
-                        </div>
-                        <h4 className="font-black uppercase text-lg mb-2 leading-tight line-clamp-2">{post.title}</h4>
-                        <p className="text-sm text-slate-600 line-clamp-2 mb-4 flex-1">{post.excerpt}</p>
-                        <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-slate-100 overflow-hidden"><img src={`https://ui-avatars.com/api/?name=${post.author}&background=random`} alt={post.author} className="w-full h-full object-cover" /></div>
-                            <span className="text-xs font-bold text-slate-600">{post.author}</span>
+                {/* View: List */}
+                {blogView === 'list' && (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {blogPosts.map(post => (
+                      <div key={post.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col group">
+                        <div className="h-48 overflow-hidden relative">
+                          <img src={post.image} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={post.title} />
+                          <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-900">
+                            {post.type}
+                          </span>
+                          <div className="absolute top-4 right-4 flex gap-2">
+                            <button onClick={() => onDeleteBlog(post.id)} className="w-8 h-8 rounded-full bg-white text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                              <span className="material-symbols-outlined text-lg">delete</span>
+                            </button>
                           </div>
-                          <button onClick={() => openEditBlog(post)} className="text-primary font-bold text-xs uppercase hover:underline">
-                            Edit Post
-                          </button>
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                  <div
-                    onClick={openAddBlog}
-                    className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors min-h-[300px]"
-                  >
-                    <span className="material-symbols-outlined text-4xl mb-2">add_circle</span>
-                    <span className="font-bold uppercase tracking-widest text-sm">Create New Post</span>
-                  </div>
-                </div>
-              )}
-
-              {/* View: Add/Edit Blog */}
-              {blogView === 'form' && (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-4xl mx-auto">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-2xl font-black uppercase text-slate-900">{editingBlogPost ? 'Edit Blog Post' : 'Create New Post'}</h3>
-                    <button onClick={() => setBlogView('list')} className="text-slate-400 hover:text-slate-600"><span className="material-symbols-outlined">close</span></button>
-                  </div>
-
-                  <form onSubmit={handleBlogSubmit} className="space-y-8">
-                    {/* Basic Info */}
-                    <section className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Post Title</label>
-                        <input required type="text" value={blogForm.title} onChange={e => setBlogForm({ ...blogForm, title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. 5 Ways to Eat Oats" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Category Type</label>
-                        <select required value={blogForm.type} onChange={e => setBlogForm({ ...blogForm, type: e.target.value as any })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white">
-                          <option value="Recipe">Recipe</option>
-                          <option value="Lifestyle">Lifestyle</option>
-                          <option value="News">News</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Author</label>
-                        <input required type="text" value={blogForm.author} onChange={e => setBlogForm({ ...blogForm, author: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Chef Riya" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Read Time</label>
-                        <input required type="text" value={blogForm.readTime} onChange={e => setBlogForm({ ...blogForm, readTime: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. 5 min read" />
-                      </div>
-                      <div className="md:col-span-2 space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Excerpt</label>
-                        <textarea required value={blogForm.excerpt} onChange={e => setBlogForm({ ...blogForm, excerpt: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={2} placeholder="Short summary for the card..." />
-                      </div>
-                    </section>
-
-                    {/* Cover Image */}
-                    <section className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-500">Cover Image</label>
-                      <input type="file" accept="image/*" onChange={handleBlogImageUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                      {blogForm.image && <img src={blogForm.image} alt="Cover" className="h-48 rounded-xl object-cover mt-2 w-full" />}
-                    </section>
-
-                    {/* Content Editor */}
-                    <section className="space-y-4 pt-6 border-t border-slate-100">
-                      <h4 className="text-sm font-black uppercase text-slate-800">Article Content</h4>
-                      <p className="text-xs text-slate-500">Add paragraphs for your article.</p>
-                      {blogForm.content?.map((paragraph, idx) => (
-                        <div key={idx} className="relative group">
-                          <textarea
-                            placeholder={`Paragraph ${idx + 1}...`}
-                            value={paragraph}
-                            onChange={(e) => updateBlogContent(idx, e.target.value)}
-                            rows={4}
-                            className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-700 focus:ring-primary focus:border-primary"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeBlogParagraph(idx)}
-                            className="absolute top-2 right-2 p-1 bg-white rounded-full text-slate-400 hover:text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <span className="material-symbols-outlined text-sm">delete</span>
-                          </button>
-                        </div>
-                      ))}
-                      <button type="button" onClick={addBlogParagraph} className="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:underline">
-                        <span className="material-symbols-outlined text-sm">add</span> Add Paragraph
-                      </button>
-                    </section>
-
-                    <div className="pt-6 flex justify-end gap-4 border-t border-slate-100">
-                      <button type="button" onClick={() => setBlogView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
-                      <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">{editingBlogPost ? 'Update Post' : 'Publish Post'}</button>
-                    </div>
-                  </form>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ----- EVENT MANAGER TAB (Keeping existing logic) ----- */}
-          {activeTab === 'events' && (
-            <div className="space-y-6 animate-in fade-in duration-300">
-              {/* Toolbar */}
-              <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
-                  <button
-                    onClick={() => setEventView('list')}
-                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${eventView === 'list' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    All Events
-                  </button>
-                  <button
-                    onClick={() => setEventView('add')}
-                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${eventView === 'add' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    Add Event
-                  </button>
-                </div>
-              </div>
-
-              {/* View: List */}
-              {eventView === 'list' && (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {events.map(event => (
-                    <div key={event.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-                      <div className="h-48 overflow-hidden relative">
-                        <img src={event.image} className="w-full h-full object-cover" alt={event.title} />
-                        <div className="absolute top-4 right-4 flex gap-2">
-                          <button onClick={() => onDeleteEvent(event.id)} className="w-8 h-8 rounded-full bg-white text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                            <span className="material-symbols-outlined text-lg">delete</span>
-                          </button>
-                        </div>
-                      </div>
-                      <div className="p-6 flex-1 flex flex-col">
-                        <h4 className="font-black uppercase text-lg mb-2 leading-tight">{event.title}</h4>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">{event.date} • {event.location}</p>
-                        <p className="text-sm text-slate-600 line-clamp-2 mb-4 flex-1">{event.summary}</p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase">Tagged Products:</span>
-                          <div className="flex -space-x-2">
-                            {event.featuredProducts.map((pid, idx) => (
-                              <div key={idx} className="w-6 h-6 rounded-full bg-slate-200 border-2 border-white overflow-hidden">
-                                {/* Just a placeholder visually, would match ID in real app */}
-                                <div className="w-full h-full bg-primary/20"></div>
-                              </div>
-                            ))}
+                        <div className="p-6 flex-1 flex flex-col">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{post.date}</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{post.readTime}</span>
+                          </div>
+                          <h4 className="font-black uppercase text-lg mb-2 leading-tight line-clamp-2">{post.title}</h4>
+                          <p className="text-sm text-slate-600 line-clamp-2 mb-4 flex-1">{post.excerpt}</p>
+                          <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-slate-100 overflow-hidden"><img src={`https://ui-avatars.com/api/?name=${post.author}&background=random`} alt={post.author} className="w-full h-full object-cover" /></div>
+                              <span className="text-xs font-bold text-slate-600">{post.author}</span>
+                            </div>
+                            <button onClick={() => openEditBlog(post)} className="text-primary font-bold text-xs uppercase hover:underline">
+                              Edit Post
+                            </button>
                           </div>
                         </div>
                       </div>
+                    ))}
+                    <div
+                      onClick={openAddBlog}
+                      className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors min-h-[300px]"
+                    >
+                      <span className="material-symbols-outlined text-4xl mb-2">add_circle</span>
+                      <span className="font-bold uppercase tracking-widest text-sm">Create New Post</span>
                     </div>
-                  ))}
-                  <div
-                    onClick={() => setEventView('add')}
-                    className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors min-h-[300px]"
-                  >
-                    <span className="material-symbols-outlined text-4xl mb-2">add_circle</span>
-                    <span className="font-bold uppercase tracking-widest text-sm">Create New Event</span>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* View: Add Event */}
-              {eventView === 'add' && (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-4xl mx-auto">
-                  <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">Create New Event Story</h3>
-                  <form onSubmit={handleEventSubmit} className="space-y-8">
-                    {/* Basic Info */}
-                    <section className="space-y-4">
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Event Title</label>
-                          <input required type="text" value={eventForm.title} onChange={e => setEventForm({ ...eventForm, title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Morning Yoga Session" />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Date</label>
-                          <input required type="text" value={eventForm.date} onChange={e => setEventForm({ ...eventForm, date: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Nov 12, 2023" />
-                        </div>
-                      </div>
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Location</label>
-                          <input required type="text" value={eventForm.location} onChange={e => setEventForm({ ...eventForm, location: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Cubbon Park, Bangalore" />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Summary</label>
-                        <textarea required value={eventForm.summary} onChange={e => setEventForm({ ...eventForm, summary: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={2} placeholder="Short description for the card..." />
-                      </div>
-                    </section>
+                {/* View: Add/Edit Blog */}
+                {blogView === 'form' && (
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-4xl mx-auto">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-2xl font-black uppercase text-slate-900">{editingBlogPost ? 'Edit Blog Post' : 'Create New Post'}</h3>
+                      <button onClick={() => setBlogView('list')} className="text-slate-400 hover:text-slate-600"><span className="material-symbols-outlined">close</span></button>
+                    </div>
 
-                    {/* Story Editor */}
-                    <section className="space-y-4 pt-6 border-t border-slate-100">
-                      <h4 className="text-sm font-black uppercase text-slate-800">Full Story Content</h4>
-                      {eventForm.fullStory?.map((section, idx) => (
-                        <div key={idx} className="p-4 bg-slate-50 rounded-xl space-y-3 relative group">
-                          <button type="button" onClick={() => {
-                            const newStory = eventForm.fullStory?.filter((_, i) => i !== idx);
-                            setEventForm(prev => ({ ...prev, fullStory: newStory }));
-                          }} className="absolute top-2 right-2 text-slate-400 hover:text-red-500"><span className="material-symbols-outlined">close</span></button>
-
-                          <input type="text" placeholder="Section Heading" value={section.heading} onChange={(e) => updateStorySection(idx, 'heading', e.target.value)} className="w-full bg-white px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm" />
-                          <textarea placeholder="Section Content paragraph..." value={section.content} onChange={(e) => updateStorySection(idx, 'content', e.target.value)} rows={3} className="w-full bg-white px-3 py-2 rounded-lg border border-slate-200 text-sm" />
-                        </div>
-                      ))}
-                      <button type="button" onClick={addStorySection} className="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:underline">
-                        <span className="material-symbols-outlined text-sm">add</span> Add Story Section
-                      </button>
-                    </section>
-
-                    {/* Images */}
-                    <section className="space-y-4 pt-6 border-t border-slate-100">
-                      <h4 className="text-sm font-black uppercase text-slate-800">Media</h4>
-                      <div className="grid md:grid-cols-2 gap-8">
+                    <form onSubmit={handleBlogSubmit} className="space-y-8">
+                      {/* Basic Info */}
+                      <section className="grid md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Cover Image</label>
-                          <input type="file" accept="image/*" onChange={(e) => handleEventImageUpload(e, 'cover')} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                          {eventForm.image && <img src={eventForm.image} alt="Cover" className="h-32 rounded-lg object-cover mt-2" />}
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Post Title</label>
+                          <input required type="text" value={blogForm.title} onChange={e => setBlogForm({ ...blogForm, title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. 5 Ways to Eat Oats" />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Gallery Images</label>
-                          <input type="file" multiple accept="image/*" onChange={(e) => handleEventImageUpload(e, 'gallery')} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {eventForm.gallery?.map((img, i) => (
-                              <div key={i} className="w-16 h-16 relative">
-                                <img src={img} className="w-full h-full object-cover rounded-lg" />
-                              </div>
-                            ))}
-                          </div>
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Category Type</label>
+                          <select required value={blogForm.type} onChange={e => setBlogForm({ ...blogForm, type: e.target.value as any })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white">
+                            <option value="Recipe">Recipe</option>
+                            <option value="Lifestyle">Lifestyle</option>
+                            <option value="News">News</option>
+                          </select>
                         </div>
-                      </div>
-                    </section>
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Author</label>
+                          <input required type="text" value={blogForm.author} onChange={e => setBlogForm({ ...blogForm, author: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Chef Riya" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Read Time</label>
+                          <input required type="text" value={blogForm.readTime} onChange={e => setBlogForm({ ...blogForm, readTime: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. 5 min read" />
+                        </div>
+                        <div className="md:col-span-2 space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Excerpt</label>
+                          <textarea required value={blogForm.excerpt} onChange={e => setBlogForm({ ...blogForm, excerpt: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={2} placeholder="Short summary for the card..." />
+                        </div>
+                      </section>
 
-                    {/* Product Linker */}
-                    <section className="space-y-4 pt-6 border-t border-slate-100">
-                      <h4 className="text-sm font-black uppercase text-slate-800">Featured Products</h4>
-                      <p className="text-xs text-slate-500">Select products that were part of this event.</p>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {products.map(p => (
-                          <div
-                            key={p.id}
-                            onClick={() => toggleFeaturedProduct(p.id)}
-                            className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex items-center gap-3 ${eventForm.featuredProducts?.includes(p.id) ? 'border-primary bg-primary/5' : 'border-slate-100 hover:border-slate-300'}`}
-                          >
-                            <div className="w-8 h-8 rounded bg-white overflow-hidden flex-shrink-0"><img src={p.image} className="w-full h-full object-cover" /></div>
-                            <span className="text-xs font-bold line-clamp-1">{p.name}</span>
-                            {eventForm.featuredProducts?.includes(p.id) && <span className="ml-auto material-symbols-outlined text-primary text-sm">check_circle</span>}
+                      {/* Cover Image */}
+                      <section className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Cover Image</label>
+                        <input type="file" accept="image/*" onChange={handleBlogImageUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                        {blogForm.image && <img src={blogForm.image} alt="Cover" className="h-48 rounded-xl object-cover mt-2 w-full" />}
+                      </section>
+
+                      {/* Content Editor */}
+                      <section className="space-y-4 pt-6 border-t border-slate-100">
+                        <h4 className="text-sm font-black uppercase text-slate-800">Article Content</h4>
+                        <p className="text-xs text-slate-500">Add paragraphs for your article.</p>
+                        {blogForm.content?.map((paragraph, idx) => (
+                          <div key={idx} className="relative group">
+                            <textarea
+                              placeholder={`Paragraph ${idx + 1}...`}
+                              value={paragraph}
+                              onChange={(e) => updateBlogContent(idx, e.target.value)}
+                              rows={4}
+                              className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-700 focus:ring-primary focus:border-primary"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeBlogParagraph(idx)}
+                              className="absolute top-2 right-2 p-1 bg-white rounded-full text-slate-400 hover:text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <span className="material-symbols-outlined text-sm">delete</span>
+                            </button>
                           </div>
                         ))}
+                        <button type="button" onClick={addBlogParagraph} className="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:underline">
+                          <span className="material-symbols-outlined text-sm">add</span> Add Paragraph
+                        </button>
+                      </section>
+
+                      <div className="pt-6 flex justify-end gap-4 border-t border-slate-100">
+                        <button type="button" onClick={() => setBlogView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                        <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">{editingBlogPost ? 'Update Post' : 'Publish Post'}</button>
                       </div>
-                    </section>
-
-                    <div className="pt-6 flex justify-end gap-4">
-                      <button type="button" onClick={() => setEventView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
-                      <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Publish Story</button>
-                    </div>
-                  </form>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ----- PRODUCT TAB (Keeping existing logic) ----- */}
-          {activeTab === 'products' && (
-            <div className="space-y-6 animate-in fade-in duration-300">
-              {/* Toolbar */}
-              <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
-                  <button
-                    onClick={() => setProductView('list')}
-                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${productView === 'list' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    Product List
-                  </button>
-                  <button
-                    onClick={() => setProductView('add')}
-                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${productView === 'add' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    Add Product
-                  </button>
-                  <button
-                    onClick={() => setProductView('categories')}
-                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${productView === 'categories' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                  >
-                    Categories
-                  </button>
-                </div>
-                {productView === 'list' && (
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg">search</span>
-                    <input type="text" placeholder="Search inventory..." className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-64" />
+                    </form>
                   </div>
                 )}
               </div>
+            )
+          }
 
-              {/* View: Product List */}
-              {productView === 'list' && (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                  <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Product</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Category</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Price</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Stock Level</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {products.map(product => (
-                        <tr key={product.id} className="hover:bg-slate-50/50 transition-colors group">
-                          <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0">
-                                <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
-                              </div>
-                              <div>
-                                <p className="font-bold text-slate-900 text-sm">{product.name}</p>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">ID: {product.id.slice(-4)}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <span className="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black uppercase text-slate-600 tracking-wider">
-                              {product.category}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <span className="font-bold text-slate-700">₹{product.price}</span>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-center gap-2">
-                              <button onClick={() => handleStockUpdate(product, product.stock - 1)} className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center hover:bg-slate-200 text-slate-600">-</button>
-                              <span className={`w-12 text-center font-bold text-sm ${product.stock < 10 ? 'text-red-500' : 'text-slate-700'}`}>
-                                {product.stock}
-                              </span>
-                              <button onClick={() => handleStockUpdate(product, product.stock + 1)} className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center hover:bg-slate-200 text-slate-600">+</button>
-                              {product.stock < 10 && <span className="text-[10px] text-red-500 font-bold uppercase ml-2">Low</span>}
-                            </div>
-                          </td>
-                          <td className="p-4 text-right">
-                            <button
-                              onClick={() => onDeleteProduct(product.id)}
-                              className="text-slate-400 hover:text-red-500 transition-colors p-2"
-                            >
+          {/* ----- EVENT MANAGER TAB (Keeping existing logic) ----- */}
+          {
+            activeTab === 'events' && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                {/* Toolbar */}
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                  <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
+                    <button
+                      onClick={() => setEventView('list')}
+                      className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${eventView === 'list' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      All Events
+                    </button>
+                    <button
+                      onClick={() => setEventView('add')}
+                      className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${eventView === 'add' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      Add Event
+                    </button>
+                  </div>
+                </div>
+
+                {/* View: List */}
+                {eventView === 'list' && (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {events.map(event => (
+                      <div key={event.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                        <div className="h-48 overflow-hidden relative">
+                          <img src={event.image} className="w-full h-full object-cover" alt={event.title} />
+                          <div className="absolute top-4 right-4 flex gap-2">
+                            <button onClick={() => onDeleteEvent(event.id)} className="w-8 h-8 rounded-full bg-white text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
                               <span className="material-symbols-outlined text-lg">delete</span>
                             </button>
-                            <button className="text-slate-400 hover:text-primary transition-colors p-2">
-                              <span className="material-symbols-outlined text-lg">edit</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {products.length === 0 && (
-                    <div className="p-12 text-center">
-                      <p className="text-slate-400 font-medium">No products found. Add one to get started!</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* View: Add Product */}
-              {productView === 'add' && (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-3xl mx-auto">
-                  <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">Add New Product</h3>
-                  <form onSubmit={handleProductSubmit} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Product Name</label>
-                        <input required type="text" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Super Oats" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Price (₹)</label>
-                        <input required type="number" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="499" />
-                      </div>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Category</label>
-                        <select required value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white">
-                          <option value="">Select Category...</option>
-                          {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Initial Stock</label>
-                        <input required type="number" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="100" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-500">Description</label>
-                      <textarea required value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={4} placeholder="Product details..." />
-                    </div>
-
-                    {/* Image Upload Section */}
-                    <div className="space-y-6 border-t border-slate-100 pt-6">
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Featured Image</label>
-                        <div className="flex items-center gap-4">
-                          <label className="cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl px-4 py-3 hover:bg-slate-100 hover:border-primary transition-all">
-                            <span className="text-sm font-bold text-slate-500 flex items-center gap-2">
-                              <span className="material-symbols-outlined">cloud_upload</span>
-                              Upload Main Image
-                            </span>
-                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleProductImageUpload(e, 'featured')} />
-                          </label>
-                          {productForm.image && (
-                            <div className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm relative group">
-                              <img src={productForm.image} alt="Preview" className="w-full h-full object-cover" />
-                              <button
-                                type="button"
-                                onClick={() => setProductForm({ ...productForm, image: '' })}
-                                className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <span className="material-symbols-outlined text-white">close</span>
-                              </button>
+                          </div>
+                        </div>
+                        <div className="p-6 flex-1 flex flex-col">
+                          <h4 className="font-black uppercase text-lg mb-2 leading-tight">{event.title}</h4>
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">{event.date} • {event.location}</p>
+                          <p className="text-sm text-slate-600 line-clamp-2 mb-4 flex-1">{event.summary}</p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">Tagged Products:</span>
+                            <div className="flex -space-x-2">
+                              {event.featuredProducts.map((pid, idx) => (
+                                <div key={idx} className="w-6 h-6 rounded-full bg-slate-200 border-2 border-white overflow-hidden">
+                                  {/* Just a placeholder visually, would match ID in real app */}
+                                  <div className="w-full h-full bg-primary/20"></div>
+                                </div>
+                              ))}
                             </div>
-                          )}
+                          </div>
                         </div>
                       </div>
+                    ))}
+                    <div
+                      onClick={() => setEventView('add')}
+                      className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors min-h-[300px]"
+                    >
+                      <span className="material-symbols-outlined text-4xl mb-2">add_circle</span>
+                      <span className="font-bold uppercase tracking-widest text-sm">Create New Event</span>
+                    </div>
+                  </div>
+                )}
 
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Gallery Images</label>
-                        <div className="flex items-center gap-4 flex-wrap">
-                          <label className="cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl px-4 py-3 hover:bg-slate-100 hover:border-primary transition-all">
-                            <span className="text-sm font-bold text-slate-500 flex items-center gap-2">
-                              <span className="material-symbols-outlined">add_photo_alternate</span>
-                              Add More Images
-                            </span>
-                            <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleProductImageUpload(e, 'gallery')} />
-                          </label>
-                          {productForm.gallery && productForm.gallery.map((img, idx) => (
-                            <div key={idx} className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm relative group">
-                              <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
-                              <button
-                                type="button"
-                                onClick={() => setProductForm(prev => ({ ...prev, gallery: prev.gallery?.filter((_, i) => i !== idx) }))}
-                                className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <span className="material-symbols-outlined text-white">close</span>
-                              </button>
+                {/* View: Add Event */}
+                {eventView === 'add' && (
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-4xl mx-auto">
+                    <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">Create New Event Story</h3>
+                    <form onSubmit={handleEventSubmit} className="space-y-8">
+                      {/* Basic Info */}
+                      <section className="space-y-4">
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Event Title</label>
+                            <input required type="text" value={eventForm.title} onChange={e => setEventForm({ ...eventForm, title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Morning Yoga Session" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Date</label>
+                            <input required type="text" value={eventForm.date} onChange={e => setEventForm({ ...eventForm, date: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Nov 12, 2023" />
+                          </div>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Location</label>
+                            <input required type="text" value={eventForm.location} onChange={e => setEventForm({ ...eventForm, location: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Cubbon Park, Bangalore" />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Summary</label>
+                          <textarea required value={eventForm.summary} onChange={e => setEventForm({ ...eventForm, summary: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={2} placeholder="Short description for the card..." />
+                        </div>
+                      </section>
+
+                      {/* Story Editor */}
+                      <section className="space-y-4 pt-6 border-t border-slate-100">
+                        <h4 className="text-sm font-black uppercase text-slate-800">Full Story Content</h4>
+                        {eventForm.fullStory?.map((section, idx) => (
+                          <div key={idx} className="p-4 bg-slate-50 rounded-xl space-y-3 relative group">
+                            <button type="button" onClick={() => {
+                              const newStory = eventForm.fullStory?.filter((_, i) => i !== idx);
+                              setEventForm(prev => ({ ...prev, fullStory: newStory }));
+                            }} className="absolute top-2 right-2 text-slate-400 hover:text-red-500"><span className="material-symbols-outlined">close</span></button>
+
+                            <input type="text" placeholder="Section Heading" value={section.heading} onChange={(e) => updateStorySection(idx, 'heading', e.target.value)} className="w-full bg-white px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm" />
+                            <textarea placeholder="Section Content paragraph..." value={section.content} onChange={(e) => updateStorySection(idx, 'content', e.target.value)} rows={3} className="w-full bg-white px-3 py-2 rounded-lg border border-slate-200 text-sm" />
+                          </div>
+                        ))}
+                        <button type="button" onClick={addStorySection} className="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:underline">
+                          <span className="material-symbols-outlined text-sm">add</span> Add Story Section
+                        </button>
+                      </section>
+
+                      {/* Images */}
+                      <section className="space-y-4 pt-6 border-t border-slate-100">
+                        <h4 className="text-sm font-black uppercase text-slate-800">Media</h4>
+                        <div className="grid md:grid-cols-2 gap-8">
+                          <div className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Cover Image</label>
+                            <input type="file" accept="image/*" onChange={(e) => handleEventImageUpload(e, 'cover')} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                            {eventForm.image && <img src={eventForm.image} alt="Cover" className="h-32 rounded-lg object-cover mt-2" />}
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Gallery Images</label>
+                            <input type="file" multiple accept="image/*" onChange={(e) => handleEventImageUpload(e, 'gallery')} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {eventForm.gallery?.map((img, i) => (
+                                <div key={i} className="w-16 h-16 relative">
+                                  <img src={img} className="w-full h-full object-cover rounded-lg" />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </section>
+
+                      {/* Product Linker */}
+                      <section className="space-y-4 pt-6 border-t border-slate-100">
+                        <h4 className="text-sm font-black uppercase text-slate-800">Featured Products</h4>
+                        <p className="text-xs text-slate-500">Select products that were part of this event.</p>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {products.map(p => (
+                            <div
+                              key={p.id}
+                              onClick={() => toggleFeaturedProduct(p.id)}
+                              className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex items-center gap-3 ${eventForm.featuredProducts?.includes(p.id) ? 'border-primary bg-primary/5' : 'border-slate-100 hover:border-slate-300'}`}
+                            >
+                              <div className="w-8 h-8 rounded bg-white overflow-hidden flex-shrink-0"><img src={p.image} className="w-full h-full object-cover" /></div>
+                              <span className="text-xs font-bold line-clamp-1">{p.name}</span>
+                              {eventForm.featuredProducts?.includes(p.id) && <span className="ml-auto material-symbols-outlined text-primary text-sm">check_circle</span>}
                             </div>
                           ))}
                         </div>
+                      </section>
+
+                      <div className="pt-6 flex justify-end gap-4">
+                        <button type="button" onClick={() => setEventView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                        <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Publish Story</button>
                       </div>
-                    </div>
-
-                    <div className="pt-4 flex justify-end gap-4">
-                      <button type="button" onClick={() => setProductView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
-                      <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Create Product</button>
-                    </div>
-                  </form>
-                </div>
-              )}
-
-              {/* View: Categories */}
-              {productView === 'categories' && (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-2xl mx-auto">
-                  <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">Manage Categories</h3>
-
-                  <div className="flex gap-4 mb-8">
-                    <input
-                      type="text"
-                      value={newCategory}
-                      onChange={(e) => setNewCategory(e.target.value)}
-                      placeholder="New Category Name"
-                      className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary"
-                    />
-                    <button
-                      onClick={() => {
-                        if (newCategory) {
-                          onAddCategory(newCategory);
-                          setNewCategory('');
-                        }
-                      }}
-                      className="px-6 py-3 bg-slate-900 text-white rounded-xl font-black uppercase"
-                    >
-                      Add
-                    </button>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2 block">Active Categories</label>
-                    <div className="flex flex-wrap gap-3">
-                      {categories.map(c => (
-                        <div key={c} className="px-4 py-2 bg-slate-50 rounded-lg border border-slate-200 flex items-center gap-2">
-                          <span className="font-bold text-slate-700">{c}</span>
-                          {c !== 'Muesli' && c !== 'Oats' && ( // Prevent deleting core categories for demo
-                            <button className="text-slate-400 hover:text-red-500">
-                              <span className="material-symbols-outlined text-sm">close</span>
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ----- ORDERS TAB ----- */}
-          {activeTab === 'orders' && (
-            <div className="space-y-6 animate-in fade-in duration-300">
-              <div className="grid md:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Orders</p>
-                  <p className="text-3xl font-black text-slate-900 mt-2">{orders.length}</p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Pending</p>
-                  <p className="text-3xl font-black text-orange-500 mt-2">{orders.filter(o => o.status === 'Pending' || o.status === 'Processing').length}</p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Shipped</p>
-                  <p className="text-3xl font-black text-blue-500 mt-2">{orders.filter(o => o.status === 'Shipped').length}</p>
-                </div>
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Revenue</p>
-                  <p className="text-3xl font-black text-green-500 mt-2">₹{orders.reduce((acc, curr) => acc + (curr.status !== 'Cancelled' ? curr.total : 0), 0).toLocaleString()}</p>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-6 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
-                  <h3 className="font-black uppercase text-slate-900">Recent Transactions</h3>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg">search</span>
-                    <input
-                      type="text"
-                      placeholder="Search orders..."
-                      value={orderSearchQuery}
-                      onChange={(e) => setOrderSearchQuery(e.target.value)}
-                      className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-64"
-                    />
-                  </div>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Order ID</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Customer</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Date</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Status</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Total</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredOrders.map(order => (
-                        <tr key={order.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="p-4 font-bold text-slate-900">{order.id}</td>
-                          <td className="p-4">
-                            <div className="font-bold text-slate-700">{order.customer}</div>
-                            <div className="text-xs text-slate-400">{order.items} Items</div>
-                          </td>
-                          <td className="p-4 text-sm font-medium text-slate-600">{order.date}</td>
-                          <td className="p-4">
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${order.status === 'Delivered' ? 'bg-green-100 text-green-600' :
-                              order.status === 'Processing' ? 'bg-blue-100 text-blue-600' :
-                                order.status === 'Shipped' ? 'bg-purple-100 text-purple-600' :
-                                  order.status === 'Pending' ? 'bg-orange-100 text-orange-600' :
-                                    'bg-red-100 text-red-600'
-                              }`}>
-                              {order.status}
-                            </span>
-                          </td>
-                          <td className="p-4 font-black text-slate-800">₹{order.total}</td>
-                          <td className="p-4 text-right">
-                            <button
-                              onClick={() => setViewingOrder(order)}
-                              className="text-slate-400 hover:text-primary transition-colors p-2 rounded-full hover:bg-slate-100"
-                              title="View Details"
-                            >
-                              <span className="material-symbols-outlined">visibility</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                      {filteredOrders.length === 0 && (
-                        <tr>
-                          <td colSpan={6} className="p-8 text-center text-slate-400 font-bold">
-                            No orders found matching "{orderSearchQuery}"
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'overview' && (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {/* Stats Grid */}
-              <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-                {[
-                  { label: 'Total Revenue', value: '₹42.5L', change: '+12.5%', icon: 'payments', color: 'bg-green-100 text-green-600' },
-                  { label: 'Total SKUs', value: products.length.toString(), change: '+1', icon: 'inventory_2', color: 'bg-blue-100 text-blue-600' },
-                  { label: 'Low Stock Items', value: products.filter(p => p.stock < 10).length.toString(), change: products.filter(p => p.stock < 10).length > 0 ? '- Action Needed' : 'Healthy', icon: 'warning', color: products.filter(p => p.stock < 10).length > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600' },
-                  { label: 'Total Events', value: events.length.toString(), change: '+2', icon: 'event', color: 'bg-purple-100 text-purple-600' },
-                ].map((stat, i) => (
-                  <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
-                        <span className="material-symbols-outlined">{stat.icon}</span>
-                      </div>
-                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${stat.change.startsWith('+') || stat.change === 'Healthy' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                        {stat.change}
-                      </span>
-                    </div>
-                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">{stat.label}</p>
-                    <p className="text-3xl font-black text-slate-900 mt-1">{stat.value}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="bg-blue-50 border border-blue-100 rounded-xl p-6 flex items-start gap-4">
-                <span className="material-symbols-outlined text-blue-600">info</span>
-                <div>
-                  <h4 className="font-bold text-blue-900">Admin Tip</h4>
-                  <p className="text-sm text-blue-700 mt-1">
-                    You can now create and manage QR codes for visitor check-ins under the "Visitor Forms" tab.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'events' && activeTab !== 'orders' && activeTab !== 'ui-settings' && activeTab !== 'visitor-forms' && activeTab !== 'blogs' && (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
-              <span className="material-symbols-outlined text-6xl opacity-20">construction</span>
-              <p className="font-handdrawn text-2xl">This module is under construction</p>
-            </div>
-          )}
-        </div>
-      </main>
-
-      {/* Slide Edit/Add Modal */}
-      {isSlideModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={closeSlideModal} />
-          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl relative z-10 p-8 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto custom-scroll">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-black uppercase text-slate-900">{editingSlide ? 'Edit Slide' : 'Add New Slide'}</h3>
-              <button onClick={closeSlideModal} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200"><span className="material-symbols-outlined">close</span></button>
-            </div>
-
-            <form onSubmit={handleSlideSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Category Label</label>
-                <input required type="text" value={slideForm.category} onChange={e => setSlideForm({ ...slideForm, category: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. SUPER MUESLI" />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Headline</label>
-                <input required type="text" value={slideForm.headline} onChange={e => setSlideForm({ ...slideForm, headline: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Crunchy Coffee Madness" />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Description</label>
-                <textarea required value={slideForm.description} onChange={e => setSlideForm({ ...slideForm, description: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={3} placeholder="Short description..." />
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">CTA Button Text</label>
-                  <input required type="text" value={slideForm.cta} onChange={e => setSlideForm({ ...slideForm, cta: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="SHOP NOW" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Status</label>
-                  <select value={slideForm.isActive ? 'active' : 'inactive'} onChange={e => setSlideForm({ ...slideForm, isActive: e.target.value === 'active' })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white">
-                    <option value="active">Published (Active)</option>
-                    <option value="inactive">Draft (Inactive)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Color Theme</label>
-                <div className="flex flex-wrap gap-2">
-                  {COLOR_THEMES.map(theme => (
-                    <button
-                      key={theme.name}
-                      type="button"
-                      onClick={() => setSlideForm(prev => ({ ...prev, bgColor: theme.bgColor, accentColor: theme.accentColor, blobColor: theme.blobColor }))}
-                      className={`px-3 py-2 rounded-lg border-2 text-xs font-bold uppercase transition-all flex items-center gap-2 ${slideForm.bgColor === theme.bgColor ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 hover:border-slate-300 text-slate-500'}`}
-                    >
-                      <span className={`w-3 h-3 rounded-full ${theme.bgColor.replace('bg-', 'bg-')}`}></span>
-                      {theme.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Slide Image</label>
-                <input type="file" accept="image/*" onChange={handleSlideImageUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                {slideForm.image && (
-                  <div className="mt-2 h-32 w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
-                    <img src={slideForm.image} alt="Preview" className="w-full h-full object-contain" />
+                    </form>
                   </div>
                 )}
               </div>
+            )
+          }
 
-              <div className="pt-4 flex justify-end gap-4 border-t border-slate-100 mt-6">
-                <button type="button" onClick={closeSlideModal} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
-                <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Save Slide</button>
+          {/* ----- PRODUCT TAB (Keeping existing logic) ----- */}
+          {
+            activeTab === 'products' && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                {/* Toolbar */}
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                  <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
+                    <button
+                      onClick={() => setProductView('list')}
+                      className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${productView === 'list' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      Product List
+                    </button>
+                    <button
+                      onClick={() => setProductView('add')}
+                      className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${productView === 'add' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      Add Product
+                    </button>
+                    <button
+                      onClick={() => setProductView('categories')}
+                      className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${productView === 'categories' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      Categories
+                    </button>
+                  </div>
+                  {productView === 'list' && (
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg">search</span>
+                      <input type="text" placeholder="Search inventory..." className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-64" />
+                    </div>
+                  )}
+                </div>
+
+                {/* View: Product List */}
+                {productView === 'list' && (
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <table className="w-full text-left">
+                      <thead className="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Product</th>
+                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Category</th>
+                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Price</th>
+                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Stock Level</th>
+                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {products.map(product => (
+                          <tr key={product.id} className="hover:bg-slate-50/50 transition-colors group">
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0">
+                                  <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
+                                </div>
+                                <div>
+                                  <p className="font-bold text-slate-900 text-sm">{product.name}</p>
+                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">ID: {product.id.slice(-4)}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <span className="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black uppercase text-slate-600 tracking-wider">
+                                {product.category}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <span className="font-bold text-slate-700">₹{product.price}</span>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => handleStockUpdate(product, product.stock - 1)} className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center hover:bg-slate-200 text-slate-600">-</button>
+                                <span className={`w-12 text-center font-bold text-sm ${product.stock < 10 ? 'text-red-500' : 'text-slate-700'}`}>
+                                  {product.stock}
+                                </span>
+                                <button onClick={() => handleStockUpdate(product, product.stock + 1)} className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center hover:bg-slate-200 text-slate-600">+</button>
+                                {product.stock < 10 && <span className="text-[10px] text-red-500 font-bold uppercase ml-2">Low</span>}
+                              </div>
+                            </td>
+                            <td className="p-4 text-right">
+                              <button
+                                onClick={() => onDeleteProduct(product.id)}
+                                className="text-slate-400 hover:text-red-500 transition-colors p-2"
+                              >
+                                <span className="material-symbols-outlined text-lg">delete</span>
+                              </button>
+                              <button className="text-slate-400 hover:text-primary transition-colors p-2">
+                                <span className="material-symbols-outlined text-lg">edit</span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {products.length === 0 && (
+                      <div className="p-12 text-center">
+                        <p className="text-slate-400 font-medium">No products found. Add one to get started!</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* View: Add Product */}
+                {productView === 'add' && (
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-3xl mx-auto">
+                    <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">Add New Product</h3>
+                    <form onSubmit={handleProductSubmit} className="space-y-6">
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Product Name</label>
+                          <input required type="text" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Super Oats" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Price (₹)</label>
+                          <input required type="number" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="499" />
+                        </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Category</label>
+                          <select required value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white">
+                            <option value="">Select Category...</option>
+                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Initial Stock</label>
+                          <input required type="number" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="100" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Description</label>
+                        <textarea required value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={4} placeholder="Product details..." />
+                      </div>
+
+                      {/* Image Upload Section */}
+                      <div className="space-y-6 border-t border-slate-100 pt-6">
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Featured Image</label>
+                          <div className="flex items-center gap-4">
+                            <label className="cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl px-4 py-3 hover:bg-slate-100 hover:border-primary transition-all">
+                              <span className="text-sm font-bold text-slate-500 flex items-center gap-2">
+                                <span className="material-symbols-outlined">cloud_upload</span>
+                                Upload Main Image
+                              </span>
+                              <input type="file" accept="image/*" className="hidden" onChange={(e) => handleProductImageUpload(e, 'featured')} />
+                            </label>
+                            {productForm.image && (
+                              <div className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm relative group">
+                                <img src={productForm.image} alt="Preview" className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => setProductForm({ ...productForm, image: '' })}
+                                  className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <span className="material-symbols-outlined text-white">close</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Gallery Images</label>
+                          <div className="flex items-center gap-4 flex-wrap">
+                            <label className="cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl px-4 py-3 hover:bg-slate-100 hover:border-primary transition-all">
+                              <span className="text-sm font-bold text-slate-500 flex items-center gap-2">
+                                <span className="material-symbols-outlined">add_photo_alternate</span>
+                                Add More Images
+                              </span>
+                              <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleProductImageUpload(e, 'gallery')} />
+                            </label>
+                            {productForm.gallery && productForm.gallery.map((img, idx) => (
+                              <div key={idx} className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm relative group">
+                                <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => setProductForm(prev => ({ ...prev, gallery: prev.gallery?.filter((_, i) => i !== idx) }))}
+                                  className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <span className="material-symbols-outlined text-white">close</span>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-4 flex justify-end gap-4">
+                        <button type="button" onClick={() => setProductView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                        <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Create Product</button>
+                      </div>
+                    </form>
+                  </div>
+                )}
+
+                {/* View: Categories */}
+                {productView === 'categories' && (
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-2xl mx-auto">
+                    <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">Manage Categories</h3>
+
+                    <div className="flex gap-4 mb-8">
+                      <input
+                        type="text"
+                        value={newCategory}
+                        onChange={(e) => setNewCategory(e.target.value)}
+                        placeholder="New Category Name"
+                        className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary"
+                      />
+                      <button
+                        onClick={() => {
+                          if (newCategory) {
+                            onAddCategory(newCategory);
+                            setNewCategory('');
+                          }
+                        }}
+                        className="px-6 py-3 bg-slate-900 text-white rounded-xl font-black uppercase"
+                      >
+                        Add
+                      </button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2 block">Active Categories</label>
+                      <div className="flex flex-wrap gap-3">
+                        {categories.map(c => (
+                          <div key={c} className="px-4 py-2 bg-slate-50 rounded-lg border border-slate-200 flex items-center gap-2">
+                            <span className="font-bold text-slate-700">{c}</span>
+                            {c !== 'Muesli' && c !== 'Oats' && ( // Prevent deleting core categories for demo
+                              <button className="text-slate-400 hover:text-red-500">
+                                <span className="material-symbols-outlined text-sm">close</span>
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+            )
+          }
 
-      {/* Order Details Modal */}
-      {viewingOrder && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setViewingOrder(null)} />
-          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in duration-300">
-            {/* Modal Header */}
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <div>
-                <div className="flex items-center gap-3">
-                  <h3 className="text-xl font-black uppercase text-slate-900">Order Details</h3>
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${viewingOrder.status === 'Delivered' ? 'bg-green-100 text-green-600' :
-                    viewingOrder.status === 'Processing' ? 'bg-blue-100 text-blue-600' :
-                      viewingOrder.status === 'Shipped' ? 'bg-purple-100 text-purple-600' :
-                        viewingOrder.status === 'Pending' ? 'bg-orange-100 text-orange-600' :
-                          'bg-red-100 text-red-600'
-                    }`}>
-                    {viewingOrder.status}
-                  </span>
-                </div>
-                <p className="text-sm font-bold text-slate-500 mt-1">{viewingOrder.id} • Placed on {viewingOrder.date}</p>
-              </div>
-              <button
-                onClick={() => setViewingOrder(null)}
-                className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
-              >
-                <span className="material-symbols-outlined text-lg">close</span>
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-8 overflow-y-auto custom-scroll space-y-8">
-
-              {/* Key Stats */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Total Amount</p>
-                  <p className="text-xl font-black text-primary">₹{viewingOrder.total.toLocaleString()}</p>
-                </div>
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Payment Status</p>
-                  <p className={`text-sm font-black uppercase ${viewingOrder.payment === 'Paid' ? 'text-green-600' : 'text-orange-500'}`}>{viewingOrder.payment}</p>
-                </div>
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Total Items</p>
-                  <p className="text-xl font-black text-slate-900">{viewingOrder.items}</p>
-                </div>
-              </div>
-
-              {/* Customer Info */}
-              <div className="grid md:grid-cols-2 gap-8">
-                <div>
-                  <h4 className="font-bold text-sm uppercase text-slate-900 mb-4 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-slate-400">person</span> Customer
-                  </h4>
-                  <div className="space-y-1">
-                    <p className="font-bold text-slate-800">{viewingOrder.customer}</p>
-                    <p className="text-sm text-slate-500">customer@email.com</p>
-                    <p className="text-sm text-slate-500">+91 98765 43210</p>
+          {/* ----- ORDERS TAB ----- */}
+          {
+            activeTab === 'orders' && (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="grid md:grid-cols-4 gap-6">
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Orders</p>
+                    <p className="text-3xl font-black text-slate-900 mt-2">{orders.length}</p>
+                  </div>
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">Pending</p>
+                    <p className="text-3xl font-black text-orange-500 mt-2">{orders.filter(o => o.status === 'Pending' || o.status === 'Processing').length}</p>
+                  </div>
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">Shipped</p>
+                    <p className="text-3xl font-black text-blue-500 mt-2">{orders.filter(o => o.status === 'Shipped').length}</p>
+                  </div>
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Revenue</p>
+                    <p className="text-3xl font-black text-green-500 mt-2">₹{orders.reduce((acc, curr) => acc + (curr.status !== 'Cancelled' ? curr.total_amount : 0), 0).toLocaleString()}</p>
                   </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-sm uppercase text-slate-900 mb-4 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-slate-400">local_shipping</span> Shipping To
-                  </h4>
-                  <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                    102, Green Valley Apartments,<br />
-                    Indiranagar, Bangalore,<br />
-                    Karnataka - 560038
-                  </p>
+
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                  <div className="p-6 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <h3 className="font-black uppercase text-slate-900">Recent Transactions</h3>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg">search</span>
+                      <input
+                        type="text"
+                        placeholder="Search orders..."
+                        value={orderSearchQuery}
+                        onChange={(e) => setOrderSearchQuery(e.target.value)}
+                        className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-64"
+                      />
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                      <thead className="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Order ID</th>
+                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Customer</th>
+                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Date</th>
+                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Status</th>
+                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Total</th>
+                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {filteredOrders.map(order => (
+                          <tr key={order.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="p-4 font-bold text-slate-900">#{order.id}</td>
+                            <td className="p-4">
+                              <div className="font-bold text-slate-700">{order.user_name}</div>
+                              <div className="text-xs text-slate-400">{order.items.length} Items</div>
+                            </td>
+                            <td className="p-4 text-sm font-medium text-slate-600">{new Date(order.created_at).toLocaleDateString()}</td>
+                            <td className="p-4">
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${order.status === 'Delivered' ? 'bg-green-100 text-green-600' :
+                                order.status === 'Processing' ? 'bg-blue-100 text-blue-600' :
+                                  order.status === 'Shipped' ? 'bg-purple-100 text-purple-600' :
+                                    order.status === 'Pending' ? 'bg-orange-100 text-orange-600' :
+                                      'bg-red-100 text-red-600'
+                                }`}>
+                                {order.status}
+                              </span>
+                            </td>
+                            <td className="p-4 font-black text-slate-800">₹{order.total_amount}</td>
+                            <td className="p-4 text-right">
+                              <button
+                                onClick={() => setViewingOrder(order)}
+                                className="text-slate-400 hover:text-primary transition-colors p-2 rounded-full hover:bg-slate-100"
+                                title="View Details"
+                              >
+                                <span className="material-symbols-outlined">visibility</span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                        {filteredOrders.length === 0 && (
+                          <tr>
+                            <td colSpan={6} className="p-8 text-center text-slate-400 font-bold">
+                              No orders found matching "{orderSearchQuery}"
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
+            )
+          }
 
-              {/* Order Items */}
-              <div>
-                <h4 className="font-bold text-sm uppercase text-slate-900 mb-4 pb-2 border-b border-slate-100">Order Items</h4>
-                <div className="space-y-4">
-                  {[...Array(viewingOrder.items)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-slate-100 rounded-lg flex-shrink-0 flex items-center justify-center text-slate-300">
-                        <span className="material-symbols-outlined">image</span>
+          {
+            activeTab === 'overview' && (
+              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {/* Stats Grid */}
+                <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
+                  {[
+                    { label: 'Total Revenue', value: '₹42.5L', change: '+12.5%', icon: 'payments', color: 'bg-green-100 text-green-600' },
+                    { label: 'Total SKUs', value: products.length.toString(), change: '+1', icon: 'inventory_2', color: 'bg-blue-100 text-blue-600' },
+                    { label: 'Low Stock Items', value: products.filter(p => p.stock < 10).length.toString(), change: products.filter(p => p.stock < 10).length > 0 ? '- Action Needed' : 'Healthy', icon: 'warning', color: products.filter(p => p.stock < 10).length > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600' },
+                    { label: 'Total Events', value: events.length.toString(), change: '+2', icon: 'event', color: 'bg-purple-100 text-purple-600' },
+                  ].map((stat, i) => (
+                    <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
+                          <span className="material-symbols-outlined">{stat.icon}</span>
+                        </div>
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${stat.change.startsWith('+') || stat.change === 'Healthy' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                          {stat.change}
+                        </span>
                       </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-slate-700 text-sm">Pinobite Super Product {i + 1}</p>
-                        <p className="text-xs text-slate-400 font-medium">Qty: 1 • Standard Pack</p>
-                      </div>
-                      <p className="font-bold text-slate-900 text-sm">₹{(viewingOrder.total / viewingOrder.items).toFixed(0)}</p>
+                      <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">{stat.label}</p>
+                      <p className="text-3xl font-black text-slate-900 mt-1">{stat.value}</p>
                     </div>
                   ))}
                 </div>
+
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-6 flex items-start gap-4">
+                  <span className="material-symbols-outlined text-blue-600">info</span>
+                  <div>
+                    <h4 className="font-bold text-blue-900">Admin Tip</h4>
+                    <p className="text-sm text-blue-700 mt-1">
+                      You can now create and manage QR codes for visitor check-ins under the "Visitor Forms" tab.
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
+            )
+          }
 
-            {/* Modal Footer */}
-            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 relative">
-              <button
-                onClick={handleDownloadInvoice}
-                className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-white hover:shadow-sm transition-all text-sm border border-transparent hover:border-slate-200"
-              >
-                Download Invoice
-              </button>
+          {
+            activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'events' && activeTab !== 'orders' && activeTab !== 'ui-settings' && activeTab !== 'visitor-forms' && activeTab !== 'blogs' && (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
+                <span className="material-symbols-outlined text-6xl opacity-20">construction</span>
+                <p className="font-handdrawn text-2xl">This module is under construction</p>
+              </div>
+            )
+          }
+        </div >
+      </main >
 
-              <div className="relative">
-                <button
-                  onClick={() => setShowStatusMenu(!showStatusMenu)}
-                  className="px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest bg-slate-900 text-white hover:bg-primary transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
-                >
-                  Update Status
-                  <span className="material-symbols-outlined text-sm">{showStatusMenu ? 'expand_less' : 'expand_more'}</span>
-                </button>
+      {/* Slide Edit/Add Modal */}
+      {
+        isSlideModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={closeSlideModal} />
+            <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl relative z-10 p-8 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto custom-scroll">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-black uppercase text-slate-900">{editingSlide ? 'Edit Slide' : 'Add New Slide'}</h3>
+                <button onClick={closeSlideModal} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200"><span className="material-symbols-outlined">close</span></button>
+              </div>
 
-                {showStatusMenu && (
-                  <div className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200">
-                    {ORDER_STATUSES.map(status => (
+              <form onSubmit={handleSlideSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Category Label</label>
+                  <input required type="text" value={slideForm.category} onChange={e => setSlideForm({ ...slideForm, category: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. SUPER MUESLI" />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Headline</label>
+                  <input required type="text" value={slideForm.headline} onChange={e => setSlideForm({ ...slideForm, headline: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Crunchy Coffee Madness" />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Description</label>
+                  <textarea required value={slideForm.description} onChange={e => setSlideForm({ ...slideForm, description: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={3} placeholder="Short description..." />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">CTA Button Text</label>
+                    <input required type="text" value={slideForm.cta} onChange={e => setSlideForm({ ...slideForm, cta: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="SHOP NOW" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Status</label>
+                    <select value={slideForm.isActive ? 'active' : 'inactive'} onChange={e => setSlideForm({ ...slideForm, isActive: e.target.value === 'active' })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white">
+                      <option value="active">Published (Active)</option>
+                      <option value="inactive">Draft (Inactive)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Color Theme</label>
+                  <div className="flex flex-wrap gap-2">
+                    {COLOR_THEMES.map(theme => (
                       <button
-                        key={status}
-                        onClick={() => handleStatusUpdate(status)}
-                        className={`w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors flex items-center justify-between ${viewingOrder.status === status ? 'text-primary bg-primary/5' : 'text-slate-600'}`}
+                        key={theme.name}
+                        type="button"
+                        onClick={() => setSlideForm(prev => ({ ...prev, bgColor: theme.bgColor, accentColor: theme.accentColor, blobColor: theme.blobColor }))}
+                        className={`px-3 py-2 rounded-lg border-2 text-xs font-bold uppercase transition-all flex items-center gap-2 ${slideForm.bgColor === theme.bgColor ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 hover:border-slate-300 text-slate-500'}`}
                       >
-                        {status}
-                        {viewingOrder.status === status && <span className="material-symbols-outlined text-sm">check</span>}
+                        <span className={`w-3 h-3 rounded-full ${theme.bgColor.replace('bg-', 'bg-')}`}></span>
+                        {theme.name}
                       </button>
                     ))}
                   </div>
-                )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Slide Image</label>
+                  <input type="file" accept="image/*" onChange={handleSlideImageUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                  {slideForm.image && (
+                    <div className="mt-2 h-32 w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+                      <img src={slideForm.image} alt="Preview" className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-4 flex justify-end gap-4 border-t border-slate-100 mt-6">
+                  <button type="button" onClick={closeSlideModal} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                  <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Save Slide</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Order Details Modal */}
+      {
+        viewingOrder && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setViewingOrder(null)} />
+            <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in duration-300">
+              {/* Modal Header */}
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-xl font-black uppercase text-slate-900">Order Details</h3>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${viewingOrder.status === 'Delivered' ? 'bg-green-100 text-green-600' :
+                      viewingOrder.status === 'Processing' ? 'bg-blue-100 text-blue-600' :
+                        viewingOrder.status === 'Shipped' ? 'bg-purple-100 text-purple-600' :
+                          viewingOrder.status === 'Pending' ? 'bg-orange-100 text-orange-600' :
+                            'bg-red-100 text-red-600'
+                      }`}>
+                      {viewingOrder.status}
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold text-slate-500 mt-1">Order #{viewingOrder.id} • Placed on {new Date(viewingOrder.created_at).toLocaleDateString()}</p>
+                </div>
+                <button
+                  onClick={() => setViewingOrder(null)}
+                  className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-lg">close</span>
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-8 overflow-y-auto custom-scroll space-y-8">
+
+                {/* Key Stats */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
+                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Total Amount</p>
+                    <p className="text-xl font-black text-primary">₹{viewingOrder.total_amount.toLocaleString()}</p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
+                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Payment Status</p>
+                    <p className={`text-sm font-black uppercase ${viewingOrder.razorpay_payment_id ? 'text-green-600' : 'text-orange-500'}`}>{viewingOrder.razorpay_payment_id ? 'Paid' : 'Pending'}</p>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
+                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Total Items</p>
+                    <p className="text-xl font-black text-slate-900">{viewingOrder.items.length}</p>
+                  </div>
+                </div>
+
+                {/* Customer Info */}
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div>
+                    <h4 className="font-bold text-sm uppercase text-slate-900 mb-4 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-slate-400">person</span> Customer
+                    </h4>
+                    <div className="space-y-1">
+                      <p className="font-bold text-slate-800">{viewingOrder.user_name}</p>
+                      <p className="text-sm text-slate-500">{viewingOrder.user_email}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm uppercase text-slate-900 mb-4 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-slate-400">local_shipping</span> Shipping To
+                    </h4>
+                    <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                      {viewingOrder.shipping_address}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Order Items */}
+                <div>
+                  <h4 className="font-bold text-sm uppercase text-slate-900 mb-4 pb-2 border-b border-slate-100">Order Items</h4>
+                  <div className="space-y-4">
+                    {viewingOrder.items.map((item, i) => (
+                      <div key={i} className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-slate-100 rounded-lg flex-shrink-0 flex items-center justify-center text-slate-300 overflow-hidden">
+                          {item.product_image ? (
+                            <img src={item.product_image} alt={item.product_name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="material-symbols-outlined">image</span>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-slate-700 text-sm">{item.product_name}</p>
+                          <p className="text-xs text-slate-400 font-medium">Qty: {item.quantity}</p>
+                        </div>
+                        <p className="font-bold text-slate-900 text-sm">₹{item.price}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 relative">
+                <button
+                  onClick={handleDownloadInvoice}
+                  className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-white hover:shadow-sm transition-all text-sm border border-transparent hover:border-slate-200"
+                >
+                  Download Invoice
+                </button>
+
+                <div className="relative">
+                  <button
+                    onClick={() => setShowStatusMenu(!showStatusMenu)}
+                    className="px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest bg-slate-900 text-white hover:bg-primary transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+                  >
+                    Update Status
+                    <span className="material-symbols-outlined text-sm">{showStatusMenu ? 'expand_less' : 'expand_more'}</span>
+                  </button>
+
+                  {showStatusMenu && (
+                    <div className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200">
+                      {ORDER_STATUSES.map(status => (
+                        <button
+                          key={status}
+                          onClick={() => handleStatusUpdate(status)}
+                          className={`w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors flex items-center justify-between ${viewingOrder.status === status ? 'text-primary bg-primary/5' : 'text-slate-600'}`}
+                        >
+                          {status}
+                          {viewingOrder.status === status && <span className="material-symbols-outlined text-sm">check</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 

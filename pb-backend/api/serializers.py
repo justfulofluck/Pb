@@ -38,14 +38,24 @@ class HeroSlideSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    product_image = serializers.SerializerMethodField()
     class Meta:
         model = OrderItem
         fields = '__all__'
 
+    def get_product_image(self, obj):
+        if obj.product:
+            return obj.product.image
+        return None
+
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
+    user_name = serializers.ReadOnlyField(source='user.username')
+    user_email = serializers.ReadOnlyField(source='user.email')
+    
     class Meta:
         model = Order
+        fields = '__all__'
         fields = '__all__'
 
 class UserProfileSerializer(serializers.ModelSerializer):

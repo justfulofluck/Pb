@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config';
 
 
 interface AdminLoginPageProps {
@@ -31,7 +32,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8000/api/token/', {
+      const response = await fetch(`${API_BASE_URL}/api/token/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: email, password }),
@@ -42,7 +43,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
       const tokens = await response.json();
 
       // Verify Admin Status
-      const userResponse = await fetch('http://localhost:8000/api/users/me/', {
+      const userResponse = await fetch(`${API_BASE_URL}/api/users/me/`, {
         headers: { 'Authorization': `Bearer ${tokens.access}` }
       });
 
@@ -57,6 +58,14 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
       localStorage.setItem('admin_access_token', tokens.access);
       localStorage.setItem('admin_refresh_token', tokens.refresh);
 
+      // Explicitly clear customer session to prevent overlap
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      // Force a window event or state update if needed, but App.tsx handles the state mostly.
+      // However, useAuth might still hold the 'user' state in memory until refresh.
+      // Since we don't have access to logout() here, we rely on the user refreshing or
+      // App.tsx logic. But standard useAuth checks localStorage on mount/checkAuth.
+
       onLoginSuccess();
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
@@ -70,7 +79,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch('http://localhost:8000/api/password-reset/request/', {
+      const res = await fetch(`${API_BASE_URL}/api/password-reset/request/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: resetEmail })
@@ -90,7 +99,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch('http://localhost:8000/api/password-reset/verify/', {
+      const res = await fetch(`${API_BASE_URL}/api/password-reset/verify/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: resetEmail, otp })
@@ -116,7 +125,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch('http://localhost:8000/api/password-reset/confirm/', {
+      const res = await fetch(`${API_BASE_URL}/api/password-reset/confirm/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: resetEmail, otp, new_password: newPassword })

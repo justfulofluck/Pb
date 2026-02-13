@@ -2,58 +2,111 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import Breadcrumbs from './Breadcrumbs';
+import { API_BASE_URL } from '../config';
 
 interface ShopPageProps {
-  products: Product[];
-  categories: string[];
   onProductClick: (p: Product) => void;
   onAddToCart: (p: Product) => void;
   searchQuery?: string;
   selectedCategory?: string;
-  isLoading?: boolean;
 }
 
-const ShopPage: React.FC<ShopPageProps> = ({ 
-  products, 
-  categories, 
-  onProductClick, 
-  onAddToCart, 
-  searchQuery = '', 
-  selectedCategory = 'All',
-  isLoading
+const ShopPage: React.FC<ShopPageProps> = ({
+  onProductClick,
+  onAddToCart,
+  searchQuery = '',
+  selectedCategory = 'All'
 }) => {
-  const [filter, setFilter] = useState(selectedCategory);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [filter, setFilter] = useState('All');
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Fetch Categories
   useEffect(() => {
-    setFilter(selectedCategory);
-  }, [selectedCategory]);
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/categories/`);
+        if (response.ok) {
+          const data = await response.json();
+          // Assuming API returns objects {id, name, ...}, extract names
+          // checking if data is array of objects or strings
+          const categoryNames = data.map((c: any) => c.name || c);
+          setCategories(categoryNames);
+        }
+      } catch (error) {
+        console.error("Failed to fetch categories", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
+  // Fetch Products with Filter & Search
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        let url = `${API_BASE_URL}/api/products/`;
+        const params = new URLSearchParams();
+
+        if (filter !== 'All') {
+          params.append('category', filter);
+        }
+
+        if (searchQuery) {
+          params.append('search', searchQuery);
+        }
+
+        if (params.toString()) {
+          url += `?${params.toString()}`;
+        }
+
+        const response = await fetch(url);
+        if (response.ok) {
+          const data = await response.json();
+          // Map API response to Product type if needed, similar to App.tsx
+          const mappedProducts = data.map((p: any) => ({
+            ...p,
+            id: String(p.id),
+            // Ensure other fields map correctly if backend differs from frontend type
+            benefits: p.benefits || [],
+            nutrients: p.nutrients || [],
+            gallery: p.gallery || []
+          }));
+          setProducts(mappedProducts);
+        } else {
+          console.error("Failed to fetch products");
+        }
+      } catch (error) {
+        console.error("Error fetching products", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [filter, searchQuery]);
+
+
+  // Reset filter if searchQuery changes (optional, keeps consistency)
   useEffect(() => {
     if (searchQuery) {
       setFilter('All');
     }
   }, [searchQuery]);
 
-  const displayCategories = ['All', ...categories.filter(c => c !== 'All')];
-
-  const filteredProducts = products.filter(p => {
-    const matchesCategory = filter === 'All' || p.category === filter;
-    const matchesSearch = !searchQuery || 
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      p.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const displayCategories = ['All', ...categories];
 
   return (
     <div className="bg-white min-h-screen">
       {/* Banner Area */}
       <div className="bg-slate-50 text-slate-900 pt-10 pb-16 px-4 relative overflow-hidden">
         <div className="max-w-7xl mx-auto mb-6">
-           <Breadcrumbs 
-             onHomeClick={() => {}} 
-             steps={[{ label: 'Shop' }, { label: filter }]} 
-             className="text-slate-400 !py-0"
-           />
+          <Breadcrumbs
+            onHomeClick={() => { }}
+            steps={[{ label: 'Shop' }, { label: filter }]}
+            className="text-slate-400 !py-0"
+          />
         </div>
         <div className="max-w-4xl mx-auto relative z-10 text-center">
           <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight mb-3 text-slate-900">
@@ -72,11 +125,10 @@ const ShopPage: React.FC<ShopPageProps> = ({
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-6 py-2.5 rounded-full font-black text-[10px] tracking-widest transition-all uppercase border ${
-                filter === cat 
-                  ? 'bg-slate-900 text-white border-slate-900' 
-                  : 'bg-white border-slate-200 text-slate-400 hover:border-slate-900 hover:text-slate-900'
-              }`}
+              className={`px-6 py-2.5 rounded-full font-black text-[10px] tracking-widest transition-all uppercase border ${filter === cat
+                ? 'bg-slate-900 text-white border-slate-900'
+                : 'bg-white border-slate-200 text-slate-400 hover:border-slate-900 hover:text-slate-900'
+                }`}
             >
               {cat}
             </button>
@@ -86,87 +138,102 @@ const ShopPage: React.FC<ShopPageProps> = ({
         {/* Product Grid - Screenshot Inspired Style */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
           {isLoading ? (
-             [...Array(8)].map((_, i) => (
-                <div key={i} className="animate-pulse">
-                   <div className="bg-slate-100 rounded-lg aspect-square mb-4"></div>
-                   <div className="bg-slate-100 h-4 w-3/4 mb-2 rounded"></div>
-                   <div className="bg-slate-100 h-3 w-1/4 rounded"></div>
-                </div>
-             ))
-          ) : (
-            filteredProducts.map((product) => {
-              const discount = product.originalPrice 
-                ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100) 
+            [...Array(8)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="bg-slate-100 rounded-lg aspect-square mb-4"></div>
+                <div className="bg-slate-100 h-4 w-3/4 mb-2 rounded"></div>
+                <div className="bg-slate-100 h-3 w-1/4 rounded"></div>
+              </div>
+            ))
+          ) : products.length > 0 ? (
+            products.map((product) => {
+              const discount = product.originalPrice
+                ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
                 : null;
 
               return (
-                <div 
+                <div
                   key={product.id}
-                  className="group flex flex-col"
+                  className="group cursor-pointer flex flex-col"
+                  onClick={() => onProductClick(product)}
                 >
                   {/* Image Container */}
-                  <div 
-                    className="aspect-square bg-[#F3F4F6] rounded-lg overflow-hidden mb-4 cursor-pointer relative p-10 flex items-center justify-center transition-transform duration-300"
-                    onClick={() => onProductClick(product)}
-                  >
+                  <div className="relative aspect-[4/5] bg-slate-50 overflow-hidden mb-6">
                     {discount && (
-                      <span className="absolute top-3 right-3 bg-slate-900 text-white px-2 py-1 rounded text-[10px] font-black z-20">
-                        {discount}%
+                      <span className="absolute top-3 left-3 bg-red-500 text-white text-[10px] font-black uppercase px-2 py-1 tracking-widest z-10">
+                        -{discount}%
                       </span>
                     )}
-                    {product.stock <= 0 && (
-                       <span className="absolute inset-0 bg-white/40 flex items-center justify-center z-20">
-                         <span className="bg-slate-900 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase">Sold Out</span>
-                       </span>
+                    {product.isTopRated && (
+                      <span className="absolute top-3 right-3 bg-yellow-400 text-slate-900 text-[10px] font-black uppercase px-2 py-1 tracking-widest z-10 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[10px]">star</span> Top Rated
+                      </span>
                     )}
-                    <img 
-                      src={product.image} 
-                      alt={product.name} 
-                      className={`w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 ${product.stock <= 0 ? 'grayscale opacity-60' : ''}`}
+
+                    <img
+                      src={product.image}
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      alt={product.name}
                     />
-                  </div>
-    
-                  {/* Content Area */}
-                  <div className="flex flex-col flex-1">
-                    <h3 
-                      className="font-bold text-sm text-slate-900 hover:text-primary transition-colors cursor-pointer mb-2"
-                      onClick={() => onProductClick(product)}
-                    >
-                      {product.name}
-                    </h3>
-                    
-                    {/* Price Row */}
-                    <div className="flex items-center gap-2 mb-4">
-                      {product.originalPrice && (
-                         <span className="text-xs text-slate-400 line-through">Rs. {product.originalPrice}</span>
-                      )}
-                      <span className="text-sm font-bold text-slate-900">Rs. {product.price}</span>
+
+                    {/* Quick Add Overlay */}
+                    <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddToCart(product);
+                        }}
+                        className="w-full bg-white text-slate-900 py-3 font-black uppercase text-xs tracking-widest hover:bg-slate-900 hover:text-white transition-colors flex items-center justify-center gap-2 shadow-xl"
+                      >
+                        Add to Cart <span className="material-symbols-outlined text-sm">shopping_bag</span>
+                      </button>
                     </div>
-    
-                    {/* Add to Cart Button - Screenshot Style */}
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
-                      disabled={product.stock <= 0}
-                      className="w-full bg-[#F3F4F6] text-slate-600 py-3 rounded-md font-bold text-[11px] uppercase tracking-wider hover:bg-slate-200 hover:text-slate-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
-                    </button>
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex flex-col flex-1">
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="text-sm font-black uppercase tracking-wide text-slate-900 group-hover:underline decoration-2 underline-offset-4">
+                        {product.name}
+                      </h3>
+                      <div className="flex items-center gap-1 text-yellow-500">
+                        <span className="material-symbols-outlined text-[14px] fill-current">star</span>
+                        <span className="text-xs font-bold text-slate-900">{product.rating}</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-500 line-clamp-2 mb-3 leading-relaxed">
+                      {product.description}
+                    </p>
+
+                    <div className="mt-auto flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-slate-900">₹{product.price}</span>
+                        {product.originalPrice && (
+                          <span className="text-xs font-medium text-slate-400 line-through">₹{product.originalPrice}</span>
+                        )}
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-primary transition-colors">
+                        View Item
+                      </span>
+                    </div>
                   </div>
                 </div>
-              );
+              )
             })
+          ) : (
+            <div className="col-span-full py-20 text-center">
+              <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">search_off</span>
+              <p className="text-slate-500 font-bold">No products found matching your criteria.</p>
+              <button
+                onClick={() => { setFilter('All'); }}
+                className="mt-4 text-primary font-bold text-sm hover:underline"
+              >
+                Clear Filters
+              </button>
+            </div>
           )}
         </div>
-
-        {!isLoading && filteredProducts.length === 0 && (
-          <div className="text-center py-32 space-y-4">
-            <span className="material-symbols-outlined text-6xl text-slate-200">sentiment_dissatisfied</span>
-            <p className="text-xl font-bold text-slate-400 uppercase tracking-widest">
-              {searchQuery ? `No items matching "${searchQuery}"` : 'Oops! Catalog is empty in this category.'}
-            </p>
-            <button onClick={() => setFilter('All')} className="text-primary font-bold hover:underline uppercase text-xs tracking-widest">See all products</button>
-          </div>
-        )}
       </div>
     </div>
   );

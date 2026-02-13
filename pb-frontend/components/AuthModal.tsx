@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -33,7 +34,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
 
     try {
       if (view === 'login') {
-        const response = await fetch('http://localhost:8000/api/token/', {
+        const response = await fetch(`${API_BASE_URL}/api/token/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username: email, password }),

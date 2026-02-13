@@ -13,3 +13,8 @@ def send_email(to, subject, contents):
     except Exception as e:
         print(f"Failed to send email: {e}")
         return False
+
+import razorpay
+
+def get_razorpay_client():
+    return razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))

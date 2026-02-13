@@ -47,6 +47,17 @@ INSTALLED_APPS = [
     'api',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -188,6 +199,10 @@ EMAIL_HOST_PASSWORD = 'cwkrporemlfzmywo'
 # Yagmail Configuration
 YAGMAIL_USER = EMAIL_HOST_USER
 YAGMAIL_PASSWORD = EMAIL_HOST_PASSWORD
+
+# Razorpay Configuration
+RAZORPAY_KEY_ID = 'rzp_test_z4U8U86g666666' # Replace with env or real key if available
+RAZORPAY_KEY_SECRET = '888888888888888888888888' # Replace with env or real secret
 
 AUTHENTICATION_BACKENDS = [
     'api.backends.EmailBackend',

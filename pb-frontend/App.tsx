@@ -261,6 +261,7 @@ const CURRENT_USER = {
 type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'distributor' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey' | 'privacy-policy' | 'terms-and-conditions' | 'refund-policy' | 'shipping-policy' | 'visitor-form';
 
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { API_BASE_URL } from './config';
 
 const AppContent: React.FC = () => {
   const { user, logout } = useAuth();
@@ -304,14 +305,21 @@ const AppContent: React.FC = () => {
   }, [user]);
 
   useEffect(() => {
+    const adminToken = localStorage.getItem('admin_access_token');
+    if (adminToken) {
+      setIsAdminLoggedIn(true);
+    }
+  }, []);
+
+  useEffect(() => {
     const fetchContent = async () => {
       try {
         const [eventsRes, blogsRes, storiesRes, productsRes, vFormsRes] = await Promise.all([
-          fetch('http://localhost:8000/api/events/'),
-          fetch('http://localhost:8000/api/blog-posts/'),
-          fetch('http://localhost:8000/api/stories/'),
-          fetch('http://localhost:8000/api/products/'),
-          fetch('http://localhost:8000/api/visitor-forms/')
+          fetch(`${API_BASE_URL}/api/events/`),
+          fetch(`${API_BASE_URL}/api/blog-posts/`),
+          fetch(`${API_BASE_URL}/api/stories/`),
+          fetch(`${API_BASE_URL}/api/products/`),
+          fetch(`${API_BASE_URL}/api/visitor-forms/`)
         ]);
 
         if (vFormsRes.ok) {
@@ -322,7 +330,7 @@ const AppContent: React.FC = () => {
             eventName: f.event_name,
             status: f.status,
             createdAt: f.created_at,
-            link: `http://localhost:5173/forms/${f.id}`, // or handle link generation
+            link: `${window.location.origin}/forms/${f.id}`, // or handle link generation
             submissions: f.submissions ? f.submissions.map((s: any) => ({
               id: String(s.id),
               name: s.name,
@@ -398,7 +406,7 @@ const AppContent: React.FC = () => {
     if (currentView === 'admin-dashboard') {
       const refreshVisitorForms = async () => {
         try {
-          const response = await fetch('http://localhost:8000/api/visitor-forms/');
+          const response = await fetch(`${API_BASE_URL}/api/visitor-forms/`);
           if (response.ok) {
             const data = await response.json();
             const mappedVForms = data.map((f: any) => ({
@@ -407,7 +415,7 @@ const AppContent: React.FC = () => {
               eventName: f.event_name,
               status: f.status,
               createdAt: f.created_at,
-              link: `http://localhost:5173/forms/${f.id}`,
+              link: `${window.location.origin}/forms/${f.id}`,
               submissions: f.submissions ? f.submissions.map((s: any) => ({
                 id: String(s.id),
                 name: s.name,
@@ -440,8 +448,8 @@ const AppContent: React.FC = () => {
 
   const handleAddProduct = async (newProduct: Product) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch('http://localhost:8000/api/products/', {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/products/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -484,8 +492,8 @@ const AppContent: React.FC = () => {
 
   const handleUpdateProduct = async (updatedProduct: Product) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://localhost:8000/api/products/${updatedProduct.id}/`, {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/products/${updatedProduct.id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -528,8 +536,8 @@ const AppContent: React.FC = () => {
 
   const handleDeleteProduct = async (id: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      await fetch(`http://localhost:8000/api/products/${id}/`, {
+      const token = localStorage.getItem('admin_access_token');
+      await fetch(`${API_BASE_URL}/api/products/${id}/`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -540,8 +548,8 @@ const AppContent: React.FC = () => {
   };
   const handleAddVisitorForm = async (newForm: VisitorForm) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch('http://localhost:8000/api/visitor-forms/', {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/visitor-forms/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -561,7 +569,7 @@ const AppContent: React.FC = () => {
           eventName: savedForm.event_name,
           status: savedForm.status,
           createdAt: savedForm.created_at,
-          link: `http://localhost:5173/forms/${savedForm.id}`,
+          link: `${window.location.origin}/forms/${savedForm.id}`,
           submissions: savedForm.submissions || []
         };
         setVisitorForms(prev => [mappedForm, ...prev]);
@@ -573,8 +581,8 @@ const AppContent: React.FC = () => {
 
   const handleDeleteVisitorForm = async (id: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      await fetch(`http://localhost:8000/api/visitor-forms/${id}/`, {
+      const token = localStorage.getItem('admin_access_token');
+      await fetch(`${API_BASE_URL}/api/visitor-forms/${id}/`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -591,8 +599,8 @@ const AppContent: React.FC = () => {
 
   const handleAddEvent = async (newEvent: EventBlog) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch('http://localhost:8000/api/events/', {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/events/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -627,8 +635,8 @@ const AppContent: React.FC = () => {
 
   const handleUpdateEvent = async (updatedEvent: EventBlog) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://localhost:8000/api/events/${updatedEvent.id}/`, {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/events/${updatedEvent.id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -663,8 +671,8 @@ const AppContent: React.FC = () => {
 
   const handleDeleteEvent = async (id: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      await fetch(`http://localhost:8000/api/events/${id}/`, {
+      const token = localStorage.getItem('admin_access_token');
+      await fetch(`${API_BASE_URL}/api/events/${id}/`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -680,8 +688,8 @@ const AppContent: React.FC = () => {
 
   const handleAddBlog = async (newBlog: BlogPost) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch('http://localhost:8000/api/blog-posts/', {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/blog-posts/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -718,8 +726,8 @@ const AppContent: React.FC = () => {
 
   const handleUpdateBlog = async (updatedBlog: BlogPost) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://localhost:8000/api/blog-posts/${updatedBlog.id}/`, {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/blog-posts/${updatedBlog.id}/`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -756,8 +764,8 @@ const AppContent: React.FC = () => {
 
   const handleDeleteBlog = async (id: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      await fetch(`http://localhost:8000/api/blog-posts/${id}/`, {
+      const token = localStorage.getItem('admin_access_token');
+      await fetch(`${API_BASE_URL}/api/blog-posts/${id}/`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -773,8 +781,8 @@ const AppContent: React.FC = () => {
 
   const handleAddStory = async (newStory: Story) => {
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch('http://localhost:8000/api/stories/', {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/stories/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -803,8 +811,8 @@ const AppContent: React.FC = () => {
 
   const handleDeleteStory = async (id: string) => {
     try {
-      const token = localStorage.getItem('access_token');
-      await fetch(`http://localhost:8000/api/stories/${id}/`, {
+      const token = localStorage.getItem('admin_access_token');
+      await fetch(`${API_BASE_URL}/api/stories/${id}/`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -967,6 +975,8 @@ const AppContent: React.FC = () => {
 
   const handleAdminLogout = () => {
     setIsAdminLoggedIn(false);
+    localStorage.removeItem('admin_access_token');
+    localStorage.removeItem('admin_refresh_token');
     setCurrentView('home');
   };
 
@@ -1055,13 +1065,10 @@ const AppContent: React.FC = () => {
 
         {currentView === 'shop' && (
           <ShopPage
-            products={products}
-            categories={categories}
             onProductClick={navigateToProduct}
             onAddToCart={addToCart}
             searchQuery={globalSearchQuery}
             selectedCategory={shopCategory}
-            isLoading={isLoading}
           />
         )}
 

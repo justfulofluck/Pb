@@ -278,3 +278,26 @@ export interface VisitorForm {
   link: string;
   submissions: VisitorSubmission[];
 }
+
+export interface OrderItem {
+  id: number;
+  product: number;
+  product_name: string;
+  product_image?: string;
+  price: number;
+  quantity: number;
+}
+
+export interface Order {
+  id: number;
+  user: number;
+  user_name: string;
+  user_email: string;
+  total_amount: number;
+  status: string;
+  shipping_address: string;
+  razorpay_order_id?: string;
+  razorpay_payment_id?: string;
+  created_at: string;
+  items: OrderItem[];
+}
