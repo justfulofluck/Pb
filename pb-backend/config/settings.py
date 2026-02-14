@@ -86,8 +86,11 @@ DATABASES = {
         'NAME': 'pinob_db',
         'USER': 'pinoadmino',
         'PASSWORD': 'pinopazz_intra',
-        'HOST': 'localhost',
+        'HOST': '127.0.0.1',
         'PORT': '3306',
+        'OPTIONS': {
+            'unix_socket': '',
+        },
     }
 }
 
