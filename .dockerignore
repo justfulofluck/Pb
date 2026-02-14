@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pinobite/
+*/pinobite/
+*/__pycache__/
+
+# Node
+node_modules/
+*/node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+*/dist/
+
+# Docker
+Dockerfile
+.dockerignore
+
+# IDEs
+.idea/
+.vscode/

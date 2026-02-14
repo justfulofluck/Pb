@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { VisitorForm } from '../types';
+import { API_BASE_URL } from '../config';
 
 interface VisitorFormPageProps {
     formId: string;
@@ -9,6 +10,7 @@ interface VisitorFormPageProps {
 const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }) => {
     const [form, setForm] = useState<VisitorForm | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [submitted, setSubmitted] = useState(false);
 
@@ -30,7 +32,7 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
     useEffect(() => {
         const fetchForm = async () => {
             try {
-                const response = await fetch(`http://localhost:8000/api/visitor-forms/${formId}/`);
+                const response = await fetch(`${API_BASE_URL}/api/visitor-forms/${formId}/`);
                 if (response.ok) {
                     const data = await response.json();
                     setForm({
@@ -77,8 +79,9 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
             return;
         }
 
+        setIsSubmitting(true);
         try {
-            const response = await fetch('http://localhost:8000/api/visitor-submissions/', {
+            const response = await fetch(`${API_BASE_URL}/api/visitor-submissions/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -105,6 +108,8 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
         } catch (err) {
             console.error(err);
             alert("An error occurred.");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -274,9 +279,13 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
 
                             <button
                                 type="submit"
-                                className="w-full py-4 rounded-xl bg-primary text-white font-black uppercase tracking-widest shadow-lg hover:shadow-primary/30 hover:-translate-y-1 transition-all"
+                                disabled={isSubmitting || submitted}
+                                className={`w-full py-4 rounded-xl font-black uppercase tracking-widest shadow-lg transition-all ${(isSubmitting || submitted)
+                                    ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                                    : 'bg-primary text-white hover:shadow-primary/30 hover:-translate-y-1'
+                                    }`}
                             >
-                                Confirm Registration
+                                {isSubmitting ? 'Submitting...' : 'Confirm Registration'}
                             </button>
 
                             <p className="text-xs text-center text-slate-400 mt-4">

@@ -1,6 +1,8 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Breadcrumbs from './Breadcrumbs';
+import { Order } from '../types';
+import { API_BASE_URL } from '../config';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -12,19 +14,42 @@ import { useAuth } from '../hooks/useAuth';
 const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
   const { user: authUser } = useAuth();
 
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+
+        const response = await fetch(`${API_BASE_URL}/api/orders/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          // Sort by date desc
+          const sortedData = data.sort((a: Order, b: Order) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+          setOrders(sortedData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch orders", error);
+      } finally {
+        setIsLoadingOrders(false);
+      }
+    };
+    if (authUser) {
+      fetchOrders();
+    }
+  }, [authUser]);
+
   const user = {
     name: authUser?.first_name ? `${authUser.first_name} ${authUser.last_name}` : authUser?.username || "Guest",
     points: authUser?.profile?.points || 0,
     tier: authUser?.profile?.tier || "Bronze",
     savings: authUser?.profile?.savings || 0,
-    ordersCount: 0 // Mock for now as we don't have order history in user profile yet
+    ordersCount: orders.length
   };
-
-  const recentOrders = [
-    { id: '#PB-9821', date: 'Oct 12, 2023', status: 'Delivered', total: 1240, items: 3 },
-    { id: '#PB-9744', date: 'Sep 28, 2023', status: 'Delivered', total: 680, items: 1 },
-    { id: '#PB-9612', date: 'Sep 15, 2023', status: 'Processing', total: 2150, items: 5 },
-  ];
 
   const rewards = [
     { title: 'Free Shipping Voucher', cost: 500, icon: 'local_shipping' },
@@ -112,36 +137,42 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
               <button className="text-primary font-black text-xs uppercase tracking-widest hover:underline">View All</button>
             </div>
             <div className="space-y-4">
-              {recentOrders.map((order) => (
-                <div key={order.id} className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100">
-                  <div className="flex items-center gap-6 mb-4 md:mb-0">
-                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary">
-                      <span className="material-symbols-outlined">package_2</span>
+              {isLoadingOrders ? (
+                <div className="text-center py-8 text-slate-400">Loading orders...</div>
+              ) : orders.length > 0 ? (
+                orders.map((order) => (
+                  <div key={order.id} className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100">
+                    <div className="flex items-center gap-6 mb-4 md:mb-0">
+                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary">
+                        <span className="material-symbols-outlined">package_2</span>
+                      </div>
+                      <div>
+                        <h4 className="font-black text-sm uppercase">Order #{order.id}</h4>
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{new Date(order.created_at).toLocaleDateString()}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-black text-sm uppercase">{order.id}</h4>
-                      <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{order.date}</p>
+                    <div className="grid grid-cols-3 gap-8 md:gap-12">
+                      <div className="text-center">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Items</p>
+                        <p className="font-black text-sm">{order.items.length}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${order.status === 'Delivered' ? 'bg-green-100 text-green-600' : 'bg-secondary/20 text-accent-brown'
+                          }`}>
+                          {order.status}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total</p>
+                        <p className="font-black text-sm">Rs. {order.total_amount}</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-8 md:gap-12">
-                    <div className="text-center">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Items</p>
-                      <p className="font-black text-sm">{order.items}</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${order.status === 'Delivered' ? 'bg-green-100 text-green-600' : 'bg-secondary/20 text-accent-brown'
-                        }`}>
-                        {order.status}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total</p>
-                      <p className="font-black text-sm">Rs. {order.total}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-center py-8 text-slate-400">No orders found.</div>
+              )}
             </div>
           </section>
 

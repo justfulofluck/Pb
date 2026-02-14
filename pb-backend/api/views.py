@@ -41,9 +41,184 @@ class HeroSlideViewSet(viewsets.ModelViewSet):
     queryset = HeroSlide.objects.all()
     serializer_class = HeroSlideSerializer
 
+from .utils import get_razorpay_client, send_email
+from django.conf import settings
+
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+             return Order.objects.all()
+        return Order.objects.filter(user=user)
+
+    def perform_update(self, serializer):
+        instance = serializer.instance
+        old_status = instance.status
+        order = serializer.save()
+        
+        if old_status != order.status:
+            subject = f"Order #{order.id} Update: {order.status}"
+            contents = f"Hello {order.user.username},\n\nYour order #{order.id} status has been updated to: {order.status}."
+            
+            if order.status == 'Shipped':
+                contents += "\n\nIt is on its way to you!"
+            elif order.status == 'Delivered':
+                contents += "\n\nWe hope you enjoy your purchase!"
+            elif order.status == 'Cancelled':
+                contents += "\n\nIf you have any questions, please contact support."
+            
+            contents += "\n\nBest regards,\nPinobite Team"
+
+            # Use the utility function which uses yagmail
+            send_email(order.user.email, subject, contents)
+
+    @action(detail=False, methods=['post'])
+    def initiate(self, request):
+        user = request.user
+        items = request.data.get('items', [])
+        shipping_address = request.data.get('shipping_address', {})
+        
+        if not items:
+            return Response({'error': 'No items provided'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        total_amount = 0
+        order_items_data = []
+        
+        for item in items:
+            try:
+                product = Product.objects.get(id=item['id'])
+                quantity = item.get('quantity', 1)
+                price = product.price
+                total_amount += price * quantity
+                
+                order_items_data.append({
+                    'product': product,
+                    'price': price,
+                    'quantity': quantity,
+                    'product_name': product.name
+                })
+            except Product.DoesNotExist:
+                return Response({'error': f"Product {item['id']} not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create localized Order record
+        order = Order.objects.create(
+            user=user,
+            total_amount=total_amount,
+            status='Pending',
+            # Map shipping_address to model fields
+            address=f"{shipping_address.get('street', '')}, {shipping_address.get('city', '')}, {shipping_address.get('state', '')}, {shipping_address.get('zip', '')}",
+            city=shipping_address.get('city', ''),
+            state=shipping_address.get('state', ''),
+            pin_code=shipping_address.get('zip', ''),
+            phone=request.data.get('phone', ''),
+            user_email=request.data.get('email', user.email if user.is_authenticated else ''),
+            first_name=request.data.get('first_name', user.first_name if user.is_authenticated else ''),
+            last_name=request.data.get('last_name', user.last_name if user.is_authenticated else '')
+        )
+        
+        for item_data in order_items_data:
+            OrderItem.objects.create(
+                order=order,
+                product=item_data['product'],
+                product_name=item_data['product_name'],
+                price=item_data['price'],
+                quantity=item_data['quantity']
+            )
+
+        # Update User Profile with address details if authenticated
+        if request.user.is_authenticated:
+            profile = request.user.profile
+            profile.phone = request.data.get('phone', profile.phone)
+            # Use the concatenated address or just street? Frontend matches 'address' to street.
+            # Let's use the shipping_address dict parts
+            shipping_addr = request.data.get('shipping_address', {})
+            profile.address = shipping_addr.get('street', profile.address)
+            profile.city = shipping_addr.get('city', profile.city)
+            profile.state = shipping_addr.get('state', profile.state)
+            profile.pin_code = shipping_addr.get('zip', profile.pin_code)
+            profile.save()
+
+        # Create Razorpay Order
+        # Create Razorpay Order
+        razorpay_amount = int(total_amount * 100) # Amount in paise
+        try:
+            client = get_razorpay_client()
+            razorpay_order = client.order.create({
+                'amount': razorpay_amount,
+                'currency': 'INR',
+                'receipt': str(order.id),
+                'payment_capture': 1
+            })
+            order.razorpay_order_id = razorpay_order['id']
+        except Exception as e:
+            print(f"Razorpay Order Creation Failed (Using Mock): {e}")
+            # Fallback to Mock ID if keys are invalid or API fails
+            order.razorpay_order_id = f"order_mock_{order.id}"
+            razorpay_order = {'id': order.razorpay_order_id}
+        
+        order.razorpay_order_id = razorpay_order['id']
+        order.save()
+        
+        return Response({
+            'order_id': order.id,
+            'razorpay_order_id': razorpay_order['id'],
+            'amount': razorpay_amount,
+            'currency': 'INR',
+            'key_id': settings.RAZORPAY_KEY_ID
+        })
+
+    @action(detail=False, methods=['post'])
+    def verify(self, request):
+        razorpay_order_id = request.data.get('razorpay_order_id', '')
+        razorpay_payment_id = request.data.get('razorpay_payment_id', '')
+        razorpay_signature = request.data.get('razorpay_signature', '')
+        order_id = request.data.get('order_id')
+        
+        # Check for Mock Order
+        if razorpay_order_id.startswith('order_mock_'):
+             try:
+                 order = Order.objects.get(id=order_id)
+                 if order.razorpay_order_id == razorpay_order_id:
+                     order.status = 'Processing'
+                     order.razorpay_payment_id = razorpay_payment_id
+                     order.save()
+                     return Response({'status': 'Payment verified successfully (Mock)'})
+                 else:
+                     return Response({'error': 'Invalid mock order details'}, status=status.HTTP_400_BAD_REQUEST)
+             except Order.DoesNotExist:
+                 return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        client = get_razorpay_client()
+        
+        try:
+            client.utility.verify_payment_signature({
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': razorpay_payment_id,
+                'razorpay_signature': razorpay_signature
+            })
+            
+            order = Order.objects.get(id=order_id, razorpay_order_id=razorpay_order_id)
+            order.status = 'Processing' # Or Paid
+            order.razorpay_payment_id = razorpay_payment_id
+            order.save()
+            
+            # Send Email
+            send_email(
+                request.user.email,
+                f"Order Confirmed #{order.id}",
+                f"Thank you for your order! Your payment ID is {razorpay_payment_id}. We are processing it."
+            )
+            
+            return Response({'status': 'Payment verified successfully'})
+            
+        except Exception as e:
+            print(f"Verification Failed: {e}")
+            return Response({'error': 'Signature verification failed'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -277,3 +452,9 @@ class SetNewPasswordView(APIView):
                 return Response({"error": "Invalid details."}, status=status.HTTP_400_BAD_REQUEST)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+from django.views.generic import TemplateView
+from django.views.decorators.cache import never_cache
+
+# Serve Single Page Application
+index_view = never_cache(TemplateView.as_view(template_name='index.html'))

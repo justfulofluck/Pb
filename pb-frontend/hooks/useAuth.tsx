@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { API_BASE_URL } from '../config';
 
 interface UserProfile {
     id: number;
@@ -40,7 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         try {
-            const response = await fetch('http://localhost:8000/api/users/me/', {
+            const response = await fetch(`${API_BASE_URL}/api/users/me/`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -69,7 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const register = async (userData: any) => {
         try {
-            const response = await fetch('http://localhost:8000/api/register/', {
+            const response = await fetch(`${API_BASE_URL}/api/register/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -79,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
             if (response.ok) {
                 // Auto login after register
-                const loginResponse = await fetch('http://localhost:8000/api/token/', {
+                const loginResponse = await fetch(`${API_BASE_URL}/api/token/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
