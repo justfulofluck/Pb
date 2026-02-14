@@ -68,6 +68,8 @@ const ShopPage: React.FC<ShopPageProps> = ({
           const mappedProducts = data.map((p: any) => ({
             ...p,
             id: String(p.id),
+            price: parseFloat(p.price),
+            originalPrice: p.original_price ? parseFloat(p.original_price) : undefined,
             // Ensure other fields map correctly if backend differs from frontend type
             benefits: p.benefits || [],
             nutrients: p.nutrients || [],

@@ -61,7 +61,7 @@ class OrderSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['points', 'tier', 'savings', 'phone', 'address']
+        fields = ['points', 'tier', 'savings', 'phone', 'address', 'city', 'state', 'pin_code']
 
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer(read_only=True)

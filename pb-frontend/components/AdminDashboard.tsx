@@ -1849,7 +1849,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
                   <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                     <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Revenue</p>
-                    <p className="text-3xl font-black text-green-500 mt-2">₹{orders.reduce((acc, curr) => acc + (curr.status !== 'Cancelled' ? curr.total_amount : 0), 0).toLocaleString()}</p>
+                    <p className="text-3xl font-black text-green-500 mt-2">₹{orders.reduce((acc, curr) => acc + (curr.status !== 'Cancelled' ? Number(curr.total_amount) : 0), 0).toLocaleString()}</p>
                   </div>
                 </div>
 
@@ -2109,8 +2109,25 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <span className="material-symbols-outlined text-slate-400">person</span> Customer
                     </h4>
                     <div className="space-y-1">
-                      <p className="font-bold text-slate-800">{viewingOrder.user_name}</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Customer</p>
+                      <p className="font-bold text-slate-900">
+                        {viewingOrder.first_name || viewingOrder.last_name
+                          ? `${viewingOrder.first_name || ''} ${viewingOrder.last_name || ''}`.trim()
+                          : viewingOrder.user_name || 'Guest'}
+                      </p>
                       <p className="text-sm text-slate-500">{viewingOrder.user_email}</p>
+                      {viewingOrder.phone && (
+                        <p className="text-sm text-slate-600 flex items-center gap-1 font-semibold">
+                          <span className="material-symbols-outlined text-xs text-primary">call</span>
+                          Phone: {viewingOrder.phone}
+                        </p>
+                      )}
+                      {(viewingOrder.address || viewingOrder.city) && (
+                        <p className="text-sm text-slate-500 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-xs text-slate-400">location_on</span>
+                          {viewingOrder.address || `${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}`}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div>
@@ -2118,7 +2135,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <span className="material-symbols-outlined text-slate-400">local_shipping</span> Shipping To
                     </h4>
                     <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                      {viewingOrder.shipping_address}
+                      {viewingOrder.address || `${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}`}
                     </p>
                   </div>
                 </div>
@@ -2166,7 +2183,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </button>
 
                   {showStatusMenu && (
-                    <div className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200">
+                    <div className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200 z-50">
                       {ORDER_STATUSES.map(status => (
                         <button
                           key={status}

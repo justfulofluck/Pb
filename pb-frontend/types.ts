@@ -293,9 +293,16 @@ export interface Order {
   user: number;
   user_name: string;
   user_email: string;
+  first_name?: string;
+  last_name?: string;
   total_amount: number;
   status: string;
   shipping_address: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pin_code?: string;
   razorpay_order_id?: string;
   razorpay_payment_id?: string;
   created_at: string;

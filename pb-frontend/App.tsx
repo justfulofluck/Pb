@@ -347,7 +347,8 @@ const AppContent: React.FC = () => {
           const mappedProducts = productsData.map((p: any) => ({
             ...p,
             id: String(p.id),
-            originalPrice: p.original_price,
+            price: parseFloat(p.price),
+            originalPrice: p.original_price ? parseFloat(p.original_price) : undefined,
             reviewCount: p.review_count,
             isTopRated: p.is_top_rated,
             gallery: p.gallery || [],
@@ -1087,11 +1088,12 @@ const AppContent: React.FC = () => {
         {currentView === 'checkout' && (
           <CheckoutPage
             items={cart}
-            onBack={goHome}
+            onBack={() => setCurrentView('shop')}
             onOrderSuccess={() => {
-              clearCart();
-              goHome();
+              setCart([]);
+              setCurrentView('home');
             }}
+            onLoginRequired={() => setIsAuthOpen(true)}
           />
         )}
 

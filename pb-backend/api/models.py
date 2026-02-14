@@ -107,6 +107,7 @@ class Order(models.Model):
         ('DELIVERED', 'Delivered'),
         ('CANCELLED', 'Cancelled'),
     ]
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     user_email = models.EmailField()
     phone = models.CharField(max_length=20)
     first_name = models.CharField(max_length=100)
@@ -147,6 +148,9 @@ class UserProfile(models.Model):
     savings = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     phone = models.CharField(max_length=15, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    state = models.CharField(max_length=100, blank=True, null=True)
+    pin_code = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
         return f"Profile for {self.user.username}"
