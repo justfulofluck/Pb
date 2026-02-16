@@ -53,7 +53,7 @@ ENV DATABASE_URL=sqlite:///db.sqlite3
 RUN python manage.py collectstatic --noinput
 
 # Expose port 8000
-EXPOSE 8000
+EXPOSE 8003
 
 # Start Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "config.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8003", "config.wsgi:application"]
