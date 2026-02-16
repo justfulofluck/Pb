@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order } from '../types';
+import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category } from '../types';
 import { API_BASE_URL } from '../config';
 import { jsPDF } from "jspdf";
 
@@ -10,8 +10,9 @@ interface AdminDashboardProps {
   onAddProduct: (p: Product) => void;
   onUpdateProduct: (p: Product) => void;
   onDeleteProduct: (id: string) => void;
-  categories: string[];
-  onAddCategory: (c: string) => void;
+  categories: Category[]; // Changed from string[]
+  onAddCategory: (c: Category) => void; // Changed signature
+  onDeleteCategory: (id: string) => void; // Added prop
   events: EventBlog[];
   onAddEvent: (e: EventBlog) => void;
   onDeleteEvent: (id: string) => void;
@@ -52,6 +53,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onDeleteProduct,
   categories,
   onAddCategory,
+  onDeleteCategory,
   events,
   onAddEvent,
   onDeleteEvent,
@@ -1708,7 +1710,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <label className="text-xs font-black uppercase tracking-widest text-slate-500">Category</label>
                           <select required value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white">
                             <option value="">Select Category...</option>
-                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                            {categories.map(c => <option key={c.id || c.name} value={c.name}>{c.name}</option>)}
                           </select>
                         </div>
                         <div className="space-y-2">
@@ -1799,7 +1801,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <button
                         onClick={() => {
                           if (newCategory) {
-                            onAddCategory(newCategory);
+                            onAddCategory({ name: newCategory, image: '' }); // Pass object
                             setNewCategory('');
                           }
                         }}
@@ -1813,13 +1815,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <label className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2 block">Active Categories</label>
                       <div className="flex flex-wrap gap-3">
                         {categories.map(c => (
-                          <div key={c} className="px-4 py-2 bg-slate-50 rounded-lg border border-slate-200 flex items-center gap-2">
-                            <span className="font-bold text-slate-700">{c}</span>
-                            {c !== 'Muesli' && c !== 'Oats' && ( // Prevent deleting core categories for demo
-                              <button className="text-slate-400 hover:text-red-500">
-                                <span className="material-symbols-outlined text-sm">close</span>
-                              </button>
-                            )}
+                          <div key={c.id || c.name} className="px-4 py-2 bg-slate-50 rounded-lg border border-slate-200 flex items-center gap-2">
+                            <span className="font-bold text-slate-700">{c.name}</span>
+                            <button
+                              onClick={() => {
+                                if (window.confirm('Are you sure you want to delete this category?')) {
+                                  onDeleteCategory(c.id!);
+                                }
+                              }}
+                              className="text-slate-400 hover:text-red-500"
+                            >
+                              <span className="material-symbols-outlined text-sm">close</span>
+                            </button>
                           </div>
                         ))}
                       </div>

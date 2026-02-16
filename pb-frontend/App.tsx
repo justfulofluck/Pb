@@ -34,66 +34,9 @@ import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import TermsAndConditionsPage from './components/TermsAndConditionsPage';
 import RefundPolicyPage from './components/RefundPolicyPage';
 import ShippingPolicyPage from './components/ShippingPolicyPage';
-import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, BLOG_DATA, Story, VisitorForm } from './types';
+import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, BLOG_DATA, Story, VisitorForm, Category } from './types';
 
-const INITIAL_PRODUCTS: Product[] = [
-  {
-    id: '1',
-    name: "Super Muesli Nut & Seeds",
-    price: 510,
-    originalPrice: 550,
-    rating: 4.9,
-    reviewCount: 247,
-    isTopRated: true,
-    category: 'Muesli',
-    stock: 120,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDlO7xgHzKyGEDOxeOScyOxN5vN6FXzx20a7SvpB5ecScwr4qW694FWHi28IthZVEaSbiDhq9U0eZ9ceBRcSATV1Ki-QuUg0XRUsfYd8o5L6LHcWQXasygvM_759LZu5o47H_FdjhQUqOtdsJr_Mdie3B1H-9h5Xm9kVjvlPMNRwwZkGgnF95HxRp2B-e3wC4qGMh-c_DtEjWEZdvmjtkysZyG-fw96D-tczHQAuR8nFehAenohxeOj74GHSHzTgUA6Ht8G4JYY93l_",
-    description: "Premium slow-roasted nut blend with high-fiber seeds and zero refined sugar.",
-    benefits: ["High Fiber", "Zero White Sugar", "Omega-3 Rich", "Vegan Friendly"],
-    nutrients: [{ label: "Protein", value: "18g" }, { label: "Carbs", value: "42g" }, { label: "Healthy Fats", value: "22g" }, { label: "Energy", value: "480kcal" }]
-  },
-  {
-    id: '2',
-    name: "Dark Chocolate Chunky Peanut Butter",
-    price: 680,
-    rating: 4.8,
-    reviewCount: 119,
-    category: 'Nut Butters',
-    isTopRated: true,
-    stock: 85,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCP7V5MszmhehKHONysdx4EeXIINOTiNn8Vz0A5WtMtC5U15SIefWSxwqAbYTWPoft9SYq26_rh38aCtNrrmu40qNkrU6zsV5jcvcFteB5STzIIF3UGVwStHYCi0mRIqS4r4x9IHb1IJcTkZhjHhcL4XGczrd8k4eGW0u9rFGJzNFdSQZvufHuSFWCWtMiBxADQJs1dS8lMy-KwjajLg2jPe0YVJjDDmFi6sIVZlq5UWSMwylmPhJ32RySGU3TDs6QWd41oY6qPtng8",
-    description: "Hand-picked roasted peanuts blended with premium dark cocoa and protein chunks.",
-    benefits: ["No Palm Oil", "Whey Protein Added", "Gluten Free", "Dark Chocolate"],
-    nutrients: [{ label: "Protein", value: "32g" }, { label: "Carbs", value: "12g" }, { label: "Healthy Fats", value: "48g" }, { label: "Sugar", value: "4g" }]
-  },
-  {
-    id: '3',
-    name: "High Protein Rolled Oats",
-    price: 449,
-    originalPrice: 520,
-    rating: 5,
-    reviewCount: 489,
-    category: 'Oats',
-    stock: 200,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCNiD74c8_tEGvm33_Hj4lsDcPCTXKYrcvnmhVcJmDwASTO4WH7pyx_vWDolXKZRH1aacdTaCpmgdOItJGddIS5gZF6a_XVXlebwu-ohwefHDF6uX4Mjp2x1PpiFaev9waP_XSKc1UyZyqw0pRsTAQHX0bxfVYMRGpJd6A7Htf5mLGyQ2QkiA-ZCFWPOSdK8oGoGmVzjfvK9RXS5ANbLPi4N89hC-P7FQrqUrvmxuiyKxt9l8V2asTwQgQ1l29FihpAOP94VSP19PCW",
-    description: "100% whole grain oats boosted with plant protein for a sustained morning energy.",
-    benefits: ["Complex Carbs", "Slow Digestion", "Non-GMO", "No Additives"],
-    nutrients: [{ label: "Protein", value: "14g" }, { label: "Carbs", value: "66g" }, { label: "Healthy Fats", value: "7g" }, { label: "Fiber", value: "11g" }]
-  },
-  {
-    id: '4',
-    name: "Creamy Stone-Ground Almond Butter",
-    price: 899,
-    rating: 4.7,
-    reviewCount: 56,
-    category: 'Nut Butters',
-    stock: 5,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuC36Ps7aMot5-GXznDvelGditD07FcxqmsLUDCww78ftzXv6wSqu2tdIjbahIB3N5iK37NtvJQXdCOnLTNZ7hPT-YBK4JEMa53fvnzytOZqq28jFCTDOhR37W3FMPmOt7xLn4hpt1AUcBNxzkW7oPmx9ZNsB5mf_uR6_Kj1624i-WvnHZ_HQ22K2tds_wmKQECT4e8d7rzOkqE00zOTTJkipKovCEuql_GY2ctR9FpnxXxIiaali-2EAF6m3ELAHfYIZPOzZMOeud0q",
-    description: "Pure Californian almonds stone-ground into a silky smooth, heart-healthy spread.",
-    benefits: ["Heart Healthy", "Keto Friendly", "Vitamin E Rich", "Antioxidant Pack"],
-    nutrients: [{ label: "Protein", value: "21g" }, { label: "Carbs", value: "10g" }, { label: "Healthy Fats", value: "54g" }, { label: "Iron", value: "4mg" }]
-  }
-];
+const INITIAL_PRODUCTS: Product[] = [];
 
 const INITIAL_STORIES: Story[] = [
   { id: 's1', mediaUrl: 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?q=80&w=800&auto=format&fit=crop', mediaType: 'image', productId: '3' },
@@ -250,7 +193,7 @@ const INITIAL_SLIDES: HeroSlide[] = [
   }
 ];
 
-const INITIAL_CATEGORIES = ['Muesli', 'Nut Butters', 'Oats'];
+const INITIAL_CATEGORIES: Category[] = [];
 
 const CURRENT_USER = {
   name: "Alex Fueler",
@@ -268,7 +211,7 @@ const AppContent: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [events, setEvents] = useState<EventBlog[]>(INITIAL_EVENTS);
-  const [categories, setCategories] = useState<string[]>(INITIAL_CATEGORIES);
+  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
   const [slides, setSlides] = useState<HeroSlide[]>(INITIAL_SLIDES);
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(BLOG_DATA);
   const [stories, setStories] = useState<Story[]>(INITIAL_STORIES);
@@ -314,12 +257,13 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const [eventsRes, blogsRes, storiesRes, productsRes, vFormsRes] = await Promise.all([
+        const [eventsRes, blogsRes, storiesRes, productsRes, vFormsRes, categoriesRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/events/`),
           fetch(`${API_BASE_URL}/api/blog-posts/`),
           fetch(`${API_BASE_URL}/api/stories/`),
           fetch(`${API_BASE_URL}/api/products/`),
-          fetch(`${API_BASE_URL}/api/visitor-forms/`)
+          fetch(`${API_BASE_URL}/api/visitor-forms/`),
+          fetch(`${API_BASE_URL}/api/categories/`)
         ]);
 
         if (vFormsRes.ok) {
@@ -392,6 +336,11 @@ const AppContent: React.FC = () => {
             productId: String(s.product_id),
           }));
           if (mappedStories.length > 0) setStories(mappedStories);
+        }
+
+        if (categoriesRes.ok) {
+          const categoriesData = await categoriesRes.json();
+          if (categoriesData.length > 0) setCategories(categoriesData);
         }
       } catch (error) {
         console.error('Failed to fetch CMS content:', error);
@@ -592,9 +541,47 @@ const AppContent: React.FC = () => {
       console.error("Failed to delete visitor form", err);
     }
   };
-  const handleAddCategory = (category: string) => {
-    if (!categories.includes(category)) {
-      setCategories(prev => [...prev, category]);
+  const handleAddCategory = async (newCategory: Category) => {
+    try {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/categories/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newCategory)
+      });
+      if (response.status === 401) {
+        alert("Session expired. Please log in again.");
+        handleAdminLogout();
+        return;
+      }
+      if (response.ok) {
+        const savedCategory = await response.json();
+        setCategories(prev => [...prev, savedCategory]);
+      }
+    } catch (err) {
+      console.error("Failed to add category", err);
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    try {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/categories/${id}/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.status === 401) {
+        alert("Session expired. Please log in again.");
+        handleAdminLogout();
+        return;
+      }
+      if (!response.ok) throw new Error('Failed to delete category');
+      setCategories(prev => prev.filter(c => c.id !== Number(id) && c.id !== String(id))); // Handle generic ID types
+    } catch (err) {
+      console.error("Failed to delete category", err);
     }
   };
 
@@ -999,6 +986,7 @@ const AppContent: React.FC = () => {
         onDeleteProduct={handleDeleteProduct}
         categories={categories}
         onAddCategory={handleAddCategory}
+        onDeleteCategory={handleDeleteCategory}
         events={events}
         onAddEvent={handleAddEvent}
         onDeleteEvent={handleDeleteEvent}
