@@ -37,7 +37,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
         const response = await fetch(`${API_BASE_URL}/api/token/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: email, password }),
+          body: JSON.stringify({ email: email, password }),
         });
 
         if (!response.ok) {

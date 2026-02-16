@@ -147,9 +147,6 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
                     <p className="text-slate-500 mb-8">
                         Thank you for registering for <b>{form.eventName}</b>. We have received your details.
                     </p>
-                    <button onClick={onHomeClick} className="w-full px-6 py-3 bg-primary text-white font-black uppercase tracking-widest rounded-xl shadow-lg hover:bg-green-700 transition-colors">
-                        Return to Site
-                    </button>
                 </div>
             </div>
         );

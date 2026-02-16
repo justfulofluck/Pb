@@ -1,6 +1,33 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import Category, Product, Review, Event, BlogPost, Story, HeroSlide, Order, OrderItem, UserProfile, VisitorForm, VisitorSubmission
+
+
+class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+    email = serializers.EmailField(write_only=True)
+    username = serializers.CharField(write_only=True, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields.pop('username', None)
+        self.fields['email'] = serializers.EmailField(write_only=True)
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        user = User.objects.filter(email=email).first()
+        
+        if not user or not user.check_password(password):
+            raise serializers.ValidationError('Invalid email or password')
+
+        if not user.is_active:
+            raise serializers.ValidationError('User account is disabled')
+
+        attrs['username'] = user.username
+        return super().validate(attrs)
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
