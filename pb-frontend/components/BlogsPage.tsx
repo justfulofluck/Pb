@@ -1,18 +1,19 @@
 
 import React, { useState } from 'react';
-import { BLOG_DATA, BlogPost } from '../types';
+import { BlogPost } from '../types';
 import Breadcrumbs from './Breadcrumbs';
 
 interface BlogsPageProps {
+  posts: BlogPost[];
   onBlogClick: (post: BlogPost) => void;
   onHomeClick: () => void;
 }
 
-const BlogsPage: React.FC<BlogsPageProps> = ({ onBlogClick, onHomeClick }) => {
+const BlogsPage: React.FC<BlogsPageProps> = ({ posts, onBlogClick, onHomeClick }) => {
   const [filter, setFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredPosts = BLOG_DATA.filter(post => {
+  const filteredPosts = posts.filter(post => {
     const matchesCategory = filter === 'All' || post.type === filter;
     const matchesSearch = searchQuery === '' || 
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 

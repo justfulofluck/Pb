@@ -1,48 +1,84 @@
 from rest_framework import viewsets, generics, permissions, status
-from .models import Category, Product, Review, Event, BlogPost, Story, HeroSlide, Order, OrderItem, UserProfile, VisitorForm, VisitorSubmission
+from .models import (
+    Category,
+    Product,
+    Review,
+    Event,
+    BlogPost,
+    Story,
+    HeroSlide,
+    Order,
+    OrderItem,
+    UserProfile,
+    VisitorForm,
+    VisitorSubmission,
+    NewsletterSubscriber,
+)
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from .serializers import (
-    CategorySerializer, ProductSerializer, ReviewSerializer,
-    EventSerializer, BlogPostSerializer, StorySerializer,
-    HeroSlideSerializer, OrderSerializer, OrderItemSerializer,
-    UserSerializer, UserProfileSerializer, VisitorFormSerializer, VisitorSubmissionSerializer,
-    RequestPasswordResetSerializer, VerifyOTPSerializer, SetNewPasswordSerializer
+    CategorySerializer,
+    ProductSerializer,
+    ReviewSerializer,
+    EventSerializer,
+    BlogPostSerializer,
+    StorySerializer,
+    HeroSlideSerializer,
+    OrderSerializer,
+    OrderItemSerializer,
+    UserSerializer,
+    UserProfileSerializer,
+    VisitorFormSerializer,
+    VisitorSubmissionSerializer,
+    RequestPasswordResetSerializer,
+    VerifyOTPSerializer,
+    SetNewPasswordSerializer,
+    NewsletterSubscribeSerializer,
+    NewsletterSubscriberSerializer,
 )
+
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    filterset_fields = ['category', 'is_top_rated']
-    search_fields = ['name', 'description']
+    filterset_fields = ["category", "is_top_rated"]
+    search_fields = ["name", "description"]
+
 
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
 
+
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+
 
 class BlogPostViewSet(viewsets.ModelViewSet):
     queryset = BlogPost.objects.all()
     serializer_class = BlogPostSerializer
 
+
 class StoryViewSet(viewsets.ModelViewSet):
     queryset = Story.objects.all()
     serializer_class = StorySerializer
+
 
 class HeroSlideViewSet(viewsets.ModelViewSet):
     queryset = HeroSlide.objects.all()
     serializer_class = HeroSlideSerializer
 
+
 from .utils import get_razorpay_client, send_email
 from django.conf import settings
+
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
@@ -52,172 +88,199 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_staff:
-             return Order.objects.all()
+            return Order.objects.all()
         return Order.objects.filter(user=user)
 
     def perform_update(self, serializer):
         instance = serializer.instance
         old_status = instance.status
         order = serializer.save()
-        
+
         if old_status != order.status:
             subject = f"Order #{order.id} Update: {order.status}"
             contents = f"Hello {order.user.username},\n\nYour order #{order.id} status has been updated to: {order.status}."
-            
-            if order.status == 'Shipped':
+
+            if order.status == "Shipped":
                 contents += "\n\nIt is on its way to you!"
-            elif order.status == 'Delivered':
+            elif order.status == "Delivered":
                 contents += "\n\nWe hope you enjoy your purchase!"
-            elif order.status == 'Cancelled':
+            elif order.status == "Cancelled":
                 contents += "\n\nIf you have any questions, please contact support."
-            
+
             contents += "\n\nBest regards,\nPinobite Team"
 
             # Use the utility function which uses yagmail
             send_email(order.user.email, subject, contents)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=["post"])
     def initiate(self, request):
         user = request.user
-        items = request.data.get('items', [])
-        shipping_address = request.data.get('shipping_address', {})
-        
+        items = request.data.get("items", [])
+        shipping_address = request.data.get("shipping_address", {})
+
         if not items:
-            return Response({'error': 'No items provided'}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"error": "No items provided"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         total_amount = 0
         order_items_data = []
-        
+
         for item in items:
             try:
-                product = Product.objects.get(id=item['id'])
-                quantity = item.get('quantity', 1)
+                product = Product.objects.get(id=item["id"])
+                quantity = item.get("quantity", 1)
                 price = product.price
                 total_amount += price * quantity
-                
-                order_items_data.append({
-                    'product': product,
-                    'price': price,
-                    'quantity': quantity,
-                    'product_name': product.name
-                })
+
+                order_items_data.append(
+                    {
+                        "product": product,
+                        "price": price,
+                        "quantity": quantity,
+                        "product_name": product.name,
+                    }
+                )
             except Product.DoesNotExist:
-                return Response({'error': f"Product {item['id']} not found"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": f"Product {item['id']} not found"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         # Create localized Order record
         order = Order.objects.create(
             user=user,
             total_amount=total_amount,
-            status='Pending',
+            status="Pending",
             # Map shipping_address to model fields
             address=f"{shipping_address.get('street', '')}, {shipping_address.get('city', '')}, {shipping_address.get('state', '')}, {shipping_address.get('zip', '')}",
-            city=shipping_address.get('city', ''),
-            state=shipping_address.get('state', ''),
-            pin_code=shipping_address.get('zip', ''),
-            phone=request.data.get('phone', ''),
-            user_email=request.data.get('email', user.email if user.is_authenticated else ''),
-            first_name=request.data.get('first_name', user.first_name if user.is_authenticated else ''),
-            last_name=request.data.get('last_name', user.last_name if user.is_authenticated else '')
+            city=shipping_address.get("city", ""),
+            state=shipping_address.get("state", ""),
+            pin_code=shipping_address.get("zip", ""),
+            phone=request.data.get("phone", ""),
+            user_email=request.data.get(
+                "email", user.email if user.is_authenticated else ""
+            ),
+            first_name=request.data.get(
+                "first_name", user.first_name if user.is_authenticated else ""
+            ),
+            last_name=request.data.get(
+                "last_name", user.last_name if user.is_authenticated else ""
+            ),
         )
-        
+
         for item_data in order_items_data:
             OrderItem.objects.create(
                 order=order,
-                product=item_data['product'],
-                product_name=item_data['product_name'],
-                price=item_data['price'],
-                quantity=item_data['quantity']
+                product=item_data["product"],
+                product_name=item_data["product_name"],
+                price=item_data["price"],
+                quantity=item_data["quantity"],
             )
 
         # Update User Profile with address details if authenticated
         if request.user.is_authenticated:
             profile = request.user.profile
-            profile.phone = request.data.get('phone', profile.phone)
+            profile.phone = request.data.get("phone", profile.phone)
             # Use the concatenated address or just street? Frontend matches 'address' to street.
             # Let's use the shipping_address dict parts
-            shipping_addr = request.data.get('shipping_address', {})
-            profile.address = shipping_addr.get('street', profile.address)
-            profile.city = shipping_addr.get('city', profile.city)
-            profile.state = shipping_addr.get('state', profile.state)
-            profile.pin_code = shipping_addr.get('zip', profile.pin_code)
+            shipping_addr = request.data.get("shipping_address", {})
+            profile.address = shipping_addr.get("street", profile.address)
+            profile.city = shipping_addr.get("city", profile.city)
+            profile.state = shipping_addr.get("state", profile.state)
+            profile.pin_code = shipping_addr.get("zip", profile.pin_code)
             profile.save()
 
         # Create Razorpay Order
         # Create Razorpay Order
-        razorpay_amount = int(total_amount * 100) # Amount in paise
+        razorpay_amount = int(total_amount * 100)  # Amount in paise
         try:
             client = get_razorpay_client()
-            razorpay_order = client.order.create({
-                'amount': razorpay_amount,
-                'currency': 'INR',
-                'receipt': str(order.id),
-                'payment_capture': 1
-            })
-            order.razorpay_order_id = razorpay_order['id']
+            razorpay_order = client.order.create(
+                {
+                    "amount": razorpay_amount,
+                    "currency": "INR",
+                    "receipt": str(order.id),
+                    "payment_capture": 1,
+                }
+            )
+            order.razorpay_order_id = razorpay_order["id"]
         except Exception as e:
             print(f"Razorpay Order Creation Failed (Using Mock): {e}")
             # Fallback to Mock ID if keys are invalid or API fails
             order.razorpay_order_id = f"order_mock_{order.id}"
-            razorpay_order = {'id': order.razorpay_order_id}
-        
-        order.razorpay_order_id = razorpay_order['id']
-        order.save()
-        
-        return Response({
-            'order_id': order.id,
-            'razorpay_order_id': razorpay_order['id'],
-            'amount': razorpay_amount,
-            'currency': 'INR',
-            'key_id': settings.RAZORPAY_KEY_ID
-        })
+            razorpay_order = {"id": order.razorpay_order_id}
 
-    @action(detail=False, methods=['post'])
+        order.razorpay_order_id = razorpay_order["id"]
+        order.save()
+
+        return Response(
+            {
+                "order_id": order.id,
+                "razorpay_order_id": razorpay_order["id"],
+                "amount": razorpay_amount,
+                "currency": "INR",
+                "key_id": settings.RAZORPAY_KEY_ID,
+            }
+        )
+
+    @action(detail=False, methods=["post"])
     def verify(self, request):
-        razorpay_order_id = request.data.get('razorpay_order_id', '')
-        razorpay_payment_id = request.data.get('razorpay_payment_id', '')
-        razorpay_signature = request.data.get('razorpay_signature', '')
-        order_id = request.data.get('order_id')
-        
+        razorpay_order_id = request.data.get("razorpay_order_id", "")
+        razorpay_payment_id = request.data.get("razorpay_payment_id", "")
+        razorpay_signature = request.data.get("razorpay_signature", "")
+        order_id = request.data.get("order_id")
+
         # Check for Mock Order
-        if razorpay_order_id.startswith('order_mock_'):
-             try:
-                 order = Order.objects.get(id=order_id)
-                 if order.razorpay_order_id == razorpay_order_id:
-                     order.status = 'Processing'
-                     order.razorpay_payment_id = razorpay_payment_id
-                     order.save()
-                     return Response({'status': 'Payment verified successfully (Mock)'})
-                 else:
-                     return Response({'error': 'Invalid mock order details'}, status=status.HTTP_400_BAD_REQUEST)
-             except Order.DoesNotExist:
-                 return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+        if razorpay_order_id.startswith("order_mock_"):
+            try:
+                order = Order.objects.get(id=order_id)
+                if order.razorpay_order_id == razorpay_order_id:
+                    order.status = "Processing"
+                    order.razorpay_payment_id = razorpay_payment_id
+                    order.save()
+                    return Response({"status": "Payment verified successfully (Mock)"})
+                else:
+                    return Response(
+                        {"error": "Invalid mock order details"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            except Order.DoesNotExist:
+                return Response(
+                    {"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND
+                )
 
         client = get_razorpay_client()
-        
+
         try:
-            client.utility.verify_payment_signature({
-                'razorpay_order_id': razorpay_order_id,
-                'razorpay_payment_id': razorpay_payment_id,
-                'razorpay_signature': razorpay_signature
-            })
-            
+            client.utility.verify_payment_signature(
+                {
+                    "razorpay_order_id": razorpay_order_id,
+                    "razorpay_payment_id": razorpay_payment_id,
+                    "razorpay_signature": razorpay_signature,
+                }
+            )
+
             order = Order.objects.get(id=order_id, razorpay_order_id=razorpay_order_id)
-            order.status = 'Processing' # Or Paid
+            order.status = "Processing"  # Or Paid
             order.razorpay_payment_id = razorpay_payment_id
             order.save()
-            
+
             # Send Email
             send_email(
                 request.user.email,
                 f"Order Confirmed #{order.id}",
-                f"Thank you for your order! Your payment ID is {razorpay_payment_id}. We are processing it."
+                f"Thank you for your order! Your payment ID is {razorpay_payment_id}. We are processing it.",
             )
-            
-            return Response({'status': 'Payment verified successfully'})
-            
+
+            return Response({"status": "Payment verified successfully"})
+
         except Exception as e:
             print(f"Verification Failed: {e}")
-            return Response({'error': 'Signature verification failed'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "Signature verification failed"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class RegisterView(generics.CreateAPIView):
@@ -225,17 +288,22 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = UserSerializer
 
+
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def me(self, request):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['patch'], permission_classes=[permissions.IsAuthenticated])
+    @action(
+        detail=False,
+        methods=["patch"],
+        permission_classes=[permissions.IsAuthenticated],
+    )
     def update_profile(self, request):
         profile = request.user.profile
         serializer = UserProfileSerializer(profile, data=request.data, partial=True)
@@ -244,10 +312,12 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class VisitorFormViewSet(viewsets.ModelViewSet):
     queryset = VisitorForm.objects.all()
     serializer_class = VisitorFormSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
 
 class VisitorSubmissionViewSet(viewsets.ModelViewSet):
     queryset = VisitorSubmission.objects.all()
@@ -256,11 +326,11 @@ class VisitorSubmissionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         submission = serializer.save()
-        
+
         # Send Confirmation Email
         try:
             subject = f"Registration Confirmed: {submission.form.title}"
-            
+
             html_message = f"""
             <!DOCTYPE html>
             <html>
@@ -286,7 +356,7 @@ class VisitorSubmissionViewSet(viewsets.ModelViewSet):
                         <p>We have successfully received your details.</p>
                         <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
                             <p style="margin: 0; color: #166534;"><strong>Event:</strong> {submission.form.event_name}</p>
-                            <p style="margin: 5px 0 0; color: #166534;"><strong>Date:</strong> {submission.submitted_at.strftime('%B %d, %Y')}</p>
+                            <p style="margin: 5px 0 0; color: #166534;"><strong>Date:</strong> {submission.submitted_at.strftime("%B %d, %Y")}</p>
                         </div>
                         <p>We look forward to seeing you there!</p>
                     </div>
@@ -297,17 +367,18 @@ class VisitorSubmissionViewSet(viewsets.ModelViewSet):
             </body>
             </html>
             """
-            
+
             send_mail(
                 subject,
                 f"Thank you for registering for {submission.form.title}.",
                 settings.EMAIL_HOST_USER,
                 [submission.email],
                 fail_silently=True,
-                html_message=html_message
+                html_message=html_message,
             )
         except Exception as e:
             print(f"Error sending email: {e}")
+
 
 from .models import PasswordResetOTP
 from django.core.mail import send_mail
@@ -318,20 +389,24 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
 
+
 class RequestPasswordResetView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         serializer = RequestPasswordResetSerializer(data=request.data)
         if serializer.is_valid():
-            email = serializer.validated_data['email']
+            email = serializer.validated_data["email"]
             try:
                 user = User.objects.get(email=email)
                 if not user.is_staff:
-                     return Response({"error": "Only staff members can reset passwords here."}, status=status.HTTP_403_FORBIDDEN)
-                
+                    return Response(
+                        {"error": "Only staff members can reset passwords here."},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
                 # Generate OTP
-                otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+                otp = "".join([str(random.randint(0, 9)) for _ in range(6)])
                 PasswordResetOTP.objects.create(user=user, otp=otp)
 
                 # Modern HTML Email Template
@@ -388,12 +463,12 @@ class RequestPasswordResetView(APIView):
 
                 # Send Email
                 send_mail(
-                    'Password Reset OTP - Pinobite Admin',
-                    f'Your OTP is: {otp}. Valid for 5 minutes.',
+                    "Password Reset OTP - Pinobite Admin",
+                    f"Your OTP is: {otp}. Valid for 5 minutes.",
                     settings.EMAIL_HOST_USER,
                     [email],
                     fail_silently=False,
-                    html_message=html_message
+                    html_message=html_message,
                 )
                 return Response({"message": "OTP sent to email."})
 
@@ -401,9 +476,12 @@ class RequestPasswordResetView(APIView):
                 # Security: Don't reveal user existence
                 return Response({"message": "OTP sent to email."})
             except Exception as e:
-                return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+                return Response(
+                    {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class VerifyOTPView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -411,20 +489,30 @@ class VerifyOTPView(APIView):
     def post(self, request):
         serializer = VerifyOTPSerializer(data=request.data)
         if serializer.is_valid():
-            email = serializer.validated_data['email']
-            otp = serializer.validated_data['otp']
+            email = serializer.validated_data["email"]
+            otp = serializer.validated_data["otp"]
             try:
                 user = User.objects.get(email=email)
-                otp_record = PasswordResetOTP.objects.filter(user=user, otp=otp).order_by('-created_at').first()
-                
+                otp_record = (
+                    PasswordResetOTP.objects.filter(user=user, otp=otp)
+                    .order_by("-created_at")
+                    .first()
+                )
+
                 if otp_record and otp_record.is_valid():
                     return Response({"message": "OTP verified.", "valid": True})
                 else:
-                    return Response({"error": "Invalid or expired OTP."}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(
+                        {"error": "Invalid or expired OTP."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
             except User.DoesNotExist:
-                 return Response({"error": "Invalid details."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Invalid details."}, status=status.HTTP_400_BAD_REQUEST
+                )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class SetNewPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -432,29 +520,93 @@ class SetNewPasswordView(APIView):
     def post(self, request):
         serializer = SetNewPasswordSerializer(data=request.data)
         if serializer.is_valid():
-            email = serializer.validated_data['email']
-            otp = serializer.validated_data['otp']
-            new_password = serializer.validated_data['new_password']
+            email = serializer.validated_data["email"]
+            otp = serializer.validated_data["otp"]
+            new_password = serializer.validated_data["new_password"]
 
             try:
                 user = User.objects.get(email=email)
-                otp_record = PasswordResetOTP.objects.filter(user=user, otp=otp).order_by('-created_at').first()
+                otp_record = (
+                    PasswordResetOTP.objects.filter(user=user, otp=otp)
+                    .order_by("-created_at")
+                    .first()
+                )
 
                 if otp_record and otp_record.is_valid():
                     user.set_password(new_password)
                     user.save()
                     # Invalidate OTP - or just rely on expiry. Deleting ensures one-time use.
-                    otp_record.delete() 
+                    otp_record.delete()
                     return Response({"message": "Password reset successfully."})
                 else:
-                    return Response({"error": "Invalid or expired OTP."}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(
+                        {"error": "Invalid or expired OTP."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
             except User.DoesNotExist:
-                return Response({"error": "Invalid details."}, status=status.HTTP_400_BAD_REQUEST)
-        
+                return Response(
+                    {"error": "Invalid details."}, status=status.HTTP_400_BAD_REQUEST
+                )
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class NewsletterSubscribeView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = NewsletterSubscribeSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data["email"]
+
+            subscriber, created = NewsletterSubscriber.objects.get_or_create(
+                email=email, defaults={"is_active": True}
+            )
+
+            if not created and not subscriber.is_active:
+                subscriber.is_active = True
+                subscriber.save()
+                return Response({"message": "Welcome back! You've been resubscribed."})
+            elif not created and subscriber.is_active:
+                return Response({"message": "You're already subscribed!"})
+
+            return Response({"message": "Successfully subscribed to newsletter!"})
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class NewsletterUnsubscribeView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email")
+        if not email:
+            return Response(
+                {"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            subscriber = NewsletterSubscriber.objects.get(email=email)
+            subscriber.is_active = False
+            subscriber.save()
+            return Response(
+                {"message": "You've been unsubscribed from the newsletter."}
+            )
+        except NewsletterSubscriber.DoesNotExist:
+            return Response(
+                {"error": "Email not found in our subscribers list."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+
+class NewsletterSubscriberViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = NewsletterSubscriber.objects.filter(is_active=True)
+    serializer_class = NewsletterSubscriberSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
 
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
 
 # Serve Single Page Application
-index_view = never_cache(TemplateView.as_view(template_name='index.html'))
+index_view = never_cache(TemplateView.as_view(template_name="index.html"))

@@ -1,8 +1,8 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category } from '../types';
 import { API_BASE_URL } from '../config';
 import { jsPDF } from "jspdf";
+import ConfirmationModal from './ConfirmationModal';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -76,6 +76,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [uiView, setUiView] = useState<'hero' | 'stories'>('hero');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [deleteCategoryModal, setDeleteCategoryModal] = useState<{ isOpen: boolean; categoryId: string | null }>({ isOpen: false, categoryId: null });
   const [orders, setOrders] = useState<Order[]>([]);
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
@@ -99,8 +100,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           const token = localStorage.getItem('access_token') || localStorage.getItem('admin_access_token');
           if (!token) return;
 
-          const response = await fetch(`${API_BASE_URL}/api/orders/`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+          const response = await fetch(`${API_BASE_URL} /api/orders / `, {
+            headers: { 'Authorization': `Bearer ${token} ` }
           });
           if (response.ok) {
             const data = await response.json();
@@ -190,7 +191,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       return;
     }
     const newStory: Story = {
-      id: `s-${Date.now()}`,
+      id: `s - ${Date.now()} `,
       mediaUrl: newStoryForm.mediaUrl || '',
       mediaType: newStoryForm.mediaType || 'image',
       productId: newStoryForm.productId || ''
@@ -415,7 +416,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Handlers for Visitor Forms
   const handleCreateForm = (e: React.FormEvent) => {
     e.preventDefault();
-    const newId = `vf-${Date.now()}`;
+    const newId = `vf - ${Date.now()} `;
     const newForm: VisitorForm = {
       id: newId,
       title: newFormData.title,
@@ -513,7 +514,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       summary: eventForm.summary || '',
       fullStory: eventForm.fullStory?.filter(s => s.heading && s.content) || [],
       gallery: eventForm.gallery || [],
-      featuredProducts: eventForm.featuredProducts || []
+      featuredProducts: []
     };
     onAddEvent(newEvent);
     setEventView('list');
@@ -675,6 +676,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (!viewingOrder) return;
     try {
       const token = localStorage.getItem('access_token') || localStorage.getItem('admin_access_token');
+      if (!token) return;
       const response = await fetch(`${API_BASE_URL}/api/orders/${viewingOrder.id}/`, {
         method: 'PATCH',
         headers: {
@@ -1819,9 +1821,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <span className="font-bold text-slate-700">{c.name}</span>
                             <button
                               onClick={() => {
-                                if (window.confirm('Are you sure you want to delete this category?')) {
-                                  onDeleteCategory(c.id!);
-                                }
+                                setDeleteCategoryModal({ isOpen: true, categoryId: c.id! });
                               }}
                               className="text-slate-400 hover:text-red-500"
                             >
@@ -2209,7 +2209,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
         )
       }
-    </div >
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteCategoryModal.isOpen}
+        onClose={() => setDeleteCategoryModal({ isOpen: false, categoryId: null })}
+        onConfirm={() => {
+          if (deleteCategoryModal.categoryId) {
+            onDeleteCategory(deleteCategoryModal.categoryId);
+          }
+          setDeleteCategoryModal({ isOpen: false, categoryId: null });
+        }}
+        title="Delete Category?"
+        message="Are you sure you want to delete this category? This action cannot be undone."
+        confirmLabel="Delete"
+        isDestructive={true}
+      />
+    </div>
   );
 };
 

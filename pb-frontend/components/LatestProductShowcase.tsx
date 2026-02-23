@@ -1,14 +1,6 @@
-
 import React from 'react';
 
-// Fix for standard JSX elements being unrecognized: 
-// Instead of using 'declare global' on the JSX namespace, which shadows the entire 
-// intrinsic element library (breaking div, section, etc.), we define a local 
-// constant that represents the custom element tag.
 const ModelViewerTag = 'model-viewer' as any;
-
-// Fix for standard JSX elements being unrecognized: 
-// The previous 'declare global' block was removed to prevent shadowing standard HTML types.
 
 const LatestProductShowcase: React.FC = () => {
   const benefitsLeft = [
@@ -43,27 +35,27 @@ const LatestProductShowcase: React.FC = () => {
 
   return (
     <section className="py-24 bg-white overflow-hidden relative">
-      {/* 3D Background Decor */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
+      {/* Background Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary/10 rounded-full blur-[150px] pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-12 space-y-2">
+        <div className="text-center mb-16 space-y-3">
           <p className="font-handdrawn text-3xl text-secondary">Our New Flavor</p>
           <div className="relative inline-block">
-             <h2 className="text-5xl font-black text-primary uppercase tracking-tighter">latest Product</h2>
-             <span className="absolute -top-4 -right-12 bg-slate-900 text-white text-[10px] px-2 py-1 rounded font-black uppercase tracking-widest rotate-12 shadow-lg">
-                3D Interactive
-             </span>
+            <h2 className="text-6xl font-extrabold text-primary uppercase tracking-tight">Latest Product</h2>
+            <span className="absolute -top-4 -right-12 bg-slate-900 text-white text-[10px] px-2 py-1 rounded font-black uppercase tracking-widest rotate-12 shadow-lg">
+              3D Interactive
+            </span>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 items-center">
+        <div className="grid lg:grid-cols-3 gap-6 items-center">
           {/* Left Column */}
-          <div className="space-y-12 text-center lg:text-right order-2 lg:order-1">
+          <div className="space-y-8 md:space-y-12 text-center lg:text-right order-2 lg:order-1">
             {benefitsLeft.map((item, idx) => (
-              <div key={idx} className="group transition-all duration-300 hover:translate-x-[-8px]">
-                <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-tight">{item.title}</h3>
+              <div key={idx} className="group transition-all duration-300 hover:translate-x-[-4px]">
+                <h3 className="text-xl font-extrabold text-slate-900 mb-2 uppercase tracking-tight">{item.title}</h3>
                 <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-sm mx-auto lg:ml-auto">
                   {item.desc}
                 </p>
@@ -72,44 +64,37 @@ const LatestProductShowcase: React.FC = () => {
           </div>
 
           {/* Central 3D Model Viewer */}
-          <div className="order-1 lg:order-2 flex justify-center relative min-h-[500px]">
-            <div className="w-full max-w-[450px]">
-              {/* Fix: Using the locally defined ModelViewerTag constant avoids JSX errors and namespace shadowing */}
+          <div className="order-1 lg:order-2 flex justify-center relative min-h-[550px]">
+            <div className="w-full max-w-[500px]">
               <ModelViewerTag
-                src="https://modelviewer.dev/shared-assets/models/Astronaut.glb" // Placeholder GLB
-                ios-src=""
+                src="/3D-assets/AmericanNuts-v1.glb"
                 alt="3D Interactive Jar"
                 shadow-intensity="1.5"
                 camera-controls
-                disable-zoom
                 auto-rotate
-                rotation-per-second="30deg"
+                rotation-per-second="15deg"
+                disable-zoom
+                disable-tap
                 interaction-prompt="auto"
                 ar
                 ar-modes="webxr scene-viewer quick-look"
                 touch-action="pan-y"
-                style={{ width: '100%', height: '500px' }}
+                style={{ width: '100%', height: '550px' }}
               >
-                {/* Custom loading poster */}
-                <div slot="poster" className="w-full h-full flex flex-col items-center justify-center bg-transparent">
-                  <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                  <p className="font-black text-primary uppercase text-xs tracking-widest">Loading 3D View...</p>
+                {/* Loading Poster */}
+                <div slot="poster" className="flex flex-col items-center justify-center h-full">
+                  <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  <p className="mt-4 text-primary font-bold uppercase text-xs">Loading...</p>
                 </div>
               </ModelViewerTag>
-              
-              {/* Interaction Hint */}
-              <div className="mt-4 flex justify-center items-center gap-3 text-slate-400">
-                 <span className="material-symbols-outlined text-sm">3d_rotation</span>
-                 <p className="text-[10px] font-black uppercase tracking-[0.3em]">Drag to rotate</p>
-              </div>
             </div>
           </div>
 
           {/* Right Column */}
-          <div className="space-y-12 text-center lg:text-left order-3">
+          <div className="space-y-8 text-center lg:text-left order-3">
             {benefitsRight.map((item, idx) => (
-              <div key={idx} className="group transition-all duration-300 hover:translate-x-[8px]">
-                <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-tight">{item.title}</h3>
+              <div key={idx} className="group transition-all duration-300 hover:translate-x-[4px]">
+                <h3 className="text-xl font-extrabold text-slate-900 mb-2 uppercase tracking-tight">{item.title}</h3>
                 <p className="text-sm text-slate-500 font-medium leading-relaxed max-w-sm mx-auto lg:mr-auto">
                   {item.desc}
                 </p>
@@ -123,3 +108,4 @@ const LatestProductShowcase: React.FC = () => {
 };
 
 export default LatestProductShowcase;
+
