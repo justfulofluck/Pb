@@ -9,6 +9,7 @@ interface VisitorFormPageProps {
 
 const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }) => {
     const [form, setForm] = useState<VisitorForm | null>(null);
+    const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -30,11 +31,15 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
     });
 
     useEffect(() => {
-        const fetchForm = async () => {
+        const fetchInitialData = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/visitor-forms/${formId}/`);
-                if (response.ok) {
-                    const data = await response.json();
+                const [formRes, productsRes] = await Promise.all([
+                    fetch(`${API_BASE_URL}/api/visitor-forms/${formId}/`),
+                    fetch(`${API_BASE_URL}/api/products/`)
+                ]);
+
+                if (formRes.ok) {
+                    const data = await formRes.json();
                     setForm({
                         id: String(data.id),
                         title: data.title,
@@ -47,13 +52,18 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
                 } else {
                     setError('Form not found or unavailable.');
                 }
+
+                if (productsRes.ok) {
+                    const productsData = await productsRes.json();
+                    setProducts(productsData);
+                }
             } catch (err) {
                 setError('Failed to load form. Please check your connection.');
             } finally {
                 setLoading(false);
             }
         };
-        fetchForm();
+        fetchInitialData();
     }, [formId]);
 
     const handleFlavorChange = (flavor: string) => {
@@ -155,8 +165,13 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
     return (
         <div className="min-h-screen bg-slate-50 font-display">
             {/* Simple Header */}
-            <header className="h-20 bg-white shadow-sm flex items-center justify-center">
-                <span className="font-black text-2xl tracking-tighter text-slate-900">PINO<span className="text-primary">BITE</span></span>
+            <header className="h-20 bg-white shadow-sm flex items-center justify-center p-4">
+                <img
+                    src="/logos/Pinobite-logo.png"
+                    alt="Pinobite"
+                    className="h-12 md:h-14 w-auto object-contain cursor-pointer"
+                    onClick={onHomeClick}
+                />
             </header>
 
             <div className="max-w-xl mx-auto p-6 md:p-12">
@@ -239,7 +254,7 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
                             <div className="space-y-2">
                                 <label className="text-xs font-black uppercase tracking-widest text-slate-500">Which flavor would you like to try? <span className="text-red-500">*</span></label>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {['Classic Creamy', 'Crunchy', 'Chocolate', 'Mango Chia', 'High Protein'].map(flavor => (
+                                    {(products.length > 0 ? products.map(p => p.name) : ['Classic Creamy', 'Crunchy', 'Chocolate', 'Mango Chia', 'High Protein']).map(flavor => (
                                         <label key={flavor} className="flex items-center gap-2 cursor-pointer">
                                             <input type="checkbox" checked={formData.flavorPreferences.includes(flavor)} onChange={() => handleFlavorChange(flavor)} className="w-5 h-5 text-primary rounded focus:ring-primary" />
                                             <span className="font-bold text-slate-700">{flavor}</span>
@@ -254,11 +269,9 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
                                     <label className="text-xs font-black uppercase tracking-widest text-slate-500">Product Selection <span className="text-red-500">*</span></label>
                                     <select required value={formData.reviewedProduct} onChange={e => setFormData({ ...formData, reviewedProduct: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-white transition-colors">
                                         <option value="">Select Product...</option>
-                                        <option value="Classic Creamy">Classic Creamy</option>
-                                        <option value="Crunchy">Crunchy</option>
-                                        <option value="Chocolate">Chocolate</option>
-                                        <option value="Mango Chia">Mango Chia</option>
-                                        <option value="High Protein">High Protein</option>
+                                        {(products.length > 0 ? products : [{ name: 'Classic Creamy' }, { name: 'Crunchy' }, { name: 'Chocolate' }, { name: 'Mango Chia' }, { name: 'High Protein' }]).map(p => (
+                                            <option key={p.name} value={p.name}>{p.name}</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="space-y-2">

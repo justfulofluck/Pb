@@ -73,7 +73,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   : 'opacity-0 translate-y-2 pointer-events-none'
                   }`}
               >
-                <p className="text-[10px] md:text-[12px] font-black tracking-[0.25em] uppercase whitespace-nowrap pt-9">
+                <p className="text-[10px] md:text-[12px] font-black tracking-[0.25em] uppercase whitespace-nowrap pt-1">
                   {text}
                 </p>
               </div>
@@ -85,21 +85,11 @@ const Navbar: React.FC<NavbarProps> = ({
       {/* Main Navbar */}
       <nav className={`bg-white/80 backdrop-blur-md border-b border-slate-200 ${hasAnnouncements ? '' : ''}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative flex justify-between items-center h-20">
+          <div className="relative flex justify-between items-center h-24">
 
-            {/* Standard Navbar Content */}
-            <div className={`flex items-center gap-8 transition-opacity duration-300 ${isSearchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-              <button
-                onClick={onLogoClick}
-                className="flex items-center gap-2 group"
-              >
-                <img
-                  src="/logos/Pinobite-logo.png"
-                  alt="Pinobite Logo"
-                  className="h-14 w-auto object-contain transition-transform group-hover:scale-110"
-                />
-              </button>
-              <div className="hidden md:flex items-center gap-10 font-black text-[11px] tracking-widest text-slate-800">
+            {/* Left side: Navigation Links */}
+            <div className={`flex-1 hidden md:flex items-center gap-8 transition-opacity duration-300 ${isSearchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+              <div className="flex items-center gap-8 font-black text-[11px] tracking-widest text-slate-800">
                 <button onClick={onJourneyClick} className="hover:text-primary transition-colors uppercase font-garet">OUR JOURNEY</button>
                 <div className="relative group/menu">
                   <button onClick={onProductsClick} className="hover:text-primary transition-colors uppercase font-garet flex items-center gap-1">
@@ -113,8 +103,22 @@ const Navbar: React.FC<NavbarProps> = ({
               </div>
             </div>
 
-            {/* Actions (Search, Account, Cart) */}
-            <div className={`flex items-center gap-6 transition-opacity duration-300 ${isSearchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            {/* Center: Logo */}
+            <div className={`absolute left-1/2 -translate-x-1/2 transition-all duration-300 ${isSearchOpen ? 'opacity-0 pointer-events-none scale-90' : 'opacity-100 scale-100'}`}>
+              <button
+                onClick={onLogoClick}
+                className="flex items-center group"
+              >
+                <img
+                  src="/logos/Pinobite-logo.png"
+                  alt="Pinobite Logo"
+                  className="h-16 md:h-20 w-auto object-contain transition-transform group-hover:scale-105"
+                />
+              </button>
+            </div>
+
+            {/* Right side: Actions */}
+            <div className={`flex-1 flex items-center justify-end gap-6 transition-opacity duration-300 ${isSearchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
               <button
                 onClick={() => setIsSearchOpen(true)}
                 className="flex items-center gap-1 hover:text-primary transition-colors text-[11px] font-black uppercase tracking-widest text-slate-800 group"
