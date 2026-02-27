@@ -14,8 +14,8 @@ interface BreadcrumbsProps {
 
 const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ steps, onHomeClick, className = "" }) => {
   return (
-    <nav className={`flex items-center gap-2 text-slate-400 font-bold text-[13px] tracking-wide py-4 ${className}`} aria-label="Breadcrumb">
-      <button 
+    <nav className={`flex items-center gap-2 text-slate-400 font-black text-sm tracking-wide font-garet py-4 ${className}`} aria-label="Breadcrumb">
+      <button
         onClick={onHomeClick}
         className="flex items-center hover:text-primary transition-colors"
         aria-label="Home"
@@ -27,7 +27,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ steps, onHomeClick, className
         <React.Fragment key={index}>
           <span className="material-symbols-outlined text-sm select-none">chevron_right</span>
           {step.onClick && index < steps.length - 1 ? (
-            <button 
+            <button
               onClick={step.onClick}
               className="hover:text-primary transition-colors"
             >

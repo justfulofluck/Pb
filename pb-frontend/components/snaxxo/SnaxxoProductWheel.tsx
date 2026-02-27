@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { Product } from '../../types';
+import SnaxxoProductCarousel from './SnaxxoProductCarousel';
 
 interface SnaxxoProductWheelProps {
     products: Product[];
@@ -34,36 +35,43 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
         // Skip animation setup if loading or no products
         if (isLoading || !displayProducts.length) return;
 
-        // --- Configuration tuned to match Snaxxo reference ---
-        const CFG = {
-            arcStepDeg: 15,           // Tighter spacing → more products visible
-            radiusXFactor: 0.70,      // Wide spread across screen
-            radiusYFromWidthFactor: 0.20, // Steeper arc for half-circle look
-            rotateFactor: 0.8,       // More tilt to match steeper curve
-            scaleMin: 0.50,           // Keep side items larger
-            ease: "power3.out",
-            duration: 0.6,
-            visibleRange: 3,          // Show up to 3 each side
-            animateRange: 6,
-            dragPixelsPerStep: 100,
-            dragDamp: 0.92,
-            heightPadding: 60,
-            heightMin: 300,
-            heightMaxVh: 0.85,
-            uiInDuration1: 0.3,
-            uiInDuration2: 0.2,
-            uiOvershoot: 1.05,
-            uiEaseIn: "power2.out",
-            uiEaseSettle: "power2.inOut",
-            splashDuration: 0.28,
-            splashEase: "power2.out",
-            dragStartThresholdPx: 8
+        // --- Configuration tuned to be responsive ---
+        const getCFG = () => {
+            const width = window.innerWidth;
+            const isMobile = width < 640;
+            const isTablet = width >= 640 && width < 1024;
+
+            return {
+                arcStepDeg: isMobile ? 45 : (isTablet ? 25 : 15),
+                radiusXFactor: isMobile ? 0.45 : (isTablet ? 0.60 : 0.70),
+                radiusYFromWidthFactor: isMobile ? 0.45 : (isTablet ? 0.30 : 0.20),
+                rotateFactor: isMobile ? 1.4 : 0.8,
+                scaleMin: isMobile ? 0.45 : 0.50,
+                ease: "power3.out",
+                duration: 0.6,
+                visibleRange: isMobile ? 1 : (isTablet ? 2 : 3),
+                animateRange: 6,
+                dragPixelsPerStep: isMobile ? 70 : 100,
+                dragDamp: 0.92,
+                heightPadding: isMobile ? 40 : 60,
+                heightMin: isMobile ? 350 : 300,
+                heightMaxVh: 0.9,
+                uiInDuration1: 0.3,
+                uiInDuration2: 0.2,
+                uiOvershoot: 1.05,
+                uiEaseIn: "power2.out",
+                uiEaseSettle: "power2.inOut",
+                splashDuration: 0.28,
+                splashEase: "power2.out",
+                dragStartThresholdPx: 8
+            };
         };
 
         const viewport = slider.querySelector(".product-wheel-viewport") as HTMLElement;
         const wheel = wheelRef.current;
+        // Limit display products for animation performance if needed
         const slides = slidesRef.current.filter(s => s !== null) as HTMLElement[];
-        if (!viewport || !wheel || !slides.length) return;
+        if (!viewport || !wheel || !slides.length || window.innerWidth < 1024) return;
 
         // --- Styles setup ---
         slider.style.position = "relative";
@@ -123,6 +131,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
         const getRect = (el: HTMLElement) => el.getBoundingClientRect();
 
         const setStableViewportHeight = () => {
+            const CFG = getCFG();
             const vr = getRect(viewport);
             if (vr.width <= 0) return;
 
@@ -154,6 +163,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
         };
 
         const revealActiveUI = (slide: HTMLElement) => {
+            const CFG = getCFG();
             const infoBox = slide.querySelector(".product-bottom-info-box");
             if (infoBox) {
                 gsap.killTweensOf(infoBox);
@@ -165,6 +175,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
         };
 
         const layout = (animate: boolean) => {
+            const CFG = getCFG();
             const vr = getRect(viewport);
             const len = slides.length;
             if (vr.width <= 0 || !len) return;
@@ -260,6 +271,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
         };
 
         const lockAnimating = () => {
+            const CFG = getCFG();
             isAnimating = true;
             if (animUnlockTimer) clearTimeout(animUnlockTimer);
             animUnlockTimer = setTimeout(() => {
@@ -307,6 +319,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
         };
 
         const onPointerMove = (e: PointerEvent) => {
+            const CFG = getCFG();
             if (!drag.isDown) return;
             const dx = e.clientX - drag.lastX;
             drag.lastX = e.clientX;
@@ -350,7 +363,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
 
     if (isLoading) {
         return (
-            <div className="py-24 bg-white flex items-center justify-center">
+            <div className="py-12 md:py-24 bg-white flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
         );
@@ -358,121 +371,138 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
 
 
     return (
-        <section className="product-slider-section bg-white py-24 overflow-visible">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 flex flex-col items-center justify-center text-center">
-                <div className="bg-[#008a45] text-white font-black text-xs md:text-sm uppercase tracking-widest px-4 py-1.5 rounded-sm -rotate-3 mb-1 inline-block shadow-sm z-10" style={{ transformOrigin: 'center' }}>
-                    Flavors you Love
-                </div>
-                <h2 className="text-6xl md:text-8xl lg:text-[100px] text-[#008a45] tracking-wide leading-none mb-4 relative z-0" style={{ fontFamily: '"Bebas Neue", sans-serif' }}>
-                    Customer Favorites
-                </h2>
-                <div className="relative z-10 w-full flex justify-center mt-2">
-                    {onShopClick ? (
-                        <button
-                            onClick={onShopClick}
-                            className="bg-[#008a45] text-white px-8 py-2.5 rounded-full font-bold text-sm uppercase tracking-wider hover:bg-[#007038] transition-colors shadow flex items-center gap-1 hover:scale-105 active:scale-95"
-                        >
-                            SHOP ALL <span className="text-lg leading-none font-bold mt-[1px]">&raquo;</span>
-                        </button>
-                    ) : (
-                        <button
-                            className="bg-[#008a45] text-white px-8 py-2.5 rounded-full font-bold text-sm uppercase tracking-wider hover:bg-[#007038] transition-colors shadow flex items-center gap-1 hover:scale-105 active:scale-95"
-                        >
-                            SHOP ALL <span className="text-lg leading-none font-bold mt-[1px]">&raquo;</span>
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            <div className="product-slider relative w-full" ref={wrapperRef}>
-
-                {/* Navigation Arrows */}
-                <button
-                    className="product-prev z-[200] absolute left-4 bg-[#008a45] hover:bg-[#007038] text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-100"
-                    style={{ top: '50%' }}
-                    onClick={() => goPrevRef.current?.()}
-                    aria-label="Previous product"
-                >
-                    <span className="material-symbols-outlined text-xl">chevron_left</span>
-                </button>
-                <button
-                    className="product-next z-[200] absolute right-4 bg-[#008a45] hover:bg-[#007038] text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
-                    style={{ top: '50%' }}
-                    onClick={() => goNextRef.current?.()}
-                    aria-label="Next product"
-                >
-                    <span className="material-symbols-outlined text-xl">chevron_right</span>
-                </button>
-
-                <div className="product-wheel-viewport relative w-full h-[700px]">
-                    <div className="product-wheel absolute top-0 left-0 w-full h-full cursor-grab select-none" ref={wheelRef}>
-                        {displayProducts.map((product, i) => (
-                            <div
-                                key={product.id}
-                                className="product-slide absolute top-[40%] left-1/2 z-[100] w-[450px]"
-                                ref={el => slidesRef.current[i] = el}
+        <>
+            {/* Desktop View: 3D Wheel */}
+            <section className="product-slider-section bg-[#f2f2ec] py-12 md:py-24 overflow-visible hidden lg:block">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 flex flex-col items-center justify-center text-center">
+                    <div className="bg-[#008a45] text-white font-black text-[10px] sm:text-xs md:text-sm uppercase tracking-widest px-3 py-1 md:px-4 md:py-1.5 rounded-sm -rotate-3 mb-1 inline-block shadow-sm z-10" style={{ transformOrigin: 'center' }}>
+                        Flavors you Love
+                    </div>
+                    <h2 className="text-5xl sm:text-6xl md:text-8xl lg:text-[100px] text-[#008a45] tracking-[0.05em] leading-tight sm:leading-none mb-1 relative z-0" style={{ fontFamily: '"Bebas Neue", sans-serif' }}>
+                        CUSTOMER'S FAVORITE
+                    </h2>
+                    <div className="w-24 md:w-32 h-2 md:h-2.5 bg-[#008a45] mb-4 rounded-full"></div>
+                    <div className="relative z-10 w-full flex justify-center mt-2">
+                        {onShopClick ? (
+                            <button
+                                onClick={onShopClick}
+                                className="bg-[#008a45] text-white px-6 py-2 md:px-8 md:py-2.5 rounded-full font-bold text-xs md:text-sm uppercase tracking-wider hover:bg-[#007038] transition-colors shadow flex items-center gap-1 hover:scale-105 active:scale-95"
                             >
-                                <div className="product-slide-inner group">
-                                    <div className="relative overflow-visible">
-                                        <div
-                                            className="aspect-[4/5] cursor-pointer relative"
-                                            onClick={() => onProductClick(product)}
-                                        >
-                                            <img
-                                                loading="lazy"
-                                                src={product.image}
-                                                alt={product.name}
-                                                className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-700 group-hover:scale-105"
-                                                style={{ mixBlendMode: 'multiply' }}
-                                            />
-                                        </div>
-
-                                        {/* Top Rated Tag */}
-                                        {product.isTopRated && (
-                                            <div className="absolute top-4 left-4">
-                                                <span className="bg-[#008a45] text-white px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest shadow-lg">
-                                                    Top Rated
-                                                </span>
-                                            </div>
-                                        )}
-
-                                        {/* Sold Out Overlay */}
-                                        {product.stock <= 0 && (
-                                            <div className="absolute inset-0 flex items-center justify-center z-10">
-                                                <span className="bg-slate-900/90 backdrop-blur-sm text-white px-8 py-4 rounded-full text-sm font-black uppercase tracking-widest shadow-2xl border border-white/10">Sold Out</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="product-bottom-info-box mt-4 flex flex-col items-center text-center px-4 pointer-events-none">
-                                        <h3
-                                            className="font-black text-xl text-slate-900 mb-1 cursor-pointer hover:text-[#008a45] transition-colors uppercase tracking-tight leading-tight pointer-events-auto"
-                                            onClick={() => onProductClick(product)}
-                                        >
-                                            {product.name}
-                                        </h3>
-
-                                        <div className="font-bold text-slate-700 text-lg mb-3 pointer-events-auto">
-                                            ₹{product.price}
-                                        </div>
-
-                                        {/* Action Button */}
-                                        <button
-                                            onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
-                                            disabled={product.stock <= 0}
-                                            className="pointer-events-auto bg-[#008a45] text-white px-6 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider shadow-md hover:shadow-lg hover:bg-[#007038] hover:-translate-y-0.5 transition-all active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-1.5"
-                                        >
-                                            <span className="material-symbols-outlined text-sm">add</span>
-                                            {product.stock <= 0 ? 'Sold Out' : 'Order'}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                                SHOP ALL <span className="text-lg leading-none font-bold mt-[1px]">&raquo;</span>
+                            </button>
+                        ) : (
+                            <button
+                                className="bg-[#008a45] text-white px-6 py-2 md:px-8 md:py-2.5 rounded-full font-bold text-xs md:text-sm uppercase tracking-wider hover:bg-[#007038] transition-colors shadow flex items-center gap-1 hover:scale-105 active:scale-95"
+                            >
+                                SHOP ALL <span className="text-lg leading-none font-bold mt-[1px]">&raquo;</span>
+                            </button>
+                        )}
                     </div>
                 </div>
+
+                <div className="product-slider relative w-full" ref={wrapperRef}>
+
+                    {/* Navigation Arrows */}
+                    <button
+                        className="product-prev z-[200] absolute left-2 sm:left-4 bg-[#008a45] hover:bg-[#007038] text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-100"
+                        style={{ top: '45%', transform: 'translateY(-50%)' }}
+                        onClick={() => goPrevRef.current?.()}
+                        aria-label="Previous product"
+                    >
+                        <span className="material-symbols-outlined text-lg sm:text-xl">chevron_left</span>
+                    </button>
+                    <button
+                        className="product-next z-[200] absolute right-2 sm:right-4 bg-[#008a45] hover:bg-[#007038] text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
+                        style={{ top: '45%', transform: 'translateY(-50%)' }}
+                        onClick={() => goNextRef.current?.()}
+                        aria-label="Next product"
+                    >
+                        <span className="material-symbols-outlined text-lg sm:text-xl">chevron_right</span>
+                    </button>
+
+                    <div className="product-wheel-viewport relative w-full min-h-[400px]">
+                        <div className="product-wheel absolute top-0 left-0 w-full h-full cursor-grab select-none" ref={wheelRef}>
+                            {displayProducts.map((product, i) => (
+                                <div
+                                    key={product.id}
+                                    className="product-slide absolute top-[35%] md:top-[40%] left-1/2 z-[100] w-[250px] sm:w-[320px] md:w-[400px] lg:w-[450px]"
+                                    ref={el => slidesRef.current[i] = el}
+                                >
+                                    <div className="product-slide-inner group">
+                                        <div className="relative overflow-visible">
+                                            <div
+                                                className="aspect-[4/5] cursor-pointer relative"
+                                                onClick={() => onProductClick(product)}
+                                            >
+                                                <img
+                                                    loading="lazy"
+                                                    src={product.image}
+                                                    alt={product.name}
+                                                    className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-700 group-hover:scale-105"
+                                                    style={{ mixBlendMode: 'multiply' }}
+                                                />
+                                            </div>
+
+                                            {/* Top Rated Tag */}
+                                            {product.isTopRated && (
+                                                <div className="absolute top-2 left-2 sm:top-4 sm:left-4">
+                                                    <span className="bg-[#008a45] text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-black text-[8px] sm:text-[10px] uppercase tracking-widest shadow-lg">
+                                                        Top Rated
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            {/* Sold Out Overlay */}
+                                            {product.stock <= 0 && (
+                                                <div className="absolute inset-0 flex items-center justify-center z-10">
+                                                    <span className="bg-slate-900/90 backdrop-blur-sm text-white px-6 py-3 sm:px-8 sm:py-4 rounded-full text-xs sm:text-sm font-black uppercase tracking-widest shadow-2xl border border-white/10">Sold Out</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="product-bottom-info-box mt-2 sm:mt-4 flex flex-col items-center text-center px-4 pointer-events-none">
+                                            <h3
+                                                className="font-black text-lg sm:text-xl text-slate-900 mb-1 cursor-pointer hover:text-[#008a45] transition-colors uppercase tracking-tight leading-tight pointer-events-auto"
+                                                onClick={() => onProductClick(product)}
+                                            >
+                                                {product.name}
+                                            </h3>
+
+                                            <div className="flex items-baseline gap-2 mb-2 sm:mb-3 pointer-events-auto">
+                                                <span className="font-black text-slate-900 text-2xl sm:text-3xl">₹{product.price}</span>
+                                                {product.originalPrice && product.originalPrice > product.price && (
+                                                    <span className="font-bold text-slate-400 text-base sm:text-lg line-through">₹{product.originalPrice}</span>
+                                                )}
+                                            </div>
+
+                                            {/* Action Button */}
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
+                                                disabled={product.stock <= 0}
+                                                className="pointer-events-auto bg-[#008a45] text-white px-5 py-2 sm:px-6 sm:py-2.5 rounded-lg font-bold text-[10px] sm:text-xs uppercase tracking-wider shadow-md hover:shadow-lg hover:bg-[#007038] hover:-translate-y-0.5 transition-all active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-1.5"
+                                            >
+                                                <span className="material-symbols-outlined text-sm">add</span>
+                                                {product.stock <= 0 ? 'Sold Out' : 'Order'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Mobile/Tablet View: Carousel */}
+            <div className="lg:hidden">
+                <SnaxxoProductCarousel
+                    products={products}
+                    onProductClick={onProductClick}
+                    onAddToCart={onAddToCart}
+                    isLoading={isLoading}
+                />
             </div>
-        </section>
+        </>
     );
 };
 

@@ -9,7 +9,7 @@ const Newsletter: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email) {
       setStatus('error');
       setMessage('Please enter your email address.');
@@ -17,7 +17,7 @@ const Newsletter: React.FC = () => {
     }
 
     setStatus('loading');
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/newsletter/subscribe/`, {
         method: 'POST',
@@ -42,43 +42,49 @@ const Newsletter: React.FC = () => {
   };
 
   return (
-    <section className="py-24 bg-primary text-white overflow-hidden relative">
-      <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-        <h2 className="text-4xl md:text-6xl font-black mb-8 uppercase">NUTS ABOUT HEALTH? JOIN OUR NEWSLETTER</h2>
-        <p className="text-xl mb-12 opacity-90">Get exclusive recipes, health tips and 10% off your first order!</p>
-        
-        <form className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto" onSubmit={handleSubmit}>
-          <input 
-            className="flex-1 px-6 py-4 rounded-full text-slate-900 focus:outline-none focus:ring-4 focus:ring-secondary/50 transition-all border-none" 
-            placeholder="Enter your email" 
-            type="email" 
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={status === 'loading'}
-          />
-          <button 
-            className={`bg-secondary text-slate-900 px-8 py-4 rounded-full font-black hover:scale-105 transition-transform ${status === 'loading' ? 'opacity-70 cursor-not-allowed' : ''}`}
-            disabled={status === 'loading'}
-          >
-            {status === 'loading' ? 'SUBSCRIBING...' : 'SUBSCRIBE'}
-          </button>
-        </form>
+    <section className="py-24 bg-[#f2f2ec] px-4 md:px-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-[#008a45] rounded-[40px] py-16 md:py-24 px-8 md:px-12 text-white overflow-hidden relative shadow-2xl">
+          <div className="max-w-4xl mx-auto text-center relative z-10">
+            <h2 className="text-4xl md:text-7xl font-black mb-6 uppercase tracking-tight font-garet">
+              NUTS ABOUT HEALTH? <br className="hidden md:block" /> JOIN OUR NEWSLETTER
+            </h2>
+            <p className="text-lg md:text-xl mb-12 opacity-90 max-w-2xl mx-auto font-medium">
+              Get exclusive recipes, health tips and 10% off your first order!
+            </p>
 
-        {message && (
-          <p className={`mt-4 text-sm font-medium ${status === 'success' ? 'text-green-200' : status === 'error' ? 'text-red-200' : ''}`}>
-            {message}
-          </p>
-        )}
+            <form className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto" onSubmit={handleSubmit}>
+              <input
+                className="flex-1 px-8 py-5 rounded-3xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-secondary/50 transition-all border-none font-bold"
+                placeholder="Enter your email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={status === 'loading'}
+              />
+              <button
+                className={`bg-secondary text-slate-900 px-10 py-5 rounded-3xl font-black uppercase hover:shadow-xl hover:-translate-y-1 transition-all active:scale-95 ${status === 'loading' ? 'opacity-70 cursor-not-allowed' : ''}`}
+                disabled={status === 'loading'}
+              >
+                {status === 'loading' ? 'SUBSCRIBING...' : 'SUBSCRIBE'}
+              </button>
+            </form>
 
-        <div className="flex justify-center gap-6 mt-12">
-          <a className="hover:scale-110 transition-transform" href="#"><span className="material-symbols-outlined text-3xl">facebook</span></a>
-          <a className="hover:scale-110 transition-transform font-bold text-3xl" href="#"></a>
-          <a className="hover:scale-110 transition-transform" href="#"><span className="material-symbols-outlined text-3xl">photo_camera</span></a>
-          <a className="hover:scale-110 transition-transform" href="#"><span className="material-symbols-outlined text-3xl">play_circle</span></a>
+            {message && (
+              <p className={`mt-6 text-sm font-black uppercase tracking-wider ${status === 'success' ? 'text-green-200' : status === 'error' ? 'text-red-200' : ''}`}>
+                {message}
+              </p>
+            )}
+          </div>
+
+          {/* Decorative Elements */}
+          <span className="absolute top-[-20px] left-[-20px] font-handdrawn text-9xl opacity-10 rotate-12 select-none pointer-events-none">YUM!</span>
+          <span className="absolute bottom-[-20px] right-[-20px] font-handdrawn text-9xl opacity-10 -rotate-12 select-none pointer-events-none">FREE!</span>
+
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
         </div>
       </div>
-      <span className="absolute top-10 left-10 font-handdrawn text-9xl opacity-10 rotate-12 select-none">YUM!</span>
-      <span className="absolute bottom-10 right-10 font-handdrawn text-9xl opacity-10 -rotate-12 select-none">FREE!</span>
     </section>
   );
 };

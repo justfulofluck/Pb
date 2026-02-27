@@ -204,7 +204,7 @@ const SnaxxoHero: React.FC<SnaxxoHeroProps> = ({ onShopClick }) => {
 
             {/* Wave Animation at Bottom */}
             {/* Wave Animation at Bottom */}
-            <SnaxxoWave className="below" fill="#FF0000" />
+            <SnaxxoWave className="below" fill="#f2f2ec" />
 
         </section>
     );

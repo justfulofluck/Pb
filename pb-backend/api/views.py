@@ -13,6 +13,7 @@ from .models import (
     VisitorForm,
     VisitorSubmission,
     NewsletterSubscriber,
+    Announcement,
 )
 from django.contrib.auth.models import User
 from rest_framework.response import Response
@@ -36,6 +37,7 @@ from .serializers import (
     SetNewPasswordSerializer,
     NewsletterSubscribeSerializer,
     NewsletterSubscriberSerializer,
+    AnnouncementSerializer,
 )
 
 
@@ -603,6 +605,29 @@ class NewsletterSubscriberViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = NewsletterSubscriber.objects.filter(is_active=True)
     serializer_class = NewsletterSubscriberSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+from django.utils import timezone
+
+
+class AnnouncementViewSet(viewsets.ModelViewSet):
+    queryset = Announcement.objects.all()
+    serializer_class = AnnouncementSerializer
+
+    def get_queryset(self):
+        # Admin can see all announcements
+        if self.request.user and self.request.user.is_staff:
+            return Announcement.objects.all().order_by("-created_at")
+
+        # Others only see active and scheduled ones
+        qs = Announcement.objects.filter(is_active=True)
+        now = timezone.now()
+        return qs.filter(start_date__lte=now, end_date__gte=now).order_by("-created_at")
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
 
 from django.views.generic import TemplateView

@@ -33,7 +33,7 @@ import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import TermsAndConditionsPage from './components/TermsAndConditionsPage';
 import RefundPolicyPage from './components/RefundPolicyPage';
 import ShippingPolicyPage from './components/ShippingPolicyPage';
-import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category } from './types';
+import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category, Announcement } from './types';
 import SnaxxoLanding from './components/snaxxo/SnaxxoLanding';
 import SnaxxoProductWheel from './components/snaxxo/SnaxxoProductWheel';
 
@@ -66,6 +66,7 @@ const AppContent: React.FC = () => {
   const [stories, setStories] = useState<Story[]>(INITIAL_STORIES);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [visitorForms, setVisitorForms] = useState<VisitorForm[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
@@ -92,6 +93,53 @@ const AppContent: React.FC = () => {
     }
   }, []);
 
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+      if (state && state.view) {
+        setCurrentView(state.view);
+        if (state.productId) {
+          const p = products.find(prod => String(prod.id) === String(state.productId));
+          if (p) setSelectedProduct(p);
+        }
+        if (state.eventId) {
+          const e = events.find(ev => String(ev.id) === String(state.eventId));
+          if (e) setSelectedEvent(e);
+        }
+        if (state.blogId) {
+          const b = blogPosts.find(post => String(post.id) === String(state.blogId));
+          if (b) setSelectedBlogPost(b);
+        }
+        if (state.view === 'visitor-form' && state.formId) {
+          setSelectedFormId(state.formId);
+        }
+        if (state.view === 'shop') {
+          setShopCategory(state.category || 'All');
+          setGlobalSearchQuery(state.query || '');
+        }
+        if (!state.productId) setSelectedProduct(null);
+        if (!state.eventId) setSelectedEvent(null);
+        if (!state.blogId) setSelectedBlogPost(null);
+      } else {
+        // Fallback to home if no state
+        setCurrentView('home');
+        setSelectedProduct(null);
+        setSelectedEvent(null);
+        setSelectedBlogPost(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    // Set initial state if none exists
+    if (!window.history.state) {
+      window.history.replaceState({ view: 'home' }, '');
+    }
+
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [products, events, blogPosts]);
+
   useEffect(() => {
     setIsLoggedIn(!!user);
   }, [user]);
@@ -106,14 +154,20 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const [eventsRes, blogsRes, storiesRes, productsRes, vFormsRes, categoriesRes] = await Promise.all([
+        const [eventsRes, blogsRes, storiesRes, productsRes, vFormsRes, categoriesRes, annRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/events/`),
           fetch(`${API_BASE_URL}/api/blog-posts/`),
           fetch(`${API_BASE_URL}/api/stories/`),
           fetch(`${API_BASE_URL}/api/products/`),
           fetch(`${API_BASE_URL}/api/visitor-forms/`),
-          fetch(`${API_BASE_URL}/api/categories/`)
+          fetch(`${API_BASE_URL}/api/categories/`),
+          fetch(`${API_BASE_URL}/api/announcements/`)
         ]);
+
+        if (annRes.ok) {
+          const annData = await annRes.json();
+          setAnnouncements(annData);
+        }
 
         if (vFormsRes.ok) {
           const vFormsData = await vFormsRes.json();
@@ -123,7 +177,7 @@ const AppContent: React.FC = () => {
             eventName: f.event_name,
             status: f.status,
             createdAt: f.created_at,
-            link: `${window.location.origin}/forms/${f.id}`, // or handle link generation
+            link: `${window.location.origin}/forms/${f.id}`,
             submissions: f.submissions ? f.submissions.map((s: any) => ({
               id: String(s.id),
               name: s.name,
@@ -136,7 +190,7 @@ const AppContent: React.FC = () => {
         }
 
         if (productsRes.ok) {
-          const productsData = await productsRes.json();
+          const productsData = await productsRes.ok ? await productsRes.json() : [];
           const mappedProducts = productsData.map((p: any) => ({
             ...p,
             id: String(p.id),
@@ -144,6 +198,9 @@ const AppContent: React.FC = () => {
             originalPrice: p.original_price ? parseFloat(p.original_price) : undefined,
             reviewCount: p.review_count,
             isTopRated: p.is_top_rated,
+            model3d: p.model_3d,
+            themeColor: p.theme_color,
+            orientation: p.orientation ? p.orientation.replace(/[Oo]/g, '0') : '0deg 0deg 0deg',
             gallery: p.gallery || [],
             benefits: p.benefits || [],
             nutrients: p.nutrients || []
@@ -203,9 +260,15 @@ const AppContent: React.FC = () => {
 
   useEffect(() => {
     if (currentView === 'admin-dashboard') {
-      const refreshVisitorForms = async () => {
+      const refreshAdminData = async () => {
+        const token = localStorage.getItem('admin_access_token');
+        if (!token) return;
+
         try {
-          const response = await fetch(`${API_BASE_URL}/api/visitor-forms/`);
+          // Refresh Visitor Forms
+          const response = await fetch(`${API_BASE_URL}/api/visitor-forms/`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
           if (response.ok) {
             const data = await response.json();
             const mappedVForms = data.map((f: any) => ({
@@ -233,11 +296,20 @@ const AppContent: React.FC = () => {
             }));
             setVisitorForms(mappedVForms);
           }
+
+          // Refresh Announcements
+          const annRes = await fetch(`${API_BASE_URL}/api/announcements/`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (annRes.ok) {
+            const annData = await annRes.json();
+            setAnnouncements(annData);
+          }
         } catch (error) {
-          console.error("Failed to refresh visitor forms:", error);
+          console.error("Failed to refresh admin data:", error);
         }
       };
-      refreshVisitorForms();
+      refreshAdminData();
     }
   }, [currentView]);
 
@@ -267,7 +339,10 @@ const AppContent: React.FC = () => {
           nutrients: newProduct.nutrients,
           is_top_rated: newProduct.isTopRated,
           category: newProduct.category,
-          stock: newProduct.stock
+          stock: newProduct.stock,
+          model_3d: newProduct.model3d,
+          theme_color: newProduct.themeColor,
+          orientation: newProduct.orientation
         })
       });
       if (response.ok) {
@@ -278,6 +353,9 @@ const AppContent: React.FC = () => {
           originalPrice: savedProduct.original_price,
           reviewCount: savedProduct.review_count,
           isTopRated: savedProduct.is_top_rated,
+          model3d: savedProduct.model_3d,
+          themeColor: savedProduct.theme_color,
+          orientation: savedProduct.orientation,
           gallery: savedProduct.gallery || [],
           benefits: savedProduct.benefits || [],
           nutrients: savedProduct.nutrients || []
@@ -311,7 +389,10 @@ const AppContent: React.FC = () => {
           nutrients: updatedProduct.nutrients,
           is_top_rated: updatedProduct.isTopRated,
           category: updatedProduct.category,
-          stock: updatedProduct.stock
+          stock: updatedProduct.stock,
+          model_3d: updatedProduct.model3d,
+          theme_color: updatedProduct.themeColor,
+          orientation: updatedProduct.orientation
         })
       });
       if (response.ok) {
@@ -322,6 +403,9 @@ const AppContent: React.FC = () => {
           originalPrice: savedProduct.original_price,
           reviewCount: savedProduct.review_count,
           isTopRated: savedProduct.is_top_rated,
+          model3d: savedProduct.model_3d,
+          themeColor: savedProduct.theme_color,
+          orientation: savedProduct.orientation,
           gallery: savedProduct.gallery || [],
           benefits: savedProduct.benefits || [],
           nutrients: savedProduct.nutrients || []
@@ -561,6 +645,73 @@ const AppContent: React.FC = () => {
     }
   };
 
+  const handleAddAnnouncement = async (newA: Announcement) => {
+    try {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/announcements/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          message: newA.message,
+          start_date: newA.start_date,
+          end_date: newA.end_date,
+          is_active: newA.is_active
+        })
+      });
+      if (response.ok) {
+        const saved = await response.json();
+        setAnnouncements(prev => [saved, ...prev]);
+      }
+    } catch (err) {
+      console.error("Failed to add announcement", err);
+    }
+  };
+
+  const handleUpdateAnnouncement = async (updatedA: Announcement) => {
+    try {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/announcements/${updatedA.id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          message: updatedA.message,
+          start_date: updatedA.start_date,
+          end_date: updatedA.end_date,
+          is_active: updatedA.is_active
+        })
+      });
+      if (response.ok) {
+        const saved = await response.json();
+        setAnnouncements(prev => prev.map(a => a.id === saved.id ? saved : a));
+      }
+    } catch (err) {
+      console.error("Failed to update announcement", err);
+    }
+  };
+
+  const handleDeleteAnnouncement = async (id: number) => {
+    try {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/announcements/${id}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        setAnnouncements(prev => prev.filter(a => String(a.id) !== String(id)));
+      }
+    } catch (err) {
+      console.error("Failed to delete announcement", err);
+    }
+  };
+
   const handleUpdateBlog = async (updatedBlog: BlogPost) => {
     try {
       const token = localStorage.getItem('admin_access_token');
@@ -694,6 +845,7 @@ const AppContent: React.FC = () => {
   const navigateToProduct = (product: Product) => {
     setSelectedProduct(product);
     setCurrentView('product');
+    window.history.pushState({ view: 'product', productId: product.id }, '');
   };
 
   const navigateToShop = () => {
@@ -701,6 +853,7 @@ const AppContent: React.FC = () => {
     setCurrentView('shop');
     setSelectedProduct(null);
     setGlobalSearchQuery('');
+    window.history.pushState({ view: 'shop', category: 'All', query: '' }, '');
   };
 
   const navigateToShopCategory = (category: string) => {
@@ -708,6 +861,7 @@ const AppContent: React.FC = () => {
     setCurrentView('shop');
     setGlobalSearchQuery('');
     setSelectedProduct(null);
+    window.history.pushState({ view: 'shop', category, query: '' }, '');
   };
 
   const handleGlobalSearch = (query: string) => {
@@ -715,48 +869,57 @@ const AppContent: React.FC = () => {
     setShopCategory('All');
     setCurrentView('shop');
     setSelectedProduct(null);
+    window.history.pushState({ view: 'shop', category: 'All', query }, '');
   };
 
   const navigateToCheckout = () => {
     setCurrentView('checkout');
     setIsCartOpen(false);
     setSelectedProduct(null);
+    window.history.pushState({ view: 'checkout' }, '');
   };
 
   const navigateToDashboard = () => {
     setCurrentView('dashboard');
     setSelectedProduct(null);
+    window.history.pushState({ view: 'dashboard' }, '');
   };
 
   const navigateToFAQ = () => {
     setCurrentView('faq');
     setSelectedProduct(null);
+    window.history.pushState({ view: 'faq' }, '');
   };
 
   const navigateToDistributor = () => {
     setCurrentView('distributor');
     setSelectedProduct(null);
+    window.history.pushState({ view: 'distributor' }, '');
   };
 
   const navigateToBlogs = () => {
     setCurrentView('blogs');
     setSelectedProduct(null);
+    window.history.pushState({ view: 'blogs' }, '');
   };
 
   const navigateToBlogDetail = (post: BlogPost) => {
     setSelectedBlogPost(post);
     setCurrentView('blog-detail');
+    window.history.pushState({ view: 'blog-detail', blogId: post.id }, '');
   };
 
   const navigateToEventBlogs = () => {
     setCurrentView('event-blogs');
     setSelectedProduct(null);
     setSelectedEvent(null);
+    window.history.pushState({ view: 'event-blogs' }, '');
   };
 
   const navigateToEventDetail = (event: EventBlog) => {
     setSelectedEvent(event);
     setCurrentView('event-detail');
+    window.history.pushState({ view: 'event-detail', eventId: event.id }, '');
   };
 
   const navigateToAdmin = () => {
@@ -771,27 +934,32 @@ const AppContent: React.FC = () => {
     setCurrentView('journey');
     setSelectedProduct(null);
     setSelectedEvent(null);
-  }
+    window.history.pushState({ view: 'journey' }, '');
+  };
 
   const navigateToPrivacy = () => {
     setCurrentView('privacy-policy');
     setSelectedProduct(null);
-  }
+    window.history.pushState({ view: 'privacy-policy' }, '');
+  };
 
   const navigateToTerms = () => {
     setCurrentView('terms-and-conditions');
     setSelectedProduct(null);
-  }
+    window.history.pushState({ view: 'terms-and-conditions' }, '');
+  };
 
   const navigateToRefund = () => {
     setCurrentView('refund-policy');
     setSelectedProduct(null);
-  }
+    window.history.pushState({ view: 'refund-policy' }, '');
+  };
 
   const navigateToShipping = () => {
     setCurrentView('shipping-policy');
     setSelectedProduct(null);
-  }
+    window.history.pushState({ view: 'shipping-policy' }, '');
+  };
 
   const goHome = () => {
     setCurrentView('home');
@@ -799,6 +967,7 @@ const AppContent: React.FC = () => {
     setSelectedEvent(null);
     setSelectedBlogPost(null);
     setGlobalSearchQuery('');
+    window.history.pushState({ view: 'home' }, '');
   };
 
   const handleLogin = () => {
@@ -858,6 +1027,10 @@ const AppContent: React.FC = () => {
         visitorForms={visitorForms}
         onAddVisitorForm={handleAddVisitorForm}
         onDeleteVisitorForm={handleDeleteVisitorForm}
+        announcements={announcements}
+        onAddAnnouncement={handleAddAnnouncement}
+        onUpdateAnnouncement={handleUpdateAnnouncement}
+        onDeleteAnnouncement={handleDeleteAnnouncement}
       />
     );
   }
@@ -869,13 +1042,26 @@ const AppContent: React.FC = () => {
           cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
           isLoggedIn={isLoggedIn}
           onCartClick={() => setIsCartOpen(true)}
-          onAccountClick={isLoggedIn ? navigateToDashboard : () => setIsAuthOpen(true)}
+          onAccountClick={() => setIsAuthOpen(true)}
           onLogoClick={goHome}
-          onProductsClick={navigateToShop}
-          onDashboardClick={navigateToDashboard}
-          onStoriesClick={navigateToEventBlogs}
-          onJourneyClick={navigateToJourney}
+          onProductsClick={() => navigateToShop()}
+          onDashboardClick={() => navigateToDashboard()}
+          onStoriesClick={() => setCurrentView('blogs')}
+          onJourneyClick={() => setCurrentView('journey')}
           onSearch={handleGlobalSearch}
+          announcements={announcements
+            .filter(a => {
+              if (!a.is_active) return false;
+              const now = new Date();
+              const year = now.getFullYear();
+              const month = String(now.getMonth() + 1).padStart(2, '0');
+              const day = String(now.getDate()).padStart(2, '0');
+              const localTodayStr = `${year}-${month}-${day}`;
+              const startStr = a.start_date.split('T')[0];
+              const endStr = a.end_date.split('T')[0];
+              return localTodayStr >= startStr && localTodayStr <= endStr;
+            })
+            .map(a => a.message)}
         />
       )}
 
@@ -883,8 +1069,8 @@ const AppContent: React.FC = () => {
         {currentView === 'home' && (
           <>
             <Hero onShopClick={navigateToShop} slides={slides} />
-            <CategoryList onCategoryClick={navigateToShopCategory} />
-            <div className="snaxxo-wrapper relative w-full overflow-hidden bg-[#FAF9F5]">
+            <CategoryList onCategoryClick={navigateToShopCategory} products={products} />
+            <div className="snaxxo-wrapper relative w-full overflow-hidden bg-[#fcf6e5]">
               <SnaxxoProductWheel
                 products={products}
                 onAddToCart={addToCart}
@@ -947,8 +1133,6 @@ const AppContent: React.FC = () => {
             onBack={navigateToShop}
             reviews={reviews}
             onAddReview={handleAddReview}
-            isLoggedIn={isLoggedIn}
-            currentUser={isLoggedIn ? CURRENT_USER : undefined}
           />
         )}
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, Review, Event, BlogPost, Story, HeroSlide, Order, OrderItem, UserProfile, VisitorForm, VisitorSubmission
+from .models import Category, Product, Review, Event, BlogPost, Story, HeroSlide, Order, OrderItem, UserProfile, VisitorForm, VisitorSubmission, Announcement
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -52,3 +52,8 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 admin.site.register(VisitorForm)
 admin.site.register(VisitorSubmission)
+
+@admin.register(Announcement)
+class AnnouncementAdmin(admin.ModelAdmin):
+    list_display = ('message', 'start_date', 'end_date', 'is_active')
+    list_filter = ('is_active', 'start_date', 'end_date')

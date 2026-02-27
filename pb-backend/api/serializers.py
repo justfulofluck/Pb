@@ -16,6 +16,7 @@ from .models import (
     VisitorForm,
     VisitorSubmission,
     NewsletterSubscriber,
+    Announcement,
 )
 
 
@@ -191,3 +192,9 @@ class NewsletterSubscriberSerializer(serializers.ModelSerializer):
         model = NewsletterSubscriber
         fields = ["id", "email", "subscribed_at", "is_active"]
         read_only_fields = ["id", "subscribed_at"]
+
+
+class AnnouncementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Announcement
+        fields = "__all__"

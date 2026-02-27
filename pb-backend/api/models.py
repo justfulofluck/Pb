@@ -28,6 +28,9 @@ class Product(models.Model):
     is_top_rated = models.BooleanField(default=False)
     category = models.CharField(max_length=100)  # Or foreign key to Category
     stock = models.IntegerField(default=0)
+    model_3d = models.TextField(blank=True, null=True)
+    theme_color = models.CharField(max_length=50, blank=True, null=True)
+    orientation = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -243,3 +246,14 @@ class NewsletterSubscriber(models.Model):
 
     def __str__(self):
         return self.email
+
+
+class Announcement(models.Model):
+    message = models.TextField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Announcement {self.id}: {self.message[:50]}..."

@@ -51,34 +51,10 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
 
     return (
         <>
-            <section className="section">
-                <div className="w-layout-blockcontainer container instagram w-container">
-                    <div className="marquee-main-content-container">
-                        <div className="marquee-horizontal-wrap alternate" ref={marqueeRef}>
-                            <div className="marquee-horizontal-panel-alternate-01">
-                                <div className="social-image-wrap instapost"><img loading="lazy" src="/assets/snaxxo/6959c312beb8d9cb1b210544_120897.jpg" className="content-image _100-full absolute-cover" alt="" /></div>
-                                <div className="social-image-wrap instapost"><img loading="lazy" src="/assets/snaxxo/6959c312adb9cd4562c42dab_159500.jpg" className="content-image _100-full absolute-cover" alt="" /></div>
-                                <div className="social-image-wrap instapost"><img loading="lazy" src="/assets/snaxxo/6959c312fe674186604bfb7a_51416.jpg" className="content-image _100-full absolute-cover" alt="" /></div>
-                                <div className="social-image-wrap instapost"><img loading="lazy" src="/assets/snaxxo/6959c31211956902ab6d3c01_602900.jpg" className="content-image _100-full absolute-cover" alt="" /></div>
-                                <div className="social-image-wrap instapost"><img loading="lazy" src="/assets/snaxxo/6959c312f1905646758a2405_97195.jpg" className="content-image _100-full absolute-cover" alt="" /></div>
-                                <div className="social-image-wrap instapost"><img loading="lazy" src="/assets/snaxxo/6959c312f73e8a2a86e10431_26630290.jpg" className="content-image _100-full absolute-cover" alt="" /></div>
-                            </div>
-                            <div className="marquee-horizontal-panel-alternate-01">
-                                <div className="social-image-wrap instapost"><img loading="lazy" src="/assets/snaxxo/6959c312beb8d9cb1b210544_120897.jpg" className="content-image _100-full absolute-cover" alt="" /></div>
-                                <div className="social-image-wrap instapost"><img loading="lazy" src="/assets/snaxxo/6959c312adb9cd4562c42dab_159500.jpg" className="content-image _100-full absolute-cover" alt="" /></div>
-                                <div className="social-image-wrap instapost"><img loading="lazy" src="/assets/snaxxo/6959c312fe674186604bfb7a_51416.jpg" className="content-image _100-full absolute-cover" alt="" /></div>
-                                <div className="social-image-wrap instapost"><img loading="lazy" src="/assets/snaxxo/6959c31211956902ab6d3c01_602900.jpg" className="content-image _100-full absolute-cover" alt="" /></div>
-                                <div className="social-image-wrap instapost"><img loading="lazy" src="/assets/snaxxo/6959c312f1905646758a2405_97195.jpg" className="content-image _100-full absolute-cover" alt="" /></div>
-                                <div className="social-image-wrap instapost"><img loading="lazy" src="/assets/snaxxo/6959c312f73e8a2a86e10431_26630290.jpg" className="content-image _100-full absolute-cover" alt="" /></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
 
 
             <section className="section darker-red !bg-[#008a45] !bg-none">
-                <div className="wave-lottie-animation below footer">
+                <div className="wave-lottie-animation below footer !bg-[#f2f2ec]">
                     <SnaxxoWave fill="#008a45" />
                 </div>
 

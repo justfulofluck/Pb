@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { EventBlog } from '../types';
 import Breadcrumbs from './Breadcrumbs';
+import Newsletter from './Newsletter';
 
 interface EventBlogsPageProps {
   events: EventBlog[];
@@ -12,7 +12,7 @@ interface EventBlogsPageProps {
 const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick, onHomeClick }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredEvents = events.filter(event => 
+  const filteredEvents = events.filter(event =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -21,15 +21,15 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick, o
     <div className="bg-background-light min-h-screen animate-in fade-in duration-500">
       <div className="bg-slate-900 text-white pt-10 pb-24 px-4 relative overflow-hidden">
         <div className="max-w-7xl mx-auto mb-6">
-           <Breadcrumbs 
-             onHomeClick={onHomeClick} 
-             steps={[{ label: 'Stories' }]} 
-             className="text-white/60 !py-0"
-           />
+          <Breadcrumbs
+            onHomeClick={onHomeClick}
+            steps={[{ label: 'Stories' }]}
+            className="text-white/60 !py-0"
+          />
         </div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <span className="font-handdrawn text-3xl text-secondary transform -rotate-2 inline-block mb-4">Reliving the Vibes</span>
-          <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tight mb-6">
+          <h1 className="text-5xl md:text-8xl font-black uppercase tracking-tight mb-6 font-garet">
             Event Stories
           </h1>
           <p className="text-xl text-slate-400 max-w-2xl mx-auto font-medium">
@@ -46,9 +46,9 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick, o
             <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">
               <span className="material-symbols-outlined">search</span>
             </span>
-            <input 
-              type="text" 
-              placeholder="Find an event story..." 
+            <input
+              type="text"
+              placeholder="Find an event story..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-14 pr-6 py-5 rounded-3xl border-2 border-slate-200 focus:border-primary focus:ring-0 outline-none text-lg font-bold text-slate-700 transition-all bg-white shadow-sm"
@@ -58,15 +58,15 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick, o
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
           {filteredEvents.map((event) => (
-            <div 
-              key={event.id} 
+            <div
+              key={event.id}
               onClick={() => onEventClick(event)}
               className="group bg-white rounded-[40px] border-2 border-slate-100 overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer flex flex-col h-full"
             >
               <div className="h-72 overflow-hidden relative">
-                <img 
-                  src={event.image} 
-                  alt={event.title} 
+                <img
+                  src={event.image}
+                  alt={event.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -77,11 +77,11 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick, o
                   <span className="material-symbols-outlined text-sm">calendar_today</span>
                   {event.date}
                 </div>
-                
-                <h3 className="text-2xl font-black uppercase text-slate-900 leading-tight mb-2 group-hover:text-primary transition-colors">
+
+                <h3 className="text-2xl font-black uppercase text-slate-900 leading-tight mb-2 group-hover:text-primary transition-colors font-garet">
                   {event.title}
                 </h3>
-                
+
                 <div className="flex items-center gap-2 text-slate-400 font-bold text-sm tracking-tight mb-4">
                   <span className="material-symbols-outlined text-base">location_on</span>
                   {event.location}
@@ -106,7 +106,7 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick, o
           <div className="text-center py-32 space-y-4">
             <span className="material-symbols-outlined text-6xl text-slate-200">event_busy</span>
             <p className="text-2xl font-handdrawn text-slate-400">No events found matching your search.</p>
-            <button 
+            <button
               onClick={() => setSearchQuery('')}
               className="text-primary font-bold hover:underline"
             >
@@ -116,22 +116,7 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick, o
         )}
       </div>
 
-      <div className="bg-secondary/10 py-24 border-t border-slate-100">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-4xl font-black uppercase text-slate-900 mb-6">Want to Join the Next One?</h2>
-          <p className="text-lg text-slate-600 mb-10 font-medium">Subscribe to our event alert list to get notified when we bring the crunch to your city.</p>
-          <form className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto" onSubmit={(e) => e.preventDefault()}>
-            <input 
-              type="email" 
-              placeholder="Your email address" 
-              className="flex-1 px-8 py-5 rounded-2xl border-none focus:ring-2 focus:ring-primary text-slate-900 font-bold shadow-sm"
-            />
-            <button className="bg-slate-900 text-white px-10 py-5 rounded-2xl font-black uppercase hover:shadow-xl transition-all active:scale-95">
-              Notify Me
-            </button>
-          </form>
-        </div>
-      </div>
+      <Newsletter />
     </div>
   );
 };

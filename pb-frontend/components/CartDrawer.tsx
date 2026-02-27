@@ -16,11 +16,11 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
 
   return (
     <>
-      <div 
-        className={`fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      <div
+        className={`fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[1050] transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         onClick={onClose}
       />
-      <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-[60] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-[1100] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b flex justify-between items-center">
           <h2 className="text-2xl font-black uppercase flex items-center gap-2">
             Your Cart <span className="font-handdrawn text-primary text-xl tracking-normal">({items.length} items)</span>
@@ -67,7 +67,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
               <span className="font-black text-primary">Rs. {total.toFixed(2)}</span>
             </div>
             <p className="text-xs text-slate-500 text-center italic">Shipping & taxes calculated at checkout</p>
-            <button 
+            <button
               onClick={onCheckout}
               className="w-full bg-primary text-white py-4 rounded-xl font-black text-lg hover:shadow-xl transition-all hover:-translate-y-1"
             >

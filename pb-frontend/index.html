@@ -13,6 +13,8 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
     rel="stylesheet">
+  <link href="https://fonts.cdnfonts.com/css/garet" rel="stylesheet">
+  <link rel="icon" type="image/png" href="/logos/Favicon.png">
   <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
   <script type="importmap">
   {
@@ -35,7 +37,7 @@
           colors: {
             primary: "#008a45",
             secondary: "#f9bc15",
-            "background-light": "#fffcf2",
+            "background-light": "#f2f2ec",
             "background-dark": "#0f172a",
             "accent-brown": "#5d4037",
           },
@@ -43,6 +45,7 @@
             display: ["'Plus Jakarta Sans'", "sans-serif"],
             handdrawn: ["'Gochi Hand'", "cursive"],
             oswald: ["'Oswald'", "sans-serif"],
+            garet: ["'Garet'", "sans-serif"],
           },
           borderRadius: {
             DEFAULT: "12px",
@@ -51,11 +54,31 @@
           },
           animation: {
             marquee: 'marquee 30s linear infinite',
+            float: 'float 6s ease-in-out infinite',
           },
           keyframes: {
             marquee: {
               '0%': { transform: 'translateX(0%)' },
               '100%': { transform: 'translateX(-50%)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-20px)' },
+            },
+            tilt: {
+              '0%, 100%': { transform: 'rotate(0deg)' },
+              '25%': { transform: 'rotate(3deg)' },
+              '75%': { transform: 'rotate(-3deg)' },
+            },
+            'pulse-glow': {
+              '0%, 100%': { opacity: '0.1', transform: 'translate(-50%, -50%) scale(1)' },
+              '50%': { opacity: '0.2', transform: 'translate(-50%, -50%) scale(1.1)' },
+            },
+            'light-sweep': {
+              '0%': { left: '-100%', top: '100%', opacity: 0 },
+              '20%': { opacity: 0.5 },
+              '50%': { left: '100%', top: '-100%', opacity: 0.5 },
+              '100%': { left: '100%', top: '-100%', opacity: 0 }
             }
           }
         },

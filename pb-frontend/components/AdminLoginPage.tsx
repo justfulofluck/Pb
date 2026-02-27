@@ -273,9 +273,13 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
 
       <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-10">
-          <div className="flex items-center justify-center gap-3 text-white mb-4">
-            <span className="material-symbols-outlined text-4xl text-primary">eco</span>
-            <span className="text-3xl font-black tracking-tighter uppercase">PINOBITE <span className="text-slate-500">GLOBAL</span></span>
+          <div className="flex flex-col items-center justify-center gap-4 text-white mb-4">
+            <img
+              src="/logos/Pinobite-logo.png"
+              alt="Pinobite Logo"
+              className="h-16 w-auto object-contain"
+            />
+            <span className="text-xl font-black tracking-tighter uppercase text-slate-500">GLOBAL</span>
           </div>
           <p className="text-slate-400 font-medium uppercase tracking-widest text-[10px]">
             {view === 'login' ? 'Internal Team Access Portal' : 'Security Recovery Protocol'}

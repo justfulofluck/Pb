@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category } from '../types';
+import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category, Announcement } from '../types';
 import { API_BASE_URL } from '../config';
 import { jsPDF } from "jspdf";
 import ConfirmationModal from './ConfirmationModal';
@@ -27,6 +27,10 @@ interface AdminDashboardProps {
   visitorForms: VisitorForm[];
   onAddVisitorForm: (f: VisitorForm) => void;
   onDeleteVisitorForm: (id: string) => void;
+  announcements: Announcement[];
+  onAddAnnouncement: (a: Announcement) => void;
+  onDeleteAnnouncement: (id: number) => void;
+  onUpdateAnnouncement: (a: Announcement) => void;
 }
 
 // Removed INITIAL_ORDERS mock data
@@ -67,7 +71,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateStories,
   visitorForms,
   onAddVisitorForm,
-  onDeleteVisitorForm
+  onDeleteVisitorForm,
+  announcements,
+  onAddAnnouncement,
+  onDeleteAnnouncement,
+  onUpdateAnnouncement
 }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [productView, setProductView] = useState<'list' | 'add' | 'categories'>('list');
@@ -92,6 +100,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [visitorSubmissionPage, setVisitorSubmissionPage] = useState(1);
   const VISITOR_SUBMISSIONS_PER_PAGE = 6;
 
+  // Announcements state
+  const [announcementForm, setAnnouncementForm] = useState<Partial<Announcement>>({
+    message: '',
+    start_date: new Date().toISOString().split('T')[0],
+    end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    is_active: true
+  });
+  const [isEditingAnnouncement, setIsEditingAnnouncement] = useState(false);
+  const [editingAnnouncementId, setEditingAnnouncementId] = useState<number | null>(null);
+
   // Fetch Orders when tab is active
   useEffect(() => {
     if (activeTab === 'orders') {
@@ -100,8 +118,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           const token = localStorage.getItem('access_token') || localStorage.getItem('admin_access_token');
           if (!token) return;
 
-          const response = await fetch(`${API_BASE_URL} /api/orders / `, {
-            headers: { 'Authorization': `Bearer ${token} ` }
+          const response = await fetch(`${API_BASE_URL}/api/orders/`, {
+            headers: { 'Authorization': `Bearer ${token}` }
           });
           if (response.ok) {
             const data = await response.json();
@@ -141,6 +159,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     content: ['']
   });
 
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
   // Product Form State
   const [productForm, setProductForm] = useState<Partial<Product>>({
     name: '',
@@ -153,7 +173,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     rating: 5,
     reviewCount: 0,
     benefits: [],
-    nutrients: []
+    nutrients: [],
+    model3d: '',
+    themeColor: '#FF6F00', // Default to a brand color if none selected
+    orientation: '0deg 0deg 0deg',
+    originalPrice: 0
   });
 
   // Event Form State
@@ -219,6 +243,38 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  const openAddProduct = () => {
+    setEditingProduct(null);
+    setProductForm({
+      name: '',
+      price: 0,
+      category: '',
+      stock: 100,
+      description: '',
+      image: '',
+      gallery: [],
+      rating: 5,
+      reviewCount: 0,
+      benefits: [],
+      nutrients: [],
+      model3d: '',
+      themeColor: '#FF6F00',
+      orientation: '0deg 0deg 0deg',
+      originalPrice: 0
+    });
+    setProductView('add');
+  };
+
+  const openEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setProductForm({
+      ...product,
+      themeColor: product.themeColor || '#FF6F00',
+      orientation: product.orientation || '0deg 0deg 0deg'
+    });
+    setProductView('add');
+  };
+
   // Handlers for Products
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -227,24 +283,51 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       return;
     }
 
-    const newProduct: Product = {
-      id: Date.now().toString(),
-      name: productForm.name || 'New Product',
-      price: Number(productForm.price) || 0,
-      category: productForm.category || 'Uncategorized',
-      stock: Number(productForm.stock) || 0,
-      description: productForm.description || '',
-      image: productForm.image || '',
-      gallery: productForm.gallery || [],
+    if (editingProduct) {
+      const updatedProduct: Product = {
+        ...editingProduct,
+        ...productForm as Product,
+        id: editingProduct.id // Keep original ID
+      };
+      onUpdateProduct(updatedProduct);
+    } else {
+      const newProduct: Product = {
+        id: Date.now().toString(),
+        name: productForm.name || 'New Product',
+        price: Number(productForm.price) || 0,
+        category: productForm.category || 'Uncategorized',
+        stock: Number(productForm.stock) || 0,
+        description: productForm.description || '',
+        image: productForm.image || '',
+        gallery: productForm.gallery || [],
+        rating: 5,
+        reviewCount: 0,
+        benefits: ['High Protein', 'Natural'],
+        nutrients: [{ label: 'Energy', value: '400kcal' }],
+        ...productForm as Product
+      };
+      onAddProduct(newProduct);
+    }
+
+    setProductView('list');
+    setEditingProduct(null);
+    setProductForm({
+      name: '',
+      price: 0,
+      category: '',
+      stock: 100,
+      description: '',
+      image: '',
+      gallery: [],
       rating: 5,
       reviewCount: 0,
-      benefits: ['High Protein', 'Natural'],
-      nutrients: [{ label: 'Energy', value: '400kcal' }],
-      ...productForm as Product
-    };
-    onAddProduct(newProduct);
-    setProductView('list');
-    setProductForm({ name: '', price: 0, category: '', stock: 100, description: '', image: '', gallery: [], rating: 5, reviewCount: 0, benefits: [], nutrients: [] });
+      benefits: [],
+      nutrients: [],
+      model3d: '',
+      themeColor: '#FF6F00',
+      orientation: '0deg 0deg 0deg',
+      originalPrice: 0
+    });
   };
 
   const handleStockUpdate = (product: Product, newStock: number) => {
@@ -497,6 +580,44 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     document.body.removeChild(link);
   };
 
+  // Handlers for Announcements
+  const handleAnnouncementSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!announcementForm.message) return;
+
+    if (isEditingAnnouncement && editingAnnouncementId) {
+      onUpdateAnnouncement({
+        ...announcementForm,
+        id: Number(editingAnnouncementId)
+      } as Announcement);
+    } else {
+      onAddAnnouncement({
+        ...announcementForm,
+        id: Date.now() // Use number for temporary ID
+      } as Announcement);
+    }
+
+    setAnnouncementForm({
+      message: '',
+      start_date: new Date().toISOString().split('T')[0],
+      end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      is_active: true
+    });
+    setIsEditingAnnouncement(false);
+    setEditingAnnouncementId(null);
+  };
+
+  const startEditAnnouncement = (a: Announcement) => {
+    setAnnouncementForm({
+      message: a.message,
+      start_date: a.start_date.split('T')[0],
+      end_date: a.end_date.split('T')[0],
+      is_active: a.is_active
+    });
+    setIsEditingAnnouncement(true);
+    setEditingAnnouncementId(a.id);
+  };
+
   // Handlers for Events
   const handleEventSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -593,6 +714,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           reader.readAsDataURL(file);
         }
       }
+    }
+  };
+
+  const handleProductModel3DUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProductForm(prev => ({ ...prev, model3d: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -717,6 +849,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       case 'events': return 'Event Stories';
       case 'ui-settings': return 'Site Customization';
       case 'visitor-forms': return 'Pinobit Event Visitor Form';
+      case 'announcements': return 'Dynamic Announcements';
       default: return activeTab.replace('-', ' ');
     }
   };
@@ -738,6 +871,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             { id: 'events', icon: 'event', label: 'Event Manager' },
             { id: 'ui-settings', icon: 'palette', label: 'Site UI Settings' },
             { id: 'orders', icon: 'shopping_bag', label: 'Global Orders' },
+            { id: 'announcements', icon: 'campaign', label: 'Announcements' },
             { id: 'distributors', icon: 'handshake', label: 'Distributors' },
             { id: 'visitor-forms', icon: 'qr_code_scanner', label: 'Visitor Forms' },
           ].map((item) => (
@@ -1675,7 +1809,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               >
                                 <span className="material-symbols-outlined text-lg">delete</span>
                               </button>
-                              <button className="text-slate-400 hover:text-primary transition-colors p-2">
+                              <button
+                                onClick={() => openEditProduct(product)}
+                                className="text-slate-400 hover:text-primary transition-colors p-2"
+                              >
                                 <span className="material-symbols-outlined text-lg">edit</span>
                               </button>
                             </td>
@@ -1694,15 +1831,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* View: Add Product */}
                 {productView === 'add' && (
                   <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-3xl mx-auto">
-                    <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">Add New Product</h3>
+                    <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">
+                      {editingProduct ? 'Edit Product' : 'Add New Product'}
+                    </h3>
                     <form onSubmit={handleProductSubmit} className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Product Name</label>
+                        <input required type="text" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Super Oats" />
+                      </div>
+
                       <div className="grid md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Product Name</label>
-                          <input required type="text" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Super Oats" />
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Actual Rate (₹) <span className="text-[10px] text-slate-400 font-bold">(M.R.P)</span></label>
+                          <input required type="number" value={productForm.originalPrice} onChange={e => setProductForm({ ...productForm, originalPrice: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="699" />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Price (₹)</label>
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Discounted Rate (₹) <span className="text-[10px] text-primary font-bold">(Selling Price)</span></label>
                           <input required type="number" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="499" />
                         </div>
                       </div>
@@ -1777,11 +1921,76 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             ))}
                           </div>
                         </div>
+
+                        {/* 3D Model & Aesthetics Section */}
+                        <div className="space-y-6 border-t border-slate-100 pt-6">
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                              <label className="text-xs font-black uppercase tracking-widest text-slate-500">Theme Color</label>
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="color"
+                                  value={productForm.themeColor || '#FF6F00'}
+                                  onChange={e => setProductForm({ ...productForm, themeColor: e.target.value })}
+                                  className="w-12 h-12 rounded-lg border-0 p-0 cursor-pointer overflow-hidden"
+                                />
+                                <input
+                                  type="text"
+                                  value={productForm.themeColor || '#FF6F00'}
+                                  onChange={e => setProductForm({ ...productForm, themeColor: e.target.value })}
+                                  className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary text-sm uppercase"
+                                  placeholder="#FF6F00"
+                                />
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-xs font-black uppercase tracking-widest text-slate-500">3D Orientation</label>
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  value={productForm.orientation}
+                                  onChange={e => setProductForm({ ...productForm, orientation: e.target.value })}
+                                  onBlur={e => {
+                                    const fixed = e.target.value.replace(/O/g, '0').replace(/o/g, '0').trim();
+                                    setProductForm({ ...productForm, orientation: fixed });
+                                  }}
+                                  className="w-full px-4 py-3 rounded-xl border border-slate-200 font-mono focus:ring-primary focus:border-primary text-sm bg-slate-50/50"
+                                  placeholder="0deg 0deg 0deg"
+                                />
+                                <p className="text-[10px] text-slate-400 mt-1 ml-1 font-medium italic">Format: Xdeg Ydeg Zdeg (e.g., 0deg 0deg -15deg)</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">3D Model (.glb)</label>
+                            <div className="flex items-center gap-4">
+                              <label className="cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl px-4 py-3 hover:bg-slate-100 hover:border-primary transition-all">
+                                <span className="text-sm font-bold text-slate-500 flex items-center gap-2">
+                                  <span className="material-symbols-outlined">view_in_ar</span>
+                                  {productForm.model3d ? 'Change 3D Model' : 'Upload 3D Model'}
+                                </span>
+                                <input type="file" accept=".glb,.gltf" className="hidden" onChange={handleProductModel3DUpload} />
+                              </label>
+                              {productForm.model3d && (
+                                <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-lg border border-green-100">
+                                  <span className="material-symbols-outlined text-sm">check_circle</span>
+                                  <span className="text-xs font-bold uppercase">Model Uploaded</span>
+                                  <button type="button" onClick={() => setProductForm({ ...productForm, model3d: '' })} className="hover:text-red-500 ml-1">
+                                    <span className="material-symbols-outlined text-sm">close</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       </div>
 
                       <div className="pt-4 flex justify-end gap-4">
                         <button type="button" onClick={() => setProductView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
-                        <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Create Product</button>
+                        <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">
+                          {editingProduct ? 'Update Product' : 'Create Product'}
+                        </button>
                       </div>
                     </form>
                   </div>
@@ -1971,15 +2180,135 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             )
           }
 
+          {/* ----- ANNOUNCEMENTS TAB ----- */}
           {
-            activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'events' && activeTab !== 'orders' && activeTab !== 'ui-settings' && activeTab !== 'visitor-forms' && activeTab !== 'blogs' && (
+            activeTab === 'announcements' && (
+              <div className="space-y-8 animate-in fade-in duration-300">
+                <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+                  <h3 className="text-xl font-black uppercase text-slate-900 mb-6">
+                    {isEditingAnnouncement ? 'Edit Announcement' : 'Post New Announcement'}
+                  </h3>
+                  <form onSubmit={handleAnnouncementSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-slate-500">Announcement Message</label>
+                      <textarea
+                        required
+                        value={announcementForm.message}
+                        onChange={e => setAnnouncementForm({ ...announcementForm, message: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary"
+                        rows={2}
+                        placeholder="e.g. Free shipping on orders over ₹999!"
+                      />
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Start Date</label>
+                        <input
+                          required
+                          type="date"
+                          value={announcementForm.start_date}
+                          onChange={e => setAnnouncementForm({ ...announcementForm, start_date: e.target.value })}
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">End Date</label>
+                        <input
+                          required
+                          type="date"
+                          value={announcementForm.end_date}
+                          onChange={e => setAnnouncementForm({ ...announcementForm, end_date: e.target.value })}
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="is_active"
+                        checked={announcementForm.is_active}
+                        onChange={e => setAnnouncementForm({ ...announcementForm, is_active: e.target.checked })}
+                        className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
+                      />
+                      <label htmlFor="is_active" className="text-sm font-bold text-slate-700">Display this announcement</label>
+                    </div>
+                    <div className="flex gap-4">
+                      <button type="submit" className="flex-1 bg-slate-900 text-white py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-primary transition-all">
+                        {isEditingAnnouncement ? 'Update Message' : 'Post Announcement'}
+                      </button>
+                      {isEditingAnnouncement && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsEditingAnnouncement(false);
+                            setAnnouncementForm({
+                              message: '',
+                              start_date: new Date().toISOString().split('T')[0],
+                              end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                              is_active: true
+                            });
+                          }}
+                          className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  </form>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-sm font-black uppercase text-slate-800 px-2 tracking-[0.1em]">Announcement History</h4>
+                  <div className="grid gap-4">
+                    {announcements.map(a => (
+                      <div key={a.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between group hover:border-primary transition-all">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <span className={`w-2 h-2 rounded-full ${a.is_active ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-slate-300'}`}></span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                              {new Date(a.start_date).toLocaleDateString()} - {new Date(a.end_date).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="font-bold text-slate-800">{a.message}</p>
+                        </div>
+                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => startEditAnnouncement(a)}
+                            className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-primary hover:text-white transition-all"
+                          >
+                            <span className="material-symbols-outlined text-lg">edit</span>
+                          </button>
+                          <button
+                            onClick={() => onDeleteAnnouncement(a.id)}
+                            className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
+                          >
+                            <span className="material-symbols-outlined text-lg">delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {announcements.length === 0 && (
+                      <div className="text-center py-12 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 text-slate-400">
+                        <span className="material-symbols-outlined text-4xl mb-2 opacity-20">campaign</span>
+                        <p className="font-bold uppercase tracking-widest text-xs">No announcements yet</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          }
+
+          {
+            activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'events' && activeTab !== 'orders' && activeTab !== 'ui-settings' && activeTab !== 'visitor-forms' && activeTab !== 'blogs' && activeTab !== 'announcements' && (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
                 <span className="material-symbols-outlined text-6xl opacity-20">construction</span>
                 <p className="font-handdrawn text-2xl">This module is under construction</p>
               </div>
             )
           }
-        </div >
+
+        </div>
       </main >
 
       {/* Slide Edit/Add Modal */}
@@ -2224,7 +2553,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         confirmLabel="Delete"
         isDestructive={true}
       />
-    </div>
+    </div >
   );
 };
 
