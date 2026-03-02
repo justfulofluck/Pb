@@ -5,7 +5,6 @@ interface FooterProps {
   onShopClick: () => void;
   onHomeClick: () => void;
   onFAQClick?: () => void;
-  onDistributorClick?: () => void;
   onBlogsClick?: () => void;
   onEventBlogsClick?: () => void;
   onAdminClick?: () => void;
@@ -14,21 +13,22 @@ interface FooterProps {
   onTermsClick?: () => void;
   onRefundClick?: () => void;
   onShippingClick?: () => void;
+  onDistributorClick?: () => void;
 }
 
-const Footer: React.FC<FooterProps> = ({ 
-  onShopClick, 
-  onHomeClick, 
-  onFAQClick, 
-  onDistributorClick, 
-  onBlogsClick, 
-  onEventBlogsClick, 
-  onAdminClick, 
-  onJourneyClick, 
-  onPrivacyClick, 
+const Footer: React.FC<FooterProps> = ({
+  onShopClick,
+  onHomeClick,
+  onFAQClick,
+  onBlogsClick,
+  onEventBlogsClick,
+  onAdminClick,
+  onJourneyClick,
+  onPrivacyClick,
   onTermsClick,
   onRefundClick,
-  onShippingClick
+  onShippingClick,
+  onDistributorClick
 }) => {
   return (
     <footer className="bg-slate-950 text-slate-400 py-16">
@@ -46,8 +46,8 @@ const Footer: React.FC<FooterProps> = ({
           <div>
             <h3 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Partner With Us</h3>
             <ul className="space-y-4 text-xs">
-              <li><button onClick={onDistributorClick} className="hover:text-white transition-colors uppercase font-bold tracking-widest">BECOME A DISTRIBUTOR</button></li>
               <li><button onClick={onAdminClick} className="hover:text-white transition-colors uppercase font-bold tracking-widest">PINOBITE GLOBAL</button></li>
+              <li><button onClick={onDistributorClick} className="hover:text-white transition-colors uppercase font-bold tracking-widest">BECOME A DISTRIBUTOR</button></li>
             </ul>
           </div>
           <div>
@@ -75,7 +75,7 @@ const Footer: React.FC<FooterProps> = ({
                 <span className="text-white font-bold block mb-1">E-mail:</span>
                 <a href="mailto:pinobites@gmail.com" className="hover:text-white transition-colors underline underline-offset-4 decoration-primary/50">pinobites@gmail.com</a>
               </p>
-              
+
               <div className="flex flex-wrap gap-2 pt-4">
                 <div className="bg-white px-2 py-1.5 rounded flex items-center justify-center w-[70px] h-8 shadow-sm">
                   <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" className="w-full h-auto object-contain" />
@@ -93,9 +93,9 @@ const Footer: React.FC<FooterProps> = ({
         <div className="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
           <p>© 2025 Pinobite. All Rights Reserved.</p>
           <div className="flex gap-4 opacity-50 grayscale hover:grayscale-0 transition-all duration-300">
-             <div className="w-10 h-6 bg-slate-800 rounded flex items-center justify-center text-[8px] font-bold text-white">VISA</div>
-             <div className="w-10 h-6 bg-slate-800 rounded flex items-center justify-center text-[8px] font-bold text-white">MASTER</div>
-             <div className="w-10 h-6 bg-slate-800 rounded flex items-center justify-center text-[8px] font-bold text-white">PAYPAL</div>
+            <div className="w-10 h-6 bg-slate-800 rounded flex items-center justify-center text-[8px] font-bold text-white">VISA</div>
+            <div className="w-10 h-6 bg-slate-800 rounded flex items-center justify-center text-[8px] font-bold text-white">MASTER</div>
+            <div className="w-10 h-6 bg-slate-800 rounded flex items-center justify-center text-[8px] font-bold text-white">PAYPAL</div>
           </div>
         </div>
       </div>

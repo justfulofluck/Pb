@@ -50,14 +50,33 @@ const ShopPage: React.FC<ShopPageProps> = ({
 
   // Fetch Products with Filter & Search
   useEffect(() => {
+    // If search is active, we should always search across All categories unless intentionally combined
+    // (In this UI, it seems search and categories are meant to be separate or combined?
+    // Let's assume they can be combined but resets filter to 'All' when search query enters search box)
+    // Actually, let's keep it simple: just fetch with the current state.
+    // The issue is calling setFilter triggers this effect again.
+
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
         let url = `${API_BASE_URL}/api/products/`;
         const params = new URLSearchParams();
 
-        if (filter !== 'All') {
-          params.append('category', filter);
+        // If we have a search query, we usually want to search all categories
+        // or just apply it to the selected category.
+        // Let's implement what lines 104-108 were doing, but in a way that doesn't 
+        // trigger a double fetch.
+
+        let activeFilter = filter;
+        if (searchQuery && filter !== 'All') {
+          // Logic moved from line 104 here to prevent state-change-loop
+          // If they just typed a search, we'll reset the filter state but fetch NOW.
+          setFilter('All');
+          activeFilter = 'All';
+        }
+
+        if (activeFilter !== 'All') {
+          params.append('category', activeFilter);
         }
 
         if (searchQuery) {
@@ -71,13 +90,11 @@ const ShopPage: React.FC<ShopPageProps> = ({
         const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
-          // Map API response to Product type if needed, similar to App.tsx
           const mappedProducts = data.map((p: any) => ({
             ...p,
             id: String(p.id),
             price: parseFloat(p.price),
             originalPrice: p.original_price ? parseFloat(p.original_price) : undefined,
-            // Ensure other fields map correctly if backend differs from frontend type
             themeColor: p.theme_color,
             model3d: p.model_3d,
             orientation: p.orientation ? p.orientation.replace(/[Oo]/g, '0') : '0deg 0deg 0deg',
@@ -98,14 +115,6 @@ const ShopPage: React.FC<ShopPageProps> = ({
 
     fetchProducts();
   }, [filter, searchQuery]);
-
-
-  // Reset filter if searchQuery changes (optional, keeps consistency)
-  useEffect(() => {
-    if (searchQuery) {
-      setFilter('All');
-    }
-  }, [searchQuery]);
 
   const displayCategories = ['All', ...categories];
 

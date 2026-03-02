@@ -17,8 +17,8 @@ import ShopPage from './components/ShopPage';
 import CheckoutPage from './components/CheckoutPage';
 import Dashboard from './components/Dashboard';
 import FAQPage from './components/FAQPage';
-import DistributorPage from './components/DistributorPage';
 import BlogsPage from './components/BlogsPage';
+import DistributorPage from './components/DistributorPage';
 import BlogSection from './components/BlogSection';
 import BlogDetailPage from './components/BlogDetailPage';
 import EventBlogsPage from './components/EventBlogsPage';
@@ -50,7 +50,7 @@ const CURRENT_USER = {
   avatar: "https://ui-avatars.com/api/?name=Alex+Fueler&background=008a45&color=fff"
 };
 
-type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'distributor' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey' | 'privacy-policy' | 'terms-and-conditions' | 'refund-policy' | 'shipping-policy' | 'visitor-form';
+type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey' | 'privacy-policy' | 'terms-and-conditions' | 'refund-policy' | 'shipping-policy' | 'visitor-form' | 'distributor';
 
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { API_BASE_URL } from './config';
@@ -95,13 +95,35 @@ const AppContent: React.FC = () => {
 
   // Handle browser back/forward buttons
   useEffect(() => {
-    const handlePopState = (event: PopStateEvent) => {
+    const handlePopState = async (event: PopStateEvent) => {
       const state = event.state;
       if (state && state.view) {
         setCurrentView(state.view);
+
         if (state.productId) {
           const p = products.find(prod => String(prod.id) === String(state.productId));
-          if (p) setSelectedProduct(p);
+          if (p) {
+            setSelectedProduct(p);
+            // Fetch full details
+            try {
+              const res = await fetch(`${API_BASE_URL}/api/products/${p.id}/`);
+              if (res.ok) {
+                const fullP = await res.json();
+                setSelectedProduct({
+                  ...fullP,
+                  id: String(fullP.id),
+                  price: parseFloat(fullP.price),
+                  originalPrice: fullP.original_price ? parseFloat(fullP.original_price) : undefined,
+                  themeColor: fullP.theme_color,
+                  model3d: fullP.model_3d,
+                  orientation: fullP.orientation ? fullP.orientation.replace(/[Oo]/g, '0') : '0deg 0deg -15deg',
+                  benefits: fullP.benefits || [],
+                  nutrients: fullP.nutrients || [],
+                  gallery: fullP.gallery || []
+                });
+              }
+            } catch (e) { }
+          }
         }
         if (state.eventId) {
           const e = events.find(ev => String(ev.id) === String(state.eventId));
@@ -190,22 +212,22 @@ const AppContent: React.FC = () => {
         }
 
         if (productsRes.ok) {
-          const productsData = await productsRes.ok ? await productsRes.json() : [];
+          const productsData = await productsRes.json();
           const mappedProducts = productsData.map((p: any) => ({
             ...p,
             id: String(p.id),
             price: parseFloat(p.price),
             originalPrice: p.original_price ? parseFloat(p.original_price) : undefined,
-            reviewCount: p.review_count,
+            reviewCount: p.review_count || 0,
             isTopRated: p.is_top_rated,
-            model3d: p.model_3d,
+            model3d: p.model_3d || null,
             themeColor: p.theme_color,
             orientation: p.orientation ? p.orientation.replace(/[Oo]/g, '0') : '0deg 0deg 0deg',
             gallery: p.gallery || [],
             benefits: p.benefits || [],
             nutrients: p.nutrients || []
           }));
-          if (mappedProducts.length > 0) setProducts(mappedProducts);
+          setProducts(mappedProducts);
         }
 
         if (eventsRes.ok) {
@@ -842,10 +864,34 @@ const AppContent: React.FC = () => {
     }));
   };
 
-  const navigateToProduct = (product: Product) => {
+  const navigateToProduct = async (product: Product) => {
     setSelectedProduct(product);
     setCurrentView('product');
     window.history.pushState({ view: 'product', productId: product.id }, '');
+    window.scrollTo(0, 0);
+
+    // Fetch full details since list view is now minimal
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/products/${product.id}/`);
+      if (response.ok) {
+        const fullProduct = await response.json();
+        const mappedProduct = {
+          ...fullProduct,
+          id: String(fullProduct.id),
+          price: parseFloat(fullProduct.price),
+          originalPrice: fullProduct.original_price ? parseFloat(fullProduct.original_price) : undefined,
+          themeColor: fullProduct.theme_color,
+          model3d: fullProduct.model_3d,
+          orientation: fullProduct.orientation ? fullProduct.orientation.replace(/[Oo]/g, '0') : '0deg 0deg -15deg',
+          benefits: fullProduct.benefits || [],
+          nutrients: fullProduct.nutrients || [],
+          gallery: fullProduct.gallery || []
+        };
+        setSelectedProduct(mappedProduct);
+      }
+    } catch (err) {
+      console.error("Failed to fetch full product details", err);
+    }
   };
 
   const navigateToShop = () => {
@@ -890,6 +936,8 @@ const AppContent: React.FC = () => {
     setSelectedProduct(null);
     window.history.pushState({ view: 'faq' }, '');
   };
+
+
 
   const navigateToDistributor = () => {
     setCurrentView('distributor');
@@ -1101,7 +1149,7 @@ const AppContent: React.FC = () => {
               onShopClick={navigateToShop}
               onHomeClick={goHome}
               onFAQClick={navigateToFAQ}
-              onDistributorClick={navigateToDistributor}
+
               onBlogsClick={navigateToBlogs}
               onEventBlogsClick={navigateToEventBlogs}
               onAdminClick={navigateToAdmin}
@@ -1110,8 +1158,13 @@ const AppContent: React.FC = () => {
               onTermsClick={navigateToTerms}
               onRefundClick={navigateToRefund}
               onShippingClick={navigateToShipping}
+              onDistributorClick={navigateToDistributor}
             />
           </>
+        )}
+
+        {currentView === 'distributor' && (
+          <DistributorPage onHomeClick={goHome} />
         )}
 
         {currentView === 'shop' && (
@@ -1133,6 +1186,8 @@ const AppContent: React.FC = () => {
             onBack={navigateToShop}
             reviews={reviews}
             onAddReview={handleAddReview}
+            isLoggedIn={isLoggedIn}
+            onLoginClick={() => setIsAuthOpen(true)}
           />
         )}
 
@@ -1154,10 +1209,6 @@ const AppContent: React.FC = () => {
 
         {currentView === 'faq' && (
           <FAQPage onHomeClick={goHome} />
-        )}
-
-        {currentView === 'distributor' && (
-          <DistributorPage onHomeClick={goHome} />
         )}
 
         {currentView === 'blogs' && (
@@ -1221,7 +1272,7 @@ const AppContent: React.FC = () => {
           onShopClick={navigateToShop}
           onHomeClick={goHome}
           onFAQClick={navigateToFAQ}
-          onDistributorClick={navigateToDistributor}
+
           onBlogsClick={navigateToBlogs}
           onEventBlogsClick={navigateToEventBlogs}
           onAdminClick={navigateToAdmin}
@@ -1230,6 +1281,7 @@ const AppContent: React.FC = () => {
           onTermsClick={navigateToTerms}
           onRefundClick={navigateToRefund}
           onShippingClick={navigateToShipping}
+          onDistributorClick={navigateToDistributor}
         />
       )}
 

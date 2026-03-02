@@ -16,7 +16,7 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
 }) => {
     if (isLoading) {
         return (
-            <div className="py-12 bg-[#fcf6e5] flex items-center justify-center">
+            <div className="py-12 bg-[#f2f2ec] flex items-center justify-center">
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
             </div>
         );
@@ -28,7 +28,7 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
         : products.slice(0, 6);
 
     return (
-        <section className="bg-[#fcf6e5] relative overflow-hidden pb-12 w-full lg:hidden">
+        <section className="bg-[#f2f2ec] relative overflow-hidden pb-12 w-full lg:hidden">
             {/* Header */}
             <div className="pt-12 pb-16 relative">
                 <div className="flex flex-col items-center justify-center relative z-10 px-4">

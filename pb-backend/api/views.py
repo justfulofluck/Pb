@@ -14,6 +14,7 @@ from .models import (
     VisitorSubmission,
     NewsletterSubscriber,
     Announcement,
+    DistributorApplication,
 )
 from django.contrib.auth.models import User
 from rest_framework.response import Response
@@ -21,6 +22,7 @@ from rest_framework.decorators import action
 from .serializers import (
     CategorySerializer,
     ProductSerializer,
+    ProductListSerializer,
     ReviewSerializer,
     EventSerializer,
     BlogPostSerializer,
@@ -38,6 +40,7 @@ from .serializers import (
     NewsletterSubscribeSerializer,
     NewsletterSubscriberSerializer,
     AnnouncementSerializer,
+    DistributorApplicationSerializer,
 )
 
 
@@ -51,6 +54,11 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     filterset_fields = ["category", "is_top_rated"]
     search_fields = ["name", "description"]
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ProductListSerializer
+        return ProductSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -630,8 +638,19 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         return [permissions.IsAuthenticated()]
 
 
+
+class DistributorApplicationViewSet(viewsets.ModelViewSet):
+    queryset = DistributorApplication.objects.all().order_by("-created_at")
+    serializer_class = DistributorApplicationSerializer
+
+    def get_permissions(self):
+        if self.action == "create":
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
 
 # Serve Single Page Application
 index_view = never_cache(TemplateView.as_view(template_name="index.html"))
+

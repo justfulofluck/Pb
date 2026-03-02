@@ -38,7 +38,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="text-center mb-16 md:mb-24 relative">
           <span className="font-handdrawn text-2xl md:text-3xl text-slate-500 transform -rotate-3 inline-block mb-2 absolute -top-12 left-1/2 -translate-x-1/2 md:-translate-x-[200px]">Start here!</span>
-          <h2 className="text-4xl md:text-7xl font-black text-slate-900 uppercase tracking-tighter leading-tight md:leading-none font-garet">
+          <h2 className="text-5xl md:text-8xl font-bold text-slate-900 uppercase tracking-normal leading-none font-bebas">
             Shop By Category
           </h2>
           <div className="w-16 md:w-24 h-1.5 md:h-2 bg-primary mx-auto mt-4 md:mt-6 rounded-full"></div>
@@ -54,7 +54,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
             >
               {/* Header */}
               <div className="flex justify-between items-start z-20">
-                <span className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-white/60 backdrop-blur-md text-[10px] md:text-xs font-black uppercase tracking-widest ${item.textClass} shadow-sm font-garet`}>
+                <span className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-white/60 backdrop-blur-md text-[10px] md:text-xs font-bold uppercase tracking-widest ${item.textClass} shadow-sm font-bebas`}>
                   {item.count}
                 </span>
                 <div className={`w-10 h-10 md:w-14 md:h-14 rounded-full bg-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300 ${item.textClass}`}>
@@ -64,7 +64,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
 
               {/* Title */}
               <div className="relative z-20 mt-6 md:mt-8">
-                <h3 className={`text-3xl md:text-5xl font-black uppercase leading-[0.9] tracking-tight ${item.textClass} font-garet`}>
+                <h3 className={`text-4xl md:text-6xl font-bold uppercase leading-[0.85] tracking-tight ${item.textClass} font-bebas`}>
                   {item.display.split(' ').map((word, w) => <span key={w} className="block">{word}</span>)}
                 </h3>
               </div>

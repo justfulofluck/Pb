@@ -257,3 +257,20 @@ class Announcement(models.Model):
 
     def __str__(self):
         return f"Announcement {self.id}: {self.message[:50]}..."
+
+class DistributorApplication(models.Model):
+    STATUS_CHOICES = [
+        ("Pending", "Pending"),
+        ("Approved", "Approved"),
+        ("Rejected", "Rejected"),
+    ]
+    business_name = models.CharField(max_length=255)
+    full_name = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=20)
+    city = models.CharField(max_length=100, blank=True, null=True)
+    email = models.EmailField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.business_name} - {self.full_name}"

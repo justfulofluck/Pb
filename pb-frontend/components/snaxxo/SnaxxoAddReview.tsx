@@ -6,9 +6,11 @@ interface SnaxxoAddReviewProps {
     productId: string;
     onAddReview: (review: Review) => void;
     color?: string;
+    isLoggedIn?: boolean;
+    onLoginClick?: () => void;
 }
 
-const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddReview, color }) => {
+const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddReview, color, isLoggedIn, onLoginClick }) => {
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState('');
     const [name, setName] = useState('');
@@ -60,7 +62,7 @@ const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddRevie
 
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                         <div>
-                            <h2 className="text-4xl md:text-5xl font-black text-slate-900 uppercase leading-[0.9] mb-2">
+                            <h2 className="text-4xl md:text-5xl font-black text-slate-900 uppercase leading-[0.9] mb-2 font-bebas">
                                 Share Your <br /> Experience
                             </h2>
                             <p className="text-slate-500 font-bold">We'd love to hear what you think of our snacks!</p>
@@ -72,64 +74,80 @@ const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddRevie
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-8">
-                        <div className="grid md:grid-cols-2 gap-8">
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Your Name</label>
-                                <input
-                                    required
-                                    type="text"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    className="w-full px-6 py-4 rounded-xl border border-slate-100 bg-slate-50 font-bold text-slate-800 focus:bg-white focus:border-[#008a45] focus:outline-none transition-all"
-                                    placeholder="Enter your name"
-                                />
+                    {!isLoggedIn ? (
+                        <div className="bg-slate-50 rounded-2xl p-10 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center">
+                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
+                                <span className="material-symbols-outlined text-slate-400 text-3xl">lock</span>
                             </div>
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Your Rating</label>
-                                <div className="flex gap-2 h-[58px] items-center">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <button
-                                            key={star}
-                                            type="button"
-                                            onClick={() => setRating(star)}
-                                            className={`material-symbols-outlined text-4xl transition-all hover:scale-110 ${star <= rating ? 'text-yellow-400 fill-1' : 'text-slate-200'}`}
-                                        >
-                                            star
-                                        </button>
-                                    ))}
+                            <h3 className="text-xl font-black uppercase text-slate-900 mb-2">Login to Review</h3>
+                            <p className="text-slate-500 font-bold mb-6 max-w-xs">Only verified customers can subimt their experience with this product.</p>
+                            <button
+                                onClick={onLoginClick}
+                                className="px-10 py-4 bg-slate-950 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-colors shadow-lg"
+                            >
+                                Login / Register
+                            </button>
+                        </div>
+                    ) : (
+                        <form onSubmit={handleSubmit} className="space-y-8">
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Your Name</label>
+                                    <input
+                                        required
+                                        type="text"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        className="w-full px-6 py-4 rounded-xl border border-slate-100 bg-slate-50 font-bold text-slate-800 focus:bg-white focus:border-[#008a45] focus:outline-none transition-all"
+                                        placeholder="Enter your name"
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Your Rating</label>
+                                    <div className="flex gap-2 h-[58px] items-center">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <button
+                                                key={star}
+                                                type="button"
+                                                onClick={() => setRating(star)}
+                                                className={`material-symbols-outlined text-4xl transition-all hover:scale-110 ${star <= rating ? 'text-yellow-400 fill-1' : 'text-slate-200'}`}
+                                            >
+                                                star
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Your Review</label>
-                            <textarea
-                                required
-                                value={comment}
-                                onChange={(e) => setComment(e.target.value)}
-                                rows={4}
-                                className="w-full px-6 py-4 rounded-xl border border-slate-100 bg-slate-50 font-bold text-slate-800 focus:bg-white focus:border-[#008a45] focus:outline-none transition-all resize-none"
-                                placeholder="What's the verdict? Be honest!"
-                            />
-                        </div>
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Your Review</label>
+                                <textarea
+                                    required
+                                    value={comment}
+                                    onChange={(e) => setComment(e.target.value)}
+                                    rows={4}
+                                    className="w-full px-6 py-4 rounded-xl border border-slate-100 bg-slate-50 font-bold text-slate-800 focus:bg-white focus:border-[#008a45] focus:outline-none transition-all resize-none"
+                                    placeholder="What's the verdict? Be honest!"
+                                />
+                            </div>
 
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            style={{ backgroundColor: color || '#008a45' }}
-                            className={`w-full md:w-auto px-12 py-5 rounded-2xl text-white font-black uppercase tracking-widest transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                    Submitting...
-                                </>
-                            ) : (
-                                'Post My Review'
-                            )}
-                        </button>
-                    </form>
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                style={{ backgroundColor: color || '#008a45' }}
+                                className={`w-full md:w-auto px-12 py-5 rounded-2xl text-white font-black uppercase tracking-widest transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        Submitting...
+                                    </>
+                                ) : (
+                                    'Post My Review'
+                                )}
+                            </button>
+                        </form>
+                    )}
                 </div>
             </div>
         </section>

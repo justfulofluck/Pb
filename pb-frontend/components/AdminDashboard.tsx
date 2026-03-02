@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category, Announcement } from '../types';
+import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category, Announcement, DistributorApplication } from '../types';
 import { API_BASE_URL } from '../config';
 import { jsPDF } from "jspdf";
 import ConfirmationModal from './ConfirmationModal';
@@ -90,6 +90,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
 
+  // Distributor Applications State
+  const [distributorApplications, setDistributorApplications] = useState<DistributorApplication[]>([]);
+  const [distributorSearchQuery, setDistributorSearchQuery] = useState('');
+
   const storyFileInputRef = useRef<HTMLInputElement>(null);
 
   // Visitor Forms State
@@ -132,6 +136,29 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         }
       };
       fetchOrders();
+    }
+  }, [activeTab]);
+
+  // Fetch Distributor Applications
+  useEffect(() => {
+    if (activeTab === 'distributors') {
+      const fetchDistributors = async () => {
+        try {
+          const token = localStorage.getItem('access_token') || localStorage.getItem('admin_access_token');
+          if (!token) return;
+
+          const response = await fetch(`${API_BASE_URL}/api/distributor-applications/`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setDistributorApplications(data);
+          }
+        } catch (error) {
+          console.error("Failed to fetch distributor applications", error);
+        }
+      };
+      fetchDistributors();
     }
   }, [activeTab]);
 
@@ -943,7 +970,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   {[
                     { title: "New Order #PB-8821", desc: "Received from Sarah J.", time: "2m ago", icon: "shopping_bag", color: "bg-green-100 text-green-600" },
                     { title: "Low Stock Alert", desc: "Super Muesli is below 10 units", time: "1h ago", icon: "warning", color: "bg-red-100 text-red-600" },
-                    { title: "Distributor Application", desc: "Healthy Foods Ltd applied", time: "3h ago", icon: "handshake", color: "bg-blue-100 text-blue-600" },
                     { title: "Event Published", desc: "Morning Yoga Session is live", time: "5h ago", icon: "event", color: "bg-purple-100 text-purple-600" }
                   ].map((notif, i) => (
                     <div key={i} className="p-4 hover:bg-slate-50 transition-colors flex gap-3 border-b border-slate-50 last:border-0 cursor-pointer">
@@ -1179,6 +1205,88 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           )}
 
           {/* ----- VISITOR FORMS TAB ----- */}
+          {/* ----- DISTRIBUTORS TAB ----- */}
+          {activeTab === 'distributors' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-6 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                  <div>
+                    <h3 className="font-black uppercase text-slate-900">Distributor Applications</h3>
+                    <p className="text-xs text-slate-500 font-bold mt-1 uppercase tracking-wider">{distributorApplications.length} Total Applicants</p>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg">search</span>
+                    <input
+                      type="text"
+                      placeholder="Search distributors..."
+                      value={distributorSearchQuery}
+                      onChange={(e) => setDistributorSearchQuery(e.target.value)}
+                      className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-64"
+                    />
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-50 border-b border-slate-200">
+                      <tr>
+                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Business Detail</th>
+                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Contact Person</th>
+                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Location</th>
+                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Status</th>
+                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Date Applied</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-bold text-slate-700">
+                      {(distributorApplications || [])
+                        .filter(app =>
+                          (app.business_name || '').toLowerCase().includes(distributorSearchQuery.toLowerCase()) ||
+                          (app.full_name || '').toLowerCase().includes(distributorSearchQuery.toLowerCase())
+                        ).map(app => (
+                          <tr key={app.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="p-4">
+                              <div className="text-slate-900 font-black uppercase text-sm tracking-tight">{app.business_name}</div>
+                              <div className="text-xs text-slate-400 lowercase">{app.email}</div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-slate-400 text-sm">person</span>
+                                {app.full_name}
+                              </div>
+                              <div className="text-[10px] text-slate-400">{app.phone_number}</div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-1">
+                                <span className="material-symbols-outlined text-slate-400 text-sm">location_city</span>
+                                {app.city || 'N/A'}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${app.status === 'Approved' ? 'bg-green-100 text-green-600' :
+                                app.status === 'Rejected' ? 'bg-red-100 text-red-600' :
+                                  'bg-orange-100 text-orange-600'
+                                }`}>
+                                {app.status || 'Pending'}
+                              </span>
+                            </td>
+                            <td className="p-4 text-sm text-slate-400">
+                              {new Date(app.created_at).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))}
+                      {(distributorApplications || []).length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="p-8 text-center text-slate-400 font-bold">
+                            No applications found.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'visitor-forms' && (
             <div className="space-y-6 animate-in fade-in duration-300">
 
@@ -2300,7 +2408,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }
 
           {
-            activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'events' && activeTab !== 'orders' && activeTab !== 'ui-settings' && activeTab !== 'visitor-forms' && activeTab !== 'blogs' && activeTab !== 'announcements' && (
+            activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'events' && activeTab !== 'orders' && activeTab !== 'ui-settings' && activeTab !== 'visitor-forms' && activeTab !== 'blogs' && activeTab !== 'announcements' && activeTab !== 'distributors' && (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
                 <span className="material-symbols-outlined text-6xl opacity-20">construction</span>
                 <p className="font-handdrawn text-2xl">This module is under construction</p>

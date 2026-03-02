@@ -15,7 +15,6 @@ interface SnaxxoLandingProps {
     onShopClick: () => void;
     onHomeClick: () => void;
     onFAQClick?: () => void;
-    onDistributorClick?: () => void;
     onBlogsClick?: () => void;
     onEventBlogsClick?: () => void;
     onAdminClick?: () => void;

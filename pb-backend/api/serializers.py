@@ -17,6 +17,7 @@ from .models import (
     VisitorSubmission,
     NewsletterSubscriber,
     Announcement,
+    DistributorApplication,
 )
 
 
@@ -55,6 +56,24 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
+
+
+class ProductListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = [
+            "id",
+            "name",
+            "price",
+            "original_price",
+            "rating",
+            "review_count",
+            "image",
+            "category",
+            "stock",
+            "is_top_rated",
+            "theme_color",
+        ]
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -197,4 +216,9 @@ class NewsletterSubscriberSerializer(serializers.ModelSerializer):
 class AnnouncementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Announcement
+        fields = "__all__"
+
+class DistributorApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DistributorApplication
         fields = "__all__"

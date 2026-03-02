@@ -6,7 +6,6 @@ interface SnaxxoFooterProps {
     onShopClick: () => void;
     onHomeClick: () => void;
     onFAQClick?: () => void;
-    onDistributorClick?: () => void;
     onBlogsClick?: () => void;
     onEventBlogsClick?: () => void;
     onAdminClick?: () => void;
@@ -15,13 +14,13 @@ interface SnaxxoFooterProps {
     onTermsClick?: () => void;
     onRefundClick?: () => void;
     onShippingClick?: () => void;
+    onDistributorClick?: () => void;
 }
 
 const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
     onShopClick,
     onHomeClick,
     onFAQClick,
-    onDistributorClick,
     onBlogsClick,
     onEventBlogsClick,
     onAdminClick,
@@ -29,7 +28,8 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
     onPrivacyClick,
     onTermsClick,
     onRefundClick,
-    onShippingClick
+    onShippingClick,
+    onDistributorClick
 }) => {
     const marqueeRef = useRef<HTMLDivElement>(null);
 
@@ -72,8 +72,8 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
                         <div>
                             <h3 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Partner With Us</h3>
                             <ul className="space-y-4 text-xs">
-                                <li><button onClick={onDistributorClick} className="text-left hover:opacity-80 transition-opacity uppercase font-bold tracking-widest cursor-pointer">BECOME A DISTRIBUTOR</button></li>
                                 <li><button onClick={onAdminClick} className="text-left hover:opacity-80 transition-opacity uppercase font-bold tracking-widest cursor-pointer">PINOBITE GLOBAL</button></li>
+                                <li><button onClick={onDistributorClick} className="text-left hover:opacity-80 transition-opacity uppercase font-bold tracking-widest cursor-pointer">BECOME A DISTRIBUTOR</button></li>
                             </ul>
                         </div>
                         <div>

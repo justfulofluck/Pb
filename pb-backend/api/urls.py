@@ -24,6 +24,7 @@ from .views import (
     NewsletterUnsubscribeView,
     NewsletterSubscriberViewSet,
     AnnouncementViewSet,
+    DistributorApplicationViewSet,
 )
 
 router = DefaultRouter()
@@ -40,6 +41,8 @@ router.register(r"visitor-forms", VisitorFormViewSet)
 router.register(r"visitor-submissions", VisitorSubmissionViewSet)
 router.register(r"newsletter-subscribers", NewsletterSubscriberViewSet)
 router.register(r"announcements", AnnouncementViewSet)
+
+router.register(r"distributor-applications", DistributorApplicationViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

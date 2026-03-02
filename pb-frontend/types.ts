@@ -214,3 +214,14 @@ export interface Announcement {
   end_date: string;
   is_active: boolean;
 }
+
+export interface DistributorApplication {
+  id: string;
+  business_name: string;
+  full_name: string;
+  phone_number: string;
+  city: string;
+  email: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  created_at: string;
+}
