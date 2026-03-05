@@ -121,8 +121,8 @@ const ShopPage: React.FC<ShopPageProps> = ({
   return (
     <div className="bg-[#f2f2ec] min-h-screen font-display">
       {/* Banner Area */}
-      <div className="pt-16 pb-12 px-4 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto mb-6 flex justify-center">
+      <div className="pt-6 md:pt-10 pb-6 px-4 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto mb-2 flex justify-center">
           <Breadcrumbs
             onHomeClick={() => { }}
             steps={[{ label: 'Shop' }, { label: filter }]}
@@ -130,10 +130,10 @@ const ShopPage: React.FC<ShopPageProps> = ({
           />
         </div>
         <div className="max-w-4xl mx-auto relative z-10 text-center">
-          <h1 className="text-5xl md:text-8xl font-black uppercase tracking-tighter mb-4 text-[#008a45] font-garet">
+          <h1 className="text-4xl md:text-8xl font-black uppercase tracking-tighter mb-2 text-[#008a45] font-garet">
             {searchQuery ? `Results for "${searchQuery}"` : (filter === 'All' ? 'All  Products' : filter)}
           </h1>
-          <div className="w-32 h-1.5 bg-[#008a45] mx-auto mb-6"></div>
+          <div className="w-32 h-1.5 bg-[#008a45] mx-auto mb-2"></div>
         </div>
       </div>
 
@@ -154,8 +154,8 @@ const ShopPage: React.FC<ShopPageProps> = ({
           ))}
         </div>
 
-        {/* Product Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
+        {/* Product Grid - 2 columns on mobile, 3 on tablet, 4 on desktop */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 md:gap-x-8 gap-y-12 md:gap-y-16">
           {isLoading ? (
             [...Array(8)].map((_, i) => (
               <div key={i} className="animate-pulse">
@@ -173,7 +173,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
               return (
                 <div
                   key={product.id}
-                  className="group cursor-pointer flex flex-col items-center text-center"
+                  className="group cursor-pointer flex flex-col h-full text-center"
                   onClick={() => onProductClick(product)}
                 >
                   {/* Image Container */}
@@ -217,47 +217,50 @@ const ShopPage: React.FC<ShopPageProps> = ({
                     </div>
                   </div>
 
-                  {/* Rating */}
-                  <div className="flex items-center justify-center gap-1 mb-3">
-                    <div className="flex text-yellow-400">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <span key={star} className={`material-symbols-outlined text-lg ${star <= (product.rating || 5) ? 'fill-1' : ''}`}>
-                          star
-                        </span>
-                      ))}
+                  {/* Content Area flex wrapper */}
+                  <div className="flex-1 flex flex-col items-center">
+                    {/* Rating */}
+                    <div className="flex items-center justify-center gap-1 mb-2">
+                      <div className="flex text-[#f9bc15] text-[10px] md:text-sm">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <i key={star} className={`fa-solid fa-star ${star <= (product.rating || 5) ? '' : 'text-slate-200'}`}></i>
+                        ))}
+                      </div>
+                      <span className="text-[10px] md:text-xs font-bold text-slate-400 ml-1">({product.reviewCount || 0} reviews)</span>
                     </div>
-                    <span className="text-xs font-bold text-slate-800 ml-1">({product.reviewCount || 0} reviews)</span>
+
+                    {/* Title - Fixed min height for alignment */}
+                    <h3 className="text-sm md:text-lg font-bold uppercase tracking-tight text-[#228b44] mb-2 px-2 leading-tight group-hover:opacity-80 transition-all text-center min-h-[2.5rem] md:min-h-[3rem] flex items-center justify-center">
+                      {product.name}
+                    </h3>
+
+                    {/* Bottom Section - Pushed to bottom for alignment */}
+                    <div className="mt-auto w-full">
+                      {/* Price */}
+                      <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+                        <span className="text-base md:text-xl font-bold text-[#228b44]">Rs. {product.price.toFixed(2)}</span>
+                        {product.originalPrice && product.originalPrice > product.price && (
+                          <span className="text-xs md:text-sm font-medium text-slate-400 line-through">Rs. {product.originalPrice.toFixed(2)}</span>
+                        )}
+                      </div>
+
+                      <button
+                        className="w-full bg-[#228b44] text-white py-2 md:py-3 rounded-md font-bold text-[10px] md:text-xs uppercase tracking-widest shadow-md hover:bg-slate-900 transition-all active:scale-95 flex items-center justify-center gap-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddToCart(product);
+                        }}
+                        disabled={product.stock <= 0}
+                      >
+                        {product.stock <= 0 ? 'Out of Stock' : (
+                          <>
+                            ADD TO CART
+                            <i className="fa-solid fa-cart-shopping text-[10px] md:text-sm"></i>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
-
-                  {/* Title */}
-                  <h3 className="text-lg font-black uppercase tracking-tight text-slate-900 mb-3 px-2 leading-tight group-hover:text-[#008a45] transition-colors">
-                    {product.name}
-                  </h3>
-
-                  {/* Price */}
-                  <div className="flex items-center justify-center gap-2 mb-4">
-                    <span className="text-xl font-black text-slate-900">Rs. {product.price.toFixed(2)}</span>
-                    {product.originalPrice && product.originalPrice > product.price && (
-                      <span className="text-sm font-bold text-slate-400 line-through">Rs. {product.originalPrice.toFixed(2)}</span>
-                    )}
-                  </div>
-
-                  {/* Bottom Action Button */}
-                  <button
-                    className="bg-[#1daa61] text-white px-12 py-4 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg hover:shadow-xl hover:bg-slate-900 transition-all active:scale-95 pointer-events-auto flex items-center justify-center gap-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onAddToCart(product);
-                    }}
-                    disabled={product.stock <= 0}
-                  >
-                    {product.stock <= 0 ? 'Out of Stock' : (
-                      <>
-                        Add to cart
-                        <span className="material-symbols-outlined text-sm">shopping_cart</span>
-                      </>
-                    )}
-                  </button>
                 </div>
               )
             })

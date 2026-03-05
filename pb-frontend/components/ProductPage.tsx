@@ -20,6 +20,7 @@ interface ProductPageProps {
   onAddReview: (review: Review) => void;
   isLoggedIn?: boolean;
   onLoginClick?: () => void;
+  onPopupToggle?: (isOpen: boolean) => void;
 }
 
 const ProductPage: React.FC<ProductPageProps> = ({
@@ -32,12 +33,14 @@ const ProductPage: React.FC<ProductPageProps> = ({
   reviews,
   onAddReview,
   isLoggedIn,
-  onLoginClick
+  onLoginClick,
+  onPopupToggle
 }) => {
   useSnaxxoAnimations();
 
   const [quantity, setQuantity] = useState(1);
   const [showIngredients, setShowIngredients] = useState(false);
+  const [activeTab, setActiveTab] = useState<'nutrition' | 'ingredients'>('nutrition');
   const [packSize, setPackSize] = useState("");
   const [isHovering, setIsHovering] = useState(false);
 
@@ -51,6 +54,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
     setQuantity(1);
     setPackSize("");
     setShowIngredients(false);
+    onPopupToggle?.(false);
 
     // Add initial entry animations
     const tl = gsap.timeline();
@@ -101,7 +105,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
   return (
     <div className="page-wrapper" style={{ opacity: 1, backgroundColor: tintColor }}>
-      <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden">
+      <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-screen flex items-center py-20">
         <div className="w-layout-blockcontainer container product-page-hero w-container">
           <div className="content-wrapper product-page-hero">
             <div className="heading-text-box pdp-h1">
@@ -109,12 +113,12 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 {product.name}
               </h1>
             </div>
-            <div className="product-page-hero-bottom-content flex flex-col lg:flex-row items-center lg:items-end justify-between relative px-6 md:px-0 lg:min-h-[600px] mt-4 lg:mt-0">
+            <div className="product-page-hero-bottom-content flex flex-col lg:flex-row items-center lg:items-end justify-between relative px-6 md:px-0 lg:min-h-[60vh] mt-4 lg:mt-0">
               <div className="content-block pdp-01 w-full lg:w-1/4 order-2 lg:order-1 mt-6 lg:mt-0 flex flex-col items-center lg:items-start">
                 <div className="text-box pdp-description text-center lg:text-left mx-auto lg:mx-0" data-snaxxo-animate>
                   <p style={{ color: 'rgb(255, 255, 255)' }} className="paragraph">{product.description}</p>
                   <div className="pdp-ingredients-popup-container">
-                    <a onClick={(e) => { e.preventDefault(); setShowIngredients(true); }} style={{ borderColor: '#FFF', cursor: 'pointer' }} className="pdp-nutrition-popup-toggle w-inline-block">
+                    <a onClick={(e) => { e.preventDefault(); setShowIngredients(true); onPopupToggle?.(true); }} style={{ borderColor: '#FFF', cursor: 'pointer' }} className="pdp-nutrition-popup-toggle w-inline-block">
                       <p style={{ color: '#FFF' }} className="paragraph no-margin">Nutrition &amp; Ingredients</p>
                       <div className="pdp-plus w-embed">
                         <svg xmlns="http://www.w3.org/2000/svg" width="inherit" height="inherit" fill="#FFF" viewBox="0 0 256 256">
@@ -126,7 +130,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 </div>
               </div>
               {/* position of 3D object */}
-              <div className="content-block pdp-02 w-full lg:flex-1 order-1 lg:order-2 relative lg:-left-40 flex justify-center items-center">
+              <div className="content-block pdp-02 w-full lg:flex-1 order-1 lg:order-2 relative flex justify-center items-center">
                 <div ref={imageRef} className="image-wrapper main-product-image w-full" style={{ pointerEvents: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto' }}>
                   {(product.model3d || ['American Nuts Crunchy Peanut Butter', 'Strawberry with Chia Peanut Butter', 'Dark Chocolate & Almond Crunchy Peanut Butter'].includes(product.name)) ? (
                     <div ref={jarWrapperRef} style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -148,7 +152,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                             product.name === 'American Nuts Crunchy Peanut Butter' ? '/3D-assets/AmericanNuts-v1.glb' :
                               product.name === 'Strawberry with Chia Peanut Butter' ? '/3D-assets/Strawberry-with-Chia.glb' :
                                 '/3D-assets/Dark-Chocolate-Almond.glb'
-                          )}" alt="${product.name}" camera-controls disable-zoom disable-pan disable-tap bounds="tight" min-camera-orbit="auto auto auto" max-camera-orbit="auto auto auto" min-field-of-view="auto" max-field-of-view="auto" touch-action="pan-y" interaction-prompt="none" auto-rotate rotation-speed="20deg" orientation="${product.orientation || '0deg 0deg -15deg'}" style="width: 100%; max-width: 650px; height: clamp(300px, 50vh, 650px); outline: none; margin: 0 auto; pointer-events: auto; animation: floatJar 6s ease-in-out infinite; z-index: 2; position: relative;">
+                          )}" alt="${product.name}" camera-controls disable-zoom disable-pan disable-tap bounds="tight" min-camera-orbit="auto auto auto" max-camera-orbit="auto auto auto" min-field-of-view="auto" max-field-of-view="auto" touch-action="pan-y" interaction-prompt="none" auto-rotate rotation-speed="20deg" orientation="${product.orientation || '0deg 0deg -15deg'}" style="width: 100%; max-width: 750px; height: clamp(400px, 65vh, 800px); outline: none; margin: 0 auto; pointer-events: auto; animation: floatJar 6s ease-in-out infinite; z-index: 2; position: relative;">
                           </model-viewer>`
                         }}
                         style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
@@ -214,40 +218,128 @@ const ProductPage: React.FC<ProductPageProps> = ({
             </div>
           </div>
 
-          <div style={{
-            backgroundColor: 'rgb(255, 255, 255)',
-            visibility: showIngredients ? 'visible' : 'hidden',
-            opacity: showIngredients ? 1 : 0,
-            pointerEvents: showIngredients ? 'auto' : 'none',
-            transform: showIngredients ? 'translate(0%, 0%) scale(1, 1)' : 'translate(110%, 0%) scale(0.8, 0.8)',
-            transition: 'all 0.4s ease-in-out'
-          }} className="ingredients-popup-wrapper">
-            <div style={{ backgroundColor: bgColor, cursor: 'pointer' }} className="popout-x" onClick={() => setShowIngredients(false)}>
-              <div className="x-close-icon w-embed">
-                <svg xmlns="http://www.w3.org/2000/svg" width="inherit" height="inherit" fill="currentColor" viewBox="0 0 256 256">
-                  <path d="M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z" />
-                </svg>
+          {/* Updated Nutrition & Ingredients Popup - Mobile Bottom Drawer & Desktop Side Drawer */}
+          <div
+            style={{
+              visibility: showIngredients ? 'visible' : 'hidden',
+              pointerEvents: showIngredients ? 'auto' : 'none',
+              zIndex: 1000
+            }}
+            className="fixed inset-0 z-[1000] font-display transition-all duration-300"
+          >
+            {/* Backdrop */}
+            <div
+              style={{ opacity: showIngredients ? 1 : 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+              onClick={() => { setShowIngredients(false); onPopupToggle?.(false); }}
+            />
+
+            {/* Popup Container */}
+            <div
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.85)',
+                transform: showIngredients
+                  ? (window.innerWidth < 1024 ? 'translateY(0)' : 'translateX(0)')
+                  : (window.innerWidth < 1024 ? 'translateY(110%)' : 'translateX(110%)'),
+                transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                backdropFilter: 'blur(16px)'
+              }}
+              className="absolute bottom-0 left-0 w-full lg:top-0 lg:left-auto lg:right-0 lg:w-[450px] lg:h-full lg:rounded-l-[40px] rounded-t-[40px] p-8 pb-10 lg:pb-8 shadow-2xl flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button Desktop */}
+              <button
+                onClick={() => { setShowIngredients(false); onPopupToggle?.(false); }}
+                className="hidden lg:flex absolute top-8 left-[-20px] w-10 h-10 bg-white shadow-lg rounded-full items-center justify-center text-slate-400 hover:text-slate-900 transition-colors"
+                style={{ backgroundColor: bgColor, color: 'white' }}
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+
+              {/* Tabs Switcher */}
+              <div className="flex bg-[#f1f5f9] p-1.5 rounded-[20px] mb-8">
+                <button
+                  onClick={() => setActiveTab('nutrition')}
+                  className={`flex-1 py-3 px-4 rounded-[16px] font-bold transition-all ${activeTab === 'nutrition' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                >
+                  Nutrition
+                </button>
+                <button
+                  onClick={() => setActiveTab('ingredients')}
+                  className={`flex-1 py-3 px-4 rounded-[16px] font-bold transition-all ${activeTab === 'ingredients' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
+                >
+                  Ingredients
+                </button>
               </div>
-            </div>
-            <div className="ingredients-pop-out-title">
-              <h2 style={{ color: bgColor }} className="h2-heading small">Ingredients</h2>
-            </div>
-            {product.nutrients && product.nutrients.length > 0 && (
-              <div style={{ backgroundColor: bgColor, padding: '2rem', borderRadius: '24px', marginBottom: '2rem' }}>
-                <div className="grid grid-cols-2 gap-4">
-                  {product.nutrients.map((n, i) => (
-                    <div key={i} className="text-white text-center">
-                      <div className="text-xl font-bold">{n.value}</div>
-                      <div className="text-sm opacity-80">{n.label}</div>
+
+              {/* Conditional Content */}
+              <div className="flex-1 overflow-y-auto mb-8 pr-2 custom-scrollbar">
+                {activeTab === 'nutrition' ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Calories Card */}
+                    <div className="bg-[#f8fafc] rounded-[24px] p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
+                          <i className="fa-solid fa-fire text-sm"></i>
+                        </div>
+                        <span className="text-amber-500 font-bold text-[12px] uppercase">Calories</span>
+                      </div>
+                      <div className="text-3xl font-black text-slate-900">{product.nutrition?.calories || "450"} <span className="text-[10px] font-medium text-slate-400">KCAL</span></div>
                     </div>
-                  ))}
-                </div>
+
+                    {/* Protein Card */}
+                    <div className="bg-[#f8fafc] rounded-[24px] p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-sky-50 flex items-center justify-center text-sky-500">
+                          <i className="fa-solid fa-dumbbell text-sm"></i>
+                        </div>
+                        <span className="text-sky-500 font-bold text-[12px] uppercase">Protein</span>
+                      </div>
+                      <div className="text-3xl font-black text-slate-900">{product.nutrition?.protein || "24"} <span className="text-[10px] font-medium text-slate-400">GM</span></div>
+                    </div>
+
+                    {/* Carbs Card */}
+                    <div className="bg-[#f8fafc] rounded-[24px] p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-purple-500">
+                          <i className="fa-solid fa-bread-slice text-sm"></i>
+                        </div>
+                        <span className="text-purple-500 font-bold text-[12px] uppercase">Carbs</span>
+                      </div>
+                      <div className="text-3xl font-black text-slate-900">{product.nutrition?.carbs || "12"} <span className="text-[10px] font-medium text-slate-400">GM</span></div>
+                    </div>
+
+                    {/* Fat Card */}
+                    <div className="bg-[#f8fafc] rounded-[24px] p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+                          <i className="fa-solid fa-droplet text-sm"></i>
+                        </div>
+                        <span className="text-emerald-500 font-bold text-[12px] uppercase">Fat</span>
+                      </div>
+                      <div className="text-3xl font-black text-slate-900">{product.nutrition?.fat || "18"} <span className="text-[10px] font-medium text-slate-400">GM</span></div>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <h3 className="font-bold text-slate-800 mb-3 text-lg">Detailed Ingredients</h3>
+                    <p className="text-slate-500 text-sm leading-relaxed">
+                      {product.ingredients || "Premium roasted peanuts, organic sweetener, heart-healthy flaxseeds, and a pinch of pink Himalayan salt. No artificial preservatives or flavorings."}
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
-            <div className="ingredients-write-up">
+
+              {/* Done Action Button */}
+              <button
+                onClick={() => { setShowIngredients(false); onPopupToggle?.(false); }}
+                className="w-full bg-slate-900/90 text-white rounded-[18px] py-3.5 font-bold text-base active:scale-95 transition-all shadow-lg hover:shadow-xl hover:translate-y-[-1px] tracking-wide"
+              >
+                DONE
+              </button>
             </div>
           </div>
-        </div >
+        </div>
       </section >
 
       <section className="section overflow-hidden" style={{ backgroundColor: '#f2f2ec' }}>

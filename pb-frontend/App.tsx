@@ -36,6 +36,7 @@ import ShippingPolicyPage from './components/ShippingPolicyPage';
 import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category, Announcement } from './types';
 import SnaxxoLanding from './components/snaxxo/SnaxxoLanding';
 import SnaxxoProductWheel from './components/snaxxo/SnaxxoProductWheel';
+import MobileBottomNav from './components/MobileBottomNav';
 
 const INITIAL_PRODUCTS: Product[] = [];
 const INITIAL_STORIES: Story[] = [];
@@ -79,6 +80,8 @@ const AppContent: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('home');
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [shopCategory, setShopCategory] = useState('All');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNutritionOpen, setIsNutritionOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Handle URL routing for manual links
@@ -899,6 +902,8 @@ const AppContent: React.FC = () => {
     setCurrentView('shop');
     setSelectedProduct(null);
     setGlobalSearchQuery('');
+    setIsCartOpen(false);
+    setIsAuthOpen(false);
     window.history.pushState({ view: 'shop', category: 'All', query: '' }, '');
   };
 
@@ -1015,6 +1020,8 @@ const AppContent: React.FC = () => {
     setSelectedEvent(null);
     setSelectedBlogPost(null);
     setGlobalSearchQuery('');
+    setIsCartOpen(false);
+    setIsAuthOpen(false);
     window.history.pushState({ view: 'home' }, '');
   };
 
@@ -1090,13 +1097,16 @@ const AppContent: React.FC = () => {
           cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
           isLoggedIn={isLoggedIn}
           onCartClick={() => setIsCartOpen(true)}
-          onAccountClick={() => setIsAuthOpen(true)}
+          onAccountClick={() => isLoggedIn ? navigateToDashboard() : setIsAuthOpen(true)}
           onLogoClick={goHome}
           onProductsClick={() => navigateToShop()}
+          onCategoryClick={navigateToShopCategory}
           onDashboardClick={() => navigateToDashboard()}
           onStoriesClick={() => setCurrentView('blogs')}
           onJourneyClick={() => setCurrentView('journey')}
           onSearch={handleGlobalSearch}
+          categories={categories}
+          onMenuStateChange={setIsMenuOpen}
           announcements={announcements
             .filter(a => {
               if (!a.is_active) return false;
@@ -1188,6 +1198,7 @@ const AppContent: React.FC = () => {
             onAddReview={handleAddReview}
             isLoggedIn={isLoggedIn}
             onLoginClick={() => setIsAuthOpen(true)}
+            onPopupToggle={setIsNutritionOpen}
           />
         )}
 
@@ -1307,6 +1318,33 @@ const AppContent: React.FC = () => {
         onClose={() => setIsEventModalOpen(false)}
         events={events}
       />
+
+      {currentView !== 'admin-dashboard' && currentView !== 'admin-login' && currentView !== 'checkout' && currentView !== 'visitor-form' && (
+        <MobileBottomNav
+          currentView={currentView}
+          onHomeClick={goHome}
+          onShopClick={navigateToShop}
+          onCartClick={() => {
+            setIsCartOpen(true);
+            setIsAuthOpen(false);
+          }}
+          onAccountClick={() => {
+            if (isLoggedIn) {
+              navigateToDashboard();
+              setIsAuthOpen(false);
+              setIsCartOpen(false);
+            } else {
+              setIsAuthOpen(true);
+              setIsCartOpen(false);
+            }
+          }}
+          cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
+          isCartOpen={isCartOpen}
+          isAuthOpen={isAuthOpen}
+          isMenuOpen={isMenuOpen}
+          isHidden={isNutritionOpen}
+        />
+      )}
     </div>
   );
 };

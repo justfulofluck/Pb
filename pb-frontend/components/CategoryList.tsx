@@ -44,36 +44,32 @@ const CategoryList: React.FC<CategoryListProps> = ({
           <div className="w-16 md:w-24 h-1.5 md:h-2 bg-primary mx-auto mt-4 md:mt-6 rounded-full"></div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12">
+        {/* Desktop View (Large Screens Only) */}
+        <div className="hidden lg:grid grid-cols-3 gap-12">
           {categories.map((item, i) => (
             <div
               key={item.id}
               onClick={() => onCategoryClick(item.id)}
-              className={`relative h-[450px] md:h-[550px] rounded-[32px] md:rounded-[48px] border-2 ${item.bgClass} ${item.borderClass} p-6 md:p-8 cursor-pointer group transition-[transform,shadow,border-color] duration-500 hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] hover:-translate-y-2 overflow-hidden flex flex-col`}
+              className={`relative h-[550px] rounded-[48px] border-2 ${item.bgClass} ${item.borderClass} p-8 cursor-pointer group transition-[transform,shadow,border-color] duration-500 hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] hover:-translate-y-2 overflow-hidden flex flex-col`}
               style={{ transform: 'translateZ(0)', isolation: 'isolate' }}
             >
-              {/* Header */}
               <div className="flex justify-between items-start z-20">
-                <span className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-white/60 backdrop-blur-md text-[10px] md:text-xs font-bold uppercase tracking-widest ${item.textClass} shadow-sm font-bebas`}>
+                <span className={`px-4 py-2 rounded-full bg-white/60 backdrop-blur-md text-xs font-bold uppercase tracking-widest ${item.textClass} shadow-sm font-bebas`}>
                   {item.count}
                 </span>
-                <div className={`w-10 h-10 md:w-14 md:h-14 rounded-full bg-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300 ${item.textClass}`}>
-                  <span className="material-symbols-outlined text-xl md:text-2xl">arrow_forward</span>
+                <div className={`w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300 ${item.textClass}`}>
+                  <span className="material-symbols-outlined text-2xl">arrow_forward</span>
                 </div>
               </div>
 
-              {/* Title */}
-              <div className="relative z-20 mt-6 md:mt-8">
-                <h3 className={`text-4xl md:text-6xl font-bold uppercase leading-[0.85] tracking-tight ${item.textClass} font-bebas`}>
+              <div className="relative z-20 mt-8">
+                <h3 className={`text-6xl font-bold uppercase leading-[0.85] tracking-tight ${item.textClass} font-bebas`}>
                   {item.display.split(' ').map((word, w) => <span key={w} className="block">{word}</span>)}
                 </h3>
               </div>
 
-              {/* Image Container */}
-              <div className="absolute bottom-0 left-0 w-full h-[60%] md:h-[65%] z-10 transition-transform duration-700 group-hover:scale-105 group-hover:rotate-1 origin-bottom">
-                {/* Decorative Shape behind image */}
+              <div className="absolute bottom-0 left-0 w-full h-[65%] z-10 transition-transform duration-700 group-hover:scale-105 group-hover:rotate-1 origin-bottom">
                 <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-[140%] h-[120%] bg-white rounded-t-full opacity-40 blur-xl`}></div>
-
                 <img
                   src={item.image}
                   alt={item.display}
@@ -82,14 +78,60 @@ const CategoryList: React.FC<CategoryListProps> = ({
                 />
               </div>
 
-              {/* Hover Button */}
-              <div className="absolute bottom-6 md:bottom-8 left-0 w-full flex justify-center z-30 opacity-100 md:opacity-0 md:group-hover:opacity-100 transform md:translate-y-4 md:group-hover:translate-y-0 transition-all duration-500">
-                <button className={`px-8 py-3 md:px-10 md:py-4 rounded-full text-white font-black uppercase text-[10px] md:text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-transform ${item.accentClass}`}>
+              <div className="absolute bottom-8 left-0 w-full flex justify-center z-30 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500">
+                <button className={`px-10 py-4 rounded-full text-white font-black uppercase text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-transform ${item.accentClass}`}>
                   Shop Collection
                 </button>
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Mobile & Tablet View (Premium Arched Layout) */}
+        <div className="lg:hidden mt-0">
+          <div className="relative pt-4 pb-20 px-2 overflow-visible">
+            {/* Background Cohesive Arch Shape */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[300px] bg-gradient-radial from-primary/5 to-transparent rounded-[100%] blur-2xl opacity-60 z-0"></div>
+
+            <div className="relative z-10 flex justify-center items-end max-w-[450px] mx-auto gap-3 md:gap-8 px-4">
+              {categories.map((item, i) => {
+                const isCenter = i === 1;
+                return (
+                  <div
+                    key={item.id}
+                    className="flex flex-col items-center cursor-pointer group flex-1"
+                    onClick={() => onCategoryClick(item.id)}
+                    style={{
+                      transform: isCenter ? 'translateY(-35px)' : 'translateY(5px)',
+                      transitionDelay: `${i * 100}ms`
+                    }}
+                  >
+                    {/* Circle Container */}
+                    <div className={`relative w-24 h-24 md:w-36 md:h-36 rounded-full bg-white shadow-[0_20px_45px_rgba(0,0,0,0.12)] p-1 flex items-center justify-center border-4 border-white transition-all duration-500 group-active:scale-95`}>
+                      <div className="w-full h-full rounded-full overflow-hidden">
+                        <img
+                          src={item.image}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          alt={item.display}
+                        />
+                      </div>
+
+                      {/* Premium Accent Ring */}
+                      <div className={`absolute inset-0 rounded-full border-2 border-transparent group-hover:border-primary/20 transition-colors duration-500`}></div>
+                    </div>
+
+                    {/* Label */}
+                    <div className={`mt-4 text-center transition-all duration-300 ${isCenter ? 'mt-6' : 'mt-4'}`}>
+                      <span className="block text-[11px] md:text-base font-black uppercase tracking-widest text-slate-800 leading-none font-sans">
+                        {item.display.replace('Super ', '')}
+                      </span>
+                      <div className={`w-6 h-1 bg-primary mx-auto mt-2 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300`}></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </section>

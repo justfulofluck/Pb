@@ -10,6 +10,13 @@ export interface Product {
   description: string;
   benefits: string[];
   nutrients: { label: string; value: string }[];
+  ingredients?: string;
+  nutrition?: {
+    calories: string;
+    protein: string;
+    carbs: string;
+    fat: string;
+  };
   isTopRated?: boolean;
   category: string;
   stock: number;

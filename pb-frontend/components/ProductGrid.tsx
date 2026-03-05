@@ -34,7 +34,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
           <div className="w-24 h-1 bg-[#008a45] rounded-full"></div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-20">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 md:gap-x-10 gap-y-12 md:gap-y-20">
           {isLoading ? (
             [...Array(4)].map((_, i) => (
               <div key={i} className="animate-pulse">
@@ -52,7 +52,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
               return (
                 <div
                   key={product.id}
-                  className="group flex flex-col items-center text-center cursor-pointer"
+                  className="group flex flex-col h-full text-center cursor-pointer"
                   onClick={() => onProductClick(product)}
                 >
                   {/* Image Area */}
@@ -92,43 +92,43 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
                   </div>
 
                   {/* Content Area */}
-                  <div className="flex flex-col items-center">
+                  <div className="flex-1 flex flex-col items-center w-full">
                     {/* Rating */}
-                    <div className="flex items-center justify-center gap-1 mb-3">
-                      <div className="flex text-yellow-400">
+                    <div className="flex items-center justify-center gap-1 mb-2">
+                      <div className="flex text-[#f9bc15] text-[10px] md:text-sm">
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <span key={star} className={`material-symbols-outlined text-lg ${star <= (product.rating || 5) ? 'fill-1' : ''}`}>
-                            star
-                          </span>
+                          <i key={star} className={`fa-solid fa-star ${star <= (product.rating || 5) ? '' : 'text-slate-200'}`}></i>
                         ))}
                       </div>
-                      <span className="text-xs font-bold text-slate-800 ml-1">({product.reviewCount || 0} reviews)</span>
+                      <span className="text-[10px] md:text-xs font-bold text-slate-400 ml-1">({product.reviewCount || 0} reviews)</span>
                     </div>
 
-                    <h3 className="text-xl font-black uppercase tracking-tight text-slate-900 mb-3 leading-tight group-hover:text-[#008a45] transition-colors">
+                    <h3 className="text-sm md:text-xl font-bold uppercase tracking-tight text-[#228b44] mb-2 px-2 leading-tight group-hover:opacity-80 transition-all text-center min-h-[2.5rem] md:min-h-[3.5rem] flex items-center justify-center">
                       {product.name}
                     </h3>
 
-                    <div className="flex items-center justify-center gap-2 mb-6">
-                      <span className="text-2xl font-black text-slate-900">Rs. {product.price.toFixed(2)}</span>
-                      {product.originalPrice && product.originalPrice > product.price && (
-                        <span className="text-sm font-bold text-slate-400 line-through">Rs. {product.originalPrice.toFixed(2)}</span>
-                      )}
-                    </div>
+                    {/* Bottom Section - Pushed to bottom for alignment */}
+                    <div className="mt-auto w-full">
+                      <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+                        <span className="text-base md:text-2xl font-bold text-[#228b44]">Rs. {product.price.toFixed(2)}</span>
+                        {product.originalPrice && product.originalPrice > product.price && (
+                          <span className="text-xs md:text-sm font-medium text-slate-400 line-through">Rs. {product.originalPrice.toFixed(2)}</span>
+                        )}
+                      </div>
 
-                    {/* Action Button */}
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
-                      disabled={product.stock <= 0}
-                      className="bg-[#1daa61] text-white px-12 py-4 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg hover:shadow-xl hover:bg-slate-900 transition-all active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-2"
-                    >
-                      {product.stock <= 0 ? 'Out of Stock' : (
-                        <>
-                          Add to cart
-                          <span className="material-symbols-outlined text-sm">shopping_cart</span>
-                        </>
-                      )}
-                    </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
+                        disabled={product.stock <= 0}
+                        className="w-full bg-[#228b44] text-white py-2 md:py-4 rounded-md font-bold text-[10px] md:text-xs uppercase tracking-widest shadow-md hover:bg-slate-900 transition-all active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-2"
+                      >
+                        {product.stock <= 0 ? 'Out of Stock' : (
+                          <>
+                            ADD TO CART
+                            <i className="fa-solid fa-cart-shopping text-[10px] md:text-sm"></i>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               );

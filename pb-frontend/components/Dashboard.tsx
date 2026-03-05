@@ -57,6 +57,26 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
     { title: 'Early Access: New Flavor', cost: 1500, icon: 'stars' },
   ];
 
+  if (!authUser) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-24 text-center space-y-8">
+        <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-8">
+          <span className="material-symbols-outlined text-5xl text-slate-300">account_circle</span>
+        </div>
+        <h2 className="text-4xl font-black uppercase tracking-tighter text-slate-900">Login Required</h2>
+        <p className="text-slate-500 max-w-md mx-auto font-medium">
+          Please sign in to view your points, track orders, and redeem exclusive rewards.
+        </p>
+        <button
+          onClick={onHomeClick}
+          className="px-8 py-4 rounded-xl border-2 border-slate-200 font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-colors mx-auto block"
+        >
+          Back to Home
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <Breadcrumbs onHomeClick={onHomeClick} steps={[{ label: 'My Account' }]} className="mb-6" />

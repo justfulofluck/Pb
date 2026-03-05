@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import SnaxxoWave from './SnaxxoWave';
 
@@ -32,6 +32,16 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
     onDistributorClick
 }) => {
     const marqueeRef = useRef<HTMLDivElement>(null);
+    const [openSection, setOpenSection] = useState<string | null>(null);
+
+    const toggleSection = (section: string) => {
+        if (window.innerWidth >= 1024) return;
+        setOpenSection(openSection === section ? null : section);
+    };
+
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     useEffect(() => {
         const marquee = marqueeRef.current;
@@ -49,79 +59,154 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
         }
     }, []);
 
+    // Helper to render accordion sections
+    const AccordionSection = ({ title, id, children }: { title: string, id: string, children: React.ReactNode }) => {
+        const isOpen = openSection === id;
+        return (
+            <div className="border-b border-white/10 lg:border-none w-full">
+                <button
+                    onClick={() => toggleSection(id)}
+                    className="w-full flex items-center justify-between py-3 lg:py-0 lg:mb-6 text-left focus:outline-none group"
+                >
+                    <h4 className="font-bold text-white text-base lg:text-lg uppercase tracking-wider">{title}</h4>
+                    <span className={`lg:hidden transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+                        <i className="fa-solid fa-chevron-down text-white/50 text-xs"></i>
+                    </span>
+                </button>
+                <div className={`overflow-hidden transition-all duration-300 lg:h-auto lg:opacity-100 ${isOpen ? 'max-h-[500px] opacity-100 pb-3' : 'max-h-0 opacity-0 lg:max-h-none'}`}>
+                    {children}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <>
 
 
-            <section className="section darker-red !bg-[#008a45] !bg-none">
+            <section className="section darker-red !bg-[#228b44] !bg-none">
                 <div className="wave-lottie-animation below footer !bg-[#f2f2ec]">
-                    <SnaxxoWave fill="#008a45" />
+                    <SnaxxoWave fill="#228b44" />
                 </div>
 
-                <div className="w-layout-blockcontainer container footer-main w-container !bg-[#008a45] !mt-[-1rem] !max-w-7xl mx-auto px-4 !py-16">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-                        <div>
-                            <h3 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Quick Links</h3>
-                            <ul className="space-y-4 text-xs">
-                                <li><button onClick={onShopClick} className="text-left hover:opacity-80 transition-opacity uppercase font-bold tracking-widest cursor-pointer">ALL PRODUCTS</button></li>
-                                <li><button onClick={onJourneyClick} className="text-left hover:opacity-80 transition-opacity uppercase font-bold tracking-widest cursor-pointer">OUR STORY</button></li>
-                                <li><button onClick={onBlogsClick} className="text-left hover:opacity-80 transition-opacity uppercase font-bold tracking-widest cursor-pointer">RECIPES & LIFESTYLE</button></li>
-                                <li><button onClick={onEventBlogsClick} className="text-left hover:opacity-80 transition-opacity uppercase font-bold tracking-widest cursor-pointer">EVENT BLOGS</button></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Partner With Us</h3>
-                            <ul className="space-y-4 text-xs">
-                                <li><button onClick={onAdminClick} className="text-left hover:opacity-80 transition-opacity uppercase font-bold tracking-widest cursor-pointer">PINOBITE GLOBAL</button></li>
-                                <li><button onClick={onDistributorClick} className="text-left hover:opacity-80 transition-opacity uppercase font-bold tracking-widest cursor-pointer">BECOME A DISTRIBUTOR</button></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Policies</h3>
-                            <ul className="space-y-4 text-xs">
-                                <li><button onClick={onTermsClick} className="text-left hover:opacity-80 transition-opacity uppercase font-bold tracking-widest cursor-pointer">TERMS & CONDITIONS</button></li>
-                                <li><button onClick={onFAQClick} className="text-left hover:opacity-80 transition-opacity uppercase font-bold tracking-widest cursor-pointer">FAQ'S</button></li>
-                                <li><button onClick={onShippingClick} className="text-left hover:opacity-80 transition-opacity uppercase font-bold tracking-widest cursor-pointer">SHIPPING</button></li>
-                                <li><button onClick={onRefundClick} className="text-left hover:opacity-80 transition-opacity uppercase font-bold tracking-widest cursor-pointer">RETURNS & REFUNDS</button></li>
-                                <li><button onClick={onPrivacyClick} className="text-left hover:opacity-80 transition-opacity uppercase font-bold tracking-widest cursor-pointer">PRIVACY POLICY</button></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h3 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Contact</h3>
-                            <div className="space-y-4 text-sm">
-                                <p className="leading-relaxed">
-                                    <span className="text-white font-bold block mb-1">Address:</span>
-                                    Fairyland School Dabhoi – Sinor Chowkdi, Sathod – Dist. Dabhoi Dabhoi, India 391110 Gujarat
-                                </p>
-                                <p>
-                                    <span className="text-white font-bold block mb-1">Phone:</span>
-                                    <a href="tel:+919328173747" className="hover:opacity-80 transition-opacity">+91 9328173747</a>
-                                </p>
-                                <p>
-                                    <span className="text-white font-bold block mb-1">E-mail:</span>
-                                    <a href="mailto:pinobites@gmail.com" className="hover:opacity-80 transition-opacity underline underline-offset-4 decoration-white/50">pinobites@gmail.com</a>
-                                </p>
+                <div className="w-layout-blockcontainer container footer-main w-container !bg-[#228b44] !mt-[-1rem] !max-w-7xl mx-auto px-4 !pt-20 !pb-10 font-display">
+                    {/* Main Footer Content */}
+                    {/* Main Footer Content */}
+                    <div className="flex flex-col lg:grid lg:grid-cols-12 gap-y-0 lg:gap-y-12 lg:gap-x-8 mb-16 px-4 sm:px-0 relative">
 
-                                <div className="flex flex-wrap gap-2 pt-4">
-                                    <div className="bg-white px-2 py-1.5 rounded flex items-center justify-center w-[70px] h-8 shadow-sm">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" className="w-full h-auto object-contain" />
+                        {/* Brand Column - Full width on mobile/tablet */}
+                        <div className="lg:col-span-4 max-w-sm mb-12 lg:mb-0">
+                            <button onClick={onHomeClick} className="block mb-6 h-12">
+                                <img
+                                    src="/logos/Pinobite-logo.png"
+                                    alt="Pinobite Logo"
+                                    className="h-full w-auto object-contain brightness-0 invert"
+                                />
+                            </button>
+                            <p className="text-white/90 text-sm leading-relaxed mb-8">
+                                Pinobite is a group of modern healthy snack specialists transforming your daily energy intake with handcrafted, nutritious muesli and peanut butter. Founded with a passion for goodness.
+                            </p>
+                            <div className="flex gap-4">
+                                <a href="#" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white hover:bg-white/10 transition-all">
+                                    <i className="fa-brands fa-linkedin-in text-sm"></i>
+                                </a>
+                                <a href="#" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white hover:bg-white/10 transition-all">
+                                    <i className="fa-brands fa-x-twitter text-sm"></i>
+                                </a>
+                                <a href="#" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white hover:bg-white/10 transition-all">
+                                    <i className="fa-brands fa-facebook-f text-sm"></i>
+                                </a>
+                                <a href="#" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white hover:bg-white/10 transition-all">
+                                    <i className="fa-brands fa-youtube text-sm"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        {/* Accordion Sections for Mobile, Columns for Desktop */}
+                        <div className="lg:contents">
+                            <div className="lg:col-span-2">
+                                <AccordionSection title="Collections" id="collections">
+                                    <ul className="space-y-4 text-sm text-white/80 font-medium uppercase tracking-tight">
+                                        <li><button onClick={onShopClick} className="hover:text-white transition-colors cursor-pointer text-left">Shop All</button></li>
+                                        <li><button onClick={() => onDistributorClick?.()} className="hover:text-white transition-colors cursor-pointer text-left">Peanut Butter</button></li>
+                                        <li><button onClick={onShopClick} className="hover:text-white transition-colors cursor-pointer text-left">Healthy Muesli</button></li>
+                                        <li><button onClick={onShopClick} className="hover:text-white transition-colors cursor-pointer text-left">Combo Packs</button></li>
+                                    </ul>
+                                </AccordionSection>
+                            </div>
+
+                            <div className="lg:col-span-2">
+                                <AccordionSection title="Resources" id="resources">
+                                    <ul className="space-y-4 text-sm text-white/80 font-medium uppercase tracking-tight">
+                                        <li><button onClick={onBlogsClick} className="hover:text-white transition-colors cursor-pointer text-left">Healthy Blog</button></li>
+                                        <li><button onClick={onEventBlogsClick} className="hover:text-white transition-colors cursor-pointer text-left">Events & News</button></li>
+                                        <li><button onClick={onFAQClick} className="hover:text-white transition-colors cursor-pointer text-left">FAQ's</button></li>
+                                        <li><button onClick={onShippingClick} className="hover:text-white transition-colors cursor-pointer text-left">Shipping Info</button></li>
+                                        <li><button onClick={onRefundClick} className="hover:text-white transition-colors cursor-pointer text-left">Refund Policy</button></li>
+                                    </ul>
+                                </AccordionSection>
+                            </div>
+
+                            <div className="lg:col-span-2">
+                                <AccordionSection title="Partners" id="partners">
+                                    <div className="flex flex-col gap-4">
+                                        <button
+                                            onClick={onDistributorClick}
+                                            className="bg-[#9cd92a] text-[#228b44] px-4 py-2.5 rounded-md font-bold text-sm text-center w-fit hover:bg-white transition-all shadow-sm"
+                                        >
+                                            Become a Distributor
+                                        </button>
+                                        <ul className="space-y-4 text-sm text-white/80 font-medium uppercase tracking-tight">
+                                            <li><button onClick={onAdminClick} className="hover:text-white transition-colors cursor-pointer text-left">Global Partners</button></li>
+                                            <li><button onClick={onAdminClick} className="hover:text-white transition-colors cursor-pointer text-left">Wholesale Inquiry</button></li>
+                                        </ul>
                                     </div>
-                                    <div className="bg-white px-2 py-1.5 rounded flex items-center justify-center w-[70px] h-8 shadow-sm">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/0/08/Meesho_Logo.svg" alt="Meesho" className="w-full h-auto object-contain" />
-                                    </div>
-                                    <div className="bg-white px-2 py-1.5 rounded flex items-center justify-center w-[70px] h-8 shadow-sm">
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Flipkart_logo.svg" alt="Flipkart" className="w-full h-auto object-contain" />
-                                    </div>
-                                </div>
+                                </AccordionSection>
+                            </div>
+
+                            <div className="lg:col-span-2">
+                                <AccordionSection title="Company" id="company">
+                                    <ul className="space-y-4 text-sm text-white/80 font-medium uppercase tracking-tight">
+                                        <li><button onClick={onJourneyClick} className="hover:text-white transition-colors cursor-pointer text-left">About Us</button></li>
+                                        <li><button onClick={onJourneyClick} className="hover:text-white transition-colors cursor-pointer text-left">Our Values</button></li>
+                                        <li><button onClick={onJourneyClick} className="hover:text-white transition-colors cursor-pointer text-left">Our Story</button></li>
+                                        <li><button onClick={() => window.location.href = 'mailto:pinobites@gmail.com'} className="hover:text-white transition-colors cursor-pointer text-left">Contact Us</button></li>
+                                    </ul>
+                                </AccordionSection>
+                            </div>
+                        </div>
+
+                        {/* Scroll to Top - Mobile/Tablet only */}
+                        <button
+                            onClick={scrollToTop}
+                            className="lg:hidden absolute bottom-[-4rem] right-4 w-12 h-12 bg-[#9cd92a] rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform z-20"
+                        >
+                            <i className="fa-solid fa-arrow-up text-[#228b44]"></i>
+                        </button>
+                    </div>
+
+                    {/* Divider and Contact Row */}
+                    <div className="border-t border-white/10 pt-10 pb-10">
+                        <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16">
+                            <div className="flex items-center gap-4 text-white hover:text-white/80 transition-colors text-sm md:text-base">
+                                <i className="fa-solid fa-phone text-[#f9bc15] text-xl"></i>
+                                <a href="tel:+919328173747" className="font-medium tracking-wide">+91 9328173747</a>
+                            </div>
+                            <div className="flex items-center gap-4 text-white hover:text-white/80 transition-colors text-sm md:text-base text-center md:text-left">
+                                <i className="fa-solid fa-location-dot text-[#f9bc15] text-xl"></i>
+                                <span className="font-medium tracking-wide">Fairyland School Dabhoi – Sinor Chowkdi, India 391110</span>
                             </div>
                         </div>
                     </div>
-                    <div className="pt-8 border-t border-white/20 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-display">
-                        <p>© 2025 Pinobite. All Rights Reserved.</p>
-                        <div className="flex gap-4 opacity-50 grayscale hover:grayscale-0 transition-all duration-300">
-                            <div className="w-10 h-6 bg-white/10 rounded flex items-center justify-center text-[8px] font-bold text-white uppercase">VISA</div>
-                            <div className="w-10 h-6 bg-white/10 rounded flex items-center justify-center text-[8px] font-bold text-white uppercase">MASTER</div>
-                            <div className="w-10 h-6 bg-white/10 rounded flex items-center justify-center text-[8px] font-bold text-white uppercase">PAYPAL</div>
+
+                    {/* Bottom Bar */}
+                    <div className="border-t border-white/10 pt-10 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-white/60">
+                        <p className="text-center md:text-left">© 2025 Pinobite Plan Consultants, Inc. All Rights Reserved.</p>
+                        <div className="flex gap-6 sm:gap-8 justify-center">
+                            <button onClick={onTermsClick} className="hover:text-white transition-colors cursor-pointer">Terms</button>
+                            <button onClick={onPrivacyClick} className="hover:text-white transition-colors cursor-pointer">Privacy</button>
+                            <button className="hover:text-white transition-colors cursor-pointer">Cookies</button>
+                            <button className="hover:text-white transition-colors cursor-pointer">Sitemap</button>
                         </div>
                     </div>
                 </div>

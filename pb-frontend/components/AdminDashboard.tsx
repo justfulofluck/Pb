@@ -201,6 +201,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     reviewCount: 0,
     benefits: [],
     nutrients: [],
+    ingredients: '',
+    nutrition: {
+      calories: '',
+      protein: '',
+      carbs: '',
+      fat: ''
+    },
     model3d: '',
     themeColor: '#FF6F00', // Default to a brand color if none selected
     orientation: '0deg 0deg 0deg',
@@ -284,6 +291,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       reviewCount: 0,
       benefits: [],
       nutrients: [],
+      ingredients: '',
+      nutrition: {
+        calories: '',
+        protein: '',
+        carbs: '',
+        fat: ''
+      },
       model3d: '',
       themeColor: '#FF6F00',
       orientation: '0deg 0deg 0deg',
@@ -350,6 +364,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       reviewCount: 0,
       benefits: [],
       nutrients: [],
+      ingredients: '',
+      nutrition: {
+        calories: '',
+        protein: '',
+        carbs: '',
+        fat: ''
+      },
       model3d: '',
       themeColor: '#FF6F00',
       orientation: '0deg 0deg 0deg',
@@ -1976,6 +1997,35 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <div className="space-y-2">
                         <label className="text-xs font-black uppercase tracking-widest text-slate-500">Description</label>
                         <textarea required value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={4} placeholder="Product details..." />
+                      </div>
+
+                      {/* Nutrition & Ingredients Section */}
+                      <div className="space-y-6 border-t border-slate-100 pt-6">
+                        <h4 className="text-sm font-black uppercase tracking-widest text-slate-900 border-l-4 border-primary pl-3">Nutrition & Ingredients</h4>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Calories (kcal)</label>
+                            <input type="text" value={productForm.nutrition?.calories} onChange={e => setProductForm({ ...productForm, nutrition: { ...productForm.nutrition!, calories: e.target.value } })} className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary" placeholder="450" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Protein (gm)</label>
+                            <input type="text" value={productForm.nutrition?.protein} onChange={e => setProductForm({ ...productForm, nutrition: { ...productForm.nutrition!, protein: e.target.value } })} className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary" placeholder="24" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Carbs (gm)</label>
+                            <input type="text" value={productForm.nutrition?.carbs} onChange={e => setProductForm({ ...productForm, nutrition: { ...productForm.nutrition!, carbs: e.target.value } })} className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary" placeholder="12" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Fat (gm)</label>
+                            <input type="text" value={productForm.nutrition?.fat} onChange={e => setProductForm({ ...productForm, nutrition: { ...productForm.nutrition!, fat: e.target.value } })} className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary" placeholder="18" />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Full Ingredients</label>
+                          <textarea value={productForm.ingredients} onChange={e => setProductForm({ ...productForm, ingredients: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={3} placeholder="Peanuts, Sea Salt, etc..." />
+                        </div>
                       </div>
 
                       {/* Image Upload Section */}
