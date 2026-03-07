@@ -136,7 +136,7 @@ export const CATEGORY_DISPLAY_DATA: CategoryDisplay[] = [
   },
   {
     id: "Muesli",
-    display: "Super Muesli",
+    display: "Muesli",
     image: "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?q=80&w=600&auto=format&fit=crop",
     count: "0 Blends",
     bgClass: "bg-[#fefce8]",
@@ -147,7 +147,7 @@ export const CATEGORY_DISPLAY_DATA: CategoryDisplay[] = [
   },
   {
     id: "Oats",
-    display: "Super Oats",
+    display: "Oats",
     image: "https://images.unsplash.com/photo-1613769049987-b31b641f25b1?q=80&w=600&auto=format&fit=crop",
     count: "0 Varieties",
     bgClass: "bg-[#f0fdf4]",

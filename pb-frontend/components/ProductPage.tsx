@@ -71,6 +71,19 @@ const ProductPage: React.FC<ProductPageProps> = ({
     };
   }, [product]);
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowIngredients(false);
+        onPopupToggle?.(false);
+      }
+    };
+    if (showIngredients) {
+      window.addEventListener('keydown', handleEscape);
+    }
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [showIngredients, onPopupToggle]);
+
   const getProductColor = (name: string) => {
     const lowerName = name.toLowerCase();
     if (lowerName.includes('chia') || lowerName.includes('strawberry')) return '#a62427'; // Dark Strawberry Red
@@ -247,14 +260,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               className="absolute bottom-0 left-0 w-full lg:top-0 lg:left-auto lg:right-0 lg:w-[450px] lg:h-full lg:rounded-l-[40px] rounded-t-[40px] p-8 pb-10 lg:pb-8 shadow-2xl flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close Button Desktop */}
-              <button
-                onClick={() => { setShowIngredients(false); onPopupToggle?.(false); }}
-                className="hidden lg:flex absolute top-8 left-[-20px] w-10 h-10 bg-white shadow-lg rounded-full items-center justify-center text-slate-400 hover:text-slate-900 transition-colors"
-                style={{ backgroundColor: bgColor, color: 'white' }}
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
+
 
               {/* Tabs Switcher */}
               <div className="flex bg-[#f1f5f9] p-1.5 rounded-[20px] mb-8">

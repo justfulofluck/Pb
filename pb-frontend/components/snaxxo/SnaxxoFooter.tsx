@@ -3,7 +3,7 @@ import { gsap } from 'gsap';
 import SnaxxoWave from './SnaxxoWave';
 
 interface SnaxxoFooterProps {
-    onShopClick: () => void;
+    onShopClick: (category?: string) => void;
     onHomeClick: () => void;
     onFAQClick?: () => void;
     onBlogsClick?: () => void;
@@ -66,7 +66,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
             <div className="border-b border-white/10 lg:border-none w-full">
                 <button
                     onClick={() => toggleSection(id)}
-                    className="w-full flex items-center justify-between py-3 lg:py-0 lg:mb-6 text-left focus:outline-none group"
+                    className="w-full flex items-center justify-between py-3 lg:py-0 lg:mb-3 text-left focus:outline-none group"
                 >
                     <h4 className="font-bold text-white text-base lg:text-lg uppercase tracking-wider">{title}</h4>
                     <span className={`lg:hidden transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
@@ -96,7 +96,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
 
                         {/* Brand Column - Full width on mobile/tablet */}
                         <div className="lg:col-span-4 max-w-sm mb-12 lg:mb-0">
-                            <button onClick={onHomeClick} className="block mb-6 h-12">
+                            <button onClick={onHomeClick} className="block mb-6 lg:h-28 h-12">
                                 <img
                                     src="/logos/Pinobite-logo.png"
                                     alt="Pinobite Logo"
@@ -126,20 +126,18 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
                         <div className="lg:contents">
                             <div className="lg:col-span-2">
                                 <AccordionSection title="Collections" id="collections">
-                                    <ul className="space-y-4 text-sm text-white/80 font-medium uppercase tracking-tight">
-                                        <li><button onClick={onShopClick} className="hover:text-white transition-colors cursor-pointer text-left">Shop All</button></li>
-                                        <li><button onClick={() => onDistributorClick?.()} className="hover:text-white transition-colors cursor-pointer text-left">Peanut Butter</button></li>
-                                        <li><button onClick={onShopClick} className="hover:text-white transition-colors cursor-pointer text-left">Healthy Muesli</button></li>
-                                        <li><button onClick={onShopClick} className="hover:text-white transition-colors cursor-pointer text-left">Combo Packs</button></li>
+                                    <ul className="space-y-3 text-sm text-white/80 font-medium uppercase tracking-tight pl-0 list-none">
+                                        <li><button onClick={() => onShopClick()} className="hover:text-white transition-colors cursor-pointer text-left">Shop All</button></li>
+                                        <li><button onClick={() => onShopClick('Peanut Butter')} className="hover:text-white transition-colors cursor-pointer text-left">Peanut Butter</button></li>
+                                        <li><button onClick={() => onShopClick('Muesli')} className="hover:text-white transition-colors cursor-pointer text-left">Healthy Muesli</button></li>
+                                        <li><button onClick={() => onShopClick('Oats')} className="hover:text-white transition-colors cursor-pointer text-left">Healthy Oats</button></li>
                                     </ul>
                                 </AccordionSection>
                             </div>
 
                             <div className="lg:col-span-2">
                                 <AccordionSection title="Resources" id="resources">
-                                    <ul className="space-y-4 text-sm text-white/80 font-medium uppercase tracking-tight">
-                                        <li><button onClick={onBlogsClick} className="hover:text-white transition-colors cursor-pointer text-left">Healthy Blog</button></li>
-                                        <li><button onClick={onEventBlogsClick} className="hover:text-white transition-colors cursor-pointer text-left">Events & News</button></li>
+                                    <ul className="space-y-3 text-sm text-white/80 font-medium uppercase tracking-tight pl-0 list-none">
                                         <li><button onClick={onFAQClick} className="hover:text-white transition-colors cursor-pointer text-left">FAQ's</button></li>
                                         <li><button onClick={onShippingClick} className="hover:text-white transition-colors cursor-pointer text-left">Shipping Info</button></li>
                                         <li><button onClick={onRefundClick} className="hover:text-white transition-colors cursor-pointer text-left">Refund Policy</button></li>
@@ -149,28 +147,20 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
 
                             <div className="lg:col-span-2">
                                 <AccordionSection title="Partners" id="partners">
-                                    <div className="flex flex-col gap-4">
-                                        <button
-                                            onClick={onDistributorClick}
-                                            className="bg-[#9cd92a] text-[#228b44] px-4 py-2.5 rounded-md font-bold text-sm text-center w-fit hover:bg-white transition-all shadow-sm"
-                                        >
-                                            Become a Distributor
-                                        </button>
-                                        <ul className="space-y-4 text-sm text-white/80 font-medium uppercase tracking-tight">
-                                            <li><button onClick={onAdminClick} className="hover:text-white transition-colors cursor-pointer text-left">Global Partners</button></li>
-                                            <li><button onClick={onAdminClick} className="hover:text-white transition-colors cursor-pointer text-left">Wholesale Inquiry</button></li>
-                                        </ul>
-                                    </div>
+                                    <ul className="space-y-3 text-sm text-white/80 font-medium uppercase tracking-tight pl-0 list-none">
+                                        <li><button onClick={onDistributorClick} className="hover:text-white transition-colors cursor-pointer text-left">Become a Distributor</button></li>
+                                        <li><button onClick={onAdminClick} className="hover:text-white transition-colors cursor-pointer text-left">Pinobite Login</button></li>
+                                    </ul>
                                 </AccordionSection>
                             </div>
 
                             <div className="lg:col-span-2">
                                 <AccordionSection title="Company" id="company">
-                                    <ul className="space-y-4 text-sm text-white/80 font-medium uppercase tracking-tight">
+                                    <ul className="space-y-3 text-sm text-white/80 font-medium uppercase tracking-tight pl-0 list-none">
                                         <li><button onClick={onJourneyClick} className="hover:text-white transition-colors cursor-pointer text-left">About Us</button></li>
-                                        <li><button onClick={onJourneyClick} className="hover:text-white transition-colors cursor-pointer text-left">Our Values</button></li>
                                         <li><button onClick={onJourneyClick} className="hover:text-white transition-colors cursor-pointer text-left">Our Story</button></li>
-                                        <li><button onClick={() => window.location.href = 'mailto:pinobites@gmail.com'} className="hover:text-white transition-colors cursor-pointer text-left">Contact Us</button></li>
+                                        <li><button onClick={onBlogsClick} className="hover:text-white transition-colors cursor-pointer text-left">Healthy Blog</button></li>
+                                        <li><button onClick={onEventBlogsClick} className="hover:text-white transition-colors cursor-pointer text-left">Events & News</button></li>
                                     </ul>
                                 </AccordionSection>
                             </div>

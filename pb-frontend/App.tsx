@@ -1280,7 +1280,7 @@ const AppContent: React.FC = () => {
 
       {currentView !== 'checkout' && currentView !== 'visitor-form' && (
         <SnaxxoFooter
-          onShopClick={navigateToShop}
+          onShopClick={(cat) => cat ? navigateToShopCategory(cat) : navigateToShop()}
           onHomeClick={goHome}
           onFAQClick={navigateToFAQ}
 
