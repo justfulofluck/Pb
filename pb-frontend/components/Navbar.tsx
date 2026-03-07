@@ -167,7 +167,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 <img
                   src="/logos/Pinobite-logo.png"
                   alt="Pinobite Logo"
-                  className="h-20 w-auto object-contain transition-transform group-hover:scale-105"
+                  className="h-20 w-auto object-contain"
                 />
               </button>
             </div>
