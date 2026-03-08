@@ -6,13 +6,15 @@ interface SnaxxoProductCarouselProps {
     onProductClick: (p: Product) => void;
     onAddToCart: (p: Product) => void;
     isLoading?: boolean;
+    onShopClick?: () => void;
 }
 
 const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
     products,
     onProductClick,
     onAddToCart,
-    isLoading
+    isLoading,
+    onShopClick
 }) => {
     if (isLoading) {
         return (
@@ -39,6 +41,20 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                     <p className="font-handdrawn text-3xl md:text-1xl text-slate-500 mt-2 text-center">
                         Join 100k+ happy healthy eaters! 🥳
                     </p>
+                    <div className="mt-6">
+                        <button
+                            onClick={() => {
+                                if (onShopClick) {
+                                    onShopClick();
+                                } else {
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }
+                            }}
+                            className="bg-[#008a45] text-white px-8 py-3 rounded-full font-bold text-sm uppercase tracking-wider hover:bg-[#007038] shadow-lg active:scale-95 transition-all flex items-center gap-2"
+                        >
+                            SHOP ALL
+                        </button>
+                    </div>
                 </div>
             </div>
 

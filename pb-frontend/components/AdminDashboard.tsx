@@ -316,6 +316,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setProductView('add');
   };
 
+  const updateBenefit = (index: number, value: string) => {
+    const newBenefits = [...(productForm.benefits || [])];
+    newBenefits[index] = value;
+    setProductForm(prev => ({ ...prev, benefits: newBenefits }));
+  };
+
+  const addBenefit = () => {
+    setProductForm(prev => ({ ...prev, benefits: [...(prev.benefits || []), ''] }));
+  };
+
+  const removeBenefit = (index: number) => {
+    setProductForm(prev => ({ ...prev, benefits: prev.benefits?.filter((_, i) => i !== index) }));
+  };
+
   // Handlers for Products
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -343,8 +357,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         gallery: productForm.gallery || [],
         rating: 5,
         reviewCount: 0,
-        benefits: ['High Protein', 'Natural'],
-        nutrients: [{ label: 'Energy', value: '400kcal' }],
+        benefits: productForm.benefits || [],
+        nutrients: productForm.nutrients || [],
         ...productForm as Product
       };
       onAddProduct(newProduct);
@@ -1997,6 +2011,39 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <div className="space-y-2">
                         <label className="text-xs font-black uppercase tracking-widest text-slate-500">Description</label>
                         <textarea required value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={4} placeholder="Product details..." />
+                      </div>
+
+                      {/* Product Benefits Section */}
+                      <div className="space-y-4 border-t border-slate-100 pt-6">
+                        <div className="flex justify-between items-center">
+                          <h4 className="text-sm font-black uppercase tracking-widest text-slate-900 border-l-4 border-primary pl-3">Key Benefits</h4>
+                          <button type="button" onClick={addBenefit} className="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-1 hover:underline">
+                            <span className="material-symbols-outlined text-sm">add</span> Add Benefit
+                          </button>
+                        </div>
+                        <div className="grid gap-3">
+                          {productForm.benefits?.map((benefit, idx) => (
+                            <div key={idx} className="flex gap-2 animate-in fade-in slide-in-from-left-2 duration-200">
+                              <input
+                                type="text"
+                                value={benefit}
+                                onChange={(e) => updateBenefit(idx, e.target.value)}
+                                className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary"
+                                placeholder="e.g. 27g Protein per 100g 💪"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeBenefit(idx)}
+                                className="w-12 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-all"
+                              >
+                                <span className="material-symbols-outlined text-lg">delete</span>
+                              </button>
+                            </div>
+                          ))}
+                          {(productForm.benefits?.length === 0) && (
+                            <p className="text-xs text-slate-400 italic">No benefits added yet. Click "Add Benefit" to start listing product highlights.</p>
+                          )}
+                        </div>
                       </div>
 
                       {/* Nutrition & Ingredients Section */}

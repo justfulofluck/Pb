@@ -382,21 +382,19 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                         CUSTOMER'S FAVORITE
                     </h2>
                     <div className="w-24 md:w-32 h-2 md:h-2.5 bg-[#008a45] mb-4 rounded-full"></div>
-                    <div className="relative z-10 w-full flex justify-center mt-2">
-                        {onShopClick ? (
-                            <button
-                                onClick={onShopClick}
-                                className="bg-[#008a45] text-white px-6 py-2 md:px-8 md:py-2.5 rounded-full font-bold text-xs md:text-sm uppercase tracking-wider hover:bg-[#007038] transition-colors shadow flex items-center gap-1 hover:scale-105 active:scale-95"
-                            >
-                                SHOP ALL <span className="text-lg leading-none font-bold mt-[1px]">&raquo;</span>
-                            </button>
-                        ) : (
-                            <button
-                                className="bg-[#008a45] text-white px-6 py-2 md:px-8 md:py-2.5 rounded-full font-bold text-xs md:text-sm uppercase tracking-wider hover:bg-[#007038] transition-colors shadow flex items-center gap-1 hover:scale-105 active:scale-95"
-                            >
-                                SHOP ALL <span className="text-lg leading-none font-bold mt-[1px]">&raquo;</span>
-                            </button>
-                        )}
+                    <div className="relative z-[300] w-full flex justify-center mt-2">
+                        <button
+                            onClick={() => {
+                                if (onShopClick) {
+                                    onShopClick();
+                                } else {
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }
+                            }}
+                            className="bg-[#008a45] text-white px-6 py-2 md:px-8 md:py-2.5 rounded-full font-bold text-xs md:text-sm uppercase tracking-wider hover:bg-[#007038] transition-colors shadow flex items-center gap-1 hover:scale-105 active:scale-95 cursor-pointer pointer-events-auto"
+                        >
+                            SHOP ALL
+                        </button>
                     </div>
                 </div>
 
@@ -500,6 +498,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                     onProductClick={onProductClick}
                     onAddToCart={onAddToCart}
                     isLoading={isLoading}
+                    onShopClick={onShopClick}
                 />
             </div>
         </>

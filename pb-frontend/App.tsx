@@ -77,9 +77,15 @@ const AppContent: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<EventBlog | null>(null);
   const [selectedBlogPost, setSelectedBlogPost] = useState<BlogPost | null>(null);
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<View>('home');
-  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
-  const [shopCategory, setShopCategory] = useState('All');
+  const [currentView, setCurrentView] = useState<View>(() => {
+    return window.history.state?.view || 'home';
+  });
+  const [globalSearchQuery, setGlobalSearchQuery] = useState(() => {
+    return window.history.state?.query || '';
+  });
+  const [shopCategory, setShopCategory] = useState(() => {
+    return window.history.state?.category || 'All';
+  });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNutritionOpen, setIsNutritionOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -96,10 +102,9 @@ const AppContent: React.FC = () => {
     }
   }, []);
 
-  // Handle browser back/forward buttons
+  // Handle browser back/forward buttons and initial state restoration
   useEffect(() => {
-    const handlePopState = async (event: PopStateEvent) => {
-      const state = event.state;
+    const syncState = async (state: any) => {
       if (state && state.view) {
         setCurrentView(state.view);
 
@@ -143,6 +148,8 @@ const AppContent: React.FC = () => {
           setShopCategory(state.category || 'All');
           setGlobalSearchQuery(state.query || '');
         }
+
+        // Clear selections if not in state
         if (!state.productId) setSelectedProduct(null);
         if (!state.eventId) setSelectedEvent(null);
         if (!state.blogId) setSelectedBlogPost(null);
@@ -155,10 +162,16 @@ const AppContent: React.FC = () => {
       }
     };
 
+    const handlePopState = (event: PopStateEvent) => {
+      syncState(event.state);
+    };
+
     window.addEventListener('popstate', handlePopState);
 
-    // Set initial state if none exists
-    if (!window.history.state) {
+    // Sync current state on mount or when data updates
+    if (window.history.state) {
+      syncState(window.history.state);
+    } else {
       window.history.replaceState({ view: 'home' }, '');
     }
 

@@ -23,6 +23,66 @@ interface ProductPageProps {
   onPopupToggle?: (isOpen: boolean) => void;
 }
 
+const StableModelViewer = React.memo(({ product }: { product: Product }) => {
+  const jarWrapperRef = React.useRef<HTMLDivElement>(null);
+
+  const getModelSrc = () => {
+    if (product.model3d) return product.model3d;
+    if (product.name === 'American Nuts Crunchy Peanut Butter') return '/3D-assets/AmericanNuts-v1.glb';
+    if (product.name === 'Strawberry with Chia Peanut Butter') return '/3D-assets/Strawberry-with-Chia.glb';
+    if (product.name === 'Dark Chocolate & Almond Crunchy Peanut Butter') return '/3D-assets/Dark-Chocolate-Almond.glb';
+    return null;
+  };
+
+  const modelSrc = getModelSrc();
+
+  if (!modelSrc) {
+    return <img src={product.image} alt={product.name} className="content-image _100-full" />;
+  }
+
+  return (
+    <div ref={jarWrapperRef} style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <style>{`
+        @keyframes floatJar {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+          100% { transform: translateY(0px); }
+        }
+        @keyframes floatShadow {
+          0% { transform: scale(1); opacity: 0.5; }
+          50% { transform: scale(0.8); opacity: 0.15; }
+          100% { transform: scale(1); opacity: 0.5; }
+        }
+      `}</style>
+      <div
+        dangerouslySetInnerHTML={{
+          __html: `<model-viewer 
+            src="${modelSrc}" 
+            alt="${product.name}" 
+            camera-controls 
+            disable-zoom 
+            disable-pan 
+            disable-tap 
+            bounds="tight" 
+            min-camera-orbit="auto auto auto" 
+            max-camera-orbit="auto auto auto" 
+            min-field-of-view="auto" 
+            max-field-of-view="auto" 
+            touch-action="pan-y" 
+            interaction-prompt="none" 
+            auto-rotate 
+            rotation-speed="20deg" 
+            orientation="${product.orientation || '0deg 0deg -15deg'}" 
+            style="width: 100%; max-width: 750px; height: clamp(400px, 65vh, 800px); outline: none; margin: 0 auto; pointer-events: auto; animation: floatJar 6s ease-in-out infinite; z-index: 2; position: relative;">
+          </model-viewer>`
+        }}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+      />
+      <div style={{ width: '280px', height: '30px', background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 70%)', position: 'absolute', bottom: '0px', animation: 'floatShadow 6s ease-in-out infinite', zIndex: 1, pointerEvents: 'none' }} />
+    </div>
+  );
+}, (prev, next) => prev.product.id === next.product.id);
+
 const ProductPage: React.FC<ProductPageProps> = ({
   product,
   products,
@@ -118,18 +178,32 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
   return (
     <div className="page-wrapper" style={{ opacity: 1, backgroundColor: tintColor }}>
-      <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-screen flex items-center py-20">
+      <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-[90vh] flex flex-col items-center pt-2 pb-20">
         <div className="w-layout-blockcontainer container product-page-hero w-container">
           <div className="content-wrapper product-page-hero">
-            <div className="heading-text-box pdp-h1">
-              <h1 ref={titleRef} style={{ color: 'rgb(255, 255, 255)' }} className="h1-heading pdp-hero font-oswald font-bold uppercase text-6xl md:text-7xl">
+            <div className="heading-text-box pdp-h1 mt-0 pt-0">
+              <h1 ref={titleRef} style={{ color: 'rgb(255, 255, 255)' }} className="h1-heading pdp-hero font-oswald font-bold uppercase text-6xl md:text-7xl leading-[0.9]">
                 {product.name}
               </h1>
             </div>
-            <div className="product-page-hero-bottom-content flex flex-col lg:flex-row items-center lg:items-end justify-between relative px-6 md:px-0 lg:min-h-[60vh] mt-4 lg:mt-0">
+            <div className="product-page-hero-bottom-content flex flex-col lg:flex-row items-center lg:items-end justify-between relative px-6 md:px-0 lg:min-h-[50vh] mt-2 lg:mt-[-2rem]">
               <div className="content-block pdp-01 w-full lg:w-1/4 order-2 lg:order-1 mt-6 lg:mt-0 flex flex-col items-center lg:items-start">
                 <div className="text-box pdp-description text-center lg:text-left mx-auto lg:mx-0" data-snaxxo-animate>
-                  <p style={{ color: 'rgb(255, 255, 255)' }} className="paragraph">{product.description}</p>
+                  <p style={{ color: 'rgb(255, 255, 255)' }} className="paragraph mb-6">{product.description}</p>
+
+                  {product.benefits && product.benefits.length > 0 && (
+                    <div className="mb-8 text-left max-w-sm mx-auto lg:mx-0">
+                      <ul className="space-y-3 text-white/90 text-sm list-none p-0">
+                        {product.benefits.map((benefit, idx) => (
+                          <li key={idx} className="flex items-start gap-3">
+                            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />
+                            <span className="leading-relaxed font-medium">{benefit}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   <div className="pdp-ingredients-popup-container">
                     <a onClick={(e) => { e.preventDefault(); setShowIngredients(true); onPopupToggle?.(true); }} style={{ borderColor: '#FFF', cursor: 'pointer' }} className="pdp-nutrition-popup-toggle w-inline-block">
                       <p style={{ color: '#FFF' }} className="paragraph no-margin">Nutrition &amp; Ingredients</p>
@@ -145,36 +219,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               {/* position of 3D object */}
               <div className="content-block pdp-02 w-full lg:flex-1 order-1 lg:order-2 relative flex justify-center items-center">
                 <div ref={imageRef} className="image-wrapper main-product-image w-full" style={{ pointerEvents: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto' }}>
-                  {(product.model3d || ['American Nuts Crunchy Peanut Butter', 'Strawberry with Chia Peanut Butter', 'Dark Chocolate & Almond Crunchy Peanut Butter'].includes(product.name)) ? (
-                    <div ref={jarWrapperRef} style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <style>{`
-                        @keyframes floatJar {
-                          0% { transform: translateY(0px); }
-                          50% { transform: translateY(-20px); }
-                          100% { transform: translateY(0px); }
-                        }
-                        @keyframes floatShadow {
-                          0% { transform: scale(1); opacity: 0.5; }
-                          50% { transform: scale(0.8); opacity: 0.15; }
-                          100% { transform: scale(1); opacity: 0.5; }
-                        }
-                      `}</style>
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: `<model-viewer src="${product.model3d || (
-                            product.name === 'American Nuts Crunchy Peanut Butter' ? '/3D-assets/AmericanNuts-v1.glb' :
-                              product.name === 'Strawberry with Chia Peanut Butter' ? '/3D-assets/Strawberry-with-Chia.glb' :
-                                '/3D-assets/Dark-Chocolate-Almond.glb'
-                          )}" alt="${product.name}" camera-controls disable-zoom disable-pan disable-tap bounds="tight" min-camera-orbit="auto auto auto" max-camera-orbit="auto auto auto" min-field-of-view="auto" max-field-of-view="auto" touch-action="pan-y" interaction-prompt="none" auto-rotate rotation-speed="20deg" orientation="${product.orientation || '0deg 0deg -15deg'}" style="width: 100%; max-width: 750px; height: clamp(400px, 65vh, 800px); outline: none; margin: 0 auto; pointer-events: auto; animation: floatJar 6s ease-in-out infinite; z-index: 2; position: relative;">
-                          </model-viewer>`
-                        }}
-                        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-                      />
-                      <div style={{ width: '280px', height: '30px', background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 70%)', position: 'absolute', bottom: '0px', animation: 'floatShadow 6s ease-in-out infinite', zIndex: 1, pointerEvents: 'none' }} />
-                    </div>
-                  ) : (
-                    <img src={product.image} alt={product.name} className="content-image _100-full" />
-                  )}
+                  <StableModelViewer product={product} />
                 </div>
               </div>
               <div className="content-block pdp-03 w-full lg:w-1/4 order-3 lg:order-3 mt-6 lg:mt-0 flex flex-col items-center lg:items-end justify-center lg:justify-end mx-auto lg:mx-0" data-snaxxo-animate>
