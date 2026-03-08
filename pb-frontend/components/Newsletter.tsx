@@ -46,10 +46,10 @@ const Newsletter: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <div className="bg-[#008a45] rounded-[40px] py-16 md:py-24 px-8 md:px-12 text-white overflow-hidden relative shadow-2xl">
           <div className="max-w-4xl mx-auto text-center relative z-10">
-            <h2 className="text-4xl md:text-7xl font-black mb-6 uppercase tracking-tight font-garet">
-              NUTS ABOUT HEALTH? <br className="hidden md:block" /> JOIN OUR NEWSLETTER
+            <h2 className="text-[2.2rem] sm:text-4xl md:text-7xl font-black mb-6 uppercase tracking-tight font-garet leading-tight md:leading-tight">
+              NUTS ABOUT HEALTH? <br className="lg:block hidden" /> JOIN OUR NEWSLETTER
             </h2>
-            <p className="text-lg md:text-xl mb-12 opacity-90 max-w-2xl mx-auto font-medium">
+            <p className="text-base md:text-xl mb-12 opacity-90 max-w-2xl mx-auto font-medium px-4 md:px-0">
               Get exclusive recipes, health tips and 10% off your first order!
             </p>
 

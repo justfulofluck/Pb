@@ -18,15 +18,15 @@ const ComparisonTable: React.FC = () => {
         <h2 className="text-4xl md:text-5xl font-black text-center mb-20 uppercase italic tracking-tight text-slate-900">
           PINOBITE <span className="text-primary italic">VS.</span> THE REST
         </h2>
-        
-        <div className="overflow-x-auto pb-8">
+
+        <div className="overflow-x-auto pb-8 pt-8">
           <table className="w-full border-separate border-spacing-x-1 border-spacing-y-0 min-w-[800px]">
             <thead>
               <tr className="text-slate-900 uppercase">
                 <th className="p-6 text-left font-handdrawn text-3xl align-bottom w-1/4">Features</th>
                 <th className="p-6 text-center bg-white/50 backdrop-blur rounded-t-3xl font-black text-sm tracking-widest w-1/4">Ghar Ka Khaana</th>
                 <th className="relative p-0 w-1/4">
-                  <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-10 bg-secondary text-slate-900 px-4 py-1.5 rounded-full text-[10px] font-black shadow-sm whitespace-nowrap transform -rotate-1">
+                  <div className="absolute top-[-10px] left-1/2 -translate-x-1/2 z-10 bg-secondary text-slate-900 px-4 py-1.5 rounded-full text-[10px] font-black shadow-sm whitespace-nowrap transform -rotate-1">
                     THE BEST
                   </div>
                   <div className="p-6 bg-primary text-white rounded-t-3xl font-black text-sm tracking-widest h-full flex items-center justify-center shadow-lg">
@@ -59,7 +59,7 @@ const ComparisonTable: React.FC = () => {
 
         {/* Bottom Annotation */}
         <div className="mt-12 text-center">
-           <p className="font-handdrawn text-xl text-slate-400 transform -rotate-1">Data based on internal testing & common nutritional benchmarks 🧪</p>
+          <p className="font-handdrawn text-xl text-slate-400 transform -rotate-1">Data based on internal testing & common nutritional benchmarks 🧪</p>
         </div>
       </div>
     </section>

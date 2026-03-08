@@ -84,7 +84,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
         <>
 
 
-            <section className="section darker-red !bg-[#228b44] !bg-none">
+            <section className="section darker-red !bg-[#f2f2ec] !bg-none">
                 <div className="wave-lottie-animation below footer !bg-[#f2f2ec]">
                     <SnaxxoWave fill="#228b44" />
                 </div>

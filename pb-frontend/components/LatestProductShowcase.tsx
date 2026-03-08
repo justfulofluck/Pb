@@ -78,43 +78,63 @@ const LatestProductShowcase: React.FC = () => {
   ];
 
   return (
-    <section className="py-24 bg-[#f2f2ec] overflow-hidden relative">
+    <section className="pt-12 pb-24 bg-[#f2f2ec] overflow-hidden relative">
       {/* Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary/10 rounded-full blur-[150px] pointer-events-none"></div>
 
+      <style>{`
+        @keyframes floatJarLarge {
+          0% { transform: translateY(0px) rotateX(0deg); }
+          50% { transform: translateY(-35px) rotateX(2deg); }
+          100% { transform: translateY(0px) rotateX(0deg); }
+        }
+        @keyframes floatShadowLarge {
+          0% { transform: scale(1); opacity: 0.3; }
+          50% { transform: scale(0.7); opacity: 0.1; }
+          100% { transform: scale(1); opacity: 0.3; }
+        }
+      `}</style>
+
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-16 space-y-2">
-          <p className="font-handdrawn text-2xl text-secondary/80">Our New Flavor</p>
+        <div className="text-center mb-0 relative">
+          <span className="font-handdrawn text-3xl md:text-4xl lg:text-2xl text-secondary/80 transform -rotate-3 inline-block absolute -top-8 md:-top-12 lg:-top-8 left-1/2 -translate-x-1/2 md:-translate-x-[220px] lg:-translate-x-[200px] z-10 whitespace-nowrap">
+            Our New Flavor
+          </span>
           <div className="relative inline-block">
-            <h2 className="text-6xl md:text-7xl font-black text-primary font-garet tracking-tight">latest Product</h2>
+            <h2 className="text-6xl md:text-7xl lg:text-8xl font-bold text-primary uppercase tracking-normal leading-tight md:leading-none font-bebas">latest Product</h2>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-12 lg:gap-32 items-center">
+        <div className="grid lg:grid-cols-3 gap-8 md:gap-12 lg:gap-32 items-center mt-[-1rem] md:mt-[-2rem]">
           {/* Left Column */}
-          <div className="space-y-10 md:space-y-16 text-center lg:text-right order-2 lg:order-1">
+          <div className="space-y-8 md:space-y-16 text-center lg:text-right order-2 lg:order-1">
             {benefitsLeft.map((item, idx) => (
-              <div key={idx} className="group">
-                <h3 className="text-2xl font-black text-slate-900 mb-2 font-garet">{item.title}</h3>
-                <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:ml-auto">
+              <div key={idx} className="group px-4 md:px-0">
+                <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-1 md:mb-2 font-garet">{item.title}</h3>
+                <p className="text-[11px] md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:ml-auto">
                   {item.desc}
                 </p>
               </div>
             ))}
           </div>
 
-          {/* Central 3D Model Viewer with Parallax & Floating */}
-          <div className="order-1 lg:order-2 flex justify-center relative min-h-[700px] translate-y-[-40px]" style={{ perspective: '1000px' }}>
+          {/* Central 3D Model Column */}
+          <div className="order-1 lg:order-2 flex flex-col items-center justify-center relative" style={{ perspective: '1000px' }}>
             <div
               ref={jarContainerRef}
-              className="w-full max-w-[650px] animate-[float_6s_ease-in-out_infinite]"
-              style={{ transformStyle: 'preserve-3d' }}
+              className="w-full max-w-[650px]"
+              style={{
+                transformStyle: 'preserve-3d',
+                animation: 'floatJarLarge 6s ease-in-out infinite',
+                position: 'relative',
+                zIndex: 2
+              }}
             >
               <ModelViewerTag
                 src="/3D-assets/AmericanNuts-v1.glb"
                 alt="3D Interactive Jar"
-                shadow-intensity="1.5"
+                shadow-intensity="0"
                 camera-controls
                 auto-rotate
                 rotation-per-second="15deg"
@@ -124,7 +144,8 @@ const LatestProductShowcase: React.FC = () => {
                 ar
                 ar-modes="webxr scene-viewer quick-look"
                 touch-action="pan-y"
-                style={{ width: '100%', height: '700px', outline: 'none' }}
+                style={{ width: '100%', outline: 'none' }}
+                className="h-[400px] md:h-[500px] lg:h-[600px]"
               >
                 {/* Loading Poster */}
                 <div slot="poster" className="flex flex-col items-center justify-center h-full">
@@ -137,14 +158,29 @@ const LatestProductShowcase: React.FC = () => {
                 <div className="absolute w-[200%] h-[200%] bg-gradient-to-tr from-transparent via-white/40 to-transparent -rotate-45 animate-[light-sweep_8s_linear_infinite]"></div>
               </div>
             </div>
+
+            {/* Custom Detached Ground Shadow - Absolute positioned at the base */}
+            <div
+              className="absolute bottom-[40px] md:bottom-[60px] lg:bottom-[80px] left-1/2 -translate-x-1/2"
+              style={{
+                width: 'min(200px, 60vw)',
+                height: '20px',
+                background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 75%)',
+                borderRadius: '100%',
+                filter: 'blur(8px)',
+                animation: 'floatShadowLarge 6s ease-in-out infinite',
+                zIndex: 1,
+                pointerEvents: 'none'
+              }}
+            />
           </div>
 
           {/* Right Column */}
-          <div className="space-y-10 md:space-y-16 text-center lg:text-left order-3">
+          <div className="space-y-8 md:space-y-16 text-center lg:text-left order-3">
             {benefitsRight.map((item, idx) => (
-              <div key={idx} className="group">
-                <h3 className="text-2xl font-black text-slate-900 mb-2 font-garet">{item.title}</h3>
-                <p className="text-xs md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:mr-auto">
+              <div key={idx} className="group px-4 md:px-0">
+                <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-1 md:mb-2 font-garet">{item.title}</h3>
+                <p className="text-[11px] md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:mr-auto">
                   {item.desc}
                 </p>
               </div>
@@ -157,4 +193,3 @@ const LatestProductShowcase: React.FC = () => {
 };
 
 export default LatestProductShowcase;
-
