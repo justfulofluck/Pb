@@ -86,7 +86,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
           <h1 className="text-5xl font-black uppercase text-slate-900 tracking-tighter">
             Welcome back, <span className="text-primary italic">{user.name.split(' ')[0]}</span>!
           </h1>
-          <p className="font-handdrawn text-2xl text-slate-500 mt-2">Fueling your ambition since 2022 ✨</p>
+          <p className="font-handdrawn text-2xl text-slate-500 mt-2">Fueling your ambition since 2024 ✨</p>
         </div>
         <button
           onClick={onLogout}

@@ -28,7 +28,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
     <div className="bg-background-light min-h-screen">
       <div className="bg-secondary/10 pt-10 pb-20 px-4 relative overflow-hidden">
         <div className="max-w-7xl mx-auto mb-6">
-           <Breadcrumbs onHomeClick={onHomeClick} steps={[{ label: 'Contact' }]} />
+          <Breadcrumbs onHomeClick={onHomeClick} steps={[{ label: 'Contact' }]} />
         </div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <span className="font-handdrawn text-3xl text-primary transform -rotate-2 inline-block mb-4">We don't bite! (Unless it's muesli)</span>
@@ -50,7 +50,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
               <div className="absolute -top-6 -left-6 bg-secondary text-slate-900 w-20 h-20 rounded-full flex items-center justify-center transform -rotate-12 shadow-lg z-10 hidden md:flex">
                 <span className="material-symbols-outlined text-4xl">mail</span>
               </div>
-              
+
               {status === 'success' ? (
                 <div className="text-center py-12 space-y-6 animate-in zoom-in duration-500">
                   <div className="w-24 h-24 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto">
@@ -58,7 +58,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
                   </div>
                   <h3 className="text-3xl font-black uppercase text-slate-900">Message Sent!</h3>
                   <p className="font-handdrawn text-xl text-slate-500">Thanks for reaching out. We'll get back to you faster than you can finish a bowl of oats! 🥣</p>
-                  <button 
+                  <button
                     onClick={() => setStatus('idle')}
                     className="text-primary font-bold hover:underline uppercase tracking-widest text-xs"
                   >
@@ -71,32 +71,32 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Your Name</label>
-                      <input 
+                      <input
                         required
                         value={formData.name}
-                        onChange={e => setFormData({...formData, name: e.target.value})}
-                        type="text" 
-                        className="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold text-slate-800 bg-slate-50 focus:bg-white"
-                        placeholder="John Doe"
+                        onChange={e => setFormData({ ...formData, name: e.target.value })}
+                        type="text"
+                        className="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold text-slate-800 bg-slate-50 focus:bg-white placeholder:text-slate-300 placeholder:font-normal"
+                        placeholder="Enter your name"
                       />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
-                      <input 
+                      <input
                         required
                         value={formData.email}
-                        onChange={e => setFormData({...formData, email: e.target.value})}
-                        type="email" 
-                        className="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold text-slate-800 bg-slate-50 focus:bg-white"
-                        placeholder="john@example.com"
+                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                        type="email"
+                        className="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold text-slate-800 bg-slate-50 focus:bg-white placeholder:text-slate-300 placeholder:font-normal"
+                        placeholder="Enter your email address"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Subject</label>
-                    <select 
+                    <select
                       value={formData.subject}
-                      onChange={e => setFormData({...formData, subject: e.target.value})}
+                      onChange={e => setFormData({ ...formData, subject: e.target.value })}
                       className="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold text-slate-800 bg-slate-50 focus:bg-white appearance-none"
                     >
                       <option value="">Choose a topic...</option>
@@ -108,16 +108,16 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Message</label>
-                    <textarea 
+                    <textarea
                       required
                       value={formData.message}
-                      onChange={e => setFormData({...formData, message: e.target.value})}
+                      onChange={e => setFormData({ ...formData, message: e.target.value })}
                       rows={5}
-                      className="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold text-slate-800 bg-slate-50 focus:bg-white resize-none"
-                      placeholder="Tell us what's on your mind..."
+                      className="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold text-slate-800 bg-slate-50 focus:bg-white resize-none placeholder:text-slate-300 placeholder:font-normal"
+                      placeholder="Enter your message here..."
                     ></textarea>
                   </div>
-                  <button 
+                  <button
                     disabled={status === 'submitting'}
                     className="w-full bg-primary text-white py-5 rounded-2xl font-black text-xl hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
@@ -140,9 +140,9 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
 
           <div className="order-1 lg:order-2 space-y-10">
             <div className="relative rounded-3xl overflow-hidden aspect-video shadow-lg group">
-              <img 
-                src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=1000" 
-                alt="Pinobite HQ" 
+              <img
+                src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&q=80&w=1000"
+                alt="Pinobite HQ"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
@@ -159,8 +159,8 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
                 </div>
                 <h4 className="font-black uppercase text-sm mb-2">Visit Us</h4>
                 <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                  102, Innovation Tower,<br/>
-                  Lower Parel, Mumbai,<br/>
+                  102, Innovation Tower,<br />
+                  Lower Parel, Mumbai,<br />
                   Maharashtra - 400013
                 </p>
               </div>
@@ -190,23 +190,23 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
               </div>
             </div>
             <div className="bg-primary text-white p-8 rounded-3xl relative overflow-hidden">
-               <div className="relative z-10 flex items-center justify-between gap-4">
-                 <div>
-                   <h4 className="font-black uppercase text-xl mb-1">Join the Community</h4>
-                   <p className="text-white/80 text-sm">Follow us for recipes & fitness tips!</p>
-                 </div>
-                 <div className="flex -space-x-3">
-                   {[1,2,3,4].map(i => (
-                     <div key={i} className="w-10 h-10 rounded-full border-2 border-primary bg-slate-200 overflow-hidden">
-                       <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" className="w-full h-full object-cover" />
-                     </div>
-                   ))}
-                   <div className="w-10 h-10 rounded-full border-2 border-primary bg-secondary text-slate-900 flex items-center justify-center font-bold text-xs">
-                     +2k
-                   </div>
-                 </div>
-               </div>
-               <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80"></div>
+              <div className="relative z-10 flex items-center justify-between gap-4">
+                <div>
+                  <h4 className="font-black uppercase text-xl mb-1">Join the Community</h4>
+                  <p className="text-white/80 text-sm">Follow us for recipes & fitness tips!</p>
+                </div>
+                <div className="flex -space-x-3">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="w-10 h-10 rounded-full border-2 border-primary bg-slate-200 overflow-hidden">
+                      <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                  <div className="w-10 h-10 rounded-full border-2 border-primary bg-secondary text-slate-900 flex items-center justify-center font-bold text-xs">
+                    +2k
+                  </div>
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80"></div>
             </div>
           </div>
         </div>

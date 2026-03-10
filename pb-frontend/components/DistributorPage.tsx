@@ -126,8 +126,8 @@ const DistributorPage: React.FC<DistributorPageProps> = ({ onHomeClick }) => {
                                     name="business_name"
                                     value={formData.business_name}
                                     onChange={handleChange}
-                                    placeholder="e.g. Green Earth Organics"
-                                    className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 focus:border-primary focus:ring-0 outline-none font-bold text-slate-700 transition-all bg-slate-50/50"
+                                    placeholder="Enter your business name"
+                                    className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 focus:border-primary focus:ring-0 outline-none font-bold text-slate-700 transition-all bg-slate-50/50 placeholder:text-slate-300 placeholder:font-normal"
                                 />
                             </div>
 
@@ -142,8 +142,8 @@ const DistributorPage: React.FC<DistributorPageProps> = ({ onHomeClick }) => {
                                     name="full_name"
                                     value={formData.full_name}
                                     onChange={handleChange}
-                                    placeholder="e.g. Alex Fueler"
-                                    className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 focus:border-primary focus:ring-0 outline-none font-bold text-slate-700 transition-all bg-slate-50/50"
+                                    placeholder="Enter your full name"
+                                    className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 focus:border-primary focus:ring-0 outline-none font-bold text-slate-700 transition-all bg-slate-50/50 placeholder:text-slate-300 placeholder:font-normal"
                                 />
                             </div>
 
@@ -158,8 +158,8 @@ const DistributorPage: React.FC<DistributorPageProps> = ({ onHomeClick }) => {
                                     name="phone_number"
                                     value={formData.phone_number}
                                     onChange={handleChange}
-                                    placeholder="e.g. +91 93281 73747"
-                                    className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 focus:border-primary focus:ring-0 outline-none font-bold text-slate-700 transition-all bg-slate-50/50"
+                                    placeholder="Enter phone number"
+                                    className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 focus:border-primary focus:ring-0 outline-none font-bold text-slate-700 transition-all bg-slate-50/50 placeholder:text-slate-300 placeholder:font-normal"
                                 />
                             </div>
 
@@ -173,8 +173,8 @@ const DistributorPage: React.FC<DistributorPageProps> = ({ onHomeClick }) => {
                                     name="city"
                                     value={formData.city}
                                     onChange={handleChange}
-                                    placeholder="e.g. Dabhoi"
-                                    className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 focus:border-primary focus:ring-0 outline-none font-bold text-slate-700 transition-all bg-slate-50/50"
+                                    placeholder="Enter city name"
+                                    className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 focus:border-primary focus:ring-0 outline-none font-bold text-slate-700 transition-all bg-slate-50/50 placeholder:text-slate-300 placeholder:font-normal"
                                 />
                             </div>
                         </div>
@@ -189,8 +189,8 @@ const DistributorPage: React.FC<DistributorPageProps> = ({ onHomeClick }) => {
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
-                                placeholder="alex@example.com"
-                                className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 focus:border-primary focus:ring-0 outline-none font-bold text-slate-700 transition-all bg-slate-50/50"
+                                placeholder="Enter your email address"
+                                className="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 focus:border-primary focus:ring-0 outline-none font-bold text-slate-700 transition-all bg-slate-50/50 placeholder:text-slate-300 placeholder:font-normal"
                             />
                         </div>
 

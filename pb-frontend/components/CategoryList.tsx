@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { CATEGORY_DISPLAY_DATA, Product } from '../types';
 
@@ -11,6 +10,44 @@ const CategoryList: React.FC<CategoryListProps> = ({
   onCategoryClick,
   products = []
 }) => {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [startX, setStartX] = React.useState(0);
+  const [scrollLeft, setScrollLeft] = React.useState(0);
+  const [dragDistance, setDragDistance] = React.useState(0);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+    setDragDistance(0);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // Scroll speed
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+    setDragDistance(Math.abs(x - startX));
+  };
+
+  const handleCategoryClick = (categoryId: string) => {
+    // Increased threshold for better mobile/jittery mouse reliability
+    if (dragDistance < 25) {
+      onCategoryClick(categoryId);
+    }
+  };
+
   const categories = CATEGORY_DISPLAY_DATA.map(item => {
     const productCount = products.filter(p => p.category?.toLowerCase() === item.id.toLowerCase()).length;
     let suffix = 'Flavors';
@@ -18,7 +55,6 @@ const CategoryList: React.FC<CategoryListProps> = ({
     if (item.id === 'Oats') suffix = 'Varieties';
     if (item.id === 'Peanut Butter') suffix = 'Flavors';
 
-    // Handle pluralization
     if (productCount === 1) {
       if (suffix === 'Varieties') suffix = 'Variety';
       else suffix = suffix.substring(0, suffix.length - 1);
@@ -29,15 +65,15 @@ const CategoryList: React.FC<CategoryListProps> = ({
       count: `${productCount} ${suffix}`
     };
   });
+
   return (
     <section className="py-16 md:py-32 bg-white relative overflow-hidden">
-      {/* Decorative background blobs */}
       <div className="absolute top-20 left-10 w-64 h-64 bg-slate-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="text-center mb-16 md:mb-24 relative">
-          <span className="font-handdrawn text-2xl md:text-3xl text-slate-500 transform -rotate-3 inline-block mb-2 absolute -top-12 left-1/2 -translate-x-1/2 md:-translate-x-[200px]">Start here!</span>
+          <span className="font-handdrawn text-2xl md:text-4xl text-primary transform rotate-6 inline-block mb-2 absolute -top-12 left-1/2 translate-x-[40px] md:translate-x-[200px] drop-shadow-sm">Pick your fav!</span>
           <h2 className="text-5xl md:text-8xl font-bold text-slate-900 uppercase tracking-normal leading-none font-bebas">
             Shop By Category
           </h2>
@@ -75,6 +111,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
                   alt={item.display}
                   className={`w-full h-full object-cover object-center drop-shadow-2xl`}
                   style={{ maskImage: 'linear-gradient(to top, black 80%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to top, black 80%, transparent 100%)' }}
+                  draggable={false}
                 />
               </div>
 
@@ -90,38 +127,41 @@ const CategoryList: React.FC<CategoryListProps> = ({
         {/* Mobile & Tablet View (Premium Arched Layout) */}
         <div className="lg:hidden mt-0">
           <div className="relative pt-4 pb-20 px-2 overflow-visible">
-            {/* Background Cohesive Arch Shape */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[300px] bg-gradient-radial from-primary/5 to-transparent rounded-[100%] blur-2xl opacity-60 z-0"></div>
 
-            <div className="relative z-10 flex justify-center items-end max-w-[450px] mx-auto gap-3 md:gap-8 px-4">
+            <div
+              ref={scrollRef}
+              onMouseDown={handleMouseDown}
+              onMouseLeave={handleMouseLeave}
+              onMouseUp={handleMouseUp}
+              onMouseMove={handleMouseMove}
+              className={`relative z-10 flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3 md:gap-8 px-4 py-10 ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'}`}
+              style={{ scrollBehavior: isDragging ? 'auto' : 'smooth' }}
+            >
               {categories.map((item, i) => {
-                const isCenter = i === 1;
+                const isCenter = i === Math.floor(categories.length / 2);
                 return (
                   <div
                     key={item.id}
-                    className="flex flex-col items-center cursor-pointer group flex-1"
-                    onClick={() => onCategoryClick(item.id)}
+                    className="flex flex-col items-center group flex-shrink-0 snap-center min-w-[120px]"
+                    onClick={() => handleCategoryClick(item.id)}
                     style={{
-                      transform: isCenter ? 'translateY(-35px)' : 'translateY(5px)',
-                      transitionDelay: `${i * 100}ms`
+                      transform: isCenter ? 'translateY(-20px)' : 'translateY(0)',
+                      transition: 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)'
                     }}
                   >
-                    {/* Circle Container */}
                     <div className={`relative w-24 h-24 md:w-36 md:h-36 rounded-full bg-white shadow-[0_20px_45px_rgba(0,0,0,0.12)] p-1 flex items-center justify-center border-4 border-white transition-all duration-500 group-active:scale-95`}>
                       <div className="w-full h-full rounded-full overflow-hidden">
                         <img
                           src={item.image}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                           alt={item.display}
+                          draggable={false}
                         />
                       </div>
-
-                      {/* Premium Accent Ring */}
                       <div className={`absolute inset-0 rounded-full border-2 border-transparent group-hover:border-primary/20 transition-colors duration-500`}></div>
                     </div>
-
-                    {/* Label */}
-                    <div className={`mt-4 text-center transition-all duration-300 ${isCenter ? 'mt-6' : 'mt-4'}`}>
+                    <div className={`mt-4 text-center transition-all duration-300`}>
                       <span className="block text-[11px] md:text-base font-black uppercase tracking-widest text-slate-800 leading-none font-sans">
                         {item.display.replace('Super ', '')}
                       </span>

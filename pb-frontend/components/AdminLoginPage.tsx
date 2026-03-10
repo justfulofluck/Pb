@@ -57,6 +57,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
       // Store Admin Tokens specifically
       localStorage.setItem('admin_access_token', tokens.access);
       localStorage.setItem('admin_refresh_token', tokens.refresh);
+      localStorage.setItem('admin_email', email);
 
       // Explicitly clear customer session to prevent overlap
       localStorage.removeItem('access_token');
@@ -277,7 +278,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
             <img
               src="/logos/Pinobite-logo.png"
               alt="Pinobite Logo"
-              className="h-16 w-auto object-contain"
+              className="h-12 w-auto object-contain"
             />
             <span className="text-xl font-black tracking-tighter uppercase text-slate-500">GLOBAL</span>
           </div>

@@ -83,12 +83,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [blogView, setBlogView] = useState<'list' | 'form'>('list');
   const [uiView, setUiView] = useState<'hero' | 'stories'>('hero');
   const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationsLastClear, setNotificationsLastClear] = useState<number>(() => {
+    return Number(localStorage.getItem('admin_notifications_last_clear') || '0');
+  });
   const [showSettings, setShowSettings] = useState(false);
   const [deleteCategoryModal, setDeleteCategoryModal] = useState<{ isOpen: boolean; categoryId: string | null }>({ isOpen: false, categoryId: null });
   const [orders, setOrders] = useState<Order[]>([]);
   const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
+
+  const adminEmail = localStorage.getItem('admin_email') || 'admin@pinobite.global';
+  const adminInitials = adminEmail.substring(0, 2).toUpperCase();
 
   // Distributor Applications State
   const [distributorApplications, setDistributorApplications] = useState<DistributorApplication[]>([]);
@@ -114,53 +120,117 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [isEditingAnnouncement, setIsEditingAnnouncement] = useState(false);
   const [editingAnnouncementId, setEditingAnnouncementId] = useState<number | null>(null);
 
-  // Fetch Orders when tab is active
+  // Fetch Global Admin Data (Orders & Distributors) on mount
   useEffect(() => {
-    if (activeTab === 'orders') {
-      const fetchOrders = async () => {
-        try {
-          const token = localStorage.getItem('access_token') || localStorage.getItem('admin_access_token');
-          if (!token) return;
+    const fetchAdminData = async () => {
+      try {
+        const token = localStorage.getItem('access_token') || localStorage.getItem('admin_access_token');
+        if (!token) return;
 
-          const response = await fetch(`${API_BASE_URL}/api/orders/`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            // Sort by date desc
-            const sortedData = data.sort((a: Order, b: Order) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-            setOrders(sortedData);
-          }
-        } catch (error) {
-          console.error("Failed to fetch orders", error);
+        // Fetch Orders
+        const ordersRes = await fetch(`${API_BASE_URL}/api/orders/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (ordersRes.ok) {
+          const data = await ordersRes.json();
+          const sortedData = data.sort((a: Order, b: Order) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+          setOrders(sortedData);
         }
-      };
-      fetchOrders();
-    }
-  }, [activeTab]);
 
-  // Fetch Distributor Applications
-  useEffect(() => {
-    if (activeTab === 'distributors') {
-      const fetchDistributors = async () => {
-        try {
-          const token = localStorage.getItem('access_token') || localStorage.getItem('admin_access_token');
-          if (!token) return;
-
-          const response = await fetch(`${API_BASE_URL}/api/distributor-applications/`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            setDistributorApplications(data);
-          }
-        } catch (error) {
-          console.error("Failed to fetch distributor applications", error);
+        // Fetch Distributor Applications
+        const distRes = await fetch(`${API_BASE_URL}/api/distributor-applications/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (distRes.ok) {
+          const data = await distRes.json();
+          setDistributorApplications(data);
         }
-      };
-      fetchDistributors();
-    }
-  }, [activeTab]);
+      } catch (error) {
+        console.error("Failed to fetch admin data", error);
+      }
+    };
+    fetchAdminData();
+    // Refresh every 30 seconds for real-time notifications
+    const interval = setInterval(fetchAdminData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Compute Notifications
+  const notifications = React.useMemo(() => {
+    const list: any[] = [];
+
+    // 1. Pending Orders
+    orders.filter(o => o.status === 'PENDING').forEach(o => {
+      list.push({
+        id: `order-${o.id}`,
+        title: `New Order #PB-${o.id}`,
+        desc: `Received from ${o.user_name}`,
+        time: new Date(o.created_at).getTime(),
+        icon: "shopping_bag",
+        color: "bg-green-100 text-green-600",
+        tab: 'orders'
+      });
+    });
+
+    // 2. Low Stock Alerts
+    products.filter(p => p.stock < 10).forEach(p => {
+      list.push({
+        id: `stock-${p.id}`,
+        title: "Low Stock Alert",
+        desc: `${p.name} is below 10 units (${p.stock} left)`,
+        time: Date.now() - 1000, // Show as current
+        icon: "warning",
+        color: "bg-red-100 text-red-600",
+        tab: 'products'
+      });
+    });
+
+    // 3. Pending Distributor Applications
+    distributorApplications.filter(a => a.status === 'Pending').forEach(a => {
+      list.push({
+        id: `dist-${a.id}`,
+        title: "Distributor Application",
+        desc: `${a.business_name} applied for distribution`,
+        time: new Date(a.created_at).getTime(),
+        icon: "handshake",
+        color: "bg-orange-100 text-orange-600",
+        tab: 'distributors'
+      });
+    });
+
+    // 4. Recent Visitor Submissions
+    visitorForms.forEach(f => {
+      f.submissions.slice(-3).forEach(s => {
+        list.push({
+          id: `sub-${s.id}`,
+          title: "New Visitor Submission",
+          desc: `${s.name} submitted ${f.title}`,
+          time: new Date(s.submittedAt || Date.now()).getTime(),
+          icon: "qr_code_scanner",
+          color: "bg-purple-100 text-purple-600",
+          tab: 'visitor-forms'
+        });
+      });
+    });
+
+    return list.sort((a, b) => b.time - a.time).slice(0, 10);
+  }, [orders, products, distributorApplications, visitorForms]);
+
+  const hasUnreadNotifications = notifications.some(n => n.time > notificationsLastClear);
+
+  const formatNotifTime = (timestamp: number) => {
+    const diff = Date.now() - timestamp;
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+    return new Date(timestamp).toLocaleDateString();
+  };
+
+  const clearNotifications = () => {
+    const now = Date.now();
+    setNotificationsLastClear(now);
+    localStorage.setItem('admin_notifications_last_clear', String(now));
+  };
 
   // Slide Management State
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null);
@@ -954,16 +1024,30 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           ))}
         </nav>
 
-        <div className="p-4 border-t border-slate-800">
-          <div className="bg-slate-800 rounded-xl p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-black">AD</div>
-            <div className="hidden lg:block overflow-hidden">
-              <p className="text-xs font-bold truncate">Admin User</p>
-              <p className="text-[10px] text-slate-400 uppercase tracking-wider">Super Admin</p>
+        <div className="p-4 border-t border-slate-800/50">
+          <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/30">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center font-black text-white shadow-lg shadow-primary/20 flex-shrink-0">
+                {adminInitials}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Signed in as</p>
+                <p className="text-xs font-bold text-white truncate" title={adminEmail}>{adminEmail}</p>
+              </div>
             </div>
-            <button onClick={onLogout} className="ml-auto text-slate-400 hover:text-white">
-              <span className="material-symbols-outlined">logout</span>
-            </button>
+            <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
+              <span className="text-[10px] font-black uppercase tracking-widest text-primary/80 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                Super Admin
+              </span>
+              <button
+                onClick={onLogout}
+                className="w-8 h-8 rounded-lg bg-slate-700/50 text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-all flex items-center justify-center group"
+                title="Logout"
+              >
+                <span className="material-symbols-outlined text-lg group-hover:translate-x-0.5 transition-transform">logout</span>
+              </button>
+            </div>
           </div>
         </div>
       </aside>
@@ -983,7 +1067,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors relative ${showNotifications ? 'bg-primary text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
             >
               <span className="material-symbols-outlined">notifications</span>
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+              {hasUnreadNotifications && (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+              )}
             </button>
 
             {/* Settings Toggle */}
@@ -999,28 +1085,41 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="absolute top-14 right-12 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="p-4 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                   <h4 className="font-black uppercase text-xs tracking-widest text-slate-900">Notifications</h4>
-                  <button className="text-[10px] font-bold text-primary hover:underline">Mark all read</button>
+                  <button onClick={clearNotifications} className="text-[10px] font-bold text-primary hover:underline">Mark all read</button>
                 </div>
                 <div className="max-h-72 overflow-y-auto custom-scroll">
-                  {[
-                    { title: "New Order #PB-8821", desc: "Received from Sarah J.", time: "2m ago", icon: "shopping_bag", color: "bg-green-100 text-green-600" },
-                    { title: "Low Stock Alert", desc: "Super Muesli is below 10 units", time: "1h ago", icon: "warning", color: "bg-red-100 text-red-600" },
-                    { title: "Event Published", desc: "Morning Yoga Session is live", time: "5h ago", icon: "event", color: "bg-purple-100 text-purple-600" }
-                  ].map((notif, i) => (
-                    <div key={i} className="p-4 hover:bg-slate-50 transition-colors flex gap-3 border-b border-slate-50 last:border-0 cursor-pointer">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${notif.color}`}>
-                        <span className="material-symbols-outlined text-sm">{notif.icon}</span>
+                  {notifications.length > 0 ? (
+                    notifications.map((notif, i) => (
+                      <div
+                        key={i}
+                        onClick={() => {
+                          if (notif.tab) setActiveTab(notif.tab);
+                          setShowNotifications(false);
+                        }}
+                        className={`p-4 hover:bg-slate-50 transition-colors flex gap-3 border-b border-slate-50 last:border-0 cursor-pointer ${notif.time > notificationsLastClear ? 'bg-primary/5' : ''}`}
+                      >
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${notif.color}`}>
+                          <span className="material-symbols-outlined text-sm">{notif.icon}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-slate-800 leading-tight truncate">{notif.title}</p>
+                          <p className="text-xs text-slate-500 mt-1 line-clamp-2">{notif.desc}</p>
+                          <p className="text-[10px] text-slate-400 font-bold mt-1 uppercase">{formatNotifTime(notif.time)}</p>
+                        </div>
+                        {notif.time > notificationsLastClear && (
+                          <div className="w-1.5 h-1.5 bg-primary rounded-full mt-2"></div>
+                        )}
                       </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-800 leading-tight">{notif.title}</p>
-                        <p className="text-xs text-slate-500 mt-1">{notif.desc}</p>
-                        <p className="text-[10px] text-slate-400 font-bold mt-1 uppercase">{notif.time}</p>
-                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center">
+                      <span className="material-symbols-outlined text-slate-200 text-4xl mb-2">notifications_off</span>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No new notifications</p>
                     </div>
-                  ))}
+                  )}
                 </div>
                 <div className="p-3 bg-slate-50 text-center border-t border-slate-100">
-                  <button className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-900">View All Activity</button>
+                  <button onClick={() => { setActiveTab('overview'); setShowNotifications(false); }} className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-slate-900">View All Activity</button>
                 </div>
               </div>
             )}
@@ -1030,7 +1129,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div className="absolute top-14 right-0 w-64 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                 <div className="p-4 border-b border-slate-50 bg-slate-50/50">
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Signed in as</p>
-                  <p className="font-black text-slate-900 truncate text-sm">admin@pinobite.global</p>
+                  <p className="font-black text-slate-900 truncate text-sm">{adminEmail}</p>
                 </div>
                 <div className="p-2 space-y-1">
                   <button className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-bold text-slate-600 flex items-center gap-3 transition-colors">

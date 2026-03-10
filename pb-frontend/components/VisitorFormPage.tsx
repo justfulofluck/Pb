@@ -188,22 +188,22 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
                                 <label className="text-xs font-black uppercase tracking-widest text-slate-500">Full Name <span className="text-red-500">*</span></label>
-                                <input required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-slate-50 focus:bg-white transition-colors" placeholder="e.g. Alex Johnson" />
+                                <input required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-slate-50 focus:bg-white transition-colors placeholder:text-slate-300 placeholder:font-normal" placeholder="Enter your full name" />
                             </div>
 
                             <div className="space-y-2">
                                 <label className="text-xs font-black uppercase tracking-widest text-slate-500">Email Address <span className="text-red-500">*</span></label>
-                                <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-slate-50 focus:bg-white transition-colors" placeholder="alex@example.com" />
+                                <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-slate-50 focus:bg-white transition-colors placeholder:text-slate-300 placeholder:font-normal" placeholder="Enter your email address" />
                             </div>
 
                             <div className="space-y-2">
                                 <label className="text-xs font-black uppercase tracking-widest text-slate-500">Phone Number <span className="text-red-500">*</span></label>
-                                <input required type="tel" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-slate-50 focus:bg-white transition-colors" placeholder="+91 98765 43210" />
+                                <input required type="tel" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-slate-50 focus:bg-white transition-colors placeholder:text-slate-300 placeholder:font-normal" placeholder="Enter phone number" />
                             </div>
 
                             <div className="space-y-2">
                                 <label className="text-xs font-black uppercase tracking-widest text-slate-500">City, Pincode <span className="text-red-500">*</span></label>
-                                <input required type="text" value={formData.addressDetails} onChange={e => setFormData({ ...formData, addressDetails: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-slate-50 focus:bg-white transition-colors" placeholder="e.g. Mumbai, 400001" />
+                                <input required type="text" value={formData.addressDetails} onChange={e => setFormData({ ...formData, addressDetails: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-slate-50 focus:bg-white transition-colors placeholder:text-slate-300 placeholder:font-normal" placeholder="Enter city or pircode" />
                             </div>
 
                             <div className="space-y-2">
@@ -245,7 +245,7 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
                                             <span className="font-bold text-slate-700">Yes – Daily</span>
                                         </label>
                                         {formData.currentUsage === 'Yes' && (
-                                            <input type="text" placeholder="(Which brand?)" value={formData.currentUsageBrand} onChange={e => setFormData({ ...formData, currentUsageBrand: e.target.value })} className="px-3 py-1 rounded-lg border border-slate-200 text-sm font-bold w-full" />
+                                            <input type="text" placeholder="Specify brand" value={formData.currentUsageBrand} onChange={e => setFormData({ ...formData, currentUsageBrand: e.target.value })} className="px-3 py-1 rounded-lg border border-slate-200 text-sm font-bold w-full placeholder:text-slate-300 placeholder:font-normal" />
                                         )}
                                     </div>
                                 </div>

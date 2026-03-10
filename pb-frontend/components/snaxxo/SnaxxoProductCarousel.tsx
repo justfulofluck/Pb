@@ -11,11 +11,49 @@ interface SnaxxoProductCarouselProps {
 
 const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
     products,
-    onProductClick,
     onAddToCart,
+    onProductClick,
     isLoading,
     onShopClick
 }) => {
+    const scrollRef = React.useRef<HTMLDivElement>(null);
+    const [isDragging, setIsDragging] = React.useState(false);
+    const [startX, setStartX] = React.useState(0);
+    const [scrollLeft, setScrollLeft] = React.useState(0);
+    const [dragDistance, setDragDistance] = React.useState(0);
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        if (!scrollRef.current) return;
+        setIsDragging(true);
+        setStartX(e.pageX - scrollRef.current.offsetLeft);
+        setScrollLeft(scrollRef.current.scrollLeft);
+        setDragDistance(0);
+    };
+
+    const handleMouseLeave = () => {
+        setIsDragging(false);
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!isDragging || !scrollRef.current) return;
+        e.preventDefault();
+        const x = e.pageX - scrollRef.current.offsetLeft;
+        const walk = (x - startX) * 2; // Scroll speed
+        scrollRef.current.scrollLeft = scrollLeft - walk;
+        setDragDistance(Math.abs(x - startX));
+    };
+
+    const handleProductClick = (e: React.MouseEvent, product: Product) => {
+        // High threshold (25px) to support click-dragging without accidentally navigating
+        if (dragDistance < 25) {
+            onProductClick(product);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="py-12 bg-[#f2f2ec] flex items-center justify-center">
@@ -24,18 +62,16 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
         );
     }
 
-    // Filter products to show only favorites or top rated
     const favoriteProducts = products.filter(p => p.isTopRated).length > 0
         ? products.filter(p => p.isTopRated)
         : products.slice(0, 6);
 
     return (
         <section className="bg-[#f2f2ec] relative overflow-hidden pb-12 w-full lg:hidden">
-            {/* Header */}
             <div className="pt-12 pb-16 relative">
                 <div className="flex flex-col items-center justify-center relative z-10 px-4">
                     <h2 className="text-[#008a45] font-black text-5xl md:text-8xl uppercase tracking-[0.05em] text-center" style={{ fontFamily: '"Bebas Neue", sans-serif' }}>
-                        Customer's &nbsp; Favorite
+                        Customer's Favorite
                     </h2>
                     <div className="w-16 md:w-24 h-1.5 md:h-2 bg-[#008a45] mt-1 rounded-full"></div>
                     <p className="font-handdrawn text-3xl md:text-1xl text-slate-500 mt-2 text-center">
@@ -44,11 +80,8 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                     <div className="mt-6">
                         <button
                             onClick={() => {
-                                if (onShopClick) {
-                                    onShopClick();
-                                } else {
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }
+                                if (onShopClick) onShopClick();
+                                else window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
                             className="bg-[#008a45] text-white px-8 py-3 rounded-full font-bold text-sm uppercase tracking-wider hover:bg-[#007038] shadow-lg active:scale-95 transition-all flex items-center gap-2"
                         >
@@ -58,37 +91,45 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                 </div>
             </div>
 
-            {/* Carousel Container */}
-            <div className="relative z-20 px-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory flex gap-6 pb-12">
+            <div
+                ref={scrollRef}
+                onMouseDown={handleMouseDown}
+                onMouseLeave={handleMouseLeave}
+                onMouseUp={handleMouseUp}
+                onMouseMove={handleMouseMove}
+                className={`relative z-20 px-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory flex gap-6 pb-12 ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'}`}
+                style={{ scrollBehavior: isDragging ? 'auto' : 'smooth' }}
+            >
                 {favoriteProducts.map((product) => (
                     <div
                         key={product.id}
                         className="min-w-[260px] md:min-w-[300px] snap-center flex flex-col items-center relative group active:scale-[0.98] transition-all duration-300"
                     >
-                        {/* Discount / Heart */}
                         <div className="absolute top-0 left-0 right-0 flex justify-between items-start z-10">
                             <div className="bg-[#ef4444] text-white text-[10px] font-black px-2.5 py-1 rounded-sm uppercase tracking-wider -rotate-2">
                                 15% OFF
                             </div>
-                            <button className="bg-white/80 backdrop-blur-sm p-1.5 rounded-full text-[#008a45] hover:text-red-500 transition-colors shadow-sm">
+                            <button
+                                onClick={(e) => e.stopPropagation()}
+                                className="bg-white/80 backdrop-blur-sm p-1.5 rounded-full text-[#008a45] hover:text-red-500 transition-colors shadow-sm"
+                            >
                                 <span className="material-symbols-outlined text-[20px] fill-1">favorite</span>
                             </button>
                         </div>
 
-                        {/* Image */}
                         <div
                             className="w-full aspect-square mb-4 cursor-pointer flex items-center justify-center p-2 mt-6"
-                            onClick={() => onProductClick(product)}
+                            onClick={(e) => handleProductClick(e, product)}
                         >
                             <img
                                 src={product.image}
                                 alt={product.name}
                                 className="w-full h-full object-contain pointer-events-none transition-transform duration-500 group-hover:scale-105"
                                 style={{ mixBlendMode: 'multiply' }}
+                                draggable={false}
                             />
                         </div>
 
-                        {/* Ratings */}
                         <div className="flex gap-0.5 mb-2 text-[#f9bc15]">
                             {[...Array(5)].map((_, i) => (
                                 <span key={i} className={`material-symbols-outlined text-[16px] ${i < Math.floor(product.rating || 5) ? 'fill-1' : ''}`}>
@@ -98,15 +139,13 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                             <span className="text-[10px] text-slate-500 font-bold ml-1 self-center">({product.reviewCount || 0} reviews)</span>
                         </div>
 
-                        {/* Name */}
                         <h3
-                            className="font-extrabold text-center text-slate-900 mb-1 px-1 line-clamp-2 h-[2.8rem] uppercase tracking-tight text-sm leading-[1.3] cursor-pointer"
-                            onClick={() => onProductClick(product)}
+                            className="font-extrabold text-center text-slate-900 mb-1 px-1 line-clamp-2 h-[2.8rem] uppercase tracking-tight text-sm leading-[1.3] cursor-pointer hover:text-[#008a45] transition-colors"
+                            onClick={(e) => handleProductClick(e, product)}
                         >
                             {product.name}
                         </h3>
 
-                        {/* Price */}
                         <div className="flex items-center gap-2 mb-5">
                             <span className="font-black text-xl text-slate-900">₹{product.price}</span>
                             {product.originalPrice && product.originalPrice > product.price && (
@@ -114,7 +153,6 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                             )}
                         </div>
 
-                        {/* Action Button */}
                         <button
                             onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
                             className="bg-[#008a45] text-white w-full py-3.5 rounded-full font-black text-[12px] uppercase tracking-widest shadow-lg hover:bg-[#007038] transition-all hover:scale-[1.02] active:scale-[0.98] mt-auto flex items-center justify-center gap-1.5"
@@ -124,12 +162,10 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                         </button>
                     </div>
                 ))}
-
-                {/* Visual padding at end for scroll overflow */}
                 <div className="min-w-[10px] h-full invisible"></div>
             </div>
         </section>
     );
-}
+};
 
 export default SnaxxoProductCarousel;

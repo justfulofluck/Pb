@@ -120,7 +120,7 @@ const Navbar: React.FC<NavbarProps> = ({
           {/* Desktop Layout */}
           <div className="hidden md:flex justify-between items-center h-24">
             {/* Left side: Navigation Links */}
-            <div className={`flex-1 flex items-center gap-8 font-black text-[11px] tracking-widest text-slate-800 transition-opacity duration-300 ${isSearchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+            <div className={`flex-1 flex items-center gap-10 font-black text-[13px] tracking-widest text-slate-800 transition-opacity duration-300 ${isSearchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
               <button onClick={onJourneyClick} className="hover:text-primary transition-colors uppercase font-garet">OUR JOURNEY</button>
               <div className="relative group/menu" ref={dropdownRef}>
                 <button
@@ -139,6 +139,12 @@ const Navbar: React.FC<NavbarProps> = ({
                     >
                       Shop All
                     </button>
+                    <button
+                      onClick={() => { onCategoryClick?.('Combo Packs') || onProductsClick(); setIsProductsDropdownOpen(false); }}
+                      className="w-full text-left px-4 py-2 hover:bg-primary/5 hover:text-primary transition-colors rounded-lg font-bold text-[12px] uppercase text-primary"
+                    >
+                      Combo Packs
+                    </button>
                     <div className="h-px bg-slate-100 my-2"></div>
                     {categories.map((cat: any) => (
                       <button
@@ -152,10 +158,6 @@ const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 </div>
               </div>
-              <button onClick={() => onCategoryClick?.('Combo Packs') || onProductsClick()} className="hover:text-primary transition-colors uppercase font-garet">COMBO PACKS</button>
-              {isLoggedIn && (
-                <button onClick={onDashboardClick} className="hover:text-primary transition-colors uppercase text-primary font-black">MY DASHBOARD</button>
-              )}
             </div>
 
             {/* Center: Logo */}
@@ -167,7 +169,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 <img
                   src="/logos/Pinobite-logo.png"
                   alt="Pinobite Logo"
-                  className="h-20 w-auto object-contain"
+                  className="h-14 w-auto object-contain"
                 />
               </button>
             </div>
@@ -176,9 +178,10 @@ const Navbar: React.FC<NavbarProps> = ({
             <div className={`flex-1 flex items-center justify-end gap-6 transition-opacity duration-300 ${isSearchOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="flex items-center gap-1 hover:text-primary transition-colors text-[11px] font-black uppercase tracking-widest text-slate-800 group"
+                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors text-slate-800 group"
+                aria-label="Search"
               >
-                SEARCH
+                <span className="material-symbols-outlined text-[24px]">search</span>
               </button>
               <button
                 onClick={onAccountClick}
@@ -206,7 +209,7 @@ const Navbar: React.FC<NavbarProps> = ({
               <img
                 src="/logos/Pinobite-logo.png"
                 alt="Pinobite Logo"
-                className="h-12 w-auto object-contain"
+                className="h-10 w-auto object-contain"
               />
             </button>
 
@@ -303,13 +306,6 @@ const Navbar: React.FC<NavbarProps> = ({
                 <span className="material-symbols-outlined text-[20px] text-white/60">chevron_right</span>
               </button>
 
-              <button
-                onClick={() => { onCategoryClick?.('Combo Packs') || onProductsClick(); closeMenu(); }}
-                className="flex items-center justify-between w-full group"
-              >
-                <span className="font-black text-[22px] tracking-tight group-hover:translate-x-2 transition-transform duration-300">COMBO PACKS</span>
-                <span className="material-symbols-outlined text-[20px] text-white/60">chevron_right</span>
-              </button>
 
               <button
                 onClick={() => { onJourneyClick(); closeMenu(); }}
@@ -319,15 +315,6 @@ const Navbar: React.FC<NavbarProps> = ({
                 <span className="material-symbols-outlined text-[20px] text-white/60">chevron_right</span>
               </button>
 
-              {isLoggedIn && (
-                <button
-                  onClick={() => { onDashboardClick(); closeMenu(); }}
-                  className="flex items-center justify-between w-full group"
-                >
-                  <span className="font-black text-[22px] tracking-tight group-hover:translate-x-2 transition-transform duration-300">MY DASHBOARD</span>
-                  <span className="material-symbols-outlined text-[20px] text-white/60">chevron_right</span>
-                </button>
-              )}
             </div>
 
             {/* Secondary Navigation Section */}
@@ -343,6 +330,12 @@ const Navbar: React.FC<NavbarProps> = ({
                     {cat.name}
                   </button>
                 ))}
+                <button
+                  onClick={() => { onCategoryClick?.('Combo Packs') || onProductsClick(); closeMenu(); }}
+                  className="block font-bold text-base text-primary/90 hover:text-white transition-colors"
+                >
+                  COMBO PACKS
+                </button>
                 <button
                   onClick={() => { onAccountClick(); closeMenu(); }}
                   className="block font-bold text-base text-white/80 hover:text-white transition-colors pt-4"
