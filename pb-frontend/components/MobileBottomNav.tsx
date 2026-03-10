@@ -25,7 +25,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps & { isHidden?: boolean }> =
     isMenuOpen = false,
     isHidden = false
 }) => {
-    if (isMenuOpen || isHidden) return null;
+    if (isMenuOpen || isHidden || isCartOpen || isAuthOpen) return null;
     // Explicit Active States
     const isCartActive = isCartOpen;
     const isProfileActive = (isAuthOpen || currentView === 'dashboard') && !isCartOpen;
