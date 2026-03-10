@@ -49,9 +49,13 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
 
 
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ["category", "is_top_rated"]
     search_fields = ["name", "description"]
 

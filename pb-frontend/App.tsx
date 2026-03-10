@@ -1118,6 +1118,12 @@ const AppContent: React.FC = () => {
           onStoriesClick={() => setCurrentView('blogs')}
           onJourneyClick={() => setCurrentView('journey')}
           onSearch={handleGlobalSearch}
+          products={products}
+          blogPosts={blogPosts}
+          events={events}
+          onProductClick={navigateToProduct}
+          onBlogClick={navigateToBlogDetail}
+          onEventClick={navigateToEventDetail}
           categories={categories}
           onMenuStateChange={setIsMenuOpen}
           announcements={announcements

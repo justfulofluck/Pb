@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { Product, BlogPost, EventBlog } from '../types';
 
 interface NavbarProps {
   cartCount: number;
@@ -16,6 +17,12 @@ interface NavbarProps {
   onCategoryClick?: (category: string) => void;
   announcements?: string[];
   onMenuStateChange?: (isOpen: boolean) => void;
+  products: Product[];
+  blogPosts: BlogPost[];
+  events: EventBlog[];
+  onProductClick: (p: Product) => void;
+  onBlogClick: (b: BlogPost) => void;
+  onEventClick: (e: EventBlog) => void;
 }
 
 const Navbar: React.FC<NavbarProps> = ({
@@ -32,7 +39,13 @@ const Navbar: React.FC<NavbarProps> = ({
   categories = [],
   onCategoryClick,
   announcements = [],
-  onMenuStateChange
+  onMenuStateChange,
+  products,
+  blogPosts,
+  events,
+  onProductClick,
+  onBlogClick,
+  onEventClick
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -88,6 +101,23 @@ const Navbar: React.FC<NavbarProps> = ({
   };
 
   const closeMenu = () => setIsMenuOpen(false);
+
+  const filteredProducts = (products || []).filter(p =>
+    (p.name || '').toLowerCase().includes((searchQuery || '').toLowerCase()) ||
+    (p.description || '').toLowerCase().includes((searchQuery || '').toLowerCase())
+  ).slice(0, 4);
+
+  const filteredBlogs = (blogPosts || []).filter(b =>
+    (b.title || '').toLowerCase().includes((searchQuery || '').toLowerCase()) ||
+    (b.excerpt || '').toLowerCase().includes((searchQuery || '').toLowerCase())
+  ).slice(0, 3);
+
+  const filteredEvents = (events || []).filter(e =>
+    (e.title || '').toLowerCase().includes((searchQuery || '').toLowerCase()) ||
+    (e.summary || '').toLowerCase().includes((searchQuery || '').toLowerCase())
+  ).slice(0, 3);
+
+  const hasResults = (searchQuery || '').length > 1 && (filteredProducts.length > 0 || filteredBlogs.length > 0 || filteredEvents.length > 0);
 
   const hasAnnouncements = announcements.length > 0;
 
@@ -235,27 +265,123 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Search Overlay (Shared) */}
-          <div className={`absolute inset-0 z-[100] flex items-center justify-center transition-all duration-300 ${isSearchOpen ? 'opacity-100 visible translate-y-0 pointer-events-auto' : 'opacity-0 invisible -translate-y-4 pointer-events-none'}`}>
-            <div className="absolute inset-0 bg-white/95 backdrop-blur-sm"></div>
+          <div className={`absolute inset-0 z-[100] flex flex-col items-center pt-24 transition-all duration-500 ${isSearchOpen ? 'opacity-100 visible translate-y-0 pointer-events-auto' : 'opacity-0 invisible -translate-y-12 pointer-events-none'}`}>
+            <div className="absolute inset-0 bg-white/98 backdrop-blur-xl"></div>
+
             <div className="w-full max-w-2xl px-4 relative z-10">
-              <form onSubmit={handleSearchSubmit} className="relative flex items-center">
-                <span className="absolute left-4 material-symbols-outlined text-slate-400 pointer-events-none">search</span>
+              <form onSubmit={handleSearchSubmit} className="relative flex items-center group">
+                <span className="absolute left-6 material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">search</span>
                 <input
                   ref={inputRef}
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for healthy snacks..."
-                  className="w-full pl-12 pr-12 py-3 bg-slate-100 border-2 border-transparent focus:border-primary rounded-full text-slate-900 placeholder:text-slate-400 outline-none transition-all font-bold text-lg shadow-sm"
+                  className="w-full pl-16 pr-14 py-5 bg-slate-50 border-2 border-slate-100 focus:border-primary focus:bg-white rounded-[28px] text-slate-900 placeholder:text-slate-400 outline-none transition-all font-bold text-xl shadow-xl shadow-slate-200/50"
                 />
                 <button
                   type="button"
                   onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}
-                  className="absolute right-2 p-2 hover:bg-slate-200 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute right-4 p-2 hover:bg-slate-200 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
                 >
-                  <span className="material-symbols-outlined text-xl">close</span>
+                  <span className="material-symbols-outlined text-2xl">close</span>
                 </button>
               </form>
+
+              {/* Universal Search Results */}
+              <div className={`mt-8 space-y-8 max-h-[60vh] overflow-y-auto custom-scroll pr-2 transition-all duration-300 ${hasResults ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+
+                {/* Products Section */}
+                {filteredProducts.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                      <span className="w-8 h-px bg-slate-100"></span>
+                      Products
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {filteredProducts.map(product => (
+                        <div
+                          key={product.id}
+                          onClick={() => { onProductClick(product); setIsSearchOpen(false); setSearchQuery(''); }}
+                          className="flex items-center gap-4 p-3 bg-slate-50 rounded-2xl cursor-pointer hover:bg-primary/5 hover:scale-[1.02] transition-all group"
+                        >
+                          <div className="w-16 h-16 bg-white rounded-xl overflow-hidden shadow-sm flex-shrink-0">
+                            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-black text-sm uppercase text-slate-900 truncate group-hover:text-primary transition-colors">{product.name}</h5>
+                            <p className="text-primary font-bold text-xs">Rs. {product.price}</p>
+                          </div>
+                          <span className="material-symbols-outlined text-slate-300 group-hover:translate-x-1 transition-transform">chevron_right</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Blogs Section */}
+                {filteredBlogs.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                      <span className="w-8 h-px bg-slate-100"></span>
+                      Insights & Recipes
+                    </h4>
+                    <div className="space-y-3">
+                      {filteredBlogs.map(post => (
+                        <div
+                          key={post.id}
+                          onClick={() => { onBlogClick(post); setIsSearchOpen(false); setSearchQuery(''); }}
+                          className="flex items-center gap-4 p-3 bg-slate-50/50 rounded-2xl cursor-pointer hover:bg-slate-50 transition-all group"
+                        >
+                          <div className="w-12 h-12 bg-white rounded-lg overflow-hidden flex-shrink-0">
+                            <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-bold text-sm text-slate-900 truncate">{post.title}</h5>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{post.type} • {post.readTime}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Events Section */}
+                {filteredEvents.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                      <span className="w-8 h-px bg-slate-100"></span>
+                      Community Events
+                    </h4>
+                    <div className="space-y-3">
+                      {filteredEvents.map(event => (
+                        <div
+                          key={event.id}
+                          onClick={() => { onEventClick(event); setIsSearchOpen(false); setSearchQuery(''); }}
+                          className="flex items-center gap-4 p-3 border-2 border-slate-50 rounded-2xl cursor-pointer hover:border-primary/20 hover:bg-slate-50 transition-all group"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-bold text-sm text-slate-900">{event.title}</h5>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1 mt-1">
+                              <span className="material-symbols-outlined text-[14px]">location_on</span>
+                              {event.location}
+                            </p>
+                          </div>
+                          <span className="text-[10px] font-black text-primary bg-primary/5 px-3 py-1 rounded-full uppercase">{event.date}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {!hasResults && searchQuery.length > 1 && (
+                  <div className="text-center py-12">
+                    <span className="material-symbols-outlined text-6xl text-slate-100 mb-4 scale-150">sentiment_dissatisfied</span>
+                    <p className="text-slate-400 font-handdrawn text-2xl">No healthy snacks found for "{searchQuery}"</p>
+                    <p className="text-slate-300 text-xs font-bold uppercase tracking-widest mt-2">Try searching for "Peanut" or "Muesli"</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
