@@ -70,36 +70,37 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
                   <h3 className="text-2xl font-black uppercase text-slate-900 mb-8">Drop us a line</h3>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Your Name</label>
+                      <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Your Name *</label>
                       <input
                         required
                         value={formData.name}
                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                         type="text"
                         className="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold text-slate-800 bg-slate-50 focus:bg-white placeholder:text-slate-300 placeholder:font-normal"
-                        placeholder="Enter your name"
+                        placeholder="Enter your name *"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
+                      <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Email Address *</label>
                       <input
                         required
                         value={formData.email}
                         onChange={e => setFormData({ ...formData, email: e.target.value })}
                         type="email"
                         className="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold text-slate-800 bg-slate-50 focus:bg-white placeholder:text-slate-300 placeholder:font-normal"
-                        placeholder="Enter your email address"
+                        placeholder="Enter your email address *"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Subject</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Subject *</label>
                     <select
+                      required
                       value={formData.subject}
                       onChange={e => setFormData({ ...formData, subject: e.target.value })}
                       className="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold text-slate-800 bg-slate-50 focus:bg-white appearance-none"
                     >
-                      <option value="">Choose a topic...</option>
+                      <option value="">Choose a topic... *</option>
                       <option value="order">Order Inquiry</option>
                       <option value="wholesale">Wholesale / Distribution</option>
                       <option value="feedback">Product Feedback</option>
@@ -107,14 +108,14 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Message</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Message *</label>
                     <textarea
                       required
                       value={formData.message}
                       onChange={e => setFormData({ ...formData, message: e.target.value })}
                       rows={5}
                       className="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold text-slate-800 bg-slate-50 focus:bg-white resize-none placeholder:text-slate-300 placeholder:font-normal"
-                      placeholder="Enter your message here..."
+                      placeholder="Enter your message here... *"
                     ></textarea>
                   </div>
                   <button

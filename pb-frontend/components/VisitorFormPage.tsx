@@ -233,19 +233,19 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Do you currently consume peanut butter?</label>
+                                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Do you currently consume peanut butter? <span className="text-red-500">*</span></label>
                                 <div className="flex flex-col gap-2">
                                     <label className="flex items-center gap-2 cursor-pointer">
-                                        <input type="radio" name="currentUsage" value="No" checked={formData.currentUsage === 'No'} onChange={e => setFormData({ ...formData, currentUsage: e.target.value })} className="w-5 h-5 text-primary focus:ring-primary" />
+                                        <input type="radio" name="currentUsage" value="No" checked={formData.currentUsage === 'No'} onChange={e => setFormData({ ...formData, currentUsage: e.target.value })} className="w-5 h-5 text-primary focus:ring-primary" required />
                                         <span className="font-bold text-slate-700">No</span>
                                     </label>
                                     <div className="flex items-center gap-2">
                                         <label className="flex items-center gap-2 cursor-pointer">
-                                            <input type="radio" name="currentUsage" value="Yes" checked={formData.currentUsage === 'Yes'} onChange={e => setFormData({ ...formData, currentUsage: e.target.value })} className="w-5 h-5 text-primary focus:ring-primary" />
+                                            <input type="radio" name="currentUsage" value="Yes" checked={formData.currentUsage === 'Yes'} onChange={e => setFormData({ ...formData, currentUsage: e.target.value })} className="w-5 h-5 text-primary focus:ring-primary" required />
                                             <span className="font-bold text-slate-700">Yes – Daily</span>
                                         </label>
                                         {formData.currentUsage === 'Yes' && (
-                                            <input type="text" placeholder="Specify brand" value={formData.currentUsageBrand} onChange={e => setFormData({ ...formData, currentUsageBrand: e.target.value })} className="px-3 py-1 rounded-lg border border-slate-200 text-sm font-bold w-full placeholder:text-slate-300 placeholder:font-normal" />
+                                            <input type="text" placeholder="Specify brand *" value={formData.currentUsageBrand} onChange={e => setFormData({ ...formData, currentUsageBrand: e.target.value })} className="px-3 py-1 rounded-lg border border-slate-200 text-sm font-bold w-full placeholder:text-slate-300 placeholder:font-normal" required />
                                         )}
                                     </div>
                                 </div>

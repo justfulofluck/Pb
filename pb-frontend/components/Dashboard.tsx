@@ -16,6 +16,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -161,7 +162,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
                 <div className="text-center py-8 text-slate-400">Loading orders...</div>
               ) : orders.length > 0 ? (
                 orders.map((order) => (
-                  <div key={order.id} className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100">
+                  <div
+                    key={order.id}
+                    onClick={() => setSelectedOrder(order)}
+                    className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100 cursor-pointer group"
+                  >
                     <div className="flex items-center gap-6 mb-4 md:mb-0">
                       <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary">
                         <span className="material-symbols-outlined">package_2</span>
@@ -217,6 +222,94 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
           </section>
         </div>
       </div>
+
+      {/* Order Details Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300"
+            onClick={() => setSelectedOrder(null)}
+          />
+          <div className="bg-white w-full max-w-2xl rounded-[32px] md:rounded-[48px] overflow-hidden relative doodle-border animate-in zoom-in duration-300 shadow-2xl p-6 md:p-12 max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setSelectedOrder(null)}
+              className="absolute top-4 right-4 md:top-8 md:right-8 z-10 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors"
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+
+            <div className="space-y-6 md:space-y-8">
+              <div>
+                <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-3">
+                  <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                    Order #{selectedOrder.id}
+                  </span>
+                  <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${selectedOrder.status === 'Delivered' ? 'bg-green-100 text-green-600' : 'bg-secondary text-slate-900'
+                    }`}>
+                    {selectedOrder.status}
+                  </span>
+                </div>
+                <h2 className="text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-tight leading-none">Order Details</h2>
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] md:text-xs mt-2">Placed on {new Date(selectedOrder.created_at).toLocaleDateString()}</p>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                <div className="p-4 bg-slate-50 rounded-2xl md:rounded-3xl border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-tight">Total Amount</p>
+                  <p className="text-lg md:text-2xl font-black text-slate-900">Rs. {selectedOrder.total_amount}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl md:rounded-3xl border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-tight">Total Items</p>
+                  <p className="text-lg md:text-2xl font-black text-slate-900">{selectedOrder.items.length}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl md:rounded-3xl border border-slate-100 col-span-2 md:col-span-1">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-tight">Delivery Point</p>
+                  <p className="text-sm font-black text-slate-900 truncate">{selectedOrder.city || 'Standard Delivery'}</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">shopping_bag</span>
+                  Your Purchase
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                  {selectedOrder.items.map((item, idx) => (
+                    <div key={idx} className="flex gap-4 p-4 md:p-5 bg-white border-2 border-slate-50 rounded-2xl md:rounded-3xl items-center hover:border-primary/20 transition-colors group/item">
+                      <div className="w-16 h-16 md:w-20 md:h-20 bg-slate-50 rounded-xl md:rounded-2xl overflow-hidden flex-shrink-0 shadow-sm group-hover/item:scale-105 transition-transform">
+                        {item.product_image ? (
+                          <img
+                            src={item.product_image.startsWith('http') ? item.product_image : `${API_BASE_URL}${item.product_image}`}
+                            alt={item.product_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-slate-200">
+                            <span className="material-symbols-outlined text-3xl md:text-4xl">image</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="overflow-hidden">
+                        <h4 className="font-black text-xs md:text-sm uppercase leading-tight truncate">{item.product_name}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-full">QTY: {item.quantity}</span>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rs. {item.price}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-6 border-t border-dashed border-slate-100">
+                <p className="text-center text-slate-400 font-handdrawn text-xl">
+                  Fueling your ambition, one bite at a time! 🚀
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

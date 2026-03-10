@@ -8,7 +8,7 @@ interface AuthModalProps {
   onLogin: () => void;
 }
 
-type AuthView = 'login' | 'signup' | 'reset';
+type AuthView = 'login' | 'signup' | 'reset' | 'otp';
 
 import { useAuth } from '../hooks/useAuth';
 
@@ -21,6 +21,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,9 +65,33 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
         } else {
           throw new Error('Registration failed. Email might be taken.');
         }
-      } else {
-        // Reset Password Logic (Mock for now)
-        alert('Password reset link sent!');
+      } else if (view === 'reset') {
+        const response = await fetch(`${API_BASE_URL}/api/password-reset/request/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Failed to send reset email');
+        }
+
+        alert('Password reset OTP has been sent to your email!');
+        setView('otp');
+      } else if (view === 'otp') {
+        const response = await fetch(`${API_BASE_URL}/api/password-reset/confirm/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, otp, new_password: newPassword }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Invalid OTP or password requirement not met');
+        }
+
+        alert('Password reset successfully! Please log in with your new password.');
         setView('login');
       }
     } catch (err: any) {
@@ -112,8 +138,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-semibold"
-                  placeholder="name@example.com"
+                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-semibold placeholder:text-slate-300 placeholder:font-normal"
+                  placeholder="Enter your email"
                 />
               </div>
               <div>
@@ -123,8 +149,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-semibold"
-                  placeholder="••••••••"
+                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-semibold placeholder:text-slate-300 placeholder:font-normal"
+                  placeholder="Enter your password"
                 />
               </div>
               <div className="flex justify-end">
@@ -179,7 +205,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold"
+                    className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold placeholder:text-slate-300 placeholder:font-normal"
+                    placeholder="First name"
                   />
                 </div>
                 <div>
@@ -189,7 +216,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold"
+                    className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold placeholder:text-slate-300 placeholder:font-normal"
+                    placeholder="Last name"
                   />
                 </div>
               </div>
@@ -200,7 +228,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold"
+                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold placeholder:text-slate-300 placeholder:font-normal"
+                  placeholder="Enter your email"
                 />
               </div>
               <div>
@@ -210,7 +239,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold"
+                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold placeholder:text-slate-300 placeholder:font-normal"
+                  placeholder="Create a password"
                 />
               </div>
               <button
@@ -230,7 +260,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
           </div>
         )}
 
-        {/* View: RESET PASSWORD */}
+        {/* View: RESET PASSWORD (REQUEST) */}
         {view === 'reset' && (
           <div className="space-y-6">
             <div className="text-center">
@@ -239,7 +269,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
             </div>
 
             <p className="text-slate-500 text-sm text-center font-medium leading-relaxed">
-              Enter your email and we'll send you a magic link to get back into your account.
+              Enter your email and we'll send you a magic code to reset your account.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -250,12 +280,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-semibold text-center"
-                  placeholder="name@example.com"
+                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-semibold text-center placeholder:text-slate-300 placeholder:font-normal"
+                  placeholder="Enter your email"
                 />
               </div>
               <button className="w-full bg-primary text-white py-4 rounded-2xl font-black text-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95">
-                SEND RESET LINK
+                {isLoading ? 'SENDING CODE...' : 'SEND RESET CODE'}
               </button>
             </form>
 
@@ -266,6 +296,63 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
               >
                 <span className="material-symbols-outlined text-sm">arrow_back</span>
                 BACK TO LOGIN
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* View: OTP & NEW PASSWORD */}
+        {view === 'otp' && (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Verify Code</h2>
+              <p className="font-handdrawn text-xl text-primary mt-1">Check your inbox! 📧</p>
+            </div>
+
+            {error && (
+              <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm font-bold text-center">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Enter 6-Digit Code</label>
+                <input
+                  required
+                  type="text"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold text-center text-2xl tracking-[10px] placeholder:tracking-normal placeholder:text-slate-300 placeholder:font-normal"
+                  placeholder="000000"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">New Password</label>
+                <input
+                  required
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-semibold placeholder:text-slate-300 placeholder:font-normal"
+                  placeholder="Enter new password"
+                />
+              </div>
+              <button
+                disabled={isLoading}
+                className="w-full bg-primary text-white py-4 rounded-2xl font-black text-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'RESETTING...' : 'RESET PASSWORD'}
+              </button>
+            </form>
+
+            <div className="text-center">
+              <button
+                onClick={() => setView('reset')}
+                className="text-xs font-black text-slate-400 hover:text-primary transition-colors"
+              >
+                DIDN'T GET CODE? TRY AGAIN
               </button>
             </div>
           </div>

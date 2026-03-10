@@ -153,6 +153,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
         return;
       }
 
+      if (!formData.email || !formData.phone || !formData.firstName || !formData.lastName || !formData.address || !formData.city || !formData.zip || !formData.state) {
+        throw new Error('Please fill in all required fields.');
+      }
+
       const response = await fetch(`${API_BASE_URL}/api/orders/initiate/`, {
         method: 'POST',
         headers: {
@@ -218,9 +222,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
         alert(`Order creation failed: ${errData.error || 'Unknown error'}`);
         setIsProcessing(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Order Creation Error:", error);
-      alert("Failed to initiate order. Please try again.");
+      alert(error.message || "Failed to initiate order. Please try again.");
       setIsProcessing(false);
     }
   };
@@ -281,19 +285,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
                 required
                 type="email"
                 name="email"
-                placeholder="Email Address"
+                placeholder="Email Address *"
                 value={formData.email}
                 onChange={handleInputChange}
-                className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all"
+                className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all invalid:border-red-300"
               />
               <input
                 required
                 type="tel"
                 name="phone"
-                placeholder="Phone Number"
+                placeholder="Phone Number *"
                 value={formData.phone}
                 onChange={handleInputChange}
-                className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all"
+                className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all invalid:border-red-300"
               />
             </div>
           </section>
@@ -327,14 +331,14 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
             ) : (
               <div className="grid gap-4 animate-in fade-in slide-in-from-top-2">
                 <div className="grid md:grid-cols-2 gap-4">
-                  <input required type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleInputChange} className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all" />
-                  <input required type="text" name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleInputChange} className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all" />
+                  <input required type="text" name="firstName" placeholder="First Name *" value={formData.firstName} onChange={handleInputChange} className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all invalid:border-red-300" />
+                  <input required type="text" name="lastName" placeholder="Last Name *" value={formData.lastName} onChange={handleInputChange} className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all invalid:border-red-300" />
                 </div>
-                <input required type="text" name="address" placeholder="Address line 1" value={formData.address} onChange={handleInputChange} className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all" />
+                <input required type="text" name="address" placeholder="Address line 1 *" value={formData.address} onChange={handleInputChange} className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all invalid:border-red-300" />
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                  <input required type="text" name="city" placeholder="City" value={formData.city} onChange={handleInputChange} className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all" />
-                  <input required type="text" name="state" placeholder="State" value={formData.state} onChange={handleInputChange} className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all" />
-                  <input required type="text" name="zip" placeholder="ZIP Code" value={formData.zip} onChange={handleInputChange} className="col-span-2 lg:col-span-1 w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all" />
+                  <input required type="text" name="city" placeholder="City *" value={formData.city} onChange={handleInputChange} className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all invalid:border-red-300" />
+                  <input required type="text" name="state" placeholder="State *" value={formData.state} onChange={handleInputChange} className="w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all invalid:border-red-300" />
+                  <input required type="text" name="zip" placeholder="ZIP Code *" value={formData.zip} onChange={handleInputChange} className="col-span-2 lg:col-span-1 w-full px-5 py-4 rounded-xl border-2 border-slate-100 focus:border-primary outline-none font-semibold transition-all invalid:border-red-300" />
                 </div>
               </div>
             )}

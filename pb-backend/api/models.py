@@ -175,17 +175,6 @@ class UserProfile(models.Model):
         return f"Profile for {self.user.username}"
 
 
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        UserProfile.objects.get_or_create(user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    if not hasattr(instance, "profile"):
-        UserProfile.objects.create(user=instance)
-    instance.profile.save()
 
 
 class VisitorForm(models.Model):

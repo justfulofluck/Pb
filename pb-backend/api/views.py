@@ -409,11 +409,6 @@ class RequestPasswordResetView(APIView):
             email = serializer.validated_data["email"]
             try:
                 user = User.objects.get(email=email)
-                if not user.is_staff:
-                    return Response(
-                        {"error": "Only staff members can reset passwords here."},
-                        status=status.HTTP_403_FORBIDDEN,
-                    )
 
                 # Generate OTP
                 otp = "".join([str(random.randint(0, 9)) for _ in range(6)])
@@ -427,18 +422,18 @@ class RequestPasswordResetView(APIView):
                     <meta charset="UTF-8">
                     <title>Password Reset OTP</title>
                     <style>
-                        body {{ font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }}
-                        .container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }}
-                        .header {{ background-color: #1a2333; padding: 40px 20px; text-align: center; }}
-                        .logo {{ color: #ffffff; font-size: 24px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }}
-                        .logo span {{ color: #008a45; }}
-                        .content {{ padding: 40px 30px; color: #333333; }}
-                        .greeting {{ font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #1a2333; }}
-                        .message {{ line-height: 1.6; margin-bottom: 30px; color: #555555; }}
-                        .otp-box {{ background-color: #f0fdf4; border: 2px dashed #008a45; border-radius: 12px; padding: 20px; text-align: center; margin: 30px 0; }}
-                        .otp-code {{ font-size: 32px; font-weight: 800; color: #008a45; letter-spacing: 5px; }}
-                        .expiry {{ font-size: 12px; color: #666666; margin-top: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }}
-                        .footer {{ background-color: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #999999; border-top: 1px solid #eeeeee; }}
+body {{ font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }}
+.container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }}
+.header {{ background-color: #1a2333; padding: 40px 20px; text-align: center; }}
+.logo {{ color: #ffffff; font-size: 24px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }}
+.logo span {{ color: #008a45; }}
+.content {{ padding: 40px 30px; color: #333333; }}
+.greeting {{ font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #1a2333; }}
+.message {{ line-height: 1.6; margin-bottom: 30px; color: #555555; }}
+.otp-box {{ background-color: #f0fdf4; border: 2px dashed #008a45; border-radius: 12px; padding: 20px; text-align: center; margin: 30px 0; }}
+.otp-code {{ font-size: 32px; font-weight: 800; color: #008a45; letter-spacing: 5px; }}
+.expiry {{ font-size: 12px; color: #666666; margin-top: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }}
+.footer {{ background-color: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #999999; border-top: 1px solid #eeeeee; }}
                     </style>
                 </head>
                 <body>
@@ -471,16 +466,11 @@ class RequestPasswordResetView(APIView):
                 </html>
                 """
 
-                # Send Email
-                send_mail(
-                    "Password Reset OTP - Pinobite Admin",
-                    f"Your OTP is: {otp}. Valid for 5 minutes.",
-                    settings.EMAIL_HOST_USER,
-                    [email],
-                    fail_silently=False,
-                    html_message=html_message,
-                )
-                return Response({"message": "OTP sent to email."})
+                # Send Email using the establish utility
+                if send_email(email, "Password Reset OTP - Pinobite", html_message):
+                    return Response({"message": "OTP sent to email."})
+                else:
+                    return Response({"error": "Failed to deliver email. Please try again later."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             except User.DoesNotExist:
                 # Security: Don't reveal user existence
