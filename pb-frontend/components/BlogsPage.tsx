@@ -93,7 +93,7 @@ const BlogsPage: React.FC<BlogsPageProps> = ({ posts, onBlogClick, onHomeClick }
                   </div>
                 </div>
 
-                <h3 className="text-xl font-black text-slate-900 leading-snug mb-5 group-hover:text-primary transition-colors min-h-[3.5rem] font-garet uppercase">
+                <h3 className="text-xl font-black text-primary leading-snug mb-5 transition-colors min-h-[3.5rem] font-garet uppercase">
                   {post.title}
                 </h3>
 

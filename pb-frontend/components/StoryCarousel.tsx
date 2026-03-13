@@ -25,14 +25,14 @@ const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProd
         {/* Centered Flex Container */}
         <div 
           ref={scrollRef}
-          className="flex gap-3 overflow-x-auto hide-scrollbar pb-4 snap-x snap-mandatory justify-start md:justify-center w-full"
+          className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 snap-x snap-mandatory justify-start md:justify-center w-full"
         >
           {stories.map((story) => {
             const product = getProduct(story.productId);
             return (
               <div 
                 key={story.id}
-                className="min-w-[130px] md:min-w-[160px] h-[230px] md:h-[280px] rounded-[18px] overflow-hidden relative group snap-start flex-shrink-0 cursor-pointer shadow-sm hover:shadow-lg transition-all duration-500"
+                className="min-w-[260px] md:min-w-[300px] aspect-[9/16] rounded-[24px] overflow-hidden relative group snap-start flex-shrink-0 cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500"
               >
                 {/* Background Story Media */}
                 {story.mediaType === 'video' ? (
@@ -55,42 +55,33 @@ const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProd
                 {/* Overlay Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90" />
 
-                {/* Product Card at bottom - Very Compact version */}
+                {/* Product Card at bottom - Sleek Retail Design */}
                 {product && (
                   <div 
                     onClick={(e) => {
                       e.stopPropagation();
                       onProductClick(product);
                     }}
-                    className="absolute bottom-2 left-2 right-2 bg-white rounded-lg p-1.5 shadow-lg transform transition-transform duration-500 group-hover:-translate-y-0.5 hover:scale-[1.02]"
+                    className="absolute bottom-3 left-3 right-3 bg-white rounded-xl p-2.5 shadow-xl transform transition-all duration-500 group-hover:-translate-y-1 hover:scale-[1.01] border border-slate-100"
                   >
-                    <div className="flex gap-1.5 items-center">
-                      <div className="w-7 h-7 rounded bg-slate-50 flex-shrink-0 overflow-hidden border border-slate-100">
-                        <img src={product.image} className="w-full h-full object-contain p-0.5" alt="Product" />
+                    <div className="flex gap-2.5 items-center">
+                      <div className="w-12 h-12 rounded-lg bg-white flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-50">
+                        <img src={product.image} className="w-11 h-11 object-contain" alt="Product" />
                       </div>
-                      <div className="flex-1 overflow-hidden">
-                        <h4 className="text-[8px] font-black uppercase text-slate-900 leading-tight truncate">
-                          {product.name}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-[12px] font-bold text-slate-900 leading-[1.2] line-clamp-2">
+                          {product.name.split('(')[0] || product.name}
                         </h4>
-                        <div className="flex items-baseline gap-1 mt-0">
-                          <span className="text-[9px] font-black text-slate-900">₹{product.price}</span>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <span className="text-[12px] font-black text-slate-900">₹{product.price.toLocaleString()}</span>
                           {product.originalPrice && (
-                            <span className="text-[7px] text-slate-400 line-through">₹{product.originalPrice}</span>
+                            <span className="text-[10px] text-slate-400 line-through decoration-slate-300">₹{product.originalPrice.toLocaleString()}</span>
                           )}
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
-
-                {/* Story Progress Indicator (Top) - Thin */}
-                <div className="absolute top-2 left-2 right-2 flex gap-0.5">
-                  <div className="h-0.5 flex-1 bg-white/40 rounded-full overflow-hidden">
-                    <div className="h-full bg-white w-2/3" />
-                  </div>
-                  <div className="h-0.5 flex-1 bg-white/20 rounded-full" />
-                  <div className="h-0.5 flex-1 bg-white/20 rounded-full" />
-                </div>
               </div>
             );
           })}

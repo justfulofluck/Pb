@@ -33,6 +33,7 @@ import PrivacyPolicyPage from './components/PrivacyPolicyPage';
 import TermsAndConditionsPage from './components/TermsAndConditionsPage';
 import RefundPolicyPage from './components/RefundPolicyPage';
 import ShippingPolicyPage from './components/ShippingPolicyPage';
+import StoryCarousel from './components/StoryCarousel';
 import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category, Announcement } from './types';
 import SnaxxoLanding from './components/snaxxo/SnaxxoLanding';
 import SnaxxoProductWheel from './components/snaxxo/SnaxxoProductWheel';
@@ -286,7 +287,7 @@ const AppContent: React.FC = () => {
             mediaType: s.media_type,
             productId: String(s.product_id),
           }));
-          if (mappedStories.length > 0) setStories(mappedStories);
+          setStories(mappedStories);
         }
 
         if (categoriesRes.ok) {
@@ -872,9 +873,14 @@ const AppContent: React.FC = () => {
           productId: String(savedStory.product_id)
         };
         setStories(prev => [...prev, mappedStory]);
+        alert("Story added successfully!");
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        alert(`Failed to add story: ${errorData.detail || errorData.error || response.statusText}`);
       }
     } catch (err) {
       console.error("Failed to add story", err);
+      alert("Error adding story. The image might be too large or the server is busy.");
     }
   };
 
@@ -1188,6 +1194,7 @@ const AppContent: React.FC = () => {
           <>
             <Hero onShopClick={navigateToShop} slides={slides} />
             <CategoryList onCategoryClick={navigateToShopCategory} products={products} />
+            <StoryCarousel stories={[...stories].reverse().slice(0, 5)} products={products} onProductClick={navigateToProduct} />
             <div className="snaxxo-wrapper relative w-full overflow-hidden bg-[#fcf6e5]">
               <SnaxxoProductWheel
                 products={products}
@@ -1250,6 +1257,7 @@ const AppContent: React.FC = () => {
           <ProductPage
             product={selectedProduct}
             products={products}
+            stories={stories}
             onProductClick={navigateToProduct}
             onShopClick={navigateToShop}
             onAddToCart={addToCart}

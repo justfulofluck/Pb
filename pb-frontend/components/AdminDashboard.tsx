@@ -24,7 +24,8 @@ interface AdminDashboardProps {
   onUpdateBlog: (b: BlogPost) => void;
   onDeleteBlog: (id: string) => void;
   stories: Story[];
-  onUpdateStories: (s: Story[]) => void;
+  onAddStory: (s: Story) => void;
+  onDeleteStory: (id: string) => void;
   visitorForms: VisitorForm[];
   onAddVisitorForm: (f: VisitorForm) => void;
   onDeleteVisitorForm: (id: string) => void;
@@ -70,7 +71,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onUpdateBlog,
   onDeleteBlog,
   stories,
-  onUpdateStories,
+  onAddStory,
+  onDeleteStory,
   visitorForms,
   onAddVisitorForm,
   onDeleteVisitorForm,
@@ -326,12 +328,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       mediaType: newStoryForm.mediaType || 'image',
       productId: newStoryForm.productId || ''
     };
-    onUpdateStories([...stories, newStory]);
+    onAddStory(newStory);
     setNewStoryForm({ mediaUrl: '', mediaType: 'image', productId: '' });
   };
 
   const deleteStory = (id: string) => {
-    onUpdateStories(stories.filter(s => s.id !== id));
+    onDeleteStory(id);
   };
 
   const handleStoryFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1240,15 +1242,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <h3 className="text-xl font-black uppercase text-slate-900 mb-6">Create New Story</h3>
                     <form onSubmit={handleAddStory} className="grid md:grid-cols-4 gap-6 items-end">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Media URL (Video or Image)</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Upload Media</label>
                         <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={newStoryForm.mediaUrl}
-                            onChange={e => setNewStoryForm({ ...newStoryForm, mediaUrl: e.target.value })}
-                            className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary"
-                            placeholder="https://..."
-                          />
                           <input
                             ref={storyFileInputRef}
                             type="file"
@@ -1259,11 +1254,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <button
                             type="button"
                             onClick={() => storyFileInputRef.current?.click()}
-                            className="bg-slate-100 text-slate-600 px-4 rounded-xl border border-slate-200 hover:bg-slate-200 transition-colors flex items-center justify-center"
-                            title="Upload media file"
+                            className={`flex-1 px-4 py-3 rounded-xl border-2 border-dashed transition-all flex items-center justify-center gap-2 font-black uppercase text-[10px] tracking-widest ${newStoryForm.mediaUrl ? 'bg-green-50 border-green-200 text-green-600' : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-primary hover:text-primary'}`}
                           >
-                            <span className="material-symbols-outlined">cloud_upload</span>
+                            <span className="material-symbols-outlined text-lg">
+                              {newStoryForm.mediaUrl ? 'check_circle' : 'cloud_upload'}
+                            </span>
+                            {newStoryForm.mediaUrl ? 'Ready' : 'Upload'}
                           </button>
+                          {newStoryForm.mediaUrl && (
+                            <button 
+                              type="button"
+                              onClick={() => setNewStoryForm({ ...newStoryForm, mediaUrl: '', mediaType: 'image' })}
+                              className="w-12 h-[48px] rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors flex items-center justify-center"
+                            >
+                              <span className="material-symbols-outlined">delete</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -1304,18 +1310,41 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <img src={newStoryForm.mediaUrl} className="w-full h-full object-cover" alt="Preview" />
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                          <div className="absolute bottom-2 left-2 right-2">
-                            <p className="text-[8px] font-bold text-white uppercase truncate">
-                              {products.find(p => p.id === newStoryForm.productId)?.name || 'Product will link here'}
-                            </p>
-                          </div>
+                          {(() => {
+                            const p = products.find(prod => prod.id === newStoryForm.productId);
+                            if (!p) {
+                              return (
+                                <div className="absolute bottom-2 left-2 right-2">
+                                  <p className="text-[8px] font-bold text-white uppercase truncate">Product will link here</p>
+                                </div>
+                              );
+                            }
+                            return (
+                                <div className="absolute bottom-2 left-2 right-2 bg-white rounded-xl p-2 shadow-lg flex items-center gap-2.5 border border-slate-100">
+                                  <div className="w-10 h-10 rounded-lg bg-white flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-50">
+                                    <img src={p.image} className="w-9 h-9 object-contain" alt="P" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="text-[10px] font-bold text-slate-900 leading-[1.2] line-clamp-2">
+                                      {p.name.split('(')[0] || p.name}
+                                    </h4>
+                                    <div className="flex items-center gap-2 mt-1.5">
+                                      <span className="text-[10px] font-black text-slate-900">₹{p.price.toLocaleString()}</span>
+                                      {p.originalPrice && (
+                                        <span className="text-[8px] text-slate-400 line-through decoration-slate-300">₹{p.originalPrice.toLocaleString()}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                            );
+                          })()}
                         </div>
                       </div>
                     )}
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {stories.map(story => {
+                    {[...stories].reverse().map(story => {
                       const p = products.find(prod => prod.id === story.productId);
                       return (
                         <div key={story.id} className="relative aspect-[9/16] bg-slate-200 rounded-2xl overflow-hidden group border-2 border-transparent hover:border-primary transition-all">
@@ -1325,9 +1354,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <img src={story.mediaUrl} className="w-full h-full object-cover" alt="Story" />
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                          <div className="absolute bottom-2 left-2 right-2">
-                            <p className="text-[8px] font-bold text-white uppercase truncate">{p?.name || 'Unknown Product'}</p>
-                          </div>
+                          {p && (
+                            <div className="absolute bottom-2 left-2 right-2 bg-white rounded-xl p-1.5 shadow-lg flex items-center gap-2 border border-slate-50">
+                                 <div className="w-9 h-9 rounded-lg bg-white flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-50">
+                                   <img src={p.image} className="w-8 h-8 object-contain" alt="P" />
+                                 </div>
+                                 <div className="flex-1 min-w-0">
+                                   <h4 className="text-[8px] font-bold text-slate-900 leading-[1.1] line-clamp-2">
+                                     {p.name.split('(')[0] || p.name}
+                                   </h4>
+                                   <div className="flex items-center gap-1.5 mt-1">
+                                     <span className="text-[8px] font-black text-slate-900">₹{p.price.toLocaleString()}</span>
+                                     {p.originalPrice && (
+                                        <span className="text-[6px] text-slate-400 line-through decoration-slate-300">₹{p.originalPrice.toLocaleString()}</span>
+                                      )}
+                                   </div>
+                                 </div>
+                               </div>
+                          )}
                           <button
                             onClick={() => deleteStory(story.id)}
                             className="absolute top-2 right-2 w-8 h-8 bg-white/90 backdrop-blur rounded-full text-red-500 flex items-center justify-center shadow opacity-0 group-hover:opacity-100 transition-opacity"
@@ -1703,7 +1747,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{post.date}</span>
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{post.readTime}</span>
                           </div>
-                          <h4 className="font-black uppercase text-lg mb-2 leading-tight line-clamp-2">{post.title}</h4>
+                          <h4 className="font-black uppercase text-lg mb-2 leading-tight line-clamp-2 text-primary">{post.title}</h4>
                           <p className="text-sm text-slate-600 line-clamp-2 mb-4 flex-1">{post.excerpt}</p>
                           <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                             <div className="flex items-center gap-2">

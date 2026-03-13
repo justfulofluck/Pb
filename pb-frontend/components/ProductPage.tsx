@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Product, Review } from '../types';
+import { Product, Review, Story } from '../types';
 import Breadcrumbs from './Breadcrumbs';
 import SnaxxoProductWheel from './snaxxo/SnaxxoProductWheel';
 import SnaxxoWave from './snaxxo/SnaxxoWave';
 
 import SnaxxoAddReview from './snaxxo/SnaxxoAddReview';
 import Testimonials from './Testimonials';
+import StoryCarousel from './StoryCarousel';
 import { useSnaxxoAnimations } from '../hooks/useSnaxxoAnimations';
 import { gsap } from 'gsap';
 
@@ -21,6 +22,7 @@ interface ProductPageProps {
   isLoggedIn?: boolean;
   onLoginClick?: () => void;
   onPopupToggle?: (isOpen: boolean) => void;
+  stories: Story[];
 }
 
 const StableModelViewer = React.memo(({ product }: { product: Product }) => {
@@ -94,7 +96,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
   onAddReview,
   isLoggedIn,
   onLoginClick,
-  onPopupToggle
+  onPopupToggle,
+  stories
 }) => {
   useSnaxxoAnimations();
 
@@ -486,6 +489,15 @@ const ProductPage: React.FC<ProductPageProps> = ({
           <SnaxxoWave className="below" fill="#f2f2ec" />
         </div>
       </section>
+
+      <StoryCarousel 
+        stories={[...(stories.filter(s => s.productId === product.id).length > 0 
+          ? stories.filter(s => s.productId === product.id) 
+          : stories)].reverse().slice(0, 5)
+        } 
+        products={products} 
+        onProductClick={onProductClick} 
+      />
 
       <div className="snaxxo-wrapper relative w-full overflow-hidden py-10" style={{ backgroundColor: '#f2f2ec' }}>
 
