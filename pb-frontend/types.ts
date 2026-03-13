@@ -23,6 +23,8 @@ export interface Product {
   model3d?: string;
   themeColor?: string;
   orientation?: string;
+  mainIngredient?: string;
+  mainIngredientImage?: string;
 }
 
 export interface CartItem extends Product {
@@ -110,7 +112,7 @@ export interface BlogPost {
   date: string;
   readTime: string;
   author: string;
-  content: string[]; // Array of paragraphs
+  content: string; // HTML content from editor
   tags?: string[];
 }
 

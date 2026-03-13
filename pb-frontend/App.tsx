@@ -106,7 +106,10 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     const syncState = async (state: any) => {
       if (state && state.view) {
-        setCurrentView(state.view);
+        // Only update view if it's different to prevent redundant re-renders on data refresh
+        if (currentView !== state.view) {
+          setCurrentView(state.view);
+        }
 
         if (state.productId) {
           const p = products.find(prod => String(prod.id) === String(state.productId));
@@ -127,7 +130,9 @@ const AppContent: React.FC = () => {
                   orientation: fullP.orientation ? fullP.orientation.replace(/[Oo]/g, '0') : '0deg 0deg -15deg',
                   benefits: fullP.benefits || [],
                   nutrients: fullP.nutrients || [],
-                  gallery: fullP.gallery || []
+                  gallery: fullP.gallery || [],
+                  mainIngredient: fullP.main_ingredient || (fullP.name.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : fullP.name.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : fullP.name.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : fullP.name.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : fullP.name.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
+                  mainIngredientImage: fullP.main_ingredient_image || (fullP.name.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : fullP.name.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : fullP.name.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : fullP.name.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : fullP.name.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
                 });
               }
             } catch (e) { }
@@ -241,7 +246,9 @@ const AppContent: React.FC = () => {
             orientation: p.orientation ? p.orientation.replace(/[Oo]/g, '0') : '0deg 0deg 0deg',
             gallery: p.gallery || [],
             benefits: p.benefits || [],
-            nutrients: p.nutrients || []
+            nutrients: p.nutrients || [],
+            mainIngredient: p.main_ingredient || (p.name.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : p.name.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : p.name.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : p.name.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : p.name.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
+            mainIngredientImage: p.main_ingredient_image || (p.name.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : p.name.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : p.name.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : p.name.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : p.name.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
           }));
           setProducts(mappedProducts);
         }
@@ -265,7 +272,7 @@ const AppContent: React.FC = () => {
             id: String(b.id),
             type: b.post_type,
             readTime: b.read_time,
-            content: b.content || [],
+            content: Array.isArray(b.content) ? b.content.join('\n\n') : (b.content || ''),
             tags: b.tags || [],
           }));
           if (mappedBlogs.length > 0) setBlogPosts(mappedBlogs);
@@ -383,6 +390,10 @@ const AppContent: React.FC = () => {
           orientation: newProduct.orientation
         })
       });
+      if (response.status === 401) {
+        handleAdminLogout();
+        return;
+      }
       if (response.ok) {
         const savedProduct = await response.json();
         const mappedProduct = {
@@ -399,6 +410,9 @@ const AppContent: React.FC = () => {
           nutrients: savedProduct.nutrients || []
         };
         setProducts(prev => [mappedProduct, ...prev]);
+      } else {
+        const errData = await response.json();
+        alert(`Failed to add product: ${errData.detail || 'Unknown error'}`);
       }
     } catch (err) {
       console.error("Failed to add product", err);
@@ -433,6 +447,10 @@ const AppContent: React.FC = () => {
           orientation: updatedProduct.orientation
         })
       });
+      if (response.status === 401) {
+        handleAdminLogout();
+        return;
+      }
       if (response.ok) {
         const savedProduct = await response.json();
         const mappedProduct = {
@@ -449,6 +467,8 @@ const AppContent: React.FC = () => {
           nutrients: savedProduct.nutrients || []
         };
         setProducts(prev => prev.map(p => p.id === mappedProduct.id ? mappedProduct : p));
+      } else {
+        alert("Failed to update product");
       }
     } catch (err) {
       console.error("Failed to update product", err);
@@ -458,11 +478,19 @@ const AppContent: React.FC = () => {
   const handleDeleteProduct = async (id: string) => {
     try {
       const token = localStorage.getItem('admin_access_token');
-      await fetch(`${API_BASE_URL}/api/products/${id}/`, {
+      const response = await fetch(`${API_BASE_URL}/api/products/${id}/`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      setProducts(prev => prev.filter(p => p.id !== id));
+      if (response.status === 401) {
+        handleAdminLogout();
+        return;
+      }
+      if (response.ok) {
+        setProducts(prev => prev.filter(p => p.id !== id));
+      } else {
+        alert("Failed to delete product");
+      }
     } catch (err) {
       console.error("Failed to delete product", err);
     }
@@ -503,11 +531,19 @@ const AppContent: React.FC = () => {
   const handleDeleteVisitorForm = async (id: string) => {
     try {
       const token = localStorage.getItem('admin_access_token');
-      await fetch(`${API_BASE_URL}/api/visitor-forms/${id}/`, {
+      const response = await fetch(`${API_BASE_URL}/api/visitor-forms/${id}/`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      setVisitorForms(prev => prev.filter(f => f.id !== id));
+      if (response.status === 401) {
+        handleAdminLogout();
+        return;
+      }
+      if (response.ok) {
+        setVisitorForms(prev => prev.filter(f => f.id !== id));
+      } else {
+        alert("Failed to delete form");
+      }
     } catch (err) {
       console.error("Failed to delete visitor form", err);
     }
@@ -855,7 +891,7 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const addToCart = (product: Product) => {
+  const addToCart = React.useCallback((product: Product) => {
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
@@ -864,13 +900,13 @@ const AppContent: React.FC = () => {
       return [...prev, { ...product, quantity: 1 }];
     });
     setIsCartOpen(true);
-  };
+  }, []);
 
-  const removeFromCart = (id: string) => {
+  const removeFromCart = React.useCallback((id: string) => {
     setCart(prev => prev.filter(item => item.id !== id));
-  };
+  }, []);
 
-  const updateQuantity = (id: string, delta: number) => {
+  const updateQuantity = React.useCallback((id: string, delta: number) => {
     setCart(prev => prev.map(item => {
       if (item.id === id) {
         const newQty = Math.max(1, item.quantity + delta);
@@ -878,9 +914,9 @@ const AppContent: React.FC = () => {
       }
       return item;
     }));
-  };
+  }, []);
 
-  const navigateToProduct = async (product: Product) => {
+  const navigateToProduct = React.useCallback(async (product: Product) => {
     setSelectedProduct(product);
     setCurrentView('product');
     window.history.pushState({ view: 'product', productId: product.id }, '');
@@ -901,16 +937,18 @@ const AppContent: React.FC = () => {
           orientation: fullProduct.orientation ? fullProduct.orientation.replace(/[Oo]/g, '0') : '0deg 0deg -15deg',
           benefits: fullProduct.benefits || [],
           nutrients: fullProduct.nutrients || [],
-          gallery: fullProduct.gallery || []
+          gallery: fullProduct.gallery || [],
+          mainIngredient: fullProduct.main_ingredient || (fullProduct.name.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : fullProduct.name.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : fullProduct.name.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : fullProduct.name.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : fullProduct.name.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
+          mainIngredientImage: fullProduct.main_ingredient_image || (fullProduct.name.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : fullProduct.name.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : fullProduct.name.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : fullProduct.name.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : fullProduct.name.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
         };
         setSelectedProduct(mappedProduct);
       }
     } catch (err) {
       console.error("Failed to fetch full product details", err);
     }
-  };
+  }, []);
 
-  const navigateToShop = () => {
+  const navigateToShop = React.useCallback(() => {
     setShopCategory('All');
     setCurrentView('shop');
     setSelectedProduct(null);
@@ -918,116 +956,116 @@ const AppContent: React.FC = () => {
     setIsCartOpen(false);
     setIsAuthOpen(false);
     window.history.pushState({ view: 'shop', category: 'All', query: '' }, '');
-  };
+  }, []);
 
-  const navigateToShopCategory = (category: string) => {
+  const navigateToShopCategory = React.useCallback((category: string) => {
     setShopCategory(category);
     setCurrentView('shop');
     setGlobalSearchQuery('');
     setSelectedProduct(null);
     window.history.pushState({ view: 'shop', category, query: '' }, '');
-  };
+  }, []);
 
-  const handleGlobalSearch = (query: string) => {
+  const handleGlobalSearch = React.useCallback((query: string) => {
     setGlobalSearchQuery(query);
     setShopCategory('All');
     setCurrentView('shop');
     setSelectedProduct(null);
     window.history.pushState({ view: 'shop', category: 'All', query }, '');
-  };
+  }, []);
 
-  const navigateToCheckout = () => {
+  const navigateToCheckout = React.useCallback(() => {
     setCurrentView('checkout');
     setIsCartOpen(false);
     setSelectedProduct(null);
     window.history.pushState({ view: 'checkout' }, '');
-  };
+  }, []);
 
-  const navigateToDashboard = () => {
+  const navigateToDashboard = React.useCallback(() => {
     setCurrentView('dashboard');
     setSelectedProduct(null);
     window.history.pushState({ view: 'dashboard' }, '');
-  };
+  }, []);
 
-  const navigateToFAQ = () => {
+  const navigateToFAQ = React.useCallback(() => {
     setCurrentView('faq');
     setSelectedProduct(null);
     window.history.pushState({ view: 'faq' }, '');
-  };
+  }, []);
 
-
-
-  const navigateToDistributor = () => {
+  const navigateToDistributor = React.useCallback(() => {
     setCurrentView('distributor');
     setSelectedProduct(null);
     window.history.pushState({ view: 'distributor' }, '');
-  };
+  }, []);
 
-  const navigateToBlogs = () => {
+  const navigateToBlogs = React.useCallback(() => {
     setCurrentView('blogs');
     setSelectedProduct(null);
     window.history.pushState({ view: 'blogs' }, '');
-  };
+  }, []);
 
-  const navigateToBlogDetail = (post: BlogPost) => {
+  const navigateToBlogDetail = React.useCallback((post: BlogPost) => {
     setSelectedBlogPost(post);
     setCurrentView('blog-detail');
     window.history.pushState({ view: 'blog-detail', blogId: post.id }, '');
-  };
+  }, []);
 
-  const navigateToEventBlogs = () => {
+  const navigateToEventBlogs = React.useCallback(() => {
     setCurrentView('event-blogs');
     setSelectedProduct(null);
     setSelectedEvent(null);
     window.history.pushState({ view: 'event-blogs' }, '');
-  };
+  }, []);
 
-  const navigateToEventDetail = (event: EventBlog) => {
+  const navigateToEventDetail = React.useCallback((event: EventBlog) => {
     setSelectedEvent(event);
     setCurrentView('event-detail');
     window.history.pushState({ view: 'event-detail', eventId: event.id }, '');
-  };
+  }, []);
 
-  const navigateToAdmin = () => {
+  const navigateToAdmin = React.useCallback(() => {
     if (isAdminLoggedIn) {
       setCurrentView('admin-dashboard');
+      window.history.pushState({ view: 'admin-dashboard' }, '');
     } else {
       setCurrentView('admin-login');
+      window.history.pushState({ view: 'admin-login' }, '');
     }
-  };
+  }, [isAdminLoggedIn]);
 
-  const navigateToJourney = () => {
+  const navigateToJourney = React.useCallback(() => {
     setCurrentView('journey');
     setSelectedProduct(null);
     setSelectedEvent(null);
     window.history.pushState({ view: 'journey' }, '');
-  };
+  }, []);
 
-  const navigateToPrivacy = () => {
+  const navigateToPrivacy = React.useCallback(() => {
     setCurrentView('privacy-policy');
     setSelectedProduct(null);
     window.history.pushState({ view: 'privacy-policy' }, '');
-  };
+  }, []);
 
-  const navigateToTerms = () => {
+  const navigateToTerms = React.useCallback(() => {
     setCurrentView('terms-and-conditions');
     setSelectedProduct(null);
     window.history.pushState({ view: 'terms-and-conditions' }, '');
-  };
+  }, []);
 
-  const navigateToRefund = () => {
+  const navigateToRefund = React.useCallback(() => {
     setCurrentView('refund-policy');
     setSelectedProduct(null);
     window.history.pushState({ view: 'refund-policy' }, '');
-  };
+  }, []);
 
-  const navigateToShipping = () => {
+  const navigateToShipping = React.useCallback(() => {
     setCurrentView('shipping-policy');
     setSelectedProduct(null);
     window.history.pushState({ view: 'shipping-policy' }, '');
-  };
+  }, []);
 
-  const goHome = () => {
+  const goHome = React.useCallback(() => {
     setCurrentView('home');
     setSelectedProduct(null);
     setSelectedEvent(null);
@@ -1036,7 +1074,7 @@ const AppContent: React.FC = () => {
     setIsCartOpen(false);
     setIsAuthOpen(false);
     window.history.pushState({ view: 'home' }, '');
-  };
+  }, []);
 
   const handleLogin = () => {
     // setIsLoggedIn is handled by useEffect
@@ -1052,6 +1090,7 @@ const AppContent: React.FC = () => {
   const handleAdminLogin = () => {
     setIsAdminLoggedIn(true);
     setCurrentView('admin-dashboard');
+    window.history.pushState({ view: 'admin-dashboard' }, '');
   };
 
   const handleAdminLogout = () => {
@@ -1059,6 +1098,7 @@ const AppContent: React.FC = () => {
     localStorage.removeItem('admin_access_token');
     localStorage.removeItem('admin_refresh_token');
     setCurrentView('home');
+    window.history.pushState({ view: 'home' }, '');
   };
 
   const clearCart = () => {

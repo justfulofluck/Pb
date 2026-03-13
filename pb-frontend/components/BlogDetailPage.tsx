@@ -11,7 +11,7 @@ interface BlogDetailPageProps {
 
 const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeClick }) => {
   return (
-    <div className="bg-white min-h-screen pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="bg-[#f5fbe6] min-h-screen pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="fixed top-20 left-0 w-full h-1 bg-slate-100 z-30">
         <div className="h-full bg-primary w-1/3"></div>
       </div>
@@ -70,15 +70,21 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeCli
             {post.excerpt}
           </p>
           
-          <div className="space-y-6 text-slate-800 leading-relaxed">
-            {post.content && post.content.length > 0 ? (
-              post.content.map((paragraph, index) => (
-                <p key={index}>{paragraph}</p>
-              ))
-            ) : (
-              <p>Content loading...</p>
-            )}
-          </div>
+          <div 
+            className="space-y-6 text-slate-800 leading-relaxed article-content"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
+          <style>{`
+            .article-content h1 { font-size: 2.25rem; font-weight: 900; margin-bottom: 1.5rem; text-transform: uppercase; }
+            .article-content h2 { font-size: 1.875rem; font-weight: 900; margin-top: 2rem; margin-bottom: 1rem; text-transform: uppercase; }
+            .article-content h3 { font-size: 1.5rem; font-weight: 800; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+            .article-content p { margin-bottom: 1.25rem; }
+            .article-content a { color: #80c441; font-weight: 700; text-decoration: underline; }
+            .article-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.25rem; }
+            .article-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 1.25rem; }
+            .article-content li { margin-bottom: 0.5rem; }
+            .article-content strong { font-weight: 800; }
+          `}</style>
         </article>
         
         <div className="max-w-3xl mx-auto mt-16 pt-8 border-t border-slate-100 flex justify-between items-center">

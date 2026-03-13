@@ -17,6 +17,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
     const slidesRef = useRef<(HTMLDivElement | null)[]>([]);
     const goNextRef = useRef<(() => void) | null>(null);
     const goPrevRef = useRef<(() => void) | null>(null);
+    const activeAbsRef = useRef(0);
 
     const displayProducts = React.useMemo(() => {
         if (!products || products.length === 0) return [];
@@ -108,8 +109,8 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
             if (infoBox) gsap.set(infoBox, { opacity: 0, scale: 0 });
         });
 
-        let activeAbs = 0;
-        let lastActiveAbs = 0;
+        let activeAbs = activeAbsRef.current;
+        let lastActiveAbs = activeAbs;
         let lastVisibleByIndex = Array(displayProducts.length).fill(false);
         let lastRelByIndex: (number | null)[] = Array(displayProducts.length).fill(null);
         let isAnimating = false;
@@ -255,6 +256,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
             if (isAnimating) return;
             lockAnimating();
             activeAbs += 1;
+            activeAbsRef.current = activeAbs;
             layout(true);
         };
 
@@ -262,6 +264,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
             if (isAnimating) return;
             lockAnimating();
             activeAbs -= 1;
+            activeAbsRef.current = activeAbs;
             layout(true);
         };
 
@@ -328,9 +331,19 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
             }
         };
 
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowLeft') {
+                goPrev();
+            } else if (e.key === 'ArrowRight') {
+                goNext();
+            }
+        };
+
         wheel.addEventListener('pointerdown', onPointerDown as any);
         wheel.addEventListener('pointermove', onPointerMove as any);
         wheel.addEventListener('pointerup', onPointerUp as any);
+        window.addEventListener('keydown', onKeyDown);
+
         const refresh = () => {
             setStableViewportHeight();
             lastVisibleByIndex = Array(displayProducts.length).fill(false);
@@ -340,6 +353,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
         setTimeout(refresh, 100);
         return () => {
             window.removeEventListener('resize', refresh);
+            window.removeEventListener('keydown', onKeyDown);
             wheel.removeEventListener('pointerdown', onPointerDown as any);
             wheel.removeEventListener('pointermove', onPointerMove as any);
             wheel.removeEventListener('pointerup', onPointerUp as any);

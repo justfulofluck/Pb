@@ -17,6 +17,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
+
+  const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
+  const paginatedOrders = orders.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -155,46 +167,91 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
           <section className="bg-white rounded-3xl p-8 border-2 border-slate-50 shadow-sm">
             <div className="flex justify-between items-center mb-8">
               <h3 className="text-2xl font-black uppercase tracking-tight">Recent Orders</h3>
-              <button className="text-primary font-black text-xs uppercase tracking-widest hover:underline">View All</button>
+              <div className="flex items-center gap-4">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                  Page {currentPage} of {totalPages || 1}
+                </span>
+                <button className="text-primary font-black text-xs uppercase tracking-widest hover:underline">View All</button>
+              </div>
             </div>
             <div className="space-y-4">
               {isLoadingOrders ? (
                 <div className="text-center py-8 text-slate-400">Loading orders...</div>
               ) : orders.length > 0 ? (
-                orders.map((order) => (
-                  <div
-                    key={order.id}
-                    onClick={() => setSelectedOrder(order)}
-                    className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100 cursor-pointer group"
-                  >
-                    <div className="flex items-center gap-6 mb-4 md:mb-0">
-                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary">
-                        <span className="material-symbols-outlined">package_2</span>
+                <>
+                  <div className="space-y-4">
+                    {paginatedOrders.map((order) => (
+                      <div
+                        key={order.id}
+                        onClick={() => setSelectedOrder(order)}
+                        className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-md transition-all border border-transparent hover:border-slate-100 cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-6 mb-4 md:mb-0">
+                          <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary">
+                            <span className="material-symbols-outlined">package_2</span>
+                          </div>
+                          <div>
+                            <h4 className="font-black text-sm uppercase">Order #{order.id}</h4>
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{new Date(order.created_at).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-8 md:gap-12">
+                          <div className="text-center">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Items</p>
+                            <p className="font-black text-sm">{order.items.length}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${order.status === 'Delivered' ? 'bg-green-100 text-green-600' : 'bg-secondary/20 text-accent-brown'
+                              }`}>
+                              {order.status}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total</p>
+                            <p className="font-black text-sm">Rs. {order.total_amount}</p>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-black text-sm uppercase">Order #{order.id}</h4>
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{new Date(order.created_at).toLocaleDateString()}</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-8 md:gap-12">
-                      <div className="text-center">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Items</p>
-                        <p className="font-black text-sm">{order.items.length}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${order.status === 'Delivered' ? 'bg-green-100 text-green-600' : 'bg-secondary/20 text-accent-brown'
-                          }`}>
-                          {order.status}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total</p>
-                        <p className="font-black text-sm">Rs. {order.total_amount}</p>
-                      </div>
-                    </div>
+                    ))}
                   </div>
-                ))
+
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-8">
+                      <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-slate-100 text-slate-400 hover:border-primary hover:text-primary disabled:opacity-30 disabled:hover:border-slate-100 disabled:hover:text-slate-400 transition-all"
+                      >
+                        <span className="material-symbols-outlined">chevron_left</span>
+                      </button>
+
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-xs transition-all ${currentPage === page
+                              ? 'bg-primary text-white shadow-lg'
+                              : 'text-slate-400 hover:bg-slate-50'
+                              }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-slate-100 text-slate-400 hover:border-primary hover:text-primary disabled:opacity-30 disabled:hover:border-slate-100 disabled:hover:text-slate-400 transition-all"
+                      >
+                        <span className="material-symbols-outlined">chevron_right</span>
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-center py-8 text-slate-400">No orders found.</div>
               )}

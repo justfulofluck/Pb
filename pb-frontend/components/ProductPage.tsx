@@ -393,6 +393,39 @@ const ProductPage: React.FC<ProductPageProps> = ({
         </div>
       </section >
 
+      {/* NEW: Powerful Natural Ingredient Blend Section */}
+      <section className="py-24" style={{ backgroundColor: '#fdf3f0' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-12">
+            <div className="w-full md:w-1/2" data-snaxxo-animate>
+              <h2 className="text-6xl md:text-9xl font-black text-[#1a5b32] uppercase tracking-[ -0.05em] leading-[0.82] italic mb-0" style={{ fontFamily: '"Bebas Neue", sans-serif' }}>
+                THE <br />
+                POWERFUL <br />
+                NATURAL <br />
+                INGREDIENT <br />
+                BLEND
+              </h2>
+            </div>
+            <div className="w-full md:w-1/2 flex flex-col items-center" data-snaxxo-animate>
+              <div className="relative w-72 h-72 md:w-[450px] md:h-[450px] mb-8 group">
+                <div className="absolute inset-0 bg-white/60 rounded-full blur-3xl scale-110 group-hover:scale-125 transition-transform duration-1000" />
+                <img
+                  src={product.mainIngredientImage || "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop"}
+                  alt={product.mainIngredient || "Roasted Peanuts"}
+                  className="w-full h-full object-contain relative z-10 drop-shadow-[0_20px_50px_rgba(0,0,0,0.15)] group-hover:scale-110 transition-transform duration-700"
+                />
+              </div>
+              <div className="text-center" data-snaxxo-animate>
+                <p className="text-3xl md:text-5xl font-black text-[#1a5b32] tracking-tighter uppercase italic" style={{ fontFamily: '"Bebas Neue", sans-serif' }}>
+                  {product.mainIngredient || (product.name.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : "Premium Natural Blend")}
+                </p>
+                <div className="h-1.5 w-24 bg-[#1a5b32] mx-auto mt-4 rounded-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="section overflow-hidden" style={{ backgroundColor: '#f2f2ec' }}>
         <div className="w-layout-blockcontainer container product-page-intro w-container">
           <div className="content-wrapper product-page-intro">

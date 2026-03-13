@@ -253,7 +253,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     readTime: '',
     author: '',
-    content: ['']
+    content: ''
   });
 
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -477,14 +477,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       readTime: '',
       author: '',
-      content: ['']
+      content: ''
     });
     setBlogView('form');
   };
 
   const openEditBlog = (post: BlogPost) => {
     setEditingBlogPost(post);
-    setBlogForm({ ...post });
+    const content = Array.isArray(post.content) ? post.content.join('\n\n') : (post.content || '');
+    setBlogForm({ ...post, content });
     setBlogView('form');
   };
 
@@ -505,7 +506,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       date: blogForm.date || new Date().toDateString(),
       readTime: blogForm.readTime || '5 min read',
       author: blogForm.author || 'Admin',
-      content: blogForm.content?.filter(p => p.trim() !== '') || []
+      content: blogForm.content || ''
     };
 
     if (editingBlogPost) {
@@ -1765,29 +1766,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                       {/* Content Editor */}
                       <section className="space-y-4 pt-6 border-t border-slate-100">
-                        <h4 className="text-sm font-black uppercase text-slate-800">Article Content</h4>
-                        <p className="text-xs text-slate-500">Add paragraphs for your article.</p>
-                        {blogForm.content?.map((paragraph, idx) => (
-                          <div key={idx} className="relative group">
-                            <textarea
-                              placeholder={`Paragraph ${idx + 1}...`}
-                              value={paragraph}
-                              onChange={(e) => updateBlogContent(idx, e.target.value)}
-                              rows={4}
-                              className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-700 focus:ring-primary focus:border-primary"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => removeBlogParagraph(idx)}
-                              className="absolute top-2 right-2 p-1 bg-white rounded-full text-slate-400 hover:text-red-500 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <span className="material-symbols-outlined text-sm">delete</span>
-                            </button>
-                          </div>
-                        ))}
-                        <button type="button" onClick={addBlogParagraph} className="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:underline">
-                          <span className="material-symbols-outlined text-sm">add</span> Add Paragraph
-                        </button>
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-black uppercase text-slate-800">Article Content</h4>
+                          <span className="text-[10px] font-bold text-primary uppercase tracking-widest border border-primary/20 px-2 py-0.5 rounded">HTML Supported</span>
+                        </div>
+                        <p className="text-xs text-slate-500">Enter your article content. You can use HTML tags like &lt;h1&gt;, &lt;h2&gt;, &lt;p&gt;, and &lt;a&gt; for headings and links.</p>
+                        <div className="relative">
+                          <textarea
+                            placeholder="Write your article story here... Use HTML for headings and links!"
+                            value={blogForm.content}
+                            onChange={(e) => setBlogForm({ ...blogForm, content: e.target.value })}
+                            rows={15}
+                            className="w-full px-4 py-4 rounded-xl border border-slate-200 text-slate-700 focus:ring-primary focus:border-primary font-mono text-sm leading-relaxed bg-slate-50/30"
+                          />
+                        </div>
                       </section>
 
                       <div className="pt-6 flex justify-end gap-4 border-t border-slate-100">
@@ -2451,17 +2443,41 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* Stats Grid */}
                 <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
                   {[
-                    { label: 'Total Revenue', value: '₹42.5L', change: '+12.5%', icon: 'payments', color: 'bg-green-100 text-green-600' },
-                    { label: 'Total SKUs', value: products.length.toString(), change: '+1', icon: 'inventory_2', color: 'bg-blue-100 text-blue-600' },
-                    { label: 'Low Stock Items', value: products.filter(p => p.stock < 10).length.toString(), change: products.filter(p => p.stock < 10).length > 0 ? '- Action Needed' : 'Healthy', icon: 'warning', color: products.filter(p => p.stock < 10).length > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600' },
-                    { label: 'Total Events', value: events.length.toString(), change: '+2', icon: 'event', color: 'bg-purple-100 text-purple-600' },
+                    { 
+                      label: 'Total Revenue', 
+                      value: `₹${orders.reduce((acc, curr) => acc + (curr.status !== 'Cancelled' ? Number(curr.total_amount) : 0), 0).toLocaleString('en-IN')}`, 
+                      change: `${orders.length} Orders`, 
+                      icon: 'payments', 
+                      color: 'bg-green-100 text-green-600' 
+                    },
+                    { 
+                      label: 'Total SKUs', 
+                      value: products.length.toString(), 
+                      change: 'Active', 
+                      icon: 'inventory_2', 
+                      color: 'bg-blue-100 text-blue-600' 
+                    },
+                    { 
+                      label: 'Low Stock Items', 
+                      value: products.filter(p => p.stock < 10).length.toString(), 
+                      change: products.filter(p => p.stock < 10).length > 0 ? '- Action Needed' : 'Healthy', 
+                      icon: 'warning', 
+                      color: products.filter(p => p.stock < 10).length > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600' 
+                    },
+                    { 
+                      label: 'Total Events', 
+                      value: events.length.toString(), 
+                      change: events.length > 0 ? 'Upcoming' : 'None', 
+                      icon: 'event', 
+                      color: 'bg-purple-100 text-purple-600' 
+                    },
                   ].map((stat, i) => (
                     <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex justify-between items-start mb-4">
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
                           <span className="material-symbols-outlined">{stat.icon}</span>
                         </div>
-                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${stat.change.startsWith('+') || stat.change === 'Healthy' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${stat.change.startsWith('+') || stat.change === 'Healthy' || stat.change === 'Active' || stat.change === 'Total' || stat.change.includes('Orders') ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
                           {stat.change}
                         </span>
                       </div>
@@ -2474,9 +2490,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-6 flex items-start gap-4">
                   <span className="material-symbols-outlined text-blue-600">info</span>
                   <div>
-                    <h4 className="font-bold text-blue-900">Admin Tip</h4>
+                    <h4 className="font-bold text-blue-900">System Overview</h4>
                     <p className="text-sm text-blue-700 mt-1">
-                      You can now create and manage QR codes for visitor check-ins under the "Visitor Forms" tab.
+                      You are currently managing {products.length} products across {categories.length} categories. {orders.filter(o => o.status === 'Pending').length} orders are awaiting processing.
                     </p>
                   </div>
                 </div>

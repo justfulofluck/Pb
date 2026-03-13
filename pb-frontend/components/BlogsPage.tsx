@@ -23,7 +23,7 @@ const BlogsPage: React.FC<BlogsPageProps> = ({ posts, onBlogClick, onHomeClick }
   });
 
   return (
-    <div className="bg-[#fcfbf9] min-h-screen animate-in fade-in duration-500">
+    <div className="bg-[#f5fbe6] min-h-screen animate-in fade-in duration-500">
       <div className="bg-[#e0f2f1] text-slate-900 pt-10 pb-20 px-4 relative overflow-hidden">
         <div className="max-w-7xl mx-auto mb-6">
           <Breadcrumbs
