@@ -6,6 +6,7 @@ import ConfirmationModal from './ConfirmationModal';
 
 interface AdminDashboardProps {
   onLogout: () => void;
+  onBackToSite: () => void;
   products: Product[];
   onAddProduct: (p: Product) => void;
   onUpdateProduct: (p: Product) => void;
@@ -51,6 +52,7 @@ const COLOR_THEMES = [
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onLogout,
+  onBackToSite,
   products,
   onAddProduct,
   onUpdateProduct,
@@ -991,9 +993,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     <div className="min-h-screen bg-slate-100 flex font-display">
       {/* Sidebar */}
       <aside className="w-20 lg:w-64 bg-slate-900 text-white flex flex-col flex-shrink-0 transition-all duration-300">
-        <div className="p-6 flex items-center gap-3 border-b border-slate-800 h-20">
-          <span className="material-symbols-outlined text-3xl text-primary">eco</span>
-          <span className="font-black text-xl tracking-tighter hidden lg:block">PINO<span className="text-slate-500">PANEL</span></span>
+        <div className="p-4 border-b border-slate-800 h-20 flex items-center justify-center">
+          <button
+            onClick={onBackToSite}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-primary text-white rounded-xl transition-all duration-300 group"
+          >
+            <span className="material-symbols-outlined text-xl group-hover:-translate-x-1 transition-transform">arrow_back</span>
+            <span className="font-bold text-sm hidden lg:block uppercase tracking-wider">Go to Site</span>
+          </button>
         </div>
 
         <nav className="flex-1 py-6 space-y-1">
@@ -1771,6 +1778,43 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <span className="text-[10px] font-bold text-primary uppercase tracking-widest border border-primary/20 px-2 py-0.5 rounded">HTML Supported</span>
                         </div>
                         <p className="text-xs text-slate-500">Enter your article content. You can use HTML tags like &lt;h1&gt;, &lt;h2&gt;, &lt;p&gt;, and &lt;a&gt; for headings and links.</p>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          <button
+                            type="button"
+                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '\n<p>New paragraph here...</p>' })}
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
+                          >
+                            <span className="material-symbols-outlined text-sm">segment</span> Paragraph
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '\n<h2>Heading 2</h2>' })}
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
+                          >
+                            <span className="material-symbols-outlined text-sm">title</span> Heading
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '<strong>Bold Text</strong>' })}
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
+                          >
+                            <span className="material-symbols-outlined text-sm">format_bold</span> Bold
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '<a href="https://example.com">Link Text</a>' })}
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
+                          >
+                            <span className="material-symbols-outlined text-sm">link</span> Link
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '\n<img src="IMAGE_URL_HERE" alt="description" className="w-full rounded-2xl my-6" />' })}
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
+                          >
+                            <span className="material-symbols-outlined text-sm">image</span> Add Image
+                          </button>
+                        </div>
                         <div className="relative">
                           <textarea
                             placeholder="Write your article story here... Use HTML for headings and links!"

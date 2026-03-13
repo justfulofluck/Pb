@@ -1113,6 +1113,7 @@ const AppContent: React.FC = () => {
     return (
       <AdminDashboard
         onLogout={handleAdminLogout}
+        onBackToSite={goHome}
         products={products}
         onAddProduct={handleAddProduct}
         onUpdateProduct={handleUpdateProduct}

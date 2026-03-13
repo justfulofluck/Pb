@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { BlogPost } from '../types';
 import Breadcrumbs from './Breadcrumbs';
 
@@ -10,10 +10,60 @@ interface BlogDetailPageProps {
 }
 
 const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeClick }) => {
+  const [isLiked, setIsLiked] = useState(false);
+  const [showCopied, setShowCopied] = useState(false);
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    
+    // Check if it's a mobile device and supports native sharing
+    if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      try {
+        await navigator.share({
+          title: post.title,
+          text: post.excerpt,
+          url: url,
+        });
+        return;
+      } catch (err) {
+        console.log('Native share failed or cancelled');
+      }
+    }
+
+    // Regular Clipboard Copy
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+        setShowCopied(true);
+        setTimeout(() => setShowCopied(false), 2500);
+      } else {
+        throw new Error('Clipboard API unavailable');
+      }
+    } catch (err) {
+      // Legacy Fallback
+      const textArea = document.createElement("textarea");
+      textArea.value = url;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      textArea.style.top = "0";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setShowCopied(true);
+        setTimeout(() => setShowCopied(false), 2500);
+      } catch (fallbackErr) {
+        alert("Please copy the URL from your browser's address bar.");
+      }
+      document.body.removeChild(textArea);
+    }
+  };
+
   return (
     <div className="bg-[#f2f2ec] min-h-screen pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="fixed top-20 left-0 w-full h-1 bg-slate-100 z-30">
-        <div className="h-full bg-primary w-1/3"></div>
+        <div className="h-full bg-primary w-1/3 transition-all duration-1000" style={{ width: '100%' }}></div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 pt-12">
@@ -87,16 +137,37 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeCli
           `}</style>
         </article>
         
-        <div className="max-w-3xl mx-auto mt-16 pt-8 border-t border-slate-100 flex justify-between items-center">
+        <div className="max-w-3xl mx-auto mt-16 pt-8 border-t border-slate-100 flex justify-between items-center relative">
            <div className="flex gap-4">
-             <button className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-               <span className="material-symbols-outlined text-lg">favorite</span>
+             <button 
+                onClick={() => setIsLiked(!isLiked)}
+                className={`w-12 h-12 rounded-full border flex items-center justify-center transition-all ${isLiked ? 'bg-red-50 border-red-200 text-red-500 shadow-sm' : 'border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-900'}`}
+             >
+               <span className={`material-symbols-outlined text-xl ${isLiked ? 'fill-1' : ''}`}>favorite</span>
              </button>
-             <button className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-               <span className="material-symbols-outlined text-lg">share</span>
+             <button 
+                onClick={handleShare}
+                className="w-12 h-12 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 hover:text-slate-900 transition-all active:scale-95"
+             >
+               <span className="material-symbols-outlined text-xl">share</span>
              </button>
            </div>
-           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Share this story</p>
+           
+           <div className="flex flex-col items-end">
+             <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">Share this story</p>
+             <div className="flex gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/20"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/40"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-primary/60"></span>
+             </div>
+           </div>
+
+           {/* Copy Success Feedback */}
+           {showCopied && (
+             <div className="absolute -top-12 left-0 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-lg animate-in fade-in slide-in-from-bottom-2 duration-300">
+               Link Copied!
+             </div>
+           )}
         </div>
       </div>
     </div>
