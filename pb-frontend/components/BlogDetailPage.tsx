@@ -11,7 +11,7 @@ interface BlogDetailPageProps {
 
 const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeClick }) => {
   return (
-    <div className="bg-[#f5fbe6] min-h-screen pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="bg-[#f2f2ec] min-h-screen pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="fixed top-20 left-0 w-full h-1 bg-slate-100 z-30">
         <div className="h-full bg-primary w-1/3"></div>
       </div>
