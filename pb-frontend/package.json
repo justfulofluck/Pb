@@ -9,9 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/matter-js": "^0.20.2",
     "gsap": "^3.14.2",
     "jspdf": "2.5.1",
     "lottie-react": "^2.4.1",
+    "matter-js": "^0.20.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },

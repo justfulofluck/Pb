@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
-import SnaxxoWave from './SnaxxoWave';
+import MultiLayerWave from './MultiLayerWave';
+
 
 interface SnaxxoFooterProps {
     onShopClick: (category?: string) => void;
@@ -86,7 +87,8 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
 
             <section className="section darker-red !bg-[#228b44] !bg-none">
                 <div className="wave-lottie-animation below footer !bg-[#f2f2ec] relative z-20" style={{ transform: 'translateY(-1px)' }}>
-                    <SnaxxoWave fill="#228b44" />
+                    <MultiLayerWave fill="#228b44" />
+
                 </div>
 
                 <div className="w-layout-blockcontainer container footer-main w-container !bg-[#228b44] !mt-[-1rem] !max-w-7xl mx-auto px-4 !pt-20 !pb-10 font-display">

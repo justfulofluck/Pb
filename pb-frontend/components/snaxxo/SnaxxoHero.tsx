@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import SnaxxoWave from './SnaxxoWave';
+import MultiLayerWave from './MultiLayerWave';
+
 
 interface SnaxxoHeroProps {
     onShopClick: () => void;
@@ -204,7 +205,8 @@ const SnaxxoHero: React.FC<SnaxxoHeroProps> = ({ onShopClick }) => {
 
             {/* Wave Animation at Bottom */}
             {/* Wave Animation at Bottom */}
-            <SnaxxoWave className="below" fill="#f2f2ec" />
+            <MultiLayerWave className="below" fill="#f2f2ec" />
+
 
         </section>
     );

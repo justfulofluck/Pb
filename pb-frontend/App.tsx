@@ -37,6 +37,8 @@ import StoryCarousel from './components/StoryCarousel';
 import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category, Announcement } from './types';
 import SnaxxoLanding from './components/snaxxo/SnaxxoLanding';
 import SnaxxoProductWheel from './components/snaxxo/SnaxxoProductWheel';
+import BenefitHighlights from './components/snaxxo/BenefitHighlights';
+
 import MobileBottomNav from './components/MobileBottomNav';
 
 const INITIAL_PRODUCTS: Product[] = [];
@@ -1205,7 +1207,9 @@ const AppContent: React.FC = () => {
               />
             </div>
             <LatestProductShowcase />
+            <BenefitHighlights />
             <ComparisonTable />
+
             <Testimonials reviews={reviews} />
             <BlogSection
               posts={blogPosts}

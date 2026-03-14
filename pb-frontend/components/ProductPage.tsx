@@ -2,7 +2,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Product, Review, Story } from '../types';
 import Breadcrumbs from './Breadcrumbs';
 import SnaxxoProductWheel from './snaxxo/SnaxxoProductWheel';
-import SnaxxoWave from './snaxxo/SnaxxoWave';
+import MultiLayerWave from './snaxxo/MultiLayerWave';
+
 
 import SnaxxoAddReview from './snaxxo/SnaxxoAddReview';
 import Testimonials from './Testimonials';
@@ -481,12 +482,14 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
         {/* Top Wave: overlaps the image from above, matching previous section's background (#ffffff) */}
         <div style={{ position: 'relative', zIndex: 10, width: '100%' }}>
-          <SnaxxoWave className="flipped" fill="#f2f2ec" />
+          <MultiLayerWave flipped fill="#f2f2ec" />
+
         </div>
 
         {/* Bottom Wave: overlaps the image from below, matching next section's background (#ffffff) */}
         <div style={{ position: 'relative', zIndex: 10, width: '100%' }}>
-          <SnaxxoWave className="below" fill="#f2f2ec" />
+          <MultiLayerWave className="below" fill="#f2f2ec" />
+
         </div>
       </section>
 
