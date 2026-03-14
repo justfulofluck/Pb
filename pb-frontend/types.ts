@@ -234,3 +234,11 @@ export interface DistributorApplication {
   status: 'Pending' | 'Approved' | 'Rejected';
   created_at: string;
 }
+
+export interface PressUpdate {
+  id: string;
+  logo: string;          // Media house logo (base64 or URL)
+  mediaHouse: string;    // Name of the media house
+  quote: string;         // The press quote / comment
+  author: string;        // Author name
+}

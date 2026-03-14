@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category, Announcement, DistributorApplication } from '../types';
+import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category, Announcement, DistributorApplication, PressUpdate } from '../types';
 import { API_BASE_URL } from '../config';
 import { jsPDF } from "jspdf";
 import ConfirmationModal from './ConfirmationModal';
@@ -33,6 +33,9 @@ interface AdminDashboardProps {
   onAddAnnouncement: (a: Announcement) => void;
   onDeleteAnnouncement: (id: number) => void;
   onUpdateAnnouncement: (a: Announcement) => void;
+  pressUpdates: PressUpdate[];
+  onAddPressUpdate: (p: PressUpdate) => void;
+  onDeletePressUpdate: (id: string) => void;
 }
 
 // Removed INITIAL_ORDERS mock data
@@ -79,13 +82,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   announcements,
   onAddAnnouncement,
   onDeleteAnnouncement,
-  onUpdateAnnouncement
+  onUpdateAnnouncement,
+  pressUpdates,
+  onAddPressUpdate,
+  onDeletePressUpdate
 }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [productView, setProductView] = useState<'list' | 'add' | 'categories'>('list');
   const [eventView, setEventView] = useState<'list' | 'add'>('list');
   const [blogView, setBlogView] = useState<'list' | 'form'>('list');
-  const [uiView, setUiView] = useState<'hero' | 'stories'>('hero');
+  const [uiView, setUiView] = useState<'hero' | 'stories' | 'press'>('hero');
   const [showNotifications, setShowNotifications] = useState(false);
   const [notificationsLastClear, setNotificationsLastClear] = useState<number>(() => {
     return Number(localStorage.getItem('admin_notifications_last_clear') || '0');
@@ -105,6 +111,43 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [distributorSearchQuery, setDistributorSearchQuery] = useState('');
 
   const storyFileInputRef = useRef<HTMLInputElement>(null);
+  const pressLogoInputRef = useRef<HTMLInputElement>(null);
+
+  // Press Updates Form State
+  const [pressForm, setPressForm] = useState<Partial<PressUpdate>>({
+    logo: '',
+    mediaHouse: '',
+    quote: '',
+    author: ''
+  });
+
+  const handlePressLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPressForm(prev => ({ ...prev, logo: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePressSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pressForm.logo || !pressForm.quote || !pressForm.mediaHouse) {
+      alert('Please fill in the logo, media house name, and quote.');
+      return;
+    }
+    const newPress: PressUpdate = {
+      id: Date.now().toString(),
+      logo: pressForm.logo || '',
+      mediaHouse: pressForm.mediaHouse || '',
+      quote: pressForm.quote || '',
+      author: pressForm.author || 'Unknown'
+    };
+    onAddPressUpdate(newPress);
+    setPressForm({ logo: '', mediaHouse: '', quote: '', author: '' });
+  };
 
   // Visitor Forms State
   // visitorForms is now passed via props
@@ -1182,6 +1225,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 >
                   Social Stories
                 </button>
+                <button
+                  onClick={() => setUiView('press')}
+                  className={`px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${uiView === 'press' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                  Press Updates
+                </button>
               </div>
 
               {/* View: Hero Manager */}
@@ -1385,6 +1434,120 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       );
                     })}
                   </div>
+                </div>
+              )}
+
+              {/* View: Press Updates Manager */}
+              {uiView === 'press' && (
+                <div className="space-y-8 animate-in fade-in duration-300">
+                  <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+                    <h3 className="text-xl font-black uppercase text-slate-900 mb-6">Add Press Update</h3>
+                    <form onSubmit={handlePressSubmit} className="space-y-6">
+                      <div className="grid md:grid-cols-2 gap-6">
+                        {/* Logo Upload */}
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Media House Logo *</label>
+                          <div className="flex gap-2">
+                            <input
+                              ref={pressLogoInputRef}
+                              type="file"
+                              accept="image/*"
+                              onChange={handlePressLogoUpload}
+                              className="hidden"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => pressLogoInputRef.current?.click()}
+                              className={`flex-1 px-4 py-3 rounded-xl border-2 border-dashed transition-all flex items-center justify-center gap-2 font-black uppercase text-[10px] tracking-widest ${pressForm.logo ? 'bg-green-50 border-green-200 text-green-600' : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-primary hover:text-primary'}`}
+                            >
+                              <span className="material-symbols-outlined text-lg">
+                                {pressForm.logo ? 'check_circle' : 'cloud_upload'}
+                              </span>
+                              {pressForm.logo ? 'Logo Ready' : 'Upload Logo'}
+                            </button>
+                            {pressForm.logo && (
+                              <div className="w-12 h-12 rounded-xl border border-slate-200 overflow-hidden flex-shrink-0">
+                                <img src={pressForm.logo} className="w-full h-full object-contain" alt="Logo preview" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Media House Name */}
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Media House Name *</label>
+                          <input
+                            type="text"
+                            value={pressForm.mediaHouse || ''}
+                            onChange={e => setPressForm(prev => ({ ...prev, mediaHouse: e.target.value }))}
+                            placeholder="e.g. Shark Tank India, ZEE5, Ad Gully"
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Quote */}
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Press Quote / Comment *</label>
+                        <textarea
+                          value={pressForm.quote || ''}
+                          onChange={e => setPressForm(prev => ({ ...prev, quote: e.target.value }))}
+                          placeholder='e.g. "A home-grown brand set to make its mark as a pioneer in the healthy snacks category"'
+                          rows={3}
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary resize-none"
+                        />
+                      </div>
+
+                      {/* Author */}
+                      <div className="grid md:grid-cols-2 gap-6 items-end">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Author / Source</label>
+                          <input
+                            type="text"
+                            value={pressForm.author || ''}
+                            onChange={e => setPressForm(prev => ({ ...prev, author: e.target.value }))}
+                            placeholder="e.g. Namita Thapar, Editor"
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary"
+                          />
+                        </div>
+                        <button type="submit" className="bg-primary text-white py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:shadow-lg transition-all h-[50px]">
+                          Add Press Update
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  {/* Existing Press Updates Grid */}
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {pressUpdates.map(item => (
+                      <div key={item.id} className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow group relative">
+                        <button
+                          onClick={() => { if (confirm('Delete this press update?')) onDeletePressUpdate(item.id); }}
+                          className="absolute top-4 right-4 w-8 h-8 bg-red-50 text-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
+                        >
+                          <span className="material-symbols-outlined text-sm">delete</span>
+                        </button>
+                        <div className="flex items-start gap-4">
+                          <div className="w-14 h-14 rounded-xl border border-slate-100 overflow-hidden flex-shrink-0 flex items-center justify-center bg-white shadow-sm">
+                            <img src={item.logo} className="w-12 h-12 object-contain" alt={item.mediaHouse} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-primary">{item.mediaHouse}</span>
+                            <p className="text-sm text-slate-700 font-medium mt-1 line-clamp-3">"{item.quote}"</p>
+                            <span className="text-[10px] font-bold uppercase text-slate-400 mt-2 block">— {item.author}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {pressUpdates.length === 0 && (
+                    <div className="text-center py-16 text-slate-400">
+                      <span className="material-symbols-outlined text-6xl mb-4 block">newspaper</span>
+                      <p className="font-black uppercase tracking-widest text-sm">No press updates yet</p>
+                      <p className="text-xs mt-2">Add your first press mention above</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

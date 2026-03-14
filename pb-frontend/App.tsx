@@ -34,11 +34,10 @@ import TermsAndConditionsPage from './components/TermsAndConditionsPage';
 import RefundPolicyPage from './components/RefundPolicyPage';
 import ShippingPolicyPage from './components/ShippingPolicyPage';
 import StoryCarousel from './components/StoryCarousel';
-import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category, Announcement } from './types';
+import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category, Announcement, PressUpdate } from './types';
 import SnaxxoLanding from './components/snaxxo/SnaxxoLanding';
 import SnaxxoProductWheel from './components/snaxxo/SnaxxoProductWheel';
-import BenefitHighlights from './components/snaxxo/BenefitHighlights';
-
+import PressUpdates from './components/PressUpdates';
 import MobileBottomNav from './components/MobileBottomNav';
 
 const INITIAL_PRODUCTS: Product[] = [];
@@ -71,6 +70,12 @@ const AppContent: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [visitorForms, setVisitorForms] = useState<VisitorForm[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [pressUpdates, setPressUpdates] = useState<PressUpdate[]>(() => {
+    try {
+      const saved = localStorage.getItem('pinobite_press_updates');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
@@ -789,6 +794,23 @@ const AppContent: React.FC = () => {
     }
   };
 
+  // Press Updates Handlers (localStorage-based - no backend API yet)
+  const handleAddPressUpdate = (newPress: PressUpdate) => {
+    setPressUpdates(prev => {
+      const updated = [newPress, ...prev];
+      localStorage.setItem('pinobite_press_updates', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const handleDeletePressUpdate = (id: string) => {
+    setPressUpdates(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      localStorage.setItem('pinobite_press_updates', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const handleUpdateBlog = async (updatedBlog: BlogPost) => {
     try {
       const token = localStorage.getItem('admin_access_token');
@@ -1148,6 +1170,9 @@ const AppContent: React.FC = () => {
         onAddAnnouncement={handleAddAnnouncement}
         onUpdateAnnouncement={handleUpdateAnnouncement}
         onDeleteAnnouncement={handleDeleteAnnouncement}
+        pressUpdates={pressUpdates}
+        onAddPressUpdate={handleAddPressUpdate}
+        onDeletePressUpdate={handleDeletePressUpdate}
       />
     );
   }
@@ -1207,7 +1232,7 @@ const AppContent: React.FC = () => {
               />
             </div>
             <LatestProductShowcase />
-            <BenefitHighlights />
+
             <ComparisonTable />
 
             <Testimonials reviews={reviews} />
@@ -1221,6 +1246,7 @@ const AppContent: React.FC = () => {
               onParticipateClick={() => setIsEventModalOpen(true)}
               onViewRecapsClick={navigateToEventBlogs}
             />
+            <PressUpdates pressUpdates={pressUpdates} />
             <Newsletter />
             <SnaxxoLanding
               products={products.slice(-5).reverse()}
