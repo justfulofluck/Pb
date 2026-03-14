@@ -1320,18 +1320,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               );
                             }
                             return (
-                                <div className="absolute bottom-2 left-2 right-2 bg-white rounded-xl p-2 shadow-lg flex items-center gap-2.5 border border-slate-100">
-                                  <div className="w-10 h-10 rounded-lg bg-white flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-50">
-                                    <img src={p.image} className="w-9 h-9 object-contain" alt="P" />
+                                <div className="absolute bottom-4 left-2 right-2 bg-white rounded-xl p-2.5 shadow-lg flex items-center gap-3 border border-slate-100">
+                                  <div className="w-16 h-16 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                    <img src={p.image} className="w-14 h-14 object-contain" alt="P" />
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <h4 className="text-[10px] font-bold text-slate-900 leading-[1.2] line-clamp-2">
+                                    <h4 className="text-[11px] font-bold text-slate-900 leading-[1.2] line-clamp-2">
                                       {p.name.split('(')[0] || p.name}
                                     </h4>
-                                    <div className="flex items-center gap-2 mt-1.5">
-                                      <span className="text-[10px] font-black text-slate-900">₹{p.price.toLocaleString()}</span>
+                                    <div className="flex items-center gap-2 mt-0">
+                                      <span className="text-[12px] font-black text-slate-900">₹{p.price.toLocaleString()}</span>
                                       {p.originalPrice && (
-                                        <span className="text-[8px] text-slate-400 line-through decoration-slate-300">₹{p.originalPrice.toLocaleString()}</span>
+                                        <span className="text-[9px] text-slate-400 line-through decoration-slate-300">₹{p.originalPrice.toLocaleString()}</span>
                                       )}
                                     </div>
                                   </div>
@@ -1363,7 +1363,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                    <h4 className="text-[8px] font-bold text-slate-900 leading-[1.1] line-clamp-2">
                                      {p.name.split('(')[0] || p.name}
                                    </h4>
-                                   <div className="flex items-center gap-1.5 mt-1">
+                                   <div className="flex items-center gap-1.5 mt-0">
                                      <span className="text-[8px] font-black text-slate-900">₹{p.price.toLocaleString()}</span>
                                      {p.originalPrice && (
                                         <span className="text-[6px] text-slate-400 line-through decoration-slate-300">₹{p.originalPrice.toLocaleString()}</span>
