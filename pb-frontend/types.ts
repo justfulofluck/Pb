@@ -242,3 +242,18 @@ export interface PressUpdate {
   quote: string;         // The press quote / comment
   author: string;        // Author name
 }
+
+export interface RewardRule {
+  id: number;
+  event_name: 'signup' | 'first_order' | 'purchase' | 'review' | 'photo_review' | 'birthday' | 'instagram_follow' | 'social_share' | 'referral';
+  points: number;
+  is_enabled: boolean;
+  description: string;
+}
+
+export interface RewardTransaction {
+  id: number;
+  points_change: number;
+  reason: string;
+  timestamp: string;
+}

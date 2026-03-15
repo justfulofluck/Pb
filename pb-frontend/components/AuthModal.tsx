@@ -11,6 +11,7 @@ interface AuthModalProps {
 type AuthView = 'login' | 'signup' | 'reset' | 'otp';
 
 import { useAuth } from '../hooks/useAuth';
+import { triggerRewardNotification } from './RewardNotification';
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
   const { login, register } = useAuth();
@@ -23,6 +24,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
   const [lastName, setLastName] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [birthDate, setBirthDate] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,10 +59,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
           email,
           password,
           first_name: firstName,
-          last_name: lastName
+          last_name: lastName,
+          phone: phone,
+          birth_date: birthDate || null
         });
 
         if (success) {
+          triggerRewardNotification(50, 'Welcome Gift: Signup Bonus!');
           onLogin();
           onClose();
         } else {
@@ -230,6 +236,26 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold placeholder:text-slate-300 placeholder:font-normal"
                   placeholder="Enter your email"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Phone Number</label>
+                <input
+                  required
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold placeholder:text-slate-300 placeholder:font-normal"
+                  placeholder="Enter your phone"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Birth Date</label>
+                <input
+                  type="date"
+                  value={birthDate}
+                  onChange={(e) => setBirthDate(e.target.value)}
+                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold text-slate-400"
                 />
               </div>
               <div>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category, Announcement, DistributorApplication, PressUpdate } from '../types';
+import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category, Announcement, DistributorApplication, PressUpdate, RewardRule, RewardTransaction } from '../types';
 import { API_BASE_URL } from '../config';
 import { jsPDF } from "jspdf";
 import ConfirmationModal from './ConfirmationModal';
@@ -110,6 +110,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [distributorApplications, setDistributorApplications] = useState<DistributorApplication[]>([]);
   const [distributorSearchQuery, setDistributorSearchQuery] = useState('');
 
+  // Rewards State
+  const [rewardRules, setRewardRules] = useState<RewardRule[]>([]);
+  const [rewardTransactions, setRewardTransactions] = useState<RewardTransaction[]>([]);
+
   const storyFileInputRef = useRef<HTMLInputElement>(null);
   const pressLogoInputRef = useRef<HTMLInputElement>(null);
 
@@ -180,8 +184,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         });
         if (ordersRes.ok) {
           const data = await ordersRes.json();
-          const sortedData = data.sort((a: Order, b: Order) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-          setOrders(sortedData);
+          if (Array.isArray(data)) {
+            const sortedData = data.sort((a: Order, b: Order) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+            setOrders(sortedData);
+          }
         }
 
         // Fetch Distributor Applications
@@ -190,7 +196,30 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         });
         if (distRes.ok) {
           const data = await distRes.json();
-          setDistributorApplications(data);
+          if (Array.isArray(data)) {
+            setDistributorApplications(data);
+          }
+        }
+        // Fetch Reward Rules
+        const rewardRulesRes = await fetch(`${API_BASE_URL}/api/reward-rules/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (rewardRulesRes.ok) {
+          const data = await rewardRulesRes.json();
+          if (Array.isArray(data)) {
+            setRewardRules(data);
+          }
+        }
+
+        // Fetch Reward Transactions
+        const rewardTransRes = await fetch(`${API_BASE_URL}/api/reward-transactions/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (rewardTransRes.ok) {
+          const data = await rewardTransRes.json();
+          if (Array.isArray(data)) {
+            setRewardTransactions(data);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch admin data", error);
@@ -246,8 +275,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     });
 
     // 4. Recent Visitor Submissions
-    visitorForms.forEach(f => {
-      f.submissions.slice(-3).forEach(s => {
+    (visitorForms || []).forEach(f => {
+      (f.submissions || []).slice(-3).forEach(s => {
         list.push({
           id: `sub-${s.id}`,
           title: "New Visitor Submission",
@@ -787,6 +816,45 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setEditingAnnouncementId(null);
   };
 
+  // Handlers for Rewards
+  const handleToggleRewardRule = async (rule: RewardRule) => {
+    try {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/reward-rules/${rule.id}/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ is_enabled: !rule.is_enabled })
+      });
+      if (response.ok) {
+        setRewardRules(prev => prev.map(r => r.id === rule.id ? { ...r, is_enabled: !r.is_enabled } : r));
+      }
+    } catch (err) {
+      console.error("Failed to toggle reward rule", err);
+    }
+  };
+
+  const handleUpdateRewardPoints = async (rule: RewardRule, newPoints: number) => {
+    try {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/reward-rules/${rule.id}/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ points: newPoints })
+      });
+      if (response.ok) {
+        setRewardRules(prev => prev.map(r => r.id === rule.id ? { ...r, points: newPoints } : r));
+      }
+    } catch (err) {
+      console.error("Failed to update reward points", err);
+    }
+  };
+
   const startEditAnnouncement = (a: Announcement) => {
     setAnnouncementForm({
       message: a.message,
@@ -1030,6 +1098,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       case 'ui-settings': return 'Site Customization';
       case 'visitor-forms': return 'Pinobit Event Visitor Form';
       case 'announcements': return 'Dynamic Announcements';
+      case 'rewards': return 'Loyalty & Rewards';
       default: return activeTab.replace('-', ' ');
     }
   };
@@ -1058,6 +1127,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             { id: 'orders', icon: 'shopping_bag', label: 'Global Orders' },
             { id: 'announcements', icon: 'campaign', label: 'Announcements' },
             { id: 'distributors', icon: 'handshake', label: 'Distributors' },
+            { id: 'rewards', icon: 'military_tech', label: 'Rewards & Loyalty' },
             { id: 'visitor-forms', icon: 'qr_code_scanner', label: 'Visitor Forms' },
           ].map((item) => (
             <button
@@ -2752,8 +2822,93 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }
 
           {/* ----- ANNOUNCEMENTS TAB ----- */}
-          {
-            activeTab === 'announcements' && (
+          {activeTab === 'rewards' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Rules Control */}
+                <div className="lg:col-span-2 bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-black text-slate-900">Earning Rules</h3>
+                      <p className="text-sm text-slate-500">Configure how users earn Pinopoints</p>
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                      <span className="material-symbols-outlined">settings_suggest</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {rewardRules.map((rule) => (
+                      <div key={rule.id} className={`p-4 rounded-2xl border transition-all ${rule.is_enabled ? 'border-slate-200 bg-white' : 'border-slate-100 bg-slate-50 opacity-60'}`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
+                              <span className="material-symbols-outlined">
+                                {rule.event_name === 'purchase' ? 'shopping_cart' : 
+                                 rule.event_name === 'signup' ? 'person_add' : 
+                                 rule.event_name === 'review' ? 'rate_review' : 
+                                 rule.event_name === 'referral' ? 'group_add' : 'military_tech'}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="font-bold text-slate-900 capitalize">{rule.event_name.replace('_', ' ')}</p>
+                              <p className="text-xs text-slate-500">{rule.description}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-3">
+                              <input 
+                                type="number" 
+                                value={rule.points}
+                                onChange={(e) => handleUpdateRewardPoints(rule, parseInt(e.target.value))}
+                                className="w-20 px-3 py-1.5 bg-slate-100 rounded-lg text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                              />
+                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">PTS</span>
+                            </div>
+                            <button 
+                              onClick={() => handleToggleRewardRule(rule)}
+                              className={`w-12 h-6 rounded-full transition-all relative ${rule.is_enabled ? 'bg-primary' : 'bg-slate-300'}`}
+                            >
+                              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${rule.is_enabled ? 'right-1' : 'left-1'}`}></div>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* History / Transactions */}
+                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-black text-slate-900">Recent Activity</h3>
+                    <span className="material-symbols-outlined text-slate-400">history</span>
+                  </div>
+                  <div className="space-y-4">
+                    {rewardTransactions.slice(0, 10).map((tx) => (
+                      <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors">
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-slate-900 truncate">{tx.reason}</p>
+                          <p className="text-[10px] text-slate-400">{new Date(tx.timestamp).toLocaleString()}</p>
+                        </div>
+                        <div className={`text-sm font-black ${tx.points_change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {tx.points_change > 0 ? '+' : ''}{tx.points_change}
+                        </div>
+                      </div>
+                    ))}
+                    {rewardTransactions.length === 0 && (
+                      <div className="text-center py-10 opacity-30">
+                        <span className="material-symbols-outlined text-4xl mb-2">history</span>
+                        <p className="text-xs font-bold uppercase tracking-widest">No Recent Activity</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'announcements' && (
               <div className="space-y-8 animate-in fade-in duration-300">
                 <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
                   <h3 className="text-xl font-black uppercase text-slate-900 mb-6">
@@ -2871,7 +3026,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }
 
           {
-            activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'events' && activeTab !== 'orders' && activeTab !== 'ui-settings' && activeTab !== 'visitor-forms' && activeTab !== 'blogs' && activeTab !== 'announcements' && activeTab !== 'distributors' && (
+            activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'events' && activeTab !== 'orders' && activeTab !== 'ui-settings' && activeTab !== 'visitor-forms' && activeTab !== 'blogs' && activeTab !== 'announcements' && activeTab !== 'distributors' && activeTab !== 'rewards' && (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
                 <span className="material-symbols-outlined text-6xl opacity-20">construction</span>
                 <p className="font-handdrawn text-2xl">This module is under construction</p>

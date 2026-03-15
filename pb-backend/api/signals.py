@@ -83,8 +83,11 @@ def handle_user_onboarding(sender, instance, created, **kwargs):
     
     instance.profile.save()
 
+    from .utils import award_points
+
     # 2. Send Welcome Email on Creation
     if created:
+        award_points(instance, "signup")
         try:
             subject = "Welcome to the Pinobite Club! 🍿"
             frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000")

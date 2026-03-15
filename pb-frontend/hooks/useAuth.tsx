@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { API_BASE_URL } from '../config';
+import { triggerRewardNotification } from '../components/RewardNotification';
 
 interface UserProfile {
     id: number;
@@ -14,6 +15,9 @@ interface UserProfile {
         points: number;
         tier: string;
         savings: number;
+        city: string;
+        state: string;
+        pin_code: string;
     };
 }
 
@@ -79,6 +83,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             });
 
             if (response.ok) {
+                const regData = await response.json();
+                if (regData.points_earned > 0) {
+                    triggerRewardNotification(regData.points_earned, "Welcome to the Pinobite Club!");
+                }
                 // Auto login after register
                 const loginResponse = await fetch(`${API_BASE_URL}/api/token/`, {
                     method: 'POST',

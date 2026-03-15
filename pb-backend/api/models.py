@@ -40,6 +40,9 @@ class Review(models.Model):
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name="reviews", null=True, blank=True
     )
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, related_name="reviews", null=True, blank=True
+    )
     product_id_str = models.CharField(
         max_length=50, default="general"
     )  # 'general' or specific ID
@@ -143,6 +146,37 @@ class Order(models.Model):
         return f"Order {self.id} - {self.user_email}"
 
 
+class RewardRule(models.Model):
+    EVENT_CHOICES = [
+        ("signup", "Signup Reward"),
+        ("first_order", "First Order Bonus"),
+        ("purchase", "Spend-based Points (per ₹100)"),
+        ("review", "Product Review"),
+        ("photo_review", "Photo Review Reward"),
+        ("birthday", "Birthday Reward"),
+        ("instagram_follow", "Instagram Follow"),
+        ("social_share", "Social Media Share"),
+        ("referral", "Referral Reward"),
+    ]
+    event_name = models.CharField(max_length=50, choices=EVENT_CHOICES, unique=True)
+    points = models.IntegerField(default=0)
+    is_enabled = models.BooleanField(default=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.get_event_name_display()} - {self.points} pts"
+
+
+class RewardTransaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reward_transactions")
+    points_change = models.IntegerField()
+    reason = models.CharField(max_length=255)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username}: {self.points_change} pts for {self.reason}"
+
+
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True)
@@ -170,6 +204,7 @@ class UserProfile(models.Model):
     city = models.CharField(max_length=100, blank=True, null=True)
     state = models.CharField(max_length=100, blank=True, null=True)
     pin_code = models.CharField(max_length=20, blank=True, null=True)
+    birth_date = models.DateField(blank=True, null=True)
 
     def __str__(self):
         return f"Profile for {self.user.username}"

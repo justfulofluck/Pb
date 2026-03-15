@@ -25,6 +25,8 @@ from .views import (
     NewsletterSubscriberViewSet,
     AnnouncementViewSet,
     DistributorApplicationViewSet,
+    RewardRuleViewSet,
+    RewardTransactionViewSet,
 )
 
 router = DefaultRouter()
@@ -43,6 +45,8 @@ router.register(r"newsletter-subscribers", NewsletterSubscriberViewSet)
 router.register(r"announcements", AnnouncementViewSet)
 
 router.register(r"distributor-applications", DistributorApplicationViewSet)
+router.register(r"reward-rules", RewardRuleViewSet)
+router.register(r"reward-transactions", RewardTransactionViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

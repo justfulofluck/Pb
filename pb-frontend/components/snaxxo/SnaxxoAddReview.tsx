@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
 import { Review } from '../../types';
+import { API_BASE_URL } from '../../config';
+import { triggerRewardNotification } from '../RewardNotification';
 
 interface SnaxxoAddReviewProps {
     productId: string;
@@ -17,33 +19,65 @@ const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddRevie
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            const newReview: Review = {
-                id: Date.now().toString(),
-                productId,
-                userName: name,
-                userRole: 'Verified Customer',
-                rating,
-                comment,
-                date: new Date().toLocaleDateString(),
-                avatar: `https://ui-avatars.com/api/?name=${name}&background=random`
-            };
+        try {
+            const token = localStorage.getItem('access_token');
+            const response = await fetch(`${API_BASE_URL}/api/reviews/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    product: productId,
+                    user_name: name,
+                    user_role: 'Verified Customer',
+                    rating: rating,
+                    comment: comment,
+                    date: new Date().toLocaleDateString(),
+                    avatar: `https://ui-avatars.com/api/?name=${name}&background=random`
+                })
+            });
 
-            onAddReview(newReview);
+            if (response.ok) {
+                const data = await response.json();
+                
+                const newReview: Review = {
+                    id: String(data.id),
+                    productId: data.product,
+                    userName: data.user_name,
+                    userRole: data.user_role,
+                    rating: data.rating,
+                    comment: data.comment,
+                    date: data.date,
+                    avatar: data.avatar
+                };
+
+                onAddReview(newReview);
+                setShowSuccess(true);
+                setName('');
+                setComment('');
+                setRating(5);
+
+                // Trigger reward notification if points were earned
+                if (data.points_earned > 0) {
+                    triggerRewardNotification(data.points_earned, "High-Quality Product Review");
+                }
+
+                setTimeout(() => setShowSuccess(false), 3000);
+            } else {
+                console.error("Failed to submit review");
+                alert("Could not post review. Please check your connection.");
+            }
+        } catch (err) {
+            console.error("Review error:", err);
+            alert("An error occurred. Please try again later.");
+        } finally {
             setIsSubmitting(false);
-            setShowSuccess(true);
-            setName('');
-            setComment('');
-            setRating(5);
-
-            // Hide success message after 3 seconds
-            setTimeout(() => setShowSuccess(false), 3000);
-        }, 1000);
+        }
     };
 
     return (

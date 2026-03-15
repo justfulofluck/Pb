@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, Review, Event, BlogPost, Story, HeroSlide, Order, OrderItem, UserProfile, VisitorForm, VisitorSubmission, Announcement
+from .models import Category, Product, Review, Event, BlogPost, Story, HeroSlide, Order, OrderItem, UserProfile, VisitorForm, VisitorSubmission, Announcement, RewardRule, RewardTransaction
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -57,3 +57,14 @@ admin.site.register(VisitorSubmission)
 class AnnouncementAdmin(admin.ModelAdmin):
     list_display = ('message', 'start_date', 'end_date', 'is_active')
     list_filter = ('is_active', 'start_date', 'end_date')
+
+@admin.register(RewardRule)
+class RewardRuleAdmin(admin.ModelAdmin):
+    list_display = ('event_name', 'points', 'is_enabled')
+    list_filter = ('is_enabled',)
+
+@admin.register(RewardTransaction)
+class RewardTransactionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'points_change', 'reason', 'timestamp')
+    list_filter = ('timestamp',)
+    search_fields = ('user__username', 'reason')

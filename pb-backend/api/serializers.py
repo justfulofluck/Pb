@@ -18,6 +18,8 @@ from .models import (
     NewsletterSubscriber,
     Announcement,
     DistributorApplication,
+    RewardRule,
+    RewardTransaction,
 )
 
 
@@ -142,12 +144,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "city",
             "state",
             "pin_code",
+            "birth_date",
         ]
 
 
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer(read_only=True)
     password = serializers.CharField(write_only=True)
+    phone = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    birth_date = serializers.DateField(write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = User
@@ -160,9 +165,14 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "profile",
             "is_staff",
+            "phone",
+            "birth_date",
         ]
 
     def create(self, validated_data):
+        phone = validated_data.pop("phone", None)
+        birth_date = validated_data.pop("birth_date", None)
+        
         user = User.objects.create_user(
             username=validated_data["username"],
             email=validated_data["email"],
@@ -170,6 +180,15 @@ class UserSerializer(serializers.ModelSerializer):
             first_name=validated_data.get("first_name", ""),
             last_name=validated_data.get("last_name", ""),
         )
+        
+        if phone or birth_date:
+            profile = user.profile
+            if phone:
+                profile.phone = phone
+            if birth_date:
+                profile.birth_date = birth_date
+            profile.save()
+            
         return user
 
 
@@ -221,4 +240,16 @@ class AnnouncementSerializer(serializers.ModelSerializer):
 class DistributorApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = DistributorApplication
+        fields = "__all__"
+
+
+class RewardRuleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RewardRule
+        fields = "__all__"
+
+
+class RewardTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RewardTransaction
         fields = "__all__"

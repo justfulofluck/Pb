@@ -15,6 +15,8 @@ from .models import (
     NewsletterSubscriber,
     Announcement,
     DistributorApplication,
+    RewardRule,
+    RewardTransaction,
 )
 from django.contrib.auth.models import User
 from rest_framework.response import Response
@@ -41,6 +43,8 @@ from .serializers import (
     NewsletterSubscriberSerializer,
     AnnouncementSerializer,
     DistributorApplicationSerializer,
+    RewardRuleSerializer,
+    RewardTransactionSerializer,
 )
 
 
@@ -68,6 +72,30 @@ class ProductViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+
+    def perform_create(self, serializer):
+        user = self.request.user if self.request.user.is_authenticated else None
+        instance = serializer.save(user=user)
+        
+        if user:
+            from .utils import award_points
+            points = award_points(user, "review")
+            # Store points temporarily on the instance so they can be returned in the response
+            instance.points_earned = points
+        else:
+            instance.points_earned = 0
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        
+        # Add points_earned to the response data
+        data = serializer.data
+        data['points_earned'] = getattr(serializer.instance, 'points_earned', 0)
+        
+        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class EventViewSet(viewsets.ModelViewSet):
@@ -253,7 +281,18 @@ class OrderViewSet(viewsets.ModelViewSet):
                     order.status = "Processing"
                     order.razorpay_payment_id = razorpay_payment_id
                     order.save()
-                    return Response({"status": "Payment verified successfully (Mock)"})
+
+                    total_awarded = 0
+                    from .utils import award_points
+                    spend_points = int(order.total_amount / 100) * 10
+                    if spend_points > 0:
+                        total_awarded += award_points(request.user, "purchase", custom_points=spend_points, reason_override=f"Points earned on Order #{order.id}")
+                    
+                    order_count = Order.objects.filter(user=request.user, status__in=["Processing", "Paid", "Shipped", "Delivered"]).count()
+                    if order_count == 1:
+                        total_awarded += award_points(request.user, "first_order")
+
+                    return Response({"status": "Payment verified successfully (Mock)", "points_earned": total_awarded})
                 else:
                     return Response(
                         {"error": "Invalid mock order details"},
@@ -280,6 +319,19 @@ class OrderViewSet(viewsets.ModelViewSet):
             order.razorpay_payment_id = razorpay_payment_id
             order.save()
 
+            total_awarded = 0
+            from .utils import award_points
+            
+            # 1. Standard Spend Points (₹100 = 10 pts)
+            spend_points = int(order.total_amount / 100) * 10
+            if spend_points > 0:
+                total_awarded += award_points(request.user, "purchase", custom_points=spend_points, reason_override=f"Points earned on Order #{order.id}")
+            
+            # 2. First Order Bonus
+            order_count = Order.objects.filter(user=request.user, status__in=["Processing", "Paid", "Shipped", "Delivered"]).count()
+            if order_count == 1:
+                total_awarded += award_points(request.user, "first_order")
+
             # Send Email
             send_email(
                 request.user.email,
@@ -287,7 +339,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 f"Thank you for your order! Your payment ID is {razorpay_payment_id}. We are processing it.",
             )
 
-            return Response({"status": "Payment verified successfully"})
+            return Response({"status": "Payment verified successfully", "points_earned": total_awarded})
 
         except Exception as e:
             print(f"Verification Failed: {e}")
@@ -301,6 +353,20 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (permissions.AllowAny,)
     serializer_class = UserSerializer
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        if response.status_code == status.HTTP_201_CREATED:
+            from .models import RewardRule
+            try:
+                rule = RewardRule.objects.get(event_name="signup")
+                if rule.is_enabled:
+                    response.data["points_earned"] = rule.points
+                else:
+                    response.data["points_earned"] = 0
+            except RewardRule.DoesNotExist:
+                response.data["points_earned"] = 0
+        return response
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -319,11 +385,24 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         permission_classes=[permissions.IsAuthenticated],
     )
     def update_profile(self, request):
-        profile = request.user.profile
+        user = request.user
+        profile = user.profile
+        
+        # Update User fields if provided
+        first_name = request.data.get("first_name")
+        last_name = request.data.get("last_name")
+        
+        if first_name is not None:
+            user.first_name = first_name
+        if last_name is not None:
+            user.last_name = last_name
+        user.save()
+            
         serializer = UserProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            # Return full user data
+            return Response(UserSerializer(user).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -641,6 +720,27 @@ class DistributorApplicationViewSet(viewsets.ModelViewSet):
         if self.action == "create":
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
+
+
+class RewardRuleViewSet(viewsets.ModelViewSet):
+    queryset = RewardRule.objects.all()
+    serializer_class = RewardRuleSerializer
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            return [permissions.AllowAny()]
+        return [permissions.IsStaffUser()]
+
+
+class RewardTransactionViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = RewardTransaction.objects.all().order_by("-timestamp")
+    serializer_class = RewardTransactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return RewardTransaction.objects.all().order_by("-timestamp")
+        return RewardTransaction.objects.filter(user=self.request.user).order_by("-timestamp")
 
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache

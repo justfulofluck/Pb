@@ -39,6 +39,7 @@ import SnaxxoLanding from './components/snaxxo/SnaxxoLanding';
 import SnaxxoProductWheel from './components/snaxxo/SnaxxoProductWheel';
 import PressUpdates from './components/PressUpdates';
 import MobileBottomNav from './components/MobileBottomNav';
+import RewardNotification from './components/RewardNotification';
 
 const INITIAL_PRODUCTS: Product[] = [];
 const INITIAL_STORIES: Story[] = [];
@@ -59,7 +60,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth';
 import { API_BASE_URL } from './config';
 
 const AppContent: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, checkAuth } = useAuth();
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [events, setEvents] = useState<EventBlog[]>(INITIAL_EVENTS);
@@ -201,6 +202,14 @@ const AppContent: React.FC = () => {
       setIsAdminLoggedIn(true);
     }
   }, []);
+
+  // Redirect to home if user session expires while on dashboard
+  useEffect(() => {
+    if (!user && !isLoading && currentView === 'dashboard') {
+      setCurrentView('home');
+      window.history.pushState({ view: 'home' }, '');
+    }
+  }, [user, isLoading, currentView]);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -871,6 +880,8 @@ const AppContent: React.FC = () => {
 
   const handleAddReview = (review: Review) => {
     setReviews(prev => [review, ...prev]);
+    // Refresh user's points to show on dashboard immediately
+    checkAuth();
   };
 
   const handleAddStory = async (newStory: Story) => {
@@ -1309,6 +1320,7 @@ const AppContent: React.FC = () => {
               setCurrentView('home');
             }}
             onLoginRequired={() => setIsAuthOpen(true)}
+            checkAuth={checkAuth}
           />
         )}
 
@@ -1396,6 +1408,7 @@ const AppContent: React.FC = () => {
 
 
 
+      <RewardNotification />
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}

@@ -2,12 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import { CartItem } from '../types';
 import { API_BASE_URL } from '../config';
+import { triggerRewardNotification } from './RewardNotification';
 
 interface CheckoutPageProps {
   items: CartItem[];
   onBack: () => void;
   onOrderSuccess: () => void;
   onLoginRequired: () => void;
+  checkAuth?: () => Promise<void>;
 }
 
 declare global {
@@ -16,10 +18,13 @@ declare global {
   }
 }
 
-const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSuccess, onLoginRequired }) => {
+const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSuccess, onLoginRequired, checkAuth }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [userPoints, setUserPoints] = useState(0);
+  const [usePoints, setUsePoints] = useState(false);
+  const [pointsDiscount, setPointDiscount] = useState(0);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -46,9 +51,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
           });
           if (res.ok) {
             const data = await res.json();
-            if (data.profile && data.profile.address) {
-              setSavedAddress(data.profile);
-              setUseSavedAddress(true);
+            if (data.profile) {
+              setUserPoints(data.profile.points || 0);
+              if (data.profile.address) {
+                setSavedAddress(data.profile);
+                setUseSavedAddress(true);
+              }
               setFormData(prev => ({
                 ...prev,
                 email: data.email || prev.email,
@@ -101,7 +109,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const shipping = subtotal > 999 ? 0 : 50;
   const tax = subtotal * 0.05; // 5% GST
-  const total = subtotal + shipping + tax;
+  
+  // 10 points = 1 Rupee discount
+  const maxRedeemablePoints = Math.min(userPoints, Math.floor(subtotal * 10));
+  const potentialDiscount = usePoints ? maxRedeemablePoints / 10 : 0;
+  const total = subtotal + shipping + tax - potentialDiscount;
+
+  const togglePoints = () => {
+    setUsePoints(!usePoints);
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -126,6 +142,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
       });
 
       if (verifyResponse.ok) {
+        const verifyData = await verifyResponse.json();
+        
+        // Trigger notification using backend data if available, fallback to calculation
+        const earnedPoints = verifyData.points_earned !== undefined ? verifyData.points_earned : Math.floor(subtotal / 10);
+        if (earnedPoints > 0) {
+            triggerRewardNotification(earnedPoints, `Order #${orderId} Verified!`);
+        }
+        
+        // Refresh auth state to show new points in dashboard
+        if (checkAuth) {
+            await checkAuth();
+        }
+        
         setIsSuccess(true);
         setTimeout(() => {
           onOrderSuccess();
@@ -174,7 +203,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
             city: formData.city,
             zip: formData.zip,
             state: formData.state
-          }
+          },
+          use_points: usePoints,
+          points_to_redeem: usePoints ? maxRedeemablePoints : 0
         })
       });
 
@@ -385,11 +416,45 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
               <span>Tax (5% GST)</span>
               <span>₹{tax.toFixed(2)}</span>
             </div>
+            {potentialDiscount > 0 && (
+              <div className="flex justify-between text-green-600 font-bold text-sm">
+                <span>Loyalty Discount ({maxRedeemablePoints} Pts)</span>
+                <span>- ₹{potentialDiscount.toFixed(2)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-slate-900 font-black text-xl pt-4 border-t border-slate-200">
               <span>Total</span>
               <span>₹{total.toFixed(2)}</span>
             </div>
           </div>
+
+          {userPoints > 0 && (
+            <div className={`p-6 rounded-2xl border-2 transition-all ${usePoints ? 'bg-primary/5 border-primary/20' : 'bg-white border-slate-100 hover:border-slate-200'}`}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                    <span className="material-symbols-outlined">workspace_premium</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-slate-900 uppercase tracking-tight">Redeem Points</p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{userPoints} Available</p>
+                  </div>
+                </div>
+                <button 
+                  type="button"
+                  onClick={togglePoints}
+                  className={`w-12 h-6 rounded-full transition-all relative ${usePoints ? 'bg-primary' : 'bg-slate-300'}`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${usePoints ? 'right-1' : 'left-1'}`}></div>
+                </button>
+              </div>
+              {usePoints && (
+                <p className="text-[10px] font-bold text-primary uppercase tracking-widest mt-3 animate-in fade-in slide-in-from-top-1">
+                  You are saving ₹{potentialDiscount.toFixed(2)} with your Pinopoints!
+                </p>
+              )}
+            </div>
+          )}
         </div >
       </div >
 
