@@ -33,3 +33,5 @@ urllib3==1.26.20
 yagmail==0.15.293
 whitenoise==6.11.0
 gunicorn==23.0.0
+moviepy==2.0.0.dev2
+gdown>=5.1.0

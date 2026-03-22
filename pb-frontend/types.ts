@@ -116,10 +116,10 @@ export interface BlogPost {
   tags?: string[];
 }
 
-// Added Story interface to fix missing export errors
 export interface Story {
   id: string;
   mediaUrl: string;
+  originalDriveUrl?: string;
   mediaType: 'image' | 'video';
   productId: string;
 }

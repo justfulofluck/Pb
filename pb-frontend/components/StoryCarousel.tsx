@@ -1,15 +1,17 @@
-
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Story, Product } from '../types';
+import StoryModal from './StoryModal';
 
 interface StoryCarouselProps {
   stories: Story[];
   products: Product[];
   onProductClick: (p: Product) => void;
+  onAddToCart: (p: Product) => void;
 }
 
-const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProductClick }) => {
+const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProductClick, onAddToCart }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeStory, setActiveStory] = useState<{ story: Story, product: Product } | null>(null);
 
   const getProduct = (id: string) => products.find(p => p.id === id);
 
@@ -36,6 +38,9 @@ const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProd
             return (
               <div
                 key={story.id}
+                onClick={() => {
+                  if (product) setActiveStory({ story, product });
+                }}
                 className="min-w-[260px] md:min-w-[300px] aspect-[9/16] rounded-[24px] overflow-hidden relative group snap-start flex-shrink-0 cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500"
               >
                 {/* Background Story Media */}
@@ -91,6 +96,14 @@ const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProd
           })}
         </div>
       </div>
+      {activeStory && (
+        <StoryModal
+          story={activeStory.story}
+          product={activeStory.product}
+          onAddToCart={onAddToCart}
+          onClose={() => setActiveStory(null)}
+        />
+      )}
     </section>
   );
 };

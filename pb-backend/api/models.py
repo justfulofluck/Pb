@@ -97,6 +97,7 @@ class Story(models.Model):
         ("video", "video"),
     ]
     media_url = models.TextField()
+    original_drive_url = models.TextField(blank=True, null=True)
     media_type = models.CharField(max_length=10, choices=MEDIA_TYPE_CHOICES)
     product_id = models.CharField(max_length=50)
 

@@ -300,6 +300,7 @@ const AppContent: React.FC = () => {
           const mappedStories = storiesData.map((s: any) => ({
             id: String(s.id),
             mediaUrl: s.media_url,
+            originalDriveUrl: s.original_drive_url,
             mediaType: s.media_type,
             productId: String(s.product_id),
           }));
@@ -896,6 +897,7 @@ const AppContent: React.FC = () => {
         body: JSON.stringify({
           media_url: newStory.mediaUrl,
           media_type: newStory.mediaType,
+          original_drive_url: newStory.originalDriveUrl,
           product_id: newStory.productId
         })
       });
@@ -904,6 +906,7 @@ const AppContent: React.FC = () => {
         const mappedStory = {
           id: String(savedStory.id),
           mediaUrl: savedStory.media_url,
+          originalDriveUrl: savedStory.original_drive_url,
           mediaType: savedStory.media_type,
           productId: String(savedStory.product_id)
         };
@@ -1232,7 +1235,7 @@ const AppContent: React.FC = () => {
           <>
             <Hero onShopClick={navigateToShop} slides={slides} />
             <CategoryList onCategoryClick={navigateToShopCategory} products={products} />
-            <StoryCarousel stories={[...stories].reverse().slice(0, 5)} products={products} onProductClick={navigateToProduct} />
+            <StoryCarousel stories={[...stories].reverse().slice(0, 5)} products={products} onProductClick={navigateToProduct} onAddToCart={addToCart} />
             <div className="snaxxo-wrapper relative w-full overflow-hidden bg-[#fcf6e5]">
               <SnaxxoProductWheel
                 products={products}

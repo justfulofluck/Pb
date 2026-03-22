@@ -411,6 +411,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const newStory: Story = {
         id: `s-${Date.now()}`,
         mediaUrl: data.mediaUrl, // This path is now the new 5s GIF!
+        originalDriveUrl: newStoryForm.mediaUrl, // Keep original video URL
         mediaType: 'image', // MUST be image since it's a .gif file, video tag won't play gifs
         productId: newStoryForm.productId
       };
