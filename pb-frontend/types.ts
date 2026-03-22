@@ -84,6 +84,7 @@ export interface HeroSlide {
   headline: string;
   description: string;
   image: string;
+  backgroundImage?: string;
   cta: string;
   bgColor: string;
   accentColor: string;

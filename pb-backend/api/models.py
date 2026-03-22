@@ -106,14 +106,15 @@ class Story(models.Model):
 
 
 class HeroSlide(models.Model):
-    category = models.CharField(max_length=100)
-    headline = models.CharField(max_length=255)
-    description = models.TextField()
-    image = models.TextField()
-    cta = models.CharField(max_length=50)
-    bg_color = models.CharField(max_length=50)
-    accent_color = models.CharField(max_length=50)
-    blob_color = models.CharField(max_length=50)
+    category = models.CharField(max_length=100, blank=True, null=True)
+    headline = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    image = models.TextField(blank=True, null=True)
+    background_image = models.TextField(blank=True, null=True)
+    cta = models.CharField(max_length=50, blank=True, null=True)
+    bg_color = models.CharField(max_length=50, blank=True, null=True)
+    accent_color = models.CharField(max_length=50, blank=True, null=True)
+    blob_color = models.CharField(max_length=50, blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

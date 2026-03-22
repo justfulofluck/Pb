@@ -626,30 +626,90 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   // Handlers for Slides
-  const handleSlideSubmit = (e: React.FormEvent) => {
+  const handleSlideSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (editingSlide) {
-      // Update existing
-      const updatedSlides = slides.map(s =>
-        s.id === editingSlide.id ? { ...s, ...slideForm } as HeroSlide : s
-      );
-      onUpdateSlides(updatedSlides);
-    } else {
-      // Add new
-      const newSlide: HeroSlide = {
-        id: Date.now().toString(),
+    const token = localStorage.getItem('admin_access_token');
+    
+    // Ensure all backend required fields are present
+    const payload = {
         category: slideForm.category || 'New Category',
         headline: slideForm.headline || 'New Headline',
         description: slideForm.description || '',
         image: slideForm.image || '',
+        background_image: slideForm.backgroundImage || '',
         cta: slideForm.cta || 'SHOP NOW',
-        bgColor: slideForm.bgColor || COLOR_THEMES[0].bgColor,
-        accentColor: slideForm.accentColor || COLOR_THEMES[0].accentColor,
-        blobColor: slideForm.blobColor || COLOR_THEMES[0].blobColor,
-        isActive: slideForm.isActive ?? true
-      };
-      onUpdateSlides([...slides, newSlide]);
+        bg_color: slideForm.bgColor || COLOR_THEMES[0].bgColor,
+        accent_color: slideForm.accentColor || COLOR_THEMES[0].accentColor,
+        blob_color: slideForm.blobColor || COLOR_THEMES[0].blobColor,
+        is_active: slideForm.isActive ?? true
+    };
+
+    if (editingSlide && editingSlide.id && !editingSlide.id.toString().includes('New')) {
+      // Update existing
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/hero-slides/${editingSlide.id}/`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const updatedD = await res.json();
+          const mappedS = {
+            id: String(updatedD.id),
+            category: updatedD.category,
+            headline: updatedD.headline,
+            description: updatedD.description,
+            image: updatedD.image,
+            backgroundImage: updatedD.background_image || updatedD.backgroundImage || '',
+            cta: updatedD.cta,
+            bgColor: updatedD.bg_color,
+            accentColor: updatedD.accent_color,
+            blobColor: updatedD.blob_color,
+            isActive: updatedD.is_active
+          };
+          onUpdateSlides(slides.map(s => s.id === editingSlide.id ? mappedS : s));
+        } else {
+          const errorData = await res.json();
+          console.error('Slide update failed:', errorData);
+          alert('Failed to update slide: ' + JSON.stringify(errorData));
+        }
+      } catch (err) { 
+        console.error(err);
+        alert('An error occurred while updating the slide.');
+      }
+    } else {
+      // Add new
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/hero-slides/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const newD = await res.json();
+          const mappedS = {
+            id: String(newD.id),
+            category: newD.category,
+            headline: newD.headline,
+            description: newD.description,
+            image: newD.image,
+            backgroundImage: newD.background_image || newD.backgroundImage || '',
+            cta: newD.cta,
+            bgColor: newD.bg_color,
+            accentColor: newD.accent_color,
+            blobColor: newD.blob_color,
+            isActive: newD.is_active
+          };
+          onUpdateSlides([...slides, mappedS]);
+        } else {
+          const errorData = await res.json();
+          console.error('Slide creation failed:', errorData);
+          alert('Failed to create slide: ' + JSON.stringify(errorData));
+        }
+      } catch (err) { 
+        console.error(err);
+        alert('An error occurred while creating the slide.');
+      }
     }
     closeSlideModal();
   };
@@ -661,6 +721,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       headline: '',
       description: '',
       image: '',
+      backgroundImage: '',
       cta: 'SHOP NOW',
       bgColor: COLOR_THEMES[0].bgColor,
       accentColor: COLOR_THEMES[0].accentColor,
@@ -681,14 +742,40 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setEditingSlide(null);
   };
 
-  const deleteSlide = (id: string) => {
+  const deleteSlide = async (id: string) => {
     if (confirm('Are you sure you want to delete this slide?')) {
-      onUpdateSlides(slides.filter(s => s.id !== id));
+      const token = localStorage.getItem('admin_access_token');
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/hero-slides/${id}/`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          onUpdateSlides(slides.filter(s => s.id !== id));
+        } else {
+          alert('Failed to delete slide.');
+        }
+      } catch (err) { 
+        console.error(err);
+        alert('An error occurred while deleting the slide.');
+      }
     }
   };
 
-  const toggleSlideStatus = (id: string) => {
-    onUpdateSlides(slides.map(s => s.id === id ? { ...s, isActive: !s.isActive } : s));
+  const toggleSlideStatus = async (id: string) => {
+    const slide = slides.find(s => s.id === id);
+    if (!slide) return;
+    const token = localStorage.getItem('admin_access_token');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/hero-slides/${id}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ is_active: !slide.isActive })
+      });
+      if (res.ok) {
+        onUpdateSlides(slides.map(s => s.id === id ? { ...s, isActive: !s.isActive } : s));
+      }
+    } catch (err) { console.error(err); }
   };
 
   const moveSlide = (index: number, direction: 'up' | 'down') => {
@@ -707,6 +794,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const reader = new FileReader();
       reader.onloadend = () => {
         setSlideForm(prev => ({ ...prev, image: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSlideBgImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSlideForm(prev => ({ ...prev, backgroundImage: reader.result as string }));
       };
       reader.readAsDataURL(file);
     }
@@ -3076,6 +3174,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   {slideForm.image && (
                     <div className="mt-2 h-32 w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                       <img src={slideForm.image} alt="Preview" className="w-full h-full object-contain" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Background Image</label>
+                  <input type="file" accept="image/*" onChange={handleSlideBgImageUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                  {slideForm.backgroundImage && (
+                    <div className="mt-2 h-32 w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+                      <img src={slideForm.backgroundImage} alt="Background Preview" className="w-full h-full object-cover" />
                     </div>
                   )}
                 </div>

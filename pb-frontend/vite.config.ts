@@ -20,6 +20,10 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    build: {
+      outDir: '../pb-backend/frontend_build',
+      emptyOutDir: true
+    },
     plugins: [react()],
     define: {
 

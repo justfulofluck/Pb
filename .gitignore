@@ -10,6 +10,7 @@ pb-backend/venv/
 *.sqlite3
 media/
 staticfiles/
+*.pkl
 
 # Node
 node_modules/
@@ -18,8 +19,6 @@ build/
 pb-frontend/node_modules/
 pb-frontend/dist/
 .DS_Store
-.check-status
-pw.txt
 
 # Vite
 .vite/
@@ -29,16 +28,16 @@ pb-frontend/.vite/
 migration/
 db.sqlite3
 
-# Docker
-.dockerignore
-docker-compose.yml
+# Environment
+.env
+.check-status
+pw.txt
 
-# Docs & Scripts
-*.md
-docs/
-*.sh
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Debug & Temp
-*.txt
-*.pkl
-*.pdf
+# OS
+Thumbs.db

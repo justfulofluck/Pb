@@ -214,15 +214,34 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const [eventsRes, blogsRes, storiesRes, productsRes, vFormsRes, categoriesRes, annRes] = await Promise.all([
+        const [eventsRes, blogsRes, storiesRes, productsRes, vFormsRes, categoriesRes, annRes, slidesRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/events/`),
           fetch(`${API_BASE_URL}/api/blog-posts/`),
           fetch(`${API_BASE_URL}/api/stories/`),
           fetch(`${API_BASE_URL}/api/products/`),
           fetch(`${API_BASE_URL}/api/visitor-forms/`),
           fetch(`${API_BASE_URL}/api/categories/`),
-          fetch(`${API_BASE_URL}/api/announcements/`)
+          fetch(`${API_BASE_URL}/api/announcements/`),
+          fetch(`${API_BASE_URL}/api/hero-slides/`)
         ]);
+
+        if (slidesRes && slidesRes.ok) {
+          const slidesData = await slidesRes.json();
+          const mappedSlides = slidesData.map((s: any) => ({
+            id: String(s.id),
+            category: s.category,
+            headline: s.headline,
+            description: s.description,
+            image: s.image || '',
+            backgroundImage: s.background_image || s.backgroundImage || '',
+            cta: s.cta_button_text || s.cta,
+            bgColor: s.bg_color || s.bgColor,
+            accentColor: s.accent_color || s.accentColor,
+            blobColor: s.blob_color || s.blobColor,
+            isActive: s.is_active || s.isActive
+          }));
+          setSlides(mappedSlides);
+        }
 
         if (annRes.ok) {
           const annData = await annRes.json();
@@ -1233,7 +1252,7 @@ const AppContent: React.FC = () => {
       <main className="animate-in fade-in duration-500">
         {currentView === 'home' && (
           <>
-            <Hero onShopClick={navigateToShop} slides={slides} />
+            <Hero onShopClick={navigateToShop} products={products} onProductClick={navigateToProduct} slides={slides} />
             <CategoryList onCategoryClick={navigateToShopCategory} products={products} />
             <StoryCarousel stories={[...stories].reverse().slice(0, 5)} products={products} onProductClick={navigateToProduct} onAddToCart={addToCart} />
             <div className="snaxxo-wrapper relative w-full overflow-hidden bg-[#fcf6e5]">

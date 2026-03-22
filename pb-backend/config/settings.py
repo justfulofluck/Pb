@@ -97,8 +97,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('DB_NAME', 'pinob_db'),
-        'USER': os.environ.get('DB_USER', 'pinoadmino'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'pinopazz_intra'),
+        'USER': os.environ.get('DB_USER', 'root'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'kushroot'),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '3306'),
     }
@@ -197,7 +197,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'pinobites@gmail.com'
 EMAIL_HOST_PASSWORD = 'cwkrporemlfzmywo'
 
-# Yagmail Configuration
+# Yagmail Configuration 
 YAGMAIL_USER = EMAIL_HOST_USER
 YAGMAIL_PASSWORD = EMAIL_HOST_PASSWORD
 
