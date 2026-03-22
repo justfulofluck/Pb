@@ -27,6 +27,7 @@ from .views import (
     DistributorApplicationViewSet,
     RewardRuleViewSet,
     RewardTransactionViewSet,
+    ProcessDriveVideoView,
 )
 
 router = DefaultRouter()
@@ -49,6 +50,11 @@ router.register(r"reward-rules", RewardRuleViewSet)
 router.register(r"reward-transactions", RewardTransactionViewSet)
 
 urlpatterns = [
+    path(
+        "stories/process-drive-video/",
+        ProcessDriveVideoView.as_view(),
+        name="process_drive_video",
+    ),
     path("", include(router.urls)),
     path("register/", RegisterView.as_view(), name="register"),
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
@@ -77,3 +83,5 @@ urlpatterns = [
         name="newsletter_unsubscribe",
     ),
 ]
+
+# Triggering auto-reloader

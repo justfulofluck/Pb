@@ -1291,6 +1291,7 @@ const AppContent: React.FC = () => {
             onAddToCart={addToCart}
             searchQuery={globalSearchQuery}
             selectedCategory={shopCategory}
+            onHomeClick={goHome}
           />
         )}
 
@@ -1308,6 +1309,7 @@ const AppContent: React.FC = () => {
             isLoggedIn={isLoggedIn}
             onLoginClick={() => setIsAuthOpen(true)}
             onPopupToggle={setIsNutritionOpen}
+            onHomeClick={goHome}
           />
         )}
 

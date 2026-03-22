@@ -315,7 +315,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Story Form State
   const [newStoryForm, setNewStoryForm] = useState<Partial<Story>>({
     mediaUrl: '',
-    mediaType: 'image',
+    mediaType: 'video',
     productId: ''
   });
 
@@ -388,39 +388,45 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [newCategory, setNewCategory] = useState('');
 
   // Story Handlers
-  const handleAddStory = (e: React.FormEvent) => {
+  const [isProcessingDriveVideo, setIsProcessingDriveVideo] = useState(false);
+
+  const handleAddStory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStoryForm.mediaUrl || !newStoryForm.productId) {
-      alert("Please provide a media URL or upload a file and select a product.");
+      alert("Please provide a Google Drive URL and select a product.");
       return;
     }
-    const newStory: Story = {
-      id: `s - ${Date.now()} `,
-      mediaUrl: newStoryForm.mediaUrl || '',
-      mediaType: newStoryForm.mediaType || 'image',
-      productId: newStoryForm.productId || ''
-    };
-    onAddStory(newStory);
-    setNewStoryForm({ mediaUrl: '', mediaType: 'image', productId: '' });
+
+    setIsProcessingDriveVideo(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/stories/process-drive-video/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ drive_url: newStoryForm.mediaUrl })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to process video');
+
+      const newStory: Story = {
+        id: `s-${Date.now()}`,
+        mediaUrl: data.mediaUrl, // This path is now the new 5s GIF!
+        mediaType: 'image', // MUST be image since it's a .gif file, video tag won't play gifs
+        productId: newStoryForm.productId
+      };
+
+      onAddStory(newStory);
+      setNewStoryForm({ mediaUrl: '', mediaType: 'image', productId: '' });
+    } catch (error) {
+      console.error(error);
+      alert("Error processing your Google Drive URL. Ensure it's a public link.");
+    } finally {
+      setIsProcessingDriveVideo(false);
+    }
   };
 
   const deleteStory = (id: string) => {
     onDeleteStory(id);
-  };
-
-  const handleStoryFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewStoryForm({
-          ...newStoryForm,
-          mediaUrl: reader.result as string,
-          mediaType: file.type.startsWith('video') ? 'video' : 'image'
-        });
-      };
-      reader.readAsDataURL(file);
-    }
   };
 
   const openAddProduct = () => {
@@ -1359,48 +1365,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <div className="space-y-8 animate-in fade-in duration-300">
                   <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
                     <h3 className="text-xl font-black uppercase text-slate-900 mb-6">Create New Story</h3>
-                    <form onSubmit={handleAddStory} className="grid md:grid-cols-4 gap-6 items-end">
+                    <form onSubmit={handleAddStory} className="grid md:grid-cols-3 gap-6 items-end">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Upload Media</label>
-                        <div className="flex gap-2">
-                          <input
-                            ref={storyFileInputRef}
-                            type="file"
-                            accept="image/*,video/*"
-                            onChange={handleStoryFileUpload}
-                            className="hidden"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => storyFileInputRef.current?.click()}
-                            className={`flex-1 px-4 py-3 rounded-xl border-2 border-dashed transition-all flex items-center justify-center gap-2 font-black uppercase text-[10px] tracking-widest ${newStoryForm.mediaUrl ? 'bg-green-50 border-green-200 text-green-600' : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-primary hover:text-primary'}`}
-                          >
-                            <span className="material-symbols-outlined text-lg">
-                              {newStoryForm.mediaUrl ? 'check_circle' : 'cloud_upload'}
-                            </span>
-                            {newStoryForm.mediaUrl ? 'Ready' : 'Upload'}
-                          </button>
-                          {newStoryForm.mediaUrl && (
-                            <button 
-                              type="button"
-                              onClick={() => setNewStoryForm({ ...newStoryForm, mediaUrl: '', mediaType: 'image' })}
-                              className="w-12 h-[48px] rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors flex items-center justify-center"
-                            >
-                              <span className="material-symbols-outlined">delete</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Media Type</label>
-                        <select
-                          value={newStoryForm.mediaType}
-                          onChange={e => setNewStoryForm({ ...newStoryForm, mediaType: e.target.value as 'image' | 'video' })}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary bg-white"
-                        >
-                          <option value="image">Image</option>
-                          <option value="video">Video</option>
-                        </select>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Google Drive URL</label>
+                        <input
+                          type="text"
+                          placeholder="https://drive.google.com/file/d/..."
+                          value={newStoryForm.mediaUrl || ''}
+                          onChange={e => setNewStoryForm({ ...newStoryForm, mediaUrl: e.target.value })}
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary"
+                        />
                       </div>
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Link Product</label>
@@ -1413,8 +1387,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                         </select>
                       </div>
-                      <button type="submit" className="bg-primary text-white py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:shadow-lg transition-all h-[50px]">
-                        Add Story
+                      <button type="submit" disabled={isProcessingDriveVideo} className="bg-primary text-white py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:shadow-lg transition-all h-[50px] disabled:opacity-50">
+                        {isProcessingDriveVideo ? 'Processing...' : 'Add Story'}
                       </button>
                     </form>
 
@@ -1439,22 +1413,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               );
                             }
                             return (
-                                <div className="absolute bottom-4 left-2 right-2 bg-white rounded-xl p-2.5 shadow-lg flex items-center gap-3 border border-slate-100">
-                                  <div className="w-16 h-16 rounded-lg flex-shrink-0 flex items-center justify-center">
-                                    <img src={p.image} className="w-14 h-14 object-contain" alt="P" />
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="text-[11px] font-bold text-slate-900 leading-[1.2] line-clamp-2">
-                                      {p.name.split('(')[0] || p.name}
-                                    </h4>
-                                    <div className="flex items-center gap-2 mt-0">
-                                      <span className="text-[12px] font-black text-slate-900">₹{p.price.toLocaleString()}</span>
-                                      {p.originalPrice && (
-                                        <span className="text-[9px] text-slate-400 line-through decoration-slate-300">₹{p.originalPrice.toLocaleString()}</span>
-                                      )}
-                                    </div>
+                              <div className="absolute bottom-4 left-2 right-2 bg-white rounded-xl p-2.5 shadow-lg flex items-center gap-3 border border-slate-100">
+                                <div className="w-16 h-16 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                  <img src={p.image} className="w-14 h-14 object-contain" alt="P" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="text-[11px] font-bold text-slate-900 leading-[1.2] line-clamp-2">
+                                    {p.name.split('(')[0] || p.name}
+                                  </h4>
+                                  <div className="flex items-center gap-2 mt-0">
+                                    <span className="text-[12px] font-black text-slate-900">₹{p.price.toLocaleString()}</span>
+                                    {p.originalPrice && (
+                                      <span className="text-[9px] text-slate-400 line-through decoration-slate-300">₹{p.originalPrice.toLocaleString()}</span>
+                                    )}
                                   </div>
                                 </div>
+                              </div>
                             );
                           })()}
                         </div>
@@ -1475,21 +1449,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                           {p && (
                             <div className="absolute bottom-2 left-2 right-2 bg-white rounded-xl p-1.5 shadow-lg flex items-center gap-2 border border-slate-50">
-                                 <div className="w-9 h-9 rounded-lg bg-white flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-50">
-                                   <img src={p.image} className="w-8 h-8 object-contain" alt="P" />
-                                 </div>
-                                 <div className="flex-1 min-w-0">
-                                   <h4 className="text-[8px] font-bold text-slate-900 leading-[1.1] line-clamp-2">
-                                     {p.name.split('(')[0] || p.name}
-                                   </h4>
-                                   <div className="flex items-center gap-1.5 mt-0">
-                                     <span className="text-[8px] font-black text-slate-900">₹{p.price.toLocaleString()}</span>
-                                     {p.originalPrice && (
-                                        <span className="text-[6px] text-slate-400 line-through decoration-slate-300">₹{p.originalPrice.toLocaleString()}</span>
-                                      )}
-                                   </div>
-                                 </div>
-                               </div>
+                              <div className="w-9 h-9 rounded-lg bg-white flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-50">
+                                <img src={p.image} className="w-8 h-8 object-contain" alt="P" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-[8px] font-bold text-slate-900 leading-[1.1] line-clamp-2">
+                                  {p.name.split('(')[0] || p.name}
+                                </h4>
+                                <div className="flex items-center gap-1.5 mt-0">
+                                  <span className="text-[8px] font-black text-slate-900">₹{p.price.toLocaleString()}</span>
+                                  {p.originalPrice && (
+                                    <span className="text-[6px] text-slate-400 line-through decoration-slate-300">₹{p.originalPrice.toLocaleString()}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
                           )}
                           <button
                             onClick={() => deleteStory(story.id)}
@@ -2764,33 +2738,33 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* Stats Grid */}
                 <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
                   {[
-                    { 
-                      label: 'Total Revenue', 
-                      value: `₹${orders.reduce((acc, curr) => acc + (curr.status !== 'Cancelled' ? Number(curr.total_amount) : 0), 0).toLocaleString('en-IN')}`, 
-                      change: `${orders.length} Orders`, 
-                      icon: 'payments', 
-                      color: 'bg-green-100 text-green-600' 
+                    {
+                      label: 'Total Revenue',
+                      value: `₹${orders.reduce((acc, curr) => acc + (curr.status !== 'Cancelled' ? Number(curr.total_amount) : 0), 0).toLocaleString('en-IN')}`,
+                      change: `${orders.length} Orders`,
+                      icon: 'payments',
+                      color: 'bg-green-100 text-green-600'
                     },
-                    { 
-                      label: 'Total SKUs', 
-                      value: products.length.toString(), 
-                      change: 'Active', 
-                      icon: 'inventory_2', 
-                      color: 'bg-blue-100 text-blue-600' 
+                    {
+                      label: 'Total SKUs',
+                      value: products.length.toString(),
+                      change: 'Active',
+                      icon: 'inventory_2',
+                      color: 'bg-blue-100 text-blue-600'
                     },
-                    { 
-                      label: 'Low Stock Items', 
-                      value: products.filter(p => p.stock < 10).length.toString(), 
-                      change: products.filter(p => p.stock < 10).length > 0 ? '- Action Needed' : 'Healthy', 
-                      icon: 'warning', 
-                      color: products.filter(p => p.stock < 10).length > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600' 
+                    {
+                      label: 'Low Stock Items',
+                      value: products.filter(p => p.stock < 10).length.toString(),
+                      change: products.filter(p => p.stock < 10).length > 0 ? '- Action Needed' : 'Healthy',
+                      icon: 'warning',
+                      color: products.filter(p => p.stock < 10).length > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
                     },
-                    { 
-                      label: 'Total Events', 
-                      value: events.length.toString(), 
-                      change: events.length > 0 ? 'Upcoming' : 'None', 
-                      icon: 'event', 
-                      color: 'bg-purple-100 text-purple-600' 
+                    {
+                      label: 'Total Events',
+                      value: events.length.toString(),
+                      change: events.length > 0 ? 'Upcoming' : 'None',
+                      icon: 'event',
+                      color: 'bg-purple-100 text-purple-600'
                     },
                   ].map((stat, i) => (
                     <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
@@ -2844,10 +2818,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <div className="flex items-center gap-4">
                             <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
                               <span className="material-symbols-outlined">
-                                {rule.event_name === 'purchase' ? 'shopping_cart' : 
-                                 rule.event_name === 'signup' ? 'person_add' : 
-                                 rule.event_name === 'review' ? 'rate_review' : 
-                                 rule.event_name === 'referral' ? 'group_add' : 'military_tech'}
+                                {rule.event_name === 'purchase' ? 'shopping_cart' :
+                                  rule.event_name === 'signup' ? 'person_add' :
+                                    rule.event_name === 'review' ? 'rate_review' :
+                                      rule.event_name === 'referral' ? 'group_add' : 'military_tech'}
                               </span>
                             </div>
                             <div>
@@ -2857,15 +2831,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </div>
                           <div className="flex items-center gap-6">
                             <div className="flex items-center gap-3">
-                              <input 
-                                type="number" 
+                              <input
+                                type="number"
                                 value={rule.points}
                                 onChange={(e) => handleUpdateRewardPoints(rule, parseInt(e.target.value))}
                                 className="w-20 px-3 py-1.5 bg-slate-100 rounded-lg text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20"
                               />
                               <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">PTS</span>
                             </div>
-                            <button 
+                            <button
                               onClick={() => handleToggleRewardRule(rule)}
                               className={`w-12 h-6 rounded-full transition-all relative ${rule.is_enabled ? 'bg-primary' : 'bg-slate-300'}`}
                             >
@@ -2909,120 +2883,120 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           )}
 
           {activeTab === 'announcements' && (
-              <div className="space-y-8 animate-in fade-in duration-300">
-                <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
-                  <h3 className="text-xl font-black uppercase text-slate-900 mb-6">
-                    {isEditingAnnouncement ? 'Edit Announcement' : 'Post New Announcement'}
-                  </h3>
-                  <form onSubmit={handleAnnouncementSubmit} className="space-y-6">
+            <div className="space-y-8 animate-in fade-in duration-300">
+              <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+                <h3 className="text-xl font-black uppercase text-slate-900 mb-6">
+                  {isEditingAnnouncement ? 'Edit Announcement' : 'Post New Announcement'}
+                </h3>
+                <form onSubmit={handleAnnouncementSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Announcement Message</label>
+                    <textarea
+                      required
+                      value={announcementForm.message}
+                      onChange={e => setAnnouncementForm({ ...announcementForm, message: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary"
+                      rows={2}
+                      placeholder="e.g. Free shipping on orders over ₹999!"
+                    />
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-500">Announcement Message</label>
-                      <textarea
-                        required
-                        value={announcementForm.message}
-                        onChange={e => setAnnouncementForm({ ...announcementForm, message: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary"
-                        rows={2}
-                        placeholder="e.g. Free shipping on orders over ₹999!"
-                      />
-                    </div>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Start Date</label>
-                        <input
-                          required
-                          type="date"
-                          value={announcementForm.start_date}
-                          onChange={e => setAnnouncementForm({ ...announcementForm, start_date: e.target.value })}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">End Date</label>
-                        <input
-                          required
-                          type="date"
-                          value={announcementForm.end_date}
-                          onChange={e => setAnnouncementForm({ ...announcementForm, end_date: e.target.value })}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
+                      <label className="text-xs font-black uppercase tracking-widest text-slate-500">Start Date</label>
                       <input
-                        type="checkbox"
-                        id="is_active"
-                        checked={announcementForm.is_active}
-                        onChange={e => setAnnouncementForm({ ...announcementForm, is_active: e.target.checked })}
-                        className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
+                        required
+                        type="date"
+                        value={announcementForm.start_date}
+                        onChange={e => setAnnouncementForm({ ...announcementForm, start_date: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white"
                       />
-                      <label htmlFor="is_active" className="text-sm font-bold text-slate-700">Display this announcement</label>
                     </div>
-                    <div className="flex gap-4">
-                      <button type="submit" className="flex-1 bg-slate-900 text-white py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-primary transition-all">
-                        {isEditingAnnouncement ? 'Update Message' : 'Post Announcement'}
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-slate-500">End Date</label>
+                      <input
+                        required
+                        type="date"
+                        value={announcementForm.end_date}
+                        onChange={e => setAnnouncementForm({ ...announcementForm, end_date: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="is_active"
+                      checked={announcementForm.is_active}
+                      onChange={e => setAnnouncementForm({ ...announcementForm, is_active: e.target.checked })}
+                      className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
+                    />
+                    <label htmlFor="is_active" className="text-sm font-bold text-slate-700">Display this announcement</label>
+                  </div>
+                  <div className="flex gap-4">
+                    <button type="submit" className="flex-1 bg-slate-900 text-white py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-primary transition-all">
+                      {isEditingAnnouncement ? 'Update Message' : 'Post Announcement'}
+                    </button>
+                    {isEditingAnnouncement && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditingAnnouncement(false);
+                          setAnnouncementForm({
+                            message: '',
+                            start_date: new Date().toISOString().split('T')[0],
+                            end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                            is_active: true
+                          });
+                        }}
+                        className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50"
+                      >
+                        Cancel
                       </button>
-                      {isEditingAnnouncement && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setIsEditingAnnouncement(false);
-                            setAnnouncementForm({
-                              message: '',
-                              start_date: new Date().toISOString().split('T')[0],
-                              end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                              is_active: true
-                            });
-                          }}
-                          className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50"
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </div>
-                  </form>
-                </div>
-
-                <div className="space-y-4">
-                  <h4 className="text-sm font-black uppercase text-slate-800 px-2 tracking-[0.1em]">Announcement History</h4>
-                  <div className="grid gap-4">
-                    {announcements.map(a => (
-                      <div key={a.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between group hover:border-primary transition-all">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className={`w-2 h-2 rounded-full ${a.is_active ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-slate-300'}`}></span>
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                              {new Date(a.start_date).toLocaleDateString()} - {new Date(a.end_date).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <p className="font-bold text-slate-800">{a.message}</p>
-                        </div>
-                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => startEditAnnouncement(a)}
-                            className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-primary hover:text-white transition-all"
-                          >
-                            <span className="material-symbols-outlined text-lg">edit</span>
-                          </button>
-                          <button
-                            onClick={() => onDeleteAnnouncement(a.id)}
-                            className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
-                          >
-                            <span className="material-symbols-outlined text-lg">delete</span>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                    {announcements.length === 0 && (
-                      <div className="text-center py-12 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 text-slate-400">
-                        <span className="material-symbols-outlined text-4xl mb-2 opacity-20">campaign</span>
-                        <p className="font-bold uppercase tracking-widest text-xs">No announcements yet</p>
-                      </div>
                     )}
                   </div>
+                </form>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-sm font-black uppercase text-slate-800 px-2 tracking-[0.1em]">Announcement History</h4>
+                <div className="grid gap-4">
+                  {announcements.map(a => (
+                    <div key={a.id} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between group hover:border-primary transition-all">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className={`w-2 h-2 rounded-full ${a.is_active ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-slate-300'}`}></span>
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            {new Date(a.start_date).toLocaleDateString()} - {new Date(a.end_date).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="font-bold text-slate-800">{a.message}</p>
+                      </div>
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => startEditAnnouncement(a)}
+                          className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-primary hover:text-white transition-all"
+                        >
+                          <span className="material-symbols-outlined text-lg">edit</span>
+                        </button>
+                        <button
+                          onClick={() => onDeleteAnnouncement(a.id)}
+                          className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
+                        >
+                          <span className="material-symbols-outlined text-lg">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {announcements.length === 0 && (
+                    <div className="text-center py-12 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 text-slate-400">
+                      <span className="material-symbols-outlined text-4xl mb-2 opacity-20">campaign</span>
+                      <p className="font-bold uppercase tracking-widest text-xs">No announcements yet</p>
+                    </div>
+                  )}
                 </div>
               </div>
-            )
+            </div>
+          )
           }
 
           {

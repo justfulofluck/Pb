@@ -9,13 +9,15 @@ interface ShopPageProps {
   onAddToCart: (p: Product) => void;
   searchQuery?: string;
   selectedCategory?: string;
+  onHomeClick: () => void;
 }
 
 const ShopPage: React.FC<ShopPageProps> = ({
   onProductClick,
   onAddToCart,
   searchQuery = '',
-  selectedCategory = 'All'
+  selectedCategory = 'All',
+  onHomeClick
 }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -124,8 +126,8 @@ const ShopPage: React.FC<ShopPageProps> = ({
       <div className="pt-6 md:pt-10 pb-6 px-4 relative overflow-hidden">
         <div className="max-w-7xl mx-auto mb-2 flex justify-center">
           <Breadcrumbs
-            onHomeClick={() => { }}
-            steps={[{ label: 'Shop' }, { label: filter }]}
+            onHomeClick={onHomeClick}
+            steps={filter === 'All' ? [{ label: 'Shop' }] : [{ label: 'Shop', onClick: () => setFilter('All') }, { label: filter }]}
             className="text-slate-400 !py-0"
           />
         </div>

@@ -24,6 +24,7 @@ interface ProductPageProps {
   onLoginClick?: () => void;
   onPopupToggle?: (isOpen: boolean) => void;
   stories: Story[];
+  onHomeClick: () => void;
 }
 
 const StableModelViewer = React.memo(({ product }: { product: Product }) => {
@@ -98,7 +99,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
   isLoggedIn,
   onLoginClick,
   onPopupToggle,
-  stories
+  stories,
+  onHomeClick
 }) => {
   useSnaxxoAnimations();
 
@@ -182,6 +184,16 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
   return (
     <div className="page-wrapper" style={{ opacity: 1, backgroundColor: tintColor }}>
+      <div className="max-w-7xl mx-auto px-4 pt-8 pb-4 relative z-20">
+        <Breadcrumbs
+          onHomeClick={onHomeClick}
+          steps={[
+            { label: 'Shop', onClick: onShopClick },
+            { label: product.name }
+          ]}
+          className="text-white/80 !py-0"
+        />
+      </div>
       <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-[90vh] flex flex-col items-center pt-2 pb-20">
         <div className="w-layout-blockcontainer container product-page-hero w-container">
           <div className="content-wrapper product-page-hero">
@@ -493,13 +505,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
         </div>
       </section>
 
-      <StoryCarousel 
-        stories={[...(stories.filter(s => s.productId === product.id).length > 0 
-          ? stories.filter(s => s.productId === product.id) 
+      <StoryCarousel
+        stories={[...(stories.filter(s => s.productId === product.id).length > 0
+          ? stories.filter(s => s.productId === product.id)
           : stories)].reverse().slice(0, 5)
-        } 
-        products={products} 
-        onProductClick={onProductClick} 
+        }
+        products={products}
+        onProductClick={onProductClick}
       />
 
       <div className="snaxxo-wrapper relative w-full overflow-hidden py-10" style={{ backgroundColor: '#f2f2ec' }}>

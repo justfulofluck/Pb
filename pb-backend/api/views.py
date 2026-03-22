@@ -744,6 +744,24 @@ class RewardTransactionViewSet(viewsets.ReadOnlyModelViewSet):
 
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
+from .video_processor import process_google_drive_video_to_gif
+
+class ProcessDriveVideoView(APIView):
+    permission_classes = [permissions.AllowAny] # Or permissions.IsAuthenticated
+
+    def post(self, request):
+        drive_url = request.data.get('drive_url')
+        if not drive_url:
+            return Response({"error": "drive_url is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            gif_url = process_google_drive_video_to_gif(drive_url)
+            return Response({"mediaUrl": gif_url})
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 # Serve Single Page Application
 index_view = never_cache(TemplateView.as_view(template_name="index.html"))
