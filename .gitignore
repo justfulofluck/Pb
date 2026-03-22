@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 venv/
 env/
+pb-backend/venv/
 .env
 *.log
 *.sqlite3
@@ -14,6 +15,30 @@ staticfiles/
 node_modules/
 dist/
 build/
+pb-frontend/node_modules/
+pb-frontend/dist/
 .DS_Store
 .check-status
 pw.txt
+
+# Vite
+.vite/
+pb-frontend/.vite/
+
+# Django
+migration/
+db.sqlite3
+
+# Docker
+.dockerignore
+docker-compose.yml
+
+# Docs & Scripts
+*.md
+docs/
+*.sh
+
+# Debug & Temp
+*.txt
+*.pkl
+*.pdf
