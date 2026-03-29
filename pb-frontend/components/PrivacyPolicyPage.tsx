@@ -11,7 +11,7 @@ const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onHomeClick }) =>
       <div className="bg-primary/5 pt-10 pb-20 px-4 relative overflow-hidden">
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <span className="font-satoshi text-3xl text-primary transform -rotate-2 inline-block mb-4">Your Trust Matters</span>
+          <span className="font-handdrawn text-3xl text-primary transform -rotate-2 inline-block mb-4">Your Trust Matters</span>
           <h1 className="text-5xl md:text-7xl font-black uppercase text-slate-900 tracking-tight mb-6">
             Privacy Policy
           </h1>
@@ -19,8 +19,8 @@ const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onHomeClick }) =>
             "Transparency is the main ingredient in every jar we pack."
           </p>
         </div>
-        <span className="absolute top-10 left-10 font-anton text-9xl opacity-5 rotate-12 select-none">SAFE</span>
-        <span className="absolute bottom-10 right-10 font-anton text-9xl opacity-5 -rotate-12 select-none">TRUST</span>
+        <span className="absolute top-10 left-10 font-handdrawn text-9xl opacity-5 rotate-12 select-none">SAFE</span>
+        <span className="absolute bottom-10 right-10 font-handdrawn text-9xl opacity-5 -rotate-12 select-none">TRUST</span>
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-16">

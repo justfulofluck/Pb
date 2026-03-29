@@ -11,7 +11,7 @@ const RefundPolicyPage: React.FC<RefundPolicyPageProps> = ({ onHomeClick }) => {
       <div className="bg-emerald-50/50 pt-10 pb-20 px-4 relative overflow-hidden">
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <span className="font-satoshi text-3xl text-primary transform -rotate-2 inline-block mb-4">Hassle-Free Returns</span>
+          <span className="font-handdrawn text-3xl text-primary transform -rotate-2 inline-block mb-4">Hassle-Free Returns</span>
           <h1 className="text-5xl md:text-7xl font-normal !normal-case text-slate-900 tracking-tight leading-[0.9] mb-6 font-anton">
             Refunds & returns
           </h1>
@@ -19,8 +19,8 @@ const RefundPolicyPage: React.FC<RefundPolicyPageProps> = ({ onHomeClick }) => {
             "Your satisfaction is our primary ingredient."
           </p>
         </div>
-        <span className="absolute top-10 left-10 font-anton text-9xl opacity-5 rotate-12 select-none">SMILE</span>
-        <span className="absolute bottom-10 right-10 font-anton text-9xl opacity-5 -rotate-12 select-none">REFUND</span>
+        <span className="absolute top-10 left-10 font-handdrawn text-9xl opacity-5 rotate-12 select-none">SMILE</span>
+        <span className="absolute bottom-10 right-10 font-handdrawn text-9xl opacity-5 -rotate-12 select-none">REFUND</span>
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-16">

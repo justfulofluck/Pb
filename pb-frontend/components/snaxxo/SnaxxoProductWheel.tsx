@@ -74,8 +74,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
         slider.style.position = "relative";
         slider.style.width = "100%";
         slider.style.maxWidth = "none";
-        slider.style.overflowX = "hidden";
-        slider.style.overflowY = "visible";
+        slider.style.overflow = "hidden";
 
         viewport.style.position = "relative";
         viewport.style.width = "100%";
@@ -369,7 +368,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
     }
 
     return (
-        <section className="product-slider-section bg-whiteboard texture-overlay texture-speckles py-12 md:py-24 overflow-visible">
+        <section className="product-slider-section bg-whiteboard texture-overlay texture-speckles py-12 md:py-24 overflow-hidden">
             {/* Desktop Header */}
             <div className="hidden lg:flex flex-col items-center justify-center text-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 relative z-10">
                 <div className="bg-[#0b3d2e] texture-overlay texture-speckles text-white font-black text-[10px] sm:text-xs md:text-sm uppercase tracking-widest px-3 py-1 md:px-4 md:py-1.5 rounded-sm -rotate-3 mb-1 inline-block shadow-sm z-10" style={{ transformOrigin: 'center' }}>

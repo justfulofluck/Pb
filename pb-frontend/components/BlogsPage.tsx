@@ -34,8 +34,8 @@ const BlogsPage: React.FC<BlogsPageProps> = ({ posts, onBlogClick, onHomeClick }
             Your go-to source for healthy recipes, nutrition deep-dives, and behind-the-scenes stories from the Pinobite kitchen.
           </p>
         </div>
-        <span className="absolute top-10 left-10 text-9xl opacity-5 font-black text-primary select-none hidden md:block rotate-12">YUM</span>
-        <span className="absolute bottom-10 right-10 text-9xl opacity-5 font-black text-secondary select-none hidden md:block -rotate-12">READ</span>
+        <span className="absolute top-10 left-10 text-9xl opacity-5 font-handdrawn text-primary select-none hidden md:block rotate-12">YUM</span>
+        <span className="absolute bottom-10 right-10 text-9xl opacity-5 font-handdrawn text-secondary select-none hidden md:block -rotate-12">READ</span>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-16">

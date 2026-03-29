@@ -28,7 +28,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
       <div className="bg-secondary/10 pt-10 pb-20 px-4 relative overflow-hidden">
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <span className="font-satoshi text-3xl text-primary transform -rotate-2 inline-block mb-4">We don't bite! (Unless it's muesli)</span>
+          <span className="font-handdrawn text-3xl text-primary transform -rotate-2 inline-block mb-4">We don't bite! (Unless it's muesli)</span>
           <h1 className="text-5xl md:text-7xl font-black uppercase text-slate-900 tracking-tight mb-6">
             Get in Touch
           </h1>

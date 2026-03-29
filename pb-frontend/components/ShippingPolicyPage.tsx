@@ -19,8 +19,8 @@ const ShippingPolicyPage: React.FC<ShippingPolicyPageProps> = ({ onHomeClick }) 
             "Delivering goodness to your doorstep, wherever you are."
           </p>
         </div>
-        <span className="absolute top-10 left-10 font-anton text-9xl opacity-5 rotate-12 select-none">FAST</span>
-        <span className="absolute bottom-10 right-10 font-anton text-9xl opacity-5 -rotate-12 select-none">SHIP</span>
+        <span className="absolute top-10 left-10 font-handdrawn text-9xl opacity-5 rotate-12 select-none">FAST</span>
+        <span className="absolute bottom-10 right-10 font-handdrawn text-9xl opacity-5 -rotate-12 select-none">SHIP</span>
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-16">
