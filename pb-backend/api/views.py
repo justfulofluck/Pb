@@ -1,4 +1,5 @@
 from rest_framework import viewsets, generics, permissions, status
+from django.core.cache import cache
 from .models import (
     Category,
     Product,
@@ -56,6 +57,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
+
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -68,6 +70,57 @@ class ProductViewSet(viewsets.ModelViewSet):
             return ProductListSerializer
         return ProductSerializer
 
+    def list(self, request, *args, **kwargs):
+        cache_key = f"products_list_{request.GET.urlencode()}"
+        try:
+            cached_data = cache.get(cache_key)
+            if cached_data is not None:
+                return Response(cached_data)
+        except Exception as e:
+            print(f"Cache get failed: {e}")
+
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        try:
+            cache.set(cache_key, serializer.data, 300)
+        except Exception as e:
+            print(f"Cache set failed: {e}")
+        return Response(serializer.data)
+
+    def retrieve(self, request, *args, **kwargs):
+        pk = kwargs.get("pk")
+        cache_key = f"product_detail_{pk}"
+        try:
+            cached_data = cache.get(cache_key)
+            if cached_data is not None:
+                return Response(cached_data)
+        except Exception as e:
+            print(f"Cache get failed: {e}")
+
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        try:
+            cache.set(cache_key, serializer.data, 300)
+        except Exception as e:
+            print(f"Cache set failed: {e}")
+        return Response(serializer.data)
+
+    def perform_update(self, serializer):
+        try:
+            super().perform_update(serializer)
+            cache.delete(f"product_detail_{serializer.instance.pk}")
+        except Exception as e:
+            print(f"ERROR in perform_update: {e}")
+            import traceback
+
+            traceback.print_exc()
+            raise
+
+    def perform_destroy(self, instance):
+        pk = instance.pk
+        super().perform_destroy(instance)
+        cache.delete(f"product_detail_{pk}")
+
 
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
@@ -76,9 +129,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         user = self.request.user if self.request.user.is_authenticated else None
         instance = serializer.save(user=user)
-        
+
         if user:
             from .utils import award_points
+
             points = award_points(user, "review")
             # Store points temporarily on the instance so they can be returned in the response
             instance.points_earned = points
@@ -90,11 +144,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        
+
         # Add points_earned to the response data
         data = serializer.data
-        data['points_earned'] = getattr(serializer.instance, 'points_earned', 0)
-        
+        data["points_earned"] = getattr(serializer.instance, "points_earned", 0)
+
         return Response(data, status=status.HTTP_201_CREATED, headers=headers)
 
 
@@ -284,15 +338,29 @@ class OrderViewSet(viewsets.ModelViewSet):
 
                     total_awarded = 0
                     from .utils import award_points
+
                     spend_points = int(order.total_amount / 100) * 10
                     if spend_points > 0:
-                        total_awarded += award_points(request.user, "purchase", custom_points=spend_points, reason_override=f"Points earned on Order #{order.id}")
-                    
-                    order_count = Order.objects.filter(user=request.user, status__in=["Processing", "Paid", "Shipped", "Delivered"]).count()
+                        total_awarded += award_points(
+                            request.user,
+                            "purchase",
+                            custom_points=spend_points,
+                            reason_override=f"Points earned on Order #{order.id}",
+                        )
+
+                    order_count = Order.objects.filter(
+                        user=request.user,
+                        status__in=["Processing", "Paid", "Shipped", "Delivered"],
+                    ).count()
                     if order_count == 1:
                         total_awarded += award_points(request.user, "first_order")
 
-                    return Response({"status": "Payment verified successfully (Mock)", "points_earned": total_awarded})
+                    return Response(
+                        {
+                            "status": "Payment verified successfully (Mock)",
+                            "points_earned": total_awarded,
+                        }
+                    )
                 else:
                     return Response(
                         {"error": "Invalid mock order details"},
@@ -321,14 +389,22 @@ class OrderViewSet(viewsets.ModelViewSet):
 
             total_awarded = 0
             from .utils import award_points
-            
+
             # 1. Standard Spend Points (₹100 = 10 pts)
             spend_points = int(order.total_amount / 100) * 10
             if spend_points > 0:
-                total_awarded += award_points(request.user, "purchase", custom_points=spend_points, reason_override=f"Points earned on Order #{order.id}")
-            
+                total_awarded += award_points(
+                    request.user,
+                    "purchase",
+                    custom_points=spend_points,
+                    reason_override=f"Points earned on Order #{order.id}",
+                )
+
             # 2. First Order Bonus
-            order_count = Order.objects.filter(user=request.user, status__in=["Processing", "Paid", "Shipped", "Delivered"]).count()
+            order_count = Order.objects.filter(
+                user=request.user,
+                status__in=["Processing", "Paid", "Shipped", "Delivered"],
+            ).count()
             if order_count == 1:
                 total_awarded += award_points(request.user, "first_order")
 
@@ -339,7 +415,12 @@ class OrderViewSet(viewsets.ModelViewSet):
                 f"Thank you for your order! Your payment ID is {razorpay_payment_id}. We are processing it.",
             )
 
-            return Response({"status": "Payment verified successfully", "points_earned": total_awarded})
+            return Response(
+                {
+                    "status": "Payment verified successfully",
+                    "points_earned": total_awarded,
+                }
+            )
 
         except Exception as e:
             print(f"Verification Failed: {e}")
@@ -358,6 +439,7 @@ class RegisterView(generics.CreateAPIView):
         response = super().create(request, *args, **kwargs)
         if response.status_code == status.HTTP_201_CREATED:
             from .models import RewardRule
+
             try:
                 rule = RewardRule.objects.get(event_name="signup")
                 if rule.is_enabled:
@@ -387,17 +469,17 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     def update_profile(self, request):
         user = request.user
         profile = user.profile
-        
+
         # Update User fields if provided
         first_name = request.data.get("first_name")
         last_name = request.data.get("last_name")
-        
+
         if first_name is not None:
             user.first_name = first_name
         if last_name is not None:
             user.last_name = last_name
         user.save()
-            
+
         serializer = UserProfileSerializer(profile, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -553,7 +635,10 @@ body {{ font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-
                 if send_email(email, "Password Reset OTP - Pinobite", html_message):
                     return Response({"message": "OTP sent to email."})
                 else:
-                    return Response({"error": "Failed to deliver email. Please try again later."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    return Response(
+                        {"error": "Failed to deliver email. Please try again later."},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
 
             except User.DoesNotExist:
                 # Security: Don't reveal user existence
@@ -711,7 +796,6 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         return [permissions.IsAuthenticated()]
 
 
-
 class DistributorApplicationViewSet(viewsets.ModelViewSet):
     queryset = DistributorApplication.objects.all().order_by("-created_at")
     serializer_class = DistributorApplicationSerializer
@@ -740,29 +824,37 @@ class RewardTransactionViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         if self.request.user.is_staff:
             return RewardTransaction.objects.all().order_by("-timestamp")
-        return RewardTransaction.objects.filter(user=self.request.user).order_by("-timestamp")
+        return RewardTransaction.objects.filter(user=self.request.user).order_by(
+            "-timestamp"
+        )
+
 
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
 from .video_processor import process_google_drive_video_to_gif
 
+
 class ProcessDriveVideoView(APIView):
-    permission_classes = [permissions.AllowAny] # Or permissions.IsAuthenticated
+    permission_classes = [permissions.AllowAny]  # Or permissions.IsAuthenticated
 
     def post(self, request):
-        drive_url = request.data.get('drive_url')
+        drive_url = request.data.get("drive_url")
         if not drive_url:
-            return Response({"error": "drive_url is required"}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"error": "drive_url is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             gif_url = process_google_drive_video_to_gif(drive_url)
             return Response({"mediaUrl": gif_url})
         except Exception as e:
             import traceback
+
             traceback.print_exc()
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 # Serve Single Page Application
 index_view = never_cache(TemplateView.as_view(template_name="index.html"))
-

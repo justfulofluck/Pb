@@ -24,7 +24,7 @@ const SnaxxoVariety: React.FC<SnaxxoVarietyProps> = ({ onShopClick }) => {
     }, []);
 
     return (
-        <section className="section" ref={sectionRef}>
+        <section className="section bg-whiteboard texture-overlay texture-speckles" ref={sectionRef}>
             <div className="w-layout-blockcontainer container variety-pack w-container">
                 <div className="variety-pack-content-wrapper">
                     <div className="w-layout-grid content-grid variety">

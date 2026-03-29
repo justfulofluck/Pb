@@ -108,12 +108,18 @@ class Story(models.Model):
 class HeroSlide(models.Model):
     category = models.CharField(max_length=100)
     headline = models.CharField(max_length=255)
-    description = models.TextField()
     image = models.TextField()
-    cta = models.CharField(max_length=50)
+    cta = models.CharField(max_length=50) # Primary button text
+    cta_link = models.CharField(max_length=255, blank=True, null=True)
+    secondary_cta = models.CharField(max_length=50, blank=True, null=True)
+    secondary_cta_link = models.CharField(max_length=255, blank=True, null=True)
     bg_color = models.CharField(max_length=50)
     accent_color = models.CharField(max_length=50)
     blob_color = models.CharField(max_length=50)
+    product_id = models.CharField(max_length=50, blank=True, null=True) # ID of the linked product
+    transition_type = models.CharField(max_length=50, default="fade") # fade, slide, scale, etc.
+    order = models.IntegerField(default=0)
+    background_image = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

@@ -22,7 +22,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
   );
 
   return (
-    <section id="products" className="py-24 bg-[#f2f2ec]">
+    <section id="products" className="py-24 bg-whiteboard texture-overlay texture-speckles">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16 flex flex-col items-center">
           <div className="bg-[#008a45] text-white font-black text-xs uppercase tracking-widest px-4 py-1.5 rounded-sm -rotate-2 mb-2 inline-block shadow-sm">
@@ -136,7 +136,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
           )}
         </div>
       </div>
-    </section>
+    </section >
   );
 };
 

@@ -23,7 +23,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
       <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-[1100] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b flex justify-between items-center">
           <h2 className="text-2xl font-black uppercase flex items-center gap-2">
-            Your Cart <span className="font-handdrawn text-primary text-xl tracking-normal">({items.length} items)</span>
+            Your Cart <span className="font-jakarta text-primary text-xl tracking-normal">({items.length} items)</span>
           </h2>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
             <span className="material-symbols-outlined">close</span>
@@ -34,7 +34,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
           {items.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-50">
               <span className="material-symbols-outlined text-7xl">shopping_basket</span>
-              <p className="font-handdrawn text-2xl">Your basket is feeling light!</p>
+              <p className="font-jakarta text-2xl">Your basket is feeling light!</p>
               <button onClick={onClose} className="text-primary font-bold hover:underline">Start Shopping</button>
             </div>
           ) : (

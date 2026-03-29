@@ -280,7 +280,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
             <span className="material-symbols-outlined text-6xl">check</span>
           </div>
           <h2 className="text-4xl font-black uppercase text-slate-900 tracking-tighter leading-none">Order Placed!</h2>
-          <p className="font-handdrawn text-2xl text-primary italic">You're on your way to a healthier morning! 🚀</p>
+          <p className="font-jakarta text-2xl text-primary italic">You're on your way to a healthier morning! 🚀</p>
           <p className="text-slate-500 font-medium">We've sent a confirmation email with your order details. You'll be redirected to the home page shortly.</p>
         </div>
       </div>

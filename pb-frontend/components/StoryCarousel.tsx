@@ -16,7 +16,7 @@ const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProd
   const getProduct = (id: string) => products.find(p => p.id === id);
 
   return (
-    <section className="py-12 bg-[#fff5f0] overflow-hidden border-y border-orange-100/50">
+    <section className="py-24 bg-whiteboard texture-overlay texture-speckles overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 relative flex flex-col items-center">
         {/* Centered Header */}
         <div className="text-center mb-16 relative w-full flex flex-col items-center">
@@ -24,7 +24,7 @@ const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProd
             @pinobitehealth
           </span>
           <div className="relative inline-block">
-            <h2 className="text-6xl md:text-7xl lg:text-8xl font-bold text-primary uppercase tracking-normal leading-tight md:leading-none font-bebas">Social Stories</h2>
+            <h2 className="text-6xl md:text-7xl lg:text-8xl font-normal tracking-tight leading-[0.9] font-anton !normal-case text-textured-green">Social stories</h2>
           </div>
         </div>
 

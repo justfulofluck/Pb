@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { EventBlog } from '../types';
-import Breadcrumbs from './Breadcrumbs';
 import Newsletter from './Newsletter';
 
 interface EventBlogsPageProps {
@@ -20,16 +19,10 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick, o
   return (
     <div className="bg-background-light min-h-screen animate-in fade-in duration-500">
       <div className="bg-slate-900 text-white pt-10 pb-24 px-4 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto mb-6">
-          <Breadcrumbs
-            onHomeClick={onHomeClick}
-            steps={[{ label: 'Stories' }]}
-            className="text-white/60 !py-0"
-          />
-        </div>
+
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <span className="font-handdrawn text-3xl text-secondary transform -rotate-2 inline-block mb-4">Reliving the Vibes</span>
-          <h1 className="text-5xl md:text-8xl font-black uppercase tracking-tight mb-6 font-garet">
+          <span className="font-jakarta text-3xl text-secondary transform -rotate-2 inline-block mb-4">Reliving the Vibes</span>
+          <h1 className="text-5xl md:text-8xl font-black uppercase tracking-tight mb-6 font-satoshi">
             Event Stories
           </h1>
           <p className="text-xl text-slate-400 max-w-2xl mx-auto font-medium">
@@ -78,7 +71,7 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick, o
                   {event.date}
                 </div>
 
-                <h3 className="text-2xl font-black uppercase text-slate-900 leading-tight mb-2 group-hover:text-primary transition-colors font-garet">
+                <h3 className="text-2xl font-black uppercase text-slate-900 leading-tight mb-2 group-hover:text-primary transition-colors font-satoshi">
                   {event.title}
                 </h3>
 
@@ -105,7 +98,7 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick, o
         {filteredEvents.length === 0 && (
           <div className="text-center py-32 space-y-4">
             <span className="material-symbols-outlined text-6xl text-slate-200">event_busy</span>
-            <p className="text-2xl font-handdrawn text-slate-400">No events found matching your search.</p>
+            <p className="text-2xl font-jakarta text-slate-400">No events found matching your search.</p>
             <button
               onClick={() => setSearchQuery('')}
               className="text-primary font-bold hover:underline"

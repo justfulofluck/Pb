@@ -32,6 +32,10 @@ db.sqlite3
 # Docker
 .dockerignore
 docker-compose.yml
+Dockerfile
+Dockerfile.prod
+nginx.conf
+nginx-prod.conf
 
 # Docs & Scripts
 *.md

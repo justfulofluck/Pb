@@ -11,13 +11,13 @@ const Testimonials: React.FC<TestimonialsProps> = ({ reviews }) => {
   const topReviews = reviews.filter(r => r.rating >= 4).slice(0, 6);
 
   return (
-    <section className="py-24 bg-[#fff9c4] overflow-hidden">
+    <section className="py-24 bg-whiteboard texture-overlay texture-speckles overflow-hidden">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
           <div className="max-w-xl">
-            <h2 className="text-5xl font-black text-slate-900 uppercase leading-none mb-4">
-              FROM THOSE<br />WHO MADE THE SWITCH 
-              <span className="font-handdrawn text-primary text-4xl align-middle inline-block transform -rotate-12 ml-4">:)</span>
+            <h2 className="text-textured-green-big">
+              From those<br />who made the switch
+              <span className="font-jakarta text-[#0b3d2e] opacity-40 text-4xl align-middle inline-block transform -rotate-12 ml-6">:)</span>
             </h2>
           </div>
           <div className="flex gap-2">
@@ -29,7 +29,7 @@ const Testimonials: React.FC<TestimonialsProps> = ({ reviews }) => {
             </button>
           </div>
         </div>
-        
+
         {topReviews.length > 0 ? (
           <div className="grid md:grid-cols-3 gap-8">
             {topReviews.map((t, i) => (
@@ -51,9 +51,9 @@ const Testimonials: React.FC<TestimonialsProps> = ({ reviews }) => {
             ))}
           </div>
         ) : (
-           <div className="text-center py-12">
-             <p className="font-handdrawn text-2xl text-slate-500">No reviews yet. Be the first!</p>
-           </div>
+          <div className="text-center py-12">
+            <p className="font-jakarta text-2xl text-slate-500">No reviews yet. Be the first!</p>
+          </div>
         )}
       </div>
     </section>

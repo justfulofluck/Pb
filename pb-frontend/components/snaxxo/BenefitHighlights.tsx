@@ -291,6 +291,7 @@ const BenefitHighlights: React.FC = () => {
 
     return (
         <section
+            className="bg-whiteboard texture-overlay texture-speckles"
             style={{ position: 'relative', overflow: 'hidden', minHeight: sectionHeight, display: 'flex', alignItems: 'center' }}
         >
             {/* Physics container */}

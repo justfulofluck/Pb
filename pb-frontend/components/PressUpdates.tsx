@@ -35,11 +35,11 @@ const PressUpdates: React.FC<PressUpdatesProps> = ({ pressUpdates }) => {
   if (!pressUpdates.length) return null;
 
   return (
-    <section className="py-24 bg-[#f2f2ec] relative overflow-hidden">
+    <section className="py-24 bg-whiteboard texture-overlay texture-speckles relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-16">
-          <span className="font-handdrawn text-2xl text-primary transform -rotate-2 inline-block mb-2">
+          <span className="font-jakarta text-2xl text-primary transform -rotate-2 inline-block mb-2">
             Viral Hit Group
           </span>
           <h2 className="text-5xl md:text-6xl font-black text-slate-900 uppercase tracking-tight leading-none">
@@ -101,22 +101,20 @@ const PressUpdates: React.FC<PressUpdatesProps> = ({ pressUpdates }) => {
             <button
               onClick={() => scroll('left')}
               disabled={!canScrollLeft}
-              className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all ${
-                canScrollLeft
+              className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all ${canScrollLeft
                   ? 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white active:scale-90'
                   : 'border-slate-200 text-slate-300 cursor-not-allowed'
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined text-xl">arrow_back</span>
             </button>
             <button
               onClick={() => scroll('right')}
               disabled={!canScrollRight}
-              className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all ${
-                canScrollRight
+              className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all ${canScrollRight
                   ? 'border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white active:scale-90'
                   : 'border-slate-200 text-slate-300 cursor-not-allowed'
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined text-xl">arrow_forward</span>
             </button>

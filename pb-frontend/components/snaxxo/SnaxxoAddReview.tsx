@@ -44,7 +44,7 @@ const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddRevie
 
             if (response.ok) {
                 const data = await response.json();
-                
+
                 const newReview: Review = {
                     id: String(data.id),
                     productId: data.product,
@@ -96,7 +96,7 @@ const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddRevie
 
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                         <div>
-                            <h2 className="text-4xl md:text-5xl font-black text-slate-900 uppercase leading-[0.9] mb-2 font-bebas">
+                            <h2 className="text-4xl md:text-5xl font-black text-slate-900 uppercase leading-[0.9] mb-2 font-anton">
                                 Share Your <br /> Experience
                             </h2>
                             <p className="text-slate-500 font-bold">We'd love to hear what you think of our snacks!</p>

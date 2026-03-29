@@ -67,17 +67,14 @@ const CategoryList: React.FC<CategoryListProps> = ({
   });
 
   return (
-    <section className="py-16 md:py-32 bg-white relative overflow-hidden">
-      <div className="absolute top-20 left-10 w-64 h-64 bg-slate-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
-
+    <section className="py-24 bg-whiteboard texture-overlay texture-speckles relative z-20 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="text-center mb-16 md:mb-24 relative">
-          <span className="font-handdrawn text-2xl md:text-4xl text-primary transform rotate-6 inline-block mb-2 absolute -top-12 left-1/2 translate-x-[40px] md:translate-x-[200px] drop-shadow-sm">Pick your fav!</span>
-          <h2 className="text-5xl md:text-8xl font-bold text-slate-900 uppercase tracking-normal leading-none font-bebas">
-            Shop By Category
+          <span className="font-handdrawn text-2xl md:text-3xl text-primary transform rotate-6 inline-block mb-2 absolute -top-10 left-1/2 translate-x-[20px] md:translate-x-[90px] lg:translate-x-[120px] drop-shadow-sm">Pick your fav!</span>
+          <h2 className="text-5xl md:text-8xl font-normal text-textured-green !normal-case tracking-tight leading-[0.9] font-anton">
+            Shop by category
           </h2>
-          <div className="w-16 md:w-24 h-1.5 md:h-2 bg-primary mx-auto mt-4 md:mt-6 rounded-full"></div>
+          <div className="w-16 md:w-24 h-1.5 md:h-2 bg-[#0b3d2e] mx-auto mt-4 md:mt-6 rounded-full"></div>
         </div>
 
         {/* Desktop View (Large Screens Only) */}
@@ -90,7 +87,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
               style={{ transform: 'translateZ(0)', isolation: 'isolate' }}
             >
               <div className="flex justify-between items-start z-20">
-                <span className={`px-4 py-2 rounded-full bg-white/60 backdrop-blur-md text-xs font-bold uppercase tracking-widest ${item.textClass} shadow-sm font-bebas`}>
+                <span className={`px-4 py-2 rounded-full bg-white/60 backdrop-blur-md text-xs font-bold uppercase tracking-widest ${item.textClass} shadow-sm font-anton`}>
                   {item.count}
                 </span>
                 <div className={`w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300 ${item.textClass}`}>
@@ -99,8 +96,8 @@ const CategoryList: React.FC<CategoryListProps> = ({
               </div>
 
               <div className="relative z-20 mt-8">
-                <h3 className={`text-6xl font-bold uppercase leading-[0.85] tracking-tight ${item.textClass} font-bebas`}>
-                  {item.display.split(' ').map((word, w) => <span key={w} className="block">{word}</span>)}
+                <h3 className={`text-6xl !normal-case leading-[0.85] tracking-tight ${item.textClass} !font-anton`}>
+                  {item.display.split(' ').map((word, w) => <span key={w} className="block">{word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()}</span>)}
                 </h3>
               </div>
 
@@ -162,7 +159,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
                       <div className={`absolute inset-0 rounded-full border-2 border-transparent group-hover:border-primary/20 transition-colors duration-500`}></div>
                     </div>
                     <div className={`mt-4 text-center transition-all duration-300`}>
-                      <span className="block text-[11px] md:text-base font-black uppercase tracking-widest text-slate-800 leading-none font-sans">
+                      <span className="block text-[11px] md:text-base font-normal uppercase tracking-widest text-slate-800 leading-none font-anton">
                         {item.display.replace('Super ', '')}
                       </span>
                       <div className={`w-6 h-1 bg-primary mx-auto mt-2 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300`}></div>

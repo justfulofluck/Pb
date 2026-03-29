@@ -41,14 +41,13 @@ const MobileBottomNav: React.FC<MobileBottomNavProps & { isHidden?: boolean }> =
     `;
 
     const getLabelClass = (isActive: boolean) => `
-        font-black text-[11px] tracking-widest uppercase transition-all duration-500 font-garet overflow-hidden whitespace-nowrap
+        font-black text-[11px] tracking-widest uppercase transition-all duration-500 font-satoshi overflow-hidden whitespace-nowrap
         ${isActive ? 'max-w-[100px] ml-2 opacity-100' : 'max-w-0 opacity-0'}
     `;
 
     return (
-        <div className="lg:hidden fixed bottom-[env(safe-area-inset-bottom,1px)] left-1/2 -translate-x-1/2 z-[99999] w-[95%] max-w-[500px] animate-in slide-in-from-bottom-10 duration-500 pb-1">
-            <div className="bg-[#f2f2ec]/95 backdrop-blur-md rounded-full p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.3)] border-2 border-white/80 flex items-center justify-between">
-
+        <div className="lg:hidden fixed bottom-[env(safe-area-inset-bottom,12px)] left-0 right-0 z-[99999] flex justify-center px-4 animate-in slide-in-from-bottom-6 duration-500">
+            <div className="w-full max-w-[440px] bg-white/90 backdrop-blur-xl rounded-[32px] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 flex items-center justify-between">
                 {/* Home Item */}
                 <button
                     onClick={onHomeClick}
@@ -75,7 +74,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps & { isHidden?: boolean }> =
                     <span className="material-symbols-outlined text-[24px]">shopping_cart</span>
                     <span className={getLabelClass(isCartActive)}>Cart</span>
                     {!isCartActive && cartCount > 0 && (
-                        <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-[#f2f2ec] animate-in zoom-in duration-300">
+                        <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-in zoom-in duration-300">
                             {cartCount}
                         </span>
                     )}
@@ -89,7 +88,6 @@ const MobileBottomNav: React.FC<MobileBottomNavProps & { isHidden?: boolean }> =
                     <span className="material-symbols-outlined text-[24px]">person</span>
                     <span className={getLabelClass(isProfileActive)}>Profile</span>
                 </button>
-
             </div>
         </div>
     );

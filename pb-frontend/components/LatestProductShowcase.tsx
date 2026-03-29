@@ -78,9 +78,8 @@ const LatestProductShowcase: React.FC = () => {
   ];
 
   return (
-    <section className="pt-12 pb-24 bg-[#f2f2ec] overflow-hidden relative">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary/10 rounded-full blur-[150px] pointer-events-none"></div>
+    <section className="py-24 relative overflow-hidden bg-whiteboard texture-overlay texture-speckles">
+      {/* Background Glow Removed to maintain board texture */}
 
       <style>{`
         @keyframes floatJarLarge {
@@ -98,11 +97,11 @@ const LatestProductShowcase: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         {/* Header */}
         <div className="text-center mb-0 relative">
-          <span className="font-handdrawn text-3xl md:text-4xl lg:text-2xl text-secondary/80 transform -rotate-3 inline-block absolute -top-8 md:-top-12 lg:-top-8 left-1/2 -translate-x-1/2 md:-translate-x-[220px] lg:-translate-x-[200px] z-10 whitespace-nowrap">
+          <span className="font-handdrawn text-3xl md:text-4xl lg:text-2xl text-secondary/80 transform -rotate-3 inline-block absolute -top-8 md:-top-12 lg:-top-10 left-1/2 -translate-x-1/2 md:-translate-x-[130px] lg:-translate-x-[110px] z-10 whitespace-nowrap">
             Our New Flavor
           </span>
           <div className="relative inline-block">
-            <h2 className="text-6xl md:text-7xl lg:text-8xl font-bold text-primary uppercase tracking-normal leading-tight md:leading-none font-bebas">latest Product</h2>
+            <h2 className="text-6xl md:text-7xl lg:text-8xl font-normal text-textured-green tracking-tight leading-[0.9] font-anton !normal-case">Latest product</h2>
           </div>
         </div>
 
@@ -111,7 +110,7 @@ const LatestProductShowcase: React.FC = () => {
           <div className="space-y-8 md:space-y-16 text-center lg:text-right order-2 lg:order-1">
             {benefitsLeft.map((item, idx) => (
               <div key={idx} className="group px-4 md:px-0">
-                <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-1 md:mb-2 font-garet">{item.title}</h3>
+                <h3 className="text-xl md:text-2xl font-normal text-slate-900 mb-1 md:mb-2 font-anton !normal-case tracking-tight">{item.title}</h3>
                 <p className="text-[11px] md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:ml-auto">
                   {item.desc}
                 </p>
@@ -179,7 +178,7 @@ const LatestProductShowcase: React.FC = () => {
           <div className="space-y-8 md:space-y-16 text-center lg:text-left order-3">
             {benefitsRight.map((item, idx) => (
               <div key={idx} className="group px-4 md:px-0">
-                <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-1 md:mb-2 font-garet">{item.title}</h3>
+                <h3 className="text-xl md:text-2xl font-normal text-slate-900 mb-1 md:mb-2 font-anton !normal-case tracking-tight">{item.title}</h3>
                 <p className="text-[11px] md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:mr-auto">
                   {item.desc}
                 </p>

@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import Breadcrumbs from './Breadcrumbs';
 
 interface ContactPageProps {
   onHomeClick: () => void;
@@ -27,11 +26,9 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
   return (
     <div className="bg-background-light min-h-screen">
       <div className="bg-secondary/10 pt-10 pb-20 px-4 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto mb-6">
-          <Breadcrumbs onHomeClick={onHomeClick} steps={[{ label: 'Contact' }]} />
-        </div>
+
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <span className="font-handdrawn text-3xl text-primary transform -rotate-2 inline-block mb-4">We don't bite! (Unless it's muesli)</span>
+          <span className="font-jakarta text-3xl text-primary transform -rotate-2 inline-block mb-4">We don't bite! (Unless it's muesli)</span>
           <h1 className="text-5xl md:text-7xl font-black uppercase text-slate-900 tracking-tight mb-6">
             Get in Touch
           </h1>
@@ -39,8 +36,8 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
             Have a question about our ingredients? Want to partner with us? Or just want to say hi? We're all ears.
           </p>
         </div>
-        <span className="absolute top-10 right-10 font-handdrawn text-8xl opacity-5 rotate-12 select-none">HELLO!</span>
-        <span className="absolute bottom-10 left-10 font-handdrawn text-8xl opacity-5 -rotate-12 select-none">HOLA!</span>
+        <span className="absolute top-10 right-10 font-jakarta text-8xl opacity-5 rotate-12 select-none">HELLO!</span>
+        <span className="absolute bottom-10 left-10 font-jakarta text-8xl opacity-5 -rotate-12 select-none">HOLA!</span>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-16">
@@ -57,7 +54,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
                     <span className="material-symbols-outlined text-5xl">mark_email_read</span>
                   </div>
                   <h3 className="text-3xl font-black uppercase text-slate-900">Message Sent!</h3>
-                  <p className="font-handdrawn text-xl text-slate-500">Thanks for reaching out. We'll get back to you faster than you can finish a bowl of oats! 🥣</p>
+                  <p className="font-jakarta text-xl text-slate-500">Thanks for reaching out. We'll get back to you faster than you can finish a bowl of oats! 🥣</p>
                   <button
                     onClick={() => setStatus('idle')}
                     className="text-primary font-bold hover:underline uppercase tracking-widest text-xs"
@@ -185,7 +182,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onHomeClick }) => {
                     <a href="mailto:hello@pinobite.com" className="text-primary font-bold text-lg hover:underline">hello@pinobite.com</a>
                   </div>
                   <div className="text-right hidden sm:block">
-                    <span className="font-handdrawn text-slate-400 transform rotate-6 inline-block">We reply fast! ⚡️</span>
+                    <span className="font-jakarta text-slate-400 transform rotate-6 inline-block">We reply fast! ⚡️</span>
                   </div>
                 </div>
               </div>

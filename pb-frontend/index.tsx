@@ -2,6 +2,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import './src/index.css';
+import './styles/snaxxo.css';
+import './webflow_assets/extracted_styles.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

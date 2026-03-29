@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Product, Review, Story } from '../types';
-import Breadcrumbs from './Breadcrumbs';
 import SnaxxoProductWheel from './snaxxo/SnaxxoProductWheel';
 import MultiLayerWave from './snaxxo/MultiLayerWave';
 
@@ -184,21 +183,12 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
   return (
     <div className="page-wrapper" style={{ opacity: 1, backgroundColor: tintColor }}>
-      <div className="max-w-7xl mx-auto px-4 pt-8 pb-4 relative z-20">
-        <Breadcrumbs
-          onHomeClick={onHomeClick}
-          steps={[
-            { label: 'Shop', onClick: onShopClick },
-            { label: product.name }
-          ]}
-          className="text-white/80 !py-0"
-        />
-      </div>
+
       <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-[90vh] flex flex-col items-center pt-2 pb-20">
         <div className="w-layout-blockcontainer container product-page-hero w-container">
           <div className="content-wrapper product-page-hero">
             <div className="heading-text-box pdp-h1 mt-0 pt-0">
-              <h1 ref={titleRef} style={{ color: 'rgb(255, 255, 255)' }} className="h1-heading pdp-hero font-oswald font-bold uppercase text-6xl md:text-7xl leading-[0.9]">
+              <h1 ref={titleRef} style={{ color: 'rgb(255, 255, 255)' }} className="h1-heading pdp-hero font-bombi font-bold uppercase text-6xl md:text-7xl leading-[0.9]">
                 {product.name}
               </h1>
             </div>
@@ -299,7 +289,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               pointerEvents: showIngredients ? 'auto' : 'none',
               zIndex: 1000
             }}
-            className="fixed inset-0 z-[1000] font-display transition-all duration-300"
+            className="fixed inset-0 z-[1000] font-satoshi transition-all duration-300"
           >
             {/* Backdrop */}
             <div

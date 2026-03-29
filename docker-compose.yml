@@ -1,37 +1,68 @@
-services:
-  web:
-    image: bgtuser/pb:latest
-    command: sh -c "python manage.py migrate && gunicorn --bind 0.0.0.0:8003 config.wsgi:application"
-    ports:
-      - "8003:8003"
-    environment:
-      - SECRET_KEY=unsafe-development-key
-      - DEBUG=True
-      - ALLOWED_HOSTS=*
-      - DB_NAME=pinob_db
-      - DB_USER=pinoadmino
-      - DB_PASSWORD=pinopazz_intra
-      - DB_HOST=db
-      - DB_PORT=3306
-    depends_on:
-      db:
-        condition: service_healthy
+version: '3.8'
 
+services:
   db:
     image: mysql:8.0
+    container_name: pb-db
+    restart: unless-stopped
     environment:
-      - MYSQL_DATABASE=pinob_db
-      - MYSQL_USER=pinoadmino
-      - MYSQL_PASSWORD=pinopazz_intra
-      - MYSQL_ROOT_PASSWORD=root_password
-    ports:
-      - "3307:3306"
+      MYSQL_DATABASE: pinob_db
+      MYSQL_USER: pinoadmino
+      MYSQL_PASSWORD: pinopazz_intra
+      MYSQL_ROOT_PASSWORD: root_password
     volumes:
-      - db_data:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
+    networks:
+      - pb-network
+
+  backend:
+    build: ./pb-backend
+    image: bgtuser/pb-back:latest
+    container_name: pb-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8003:8000"
+    networks:
+      - pb-network
+    depends_on:
+      - db
+      - redis
     healthcheck:
-      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/products/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: pb_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - pb-network
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  frontend:
+    build: ./pb-frontend
+    image: bgtuser/pb-front:latest
+    container_name: pb-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    networks:
+      - pb-network
+    depends_on:
+      - backend
+
+networks:
+  pb-network:
+    driver: bridge
 
 volumes:
-  db_data:
+  mysql_data:
+  redis_data:

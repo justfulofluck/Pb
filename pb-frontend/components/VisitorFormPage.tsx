@@ -163,7 +163,7 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 font-display">
+        <div className="min-h-screen bg-slate-50 font-satoshi">
             {/* Simple Header */}
             <header className="h-20 bg-white shadow-sm flex items-center justify-center p-4">
                 <img

@@ -1,6 +1,5 @@
 
 import React from 'react';
-import Breadcrumbs from './Breadcrumbs';
 
 interface TermsAndConditionsPageProps {
   onHomeClick: () => void;
@@ -10,11 +9,8 @@ const TermsAndConditionsPage: React.FC<TermsAndConditionsPageProps> = ({ onHomeC
   return (
     <div className="bg-background-light min-h-screen pb-24 animate-in fade-in duration-500">
       <div className="bg-secondary/5 pt-10 pb-20 px-4 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto mb-6">
-           <Breadcrumbs onHomeClick={onHomeClick} steps={[{ label: 'Terms & Conditions' }]} />
-        </div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <span className="font-handdrawn text-3xl text-primary transform -rotate-2 inline-block mb-4">The Fine Print</span>
+          <span className="font-jakarta text-3xl text-primary transform -rotate-2 inline-block mb-4">The Fine Print</span>
           <h1 className="text-5xl md:text-7xl font-black uppercase text-slate-900 tracking-tight mb-6">
             Terms & Conditions
           </h1>
@@ -22,14 +18,14 @@ const TermsAndConditionsPage: React.FC<TermsAndConditionsPageProps> = ({ onHomeC
             "Simple rules for a smoother crunch."
           </p>
         </div>
-        <span className="absolute top-10 left-10 font-handdrawn text-9xl opacity-5 rotate-12 select-none">RULES</span>
-        <span className="absolute bottom-10 right-10 font-handdrawn text-9xl opacity-5 -rotate-12 select-none">LEGAL</span>
+        <span className="absolute top-10 left-10 font-anton text-9xl opacity-5 rotate-12 select-none">RULES</span>
+        <span className="absolute bottom-10 right-10 font-anton text-9xl opacity-5 -rotate-12 select-none">LEGAL</span>
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-16">
         <div className="bg-white rounded-[40px] shadow-xl border-2 border-slate-50 p-8 md:p-16 relative overflow-hidden prose prose-slate prose-lg max-w-none">
           <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-bl-full pointer-events-none"></div>
-          
+
           <p className="lead font-bold text-slate-900">Welcome to Pinobite!</p>
           <p>
             The terms and conditions define the rules and regulations for the use of Pinobite website, address <span className="text-primary font-black">pinobite.trioriginayurveda.com</span>

@@ -35,3 +35,5 @@ whitenoise==6.11.0
 gunicorn==23.0.0
 moviepy==2.0.0.dev2
 gdown>=5.1.0
+hiredis>=2.0.0
+redis>=4.5.0

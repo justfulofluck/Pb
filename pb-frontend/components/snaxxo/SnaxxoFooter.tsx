@@ -69,7 +69,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
                     onClick={() => toggleSection(id)}
                     className="w-full flex items-center justify-between py-3 lg:py-0 lg:mb-3 text-left focus:outline-none group"
                 >
-                    <h4 className="font-bold text-white text-base lg:text-lg uppercase tracking-wider">{title}</h4>
+                    <h4 className="font-bold text-white text-base lg:text-lg uppercase tracking-wider textured-font">{title}</h4>
                     <span className={`lg:hidden transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
                         <i className="fa-solid fa-chevron-down text-white/50 text-xs"></i>
                     </span>
@@ -85,19 +85,19 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
         <>
 
 
-            <section className="section darker-red !bg-[#228b44] !bg-none">
-                <div className="wave-lottie-animation below footer !bg-[#f2f2ec] relative z-20" style={{ transform: 'translateY(-1px)' }}>
-                    <MultiLayerWave fill="#228b44" />
+            {/* Wave Transition - Moved BEFORE the section to make it visible against bg */}
+            <div className="relative z-30 w-full overflow-hidden texture-overlay texture-speckles" style={{ height: '140px', marginBottom: '-1px' }}>
+                <MultiLayerWave fill="#0b3d2e" className="flex items-end h-full" />
+            </div>
 
-                </div>
-
-                <div className="w-layout-blockcontainer container footer-main w-container !bg-[#228b44] !mt-[-1rem] !max-w-7xl mx-auto px-4 !pt-20 !pb-10 font-display">
+            <section className="section bg-greenboard texture-overlay texture-speckles !bg-none overflow-hidden relative z-20">
+                <div className="w-layout-blockcontainer container footer-main w-container !bg-transparent !mt-0 !max-w-7xl mx-auto px-4 !pt-10 !pb-10 font-satoshi relative z-10">
                     {/* Main Footer Content */}
                     {/* Main Footer Content */}
                     <div className="flex flex-col lg:grid lg:grid-cols-12 gap-y-0 lg:gap-y-12 lg:gap-x-8 mb-16 px-4 sm:px-0 relative">
 
                         {/* Brand Column - Full width on mobile/tablet */}
-                        <div className="lg:col-span-4 max-w-sm mb-12 lg:mb-0">
+                        <div className="lg:col-span-4 max-w-sm mb-12 lg:mb-0 translate-y-2">
                             <button onClick={onHomeClick} className="block mb-6 lg:h-28 h-12">
                                 <img
                                     src="/logos/Pinobite-logo.png"
@@ -178,7 +178,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
                     </div>
 
                     {/* Divider and Contact Row */}
-                    <div className="border-t border-white/10 pt-10 pb-10">
+                    <div className="border-t border-white/5 pt-10 pb-10">
                         <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16">
                             <div className="flex items-center gap-4 text-white hover:text-white/80 transition-colors text-sm md:text-base">
                                 <i className="fa-solid fa-phone text-[#f9bc15] text-xl"></i>
@@ -192,7 +192,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
                     </div>
 
                     {/* Bottom Bar */}
-                    <div className="border-t border-white/10 pt-10 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-white/60">
+                    <div className="border-t border-white/5 pt-10 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-white/60">
                         <p className="text-center md:text-left">© 2025 Pinobite Plan Consultants, Inc. All Rights Reserved.</p>
                         <div className="flex gap-6 sm:gap-8 justify-center">
                             <button onClick={onTermsClick} className="hover:text-white transition-colors cursor-pointer">Terms</button>

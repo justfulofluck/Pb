@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { BlogPost } from '../types';
-import Breadcrumbs from './Breadcrumbs';
 
 interface BlogsPageProps {
   posts: BlogPost[];
@@ -25,16 +24,11 @@ const BlogsPage: React.FC<BlogsPageProps> = ({ posts, onBlogClick, onHomeClick }
   return (
     <div className="bg-[#f2f2ec] min-h-screen animate-in fade-in duration-500">
       <div className="bg-[#e0f2f1] text-slate-900 pt-10 pb-20 px-4 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto mb-6">
-          <Breadcrumbs
-            onHomeClick={onHomeClick}
-            steps={[{ label: 'Articles' }]}
-          />
-        </div>
+
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <span className="font-handdrawn text-3xl text-primary transform -rotate-2 inline-block mb-4">Read, Cook, Eat, Repeat</span>
-          <h1 className="text-5xl md:text-8xl font-black uppercase tracking-tight mb-6 font-garet">
-            The Daily Crunch
+          <h1 className="text-5xl md:text-8xl font-normal !normal-case tracking-tight mb-6 font-anton leading-[0.9]">
+            The daily crunch
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto font-medium">
             Your go-to source for healthy recipes, nutrition deep-dives, and behind-the-scenes stories from the Pinobite kitchen.
@@ -65,9 +59,9 @@ const BlogsPage: React.FC<BlogsPageProps> = ({ posts, onBlogClick, onHomeClick }
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-8 py-3 rounded-full font-black text-sm uppercase tracking-widest transition-all font-garet ${filter === cat
-                  ? 'bg-slate-900 text-white shadow-xl -translate-y-1'
-                  : 'bg-white border-2 border-slate-100 text-slate-400 hover:border-slate-900 hover:text-slate-900'
+              className={`px-8 py-3 rounded-full font-bold text-sm uppercase tracking-widest transition-all font-satoshi ${filter === cat
+                ? 'bg-slate-900 text-white shadow-xl -translate-y-1'
+                : 'bg-white border-2 border-slate-100 text-slate-400 hover:border-slate-900 hover:text-slate-900'
                 }`}
             >
               {cat}
@@ -93,7 +87,7 @@ const BlogsPage: React.FC<BlogsPageProps> = ({ posts, onBlogClick, onHomeClick }
                   </div>
                 </div>
 
-                <h3 className="text-xl font-black text-primary leading-snug mb-5 transition-colors min-h-[3.5rem] font-garet uppercase">
+                <h3 className="text-xl font-normal text-primary leading-snug mb-5 transition-colors min-h-[3.5rem] font-anton !normal-case tracking-tight">
                   {post.title}
                 </h3>
 
@@ -118,7 +112,7 @@ const BlogsPage: React.FC<BlogsPageProps> = ({ posts, onBlogClick, onHomeClick }
         ) : (
           <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
             <span className="material-symbols-outlined text-6xl text-slate-300 mb-4">menu_book</span>
-            <p className="text-2xl font-handdrawn text-slate-400">No stories found matching your search.</p>
+            <p className="text-2xl font-jakarta text-slate-400">No stories found matching your search.</p>
           </div>
         )}
       </div>

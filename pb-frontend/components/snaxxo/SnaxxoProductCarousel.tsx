@@ -67,23 +67,23 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
         : products.slice(0, 6);
 
     return (
-        <section className="bg-[#f2f2ec] relative overflow-hidden pb-12 w-full lg:hidden">
+        <section className="bg-whiteboard texture-overlay texture-speckles relative overflow-hidden pb-12 w-full lg:hidden">
             <div className="pt-12 pb-16 relative">
                 <div className="flex flex-col items-center justify-center relative z-10 px-4">
-                    <h2 className="text-[#008a45] font-black text-5xl md:text-8xl uppercase tracking-[0.05em] text-center" style={{ fontFamily: '"Bebas Neue", sans-serif' }}>
-                        Customer's Favorite
+                    <h2 className="text-textured-green text-6xl md:text-8xl font-normal !normal-case tracking-tight leading-[0.9] font-anton text-center">
+                        Customer's<br />Favorite
                     </h2>
-                    <div className="w-16 md:w-24 h-1.5 md:h-2 bg-[#008a45] mt-1 rounded-full"></div>
-                    <p className="font-handdrawn text-3xl md:text-1xl text-slate-500 mt-2 text-center">
+                    <div className="w-16 md:w-24 h-1.5 md:h-2 bg-[#0b3d2e] mt-2 rounded-full mb-2"></div>
+                    <p className="font-handdrawn text-2xl md:text-3xl text-[#0b3d2e]/70 mt-3 text-center mb-2">
                         Join 100k+ happy healthy eaters! 🥳
                     </p>
-                    <div className="mt-6">
+                    <div className="mt-8">
                         <button
                             onClick={() => {
                                 if (onShopClick) onShopClick();
                                 else window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
-                            className="bg-[#008a45] text-white px-8 py-3 rounded-full font-bold text-sm uppercase tracking-wider hover:bg-[#007038] shadow-lg active:scale-95 transition-all flex items-center gap-2"
+                            className="btn-greenboard text-white px-10 py-5 rounded-full font-black text-xs uppercase tracking-widest transition-all shadow-md active:scale-95"
                         >
                             SHOP ALL
                         </button>
@@ -155,9 +155,8 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
 
                         <button
                             onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
-                            className="bg-[#008a45] text-white w-full py-3.5 rounded-full font-black text-[12px] uppercase tracking-widest shadow-lg hover:bg-[#007038] transition-all hover:scale-[1.02] active:scale-[0.98] mt-auto flex items-center justify-center gap-1.5"
+                            className="btn-greenboard text-white w-full py-3.5 rounded-full font-black text-[12px] uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] mt-auto flex items-center justify-center gap-1.5"
                         >
-                            <span className="material-symbols-outlined text-sm">add</span>
                             ADD TO CART
                         </button>
                     </div>

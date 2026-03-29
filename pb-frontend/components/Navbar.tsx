@@ -125,8 +125,8 @@ const Navbar: React.FC<NavbarProps> = ({
     <div className="sticky top-0 z-[1000] w-full">
       {/* Announcement Band */}
       {hasAnnouncements && (
-        <div className="bg-[#008a45] text-white px-4 text-center overflow-hidden min-h-[40px] md:min-h-[44px] flex items-center justify-center relative">
-          <div className="max-w-7xl mx-auto w-full relative min-h-[40px] md:min-h-[44px]">
+        <div className="bg-[#008a45] text-white px-4 text-center overflow-hidden min-h-[40px] lg:min-h-[44px] flex items-center justify-center relative">
+          <div className="max-w-7xl mx-auto w-full relative min-h-[40px] lg:min-h-[44px]">
             {announcements.map((text, idx) => (
               <div
                 key={idx}
@@ -135,7 +135,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   : 'opacity-0 translate-y-2 pointer-events-none'
                   }`}
               >
-                <p className="text-[10px] md:text-[12px] font-black tracking-[0.25em] uppercase whitespace-nowrap pt-1">
+                <p className="text-[10px] lg:text-[12px] font-black tracking-[0.25em] uppercase whitespace-nowrap pt-1">
                   {text}
                 </p>
               </div>
@@ -146,16 +146,16 @@ const Navbar: React.FC<NavbarProps> = ({
 
       {/* Main Navbar */}
       <nav className={`bg-white/80 backdrop-blur-md border-b border-slate-200 ${hasAnnouncements ? '' : ''}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           {/* Desktop Layout */}
-          <div className="hidden md:flex justify-between items-center h-24">
+          <div className="hidden lg:grid grid-cols-[1fr_auto_1fr] items-center h-24">
             {/* Left side: Navigation Links */}
-            <div className="flex-1 flex items-center gap-10 font-black text-[13px] tracking-widest text-slate-800 transition-all duration-300">
-              <button onClick={onJourneyClick} className="hover:text-primary transition-colors uppercase font-garet">OUR JOURNEY</button>
+            <div className="flex items-center gap-10 font-black text-[13px] tracking-widest text-slate-800 transition-all duration-300">
+              <button onClick={onJourneyClick} className="hover:text-primary transition-colors uppercase font-anton text-lg">OUR JOURNEY</button>
               <div className="relative group/menu" ref={dropdownRef}>
                 <button
                   onClick={() => setIsProductsDropdownOpen(!isProductsDropdownOpen)}
-                  className={`hover:text-primary transition-colors uppercase font-garet flex items-center gap-1 ${isProductsDropdownOpen ? 'text-primary' : ''}`}
+                  className={`hover:text-primary transition-colors uppercase font-anton text-lg flex items-center gap-1 ${isProductsDropdownOpen ? 'text-primary' : ''}`}
                 >
                   PRODUCTS <span className="material-symbols-outlined text-[14px]">expand_more</span>
                 </button>
@@ -191,7 +191,7 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Center: Logo */}
-            <div className="absolute left-1/2 -translate-x-1/2 transition-all duration-300 z-[60]">
+            <div className="flex justify-center transition-all duration-300 z-[60]">
               <button
                 onClick={onLogoClick}
                 className="flex items-center group pointer-events-auto"
@@ -205,7 +205,7 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Right side: Actions */}
-            <div className="flex-1 flex items-center justify-end gap-6">
+            <div className="flex items-center justify-end gap-6">
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${isSearchOpen ? 'bg-primary text-white shadow-lg' : 'hover:bg-slate-100 text-slate-800'} group`}
@@ -221,29 +221,17 @@ const Navbar: React.FC<NavbarProps> = ({
               </button>
               <button
                 onClick={onCartClick}
-                className="flex items-center gap-2 bg-[#b8e843] text-slate-900 border-2 border-black px-6 py-2.5 rounded-[4px] font-black text-[12px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-1 hover:-translate-y-1 transition-all active:shadow-none active:translate-x-0 active:translate-y-0"
-                style={{ fontFamily: '"Garet", sans-serif' }}
+                className="flex items-center gap-2 bg-[#b8e843] text-slate-900 border-2 border-black px-6 py-2.5 rounded-[4px] font-anton"
               >
                 CART ({cartCount})
               </button>
             </div>
           </div>
 
-          {/* Mobile Layout (as requested) */}
-          <div className="md:hidden flex items-center justify-between h-20">
-            {/* Logo Left */}
-            <button
-              onClick={onLogoClick}
-            >
-              <img
-                src="/logos/Pinobite-logo.png"
-                alt="Pinobite Logo"
-                className="h-10 w-auto object-contain"
-              />
-            </button>
-
-            {/* Right Group: Actions + Menu */}
-            <div className="flex items-center gap-3">
+          {/* Mobile/Tablet Layout */}
+          <div className="lg:hidden grid grid-cols-3 items-center h-20 relative">
+            {/* Left: Search */}
+            <div className="flex items-center">
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 className={`flex items-center justify-center w-10 h-10 transition-all duration-300 ${isSearchOpen ? 'text-primary scale-110' : 'text-slate-700'}`}
@@ -251,7 +239,24 @@ const Navbar: React.FC<NavbarProps> = ({
               >
                 <span className="material-symbols-outlined text-[26px]">{isSearchOpen ? 'close' : 'search'}</span>
               </button>
+            </div>
 
+            {/* Center: Logo */}
+            <div className="flex justify-center">
+              <button
+                onClick={onLogoClick}
+                className="flex items-center"
+              >
+                <img
+                  src="/logos/Pinobite-logo.png"
+                  alt="Pinobite Logo"
+                  className="h-12 w-auto object-contain"
+                />
+              </button>
+            </div>
+
+            {/* Right: Menu */}
+            <div className="flex items-center justify-end">
               {/* Hamburger Button (Colored Square) */}
               <button
                 onClick={() => setIsMenuOpen(true)}
@@ -404,7 +409,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Side Menu */}
       <div
-        className={`md:hidden fixed inset-0 z-[9999] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`lg:hidden fixed inset-0 z-[9999] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       >
         {/* Overlay */}
         <div
@@ -443,7 +448,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => { onProductsClick(); closeMenu(); }}
                 className="flex items-center justify-between w-full group"
               >
-                <span className="font-black text-[22px] tracking-tight group-hover:translate-x-2 transition-transform duration-300">PRODUCTS</span>
+                <span className="font-anton text-[22px] tracking-tight group-hover:translate-x-2 transition-transform duration-300">PRODUCTS</span>
                 <span className="material-symbols-outlined text-[20px] text-white/60">chevron_right</span>
               </button>
 
@@ -452,7 +457,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => { onJourneyClick(); closeMenu(); }}
                 className="flex items-center justify-between w-full group"
               >
-                <span className="font-black text-[22px] tracking-tight group-hover:translate-x-2 transition-transform duration-300">OUR JOURNEY</span>
+                <span className="font-anton text-[22px] tracking-tight group-hover:translate-x-2 transition-transform duration-300">OUR JOURNEY</span>
                 <span className="material-symbols-outlined text-[20px] text-white/60">chevron_right</span>
               </button>
 
@@ -460,7 +465,7 @@ const Navbar: React.FC<NavbarProps> = ({
 
             {/* Secondary Navigation Section */}
             <div className="flex-1 space-y-4">
-              <p className="text-white/50 font-black text-[10px] tracking-[0.2em] mb-4">COLLECTIONS</p>
+              <p className="text-white/50 font-anton text-[10px] tracking-[0.2em] mb-4 uppercase">COLLECTIONS</p>
               <div className="space-y-3">
                 {categories.map((cat: any) => (
                   <button
@@ -485,7 +490,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 </button>
                 <button
                   onClick={() => { onCartClick(); closeMenu(); }}
-                  className="block font-bold text-base text-white/80 hover:text-white transition-colors"
+                  className="block font-anton text-base text-white/80 hover:text-white transition-colors"
                 >
                   VIEW CART ({cartCount})
                 </button>

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import Breadcrumbs from './Breadcrumbs';
 import { API_BASE_URL } from '../config';
 
 interface DistributorPageProps {
@@ -65,7 +64,7 @@ const DistributorPage: React.FC<DistributorPageProps> = ({ onHomeClick }) => {
                     <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-slate-900 shadow-sm">
                         <span className="material-symbols-outlined text-4xl">check_circle</span>
                     </div>
-                    <h2 className="text-4xl md:text-5xl font-bold uppercase text-slate-900 mb-4 font-bebas">Application Received!</h2>
+                    <h2 className="text-4xl md:text-5xl font-bold uppercase text-slate-900 mb-4 font-anton">Application Received!</h2>
                     <p className="text-slate-600 font-medium mb-8 leading-relaxed">
                         Thank you for your interest in partnering with Pinobite. Our team will review your details and get back to you within 2-3 business days.
                     </p>
@@ -82,20 +81,18 @@ const DistributorPage: React.FC<DistributorPageProps> = ({ onHomeClick }) => {
 
     return (
         <div className="bg-background-light min-h-screen pt-10 pb-20 relative overflow-hidden">
-            <div className="max-w-7xl mx-auto px-4 mb-10 relative z-10">
-                <Breadcrumbs onHomeClick={onHomeClick} steps={[{ label: 'Become a Distributor' }]} />
-            </div>
+
 
             {/* Decorative patterns */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-[0.03] z-0">
-                <div className="font-handdrawn text-9xl absolute top-20 right-10 rotate-12">PARTNER</div>
-                <div className="font-handdrawn text-9xl absolute top-1/2 left-20 -rotate-12">DISTRIBUTE</div>
-                <div className="font-handdrawn text-9xl absolute bottom-20 right-1/3 rotate-45">GROW</div>
+                <div className="font-anton text-9xl absolute top-20 right-10 rotate-12">PARTNER</div>
+                <div className="font-anton text-9xl absolute top-1/2 left-20 -rotate-12">DISTRIBUTE</div>
+                <div className="font-anton text-9xl absolute bottom-20 right-1/3 rotate-45">GROW</div>
             </div>
 
             <div className="max-w-4xl mx-auto px-4 relative z-10">
                 <div className="text-center mb-16 relative">
-                    <h1 className="text-5xl md:text-8xl font-bold uppercase text-slate-900 tracking-normal leading-[0.85] mb-4 font-bebas flex flex-wrap items-center justify-center gap-x-4">
+                    <h1 className="text-5xl md:text-8xl font-bold uppercase text-slate-900 tracking-normal leading-[0.85] mb-4 font-anton flex flex-wrap items-center justify-center gap-x-4">
                         <span>Join the</span>
                         <img src="/logos/Pinobite-logo.png" alt="Pinobite Logo" className="h-[0.8em] md:h-[1.10em] w-auto inline-block relative -top-1 md:-top-4" />
                         <span>Family</span>

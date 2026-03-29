@@ -13,29 +13,29 @@ const EventsSection: React.FC<EventsSectionProps> = ({ events, onParticipateClic
   const displayEvents = events.slice(0, 3);
 
   return (
-    <section className="py-24 bg-slate-50 relative overflow-hidden">
+    <section className="py-24 bg-whiteboard texture-overlay texture-speckles overflow-hidden relative">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
           <div className="max-w-2xl">
             <span className="font-handdrawn text-2xl text-primary transform -rotate-2 inline-block mb-2">Community & Vibes</span>
-            <h2 className="text-5xl font-black text-slate-900 uppercase tracking-tight leading-none">
-              Events We've Organized
+            <h2 className="text-textured-green-big">
+              Events we've organized
             </h2>
-            <p className="text-lg text-slate-600 mt-4 font-medium">
+            <p className="text-xl md:text-2xl text-slate-600 mt-6 font-medium max-w-xl">
               We don't just sell food; we build a community. Join us for workouts, workshops, and tasting sessions across the country.
             </p>
           </div>
-          
+
           <div className="flex items-center gap-4 flex-wrap">
-            <button 
+            <button
               onClick={onViewRecapsClick}
-              className="text-slate-500 px-8 py-4 rounded-full font-black uppercase tracking-wider border-2 border-white bg-white hover:border-slate-900 hover:text-slate-900 transition-all flex-shrink-0 shadow-sm"
+              className="btn-greenboard px-10 py-5 rounded-full font-black uppercase tracking-widest text-sm transition-all flex-shrink-0"
             >
               View Recaps
             </button>
-            <button 
+            <button
               onClick={onParticipateClick}
-              className="bg-slate-900 text-white px-8 py-4 rounded-full font-black uppercase tracking-wider hover:bg-primary transition-colors hover:shadow-xl flex-shrink-0 flex items-center gap-2 group"
+              className="btn-greenboard px-10 py-5 rounded-full font-black uppercase tracking-widest text-sm transition-all flex-shrink-0 flex items-center gap-3 group"
             >
               Participate Now
               <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
@@ -47,9 +47,9 @@ const EventsSection: React.FC<EventsSectionProps> = ({ events, onParticipateClic
           {displayEvents.map((event) => (
             <div key={event.id} className="group rounded-3xl overflow-hidden border-2 border-slate-100 hover:border-slate-900 transition-all hover:shadow-2xl bg-white relative cursor-pointer" onClick={onViewRecapsClick}>
               <div className="aspect-[4/3] overflow-hidden">
-                <img 
-                  src={event.image} 
-                  alt={event.title} 
+                <img
+                  src={event.image}
+                  alt={event.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
               </div>

@@ -54,7 +54,7 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, events }) => {
           <div className="p-8 md:p-10">
             <div className="mb-8">
               <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Join Event</h2>
-              <p className="font-handdrawn text-primary text-lg">Let's make memories! 📸</p>
+              <p className="font-jakarta text-primary text-lg">Let's make memories! 📸</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">

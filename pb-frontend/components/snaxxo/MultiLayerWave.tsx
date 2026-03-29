@@ -7,7 +7,7 @@ interface MultiLayerWaveProps {
     flipped?: boolean;
 }
 
-const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#228b44", className, flipped = false }) => {
+const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#0b3d2e", className, flipped = false }) => {
     const layer1Ref = useRef<SVGGElement>(null);
     const layer2Ref = useRef<SVGGElement>(null);
     const layer3Ref = useRef<SVGGElement>(null);
@@ -15,7 +15,7 @@ const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#228b44", class
     const bob2Ref = useRef<SVGGElement>(null);
     const bob3Ref = useRef<SVGGElement>(null);
 
-    const pathData = "M0 60 C 150 -10, 250 130, 400 60 C 550 -10, 650 130, 800 60 L 800 400 L 0 400 Z";
+    const pathData = "M0 100 C 150 20, 250 180, 400 100 C 550 20, 650 180, 800 100 L 800 500 L 0 500 Z";
 
     useEffect(() => {
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -85,18 +85,18 @@ const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#228b44", class
     }, []);
 
     return (
-        <div className={`relative overflow-hidden w-full h-48 ${className || ''}`} style={flipped ? { transform: 'scaleY(-1)' } : {}}>
+        <div className={`relative overflow-hidden w-full h-full ${className || ''}`} style={flipped ? { transform: 'scaleY(-1)' } : {}}>
             <svg
-                viewBox="0 0 1600 200"
+                viewBox="0 0 1600 240"
                 preserveAspectRatio="none"
-                className="absolute top-0 left-0 w-[200%] h-full pointer-events-none"
+                className="absolute top-0 left-0 w-[200%] h-full pointer-events-none overflow-visible"
                 xmlns="http://www.w3.org/2000/svg"
             >
                 {/* Layer 3 - back, lightest */}
                 <g ref={bob3Ref}>
                     <g ref={layer3Ref}>
                         <path d={pathData} fill={fill} opacity="0.3" />
-                        <path d={pathData} fill={fill} opacity="0.3" transform="translate(800, 0)" />
+                        <path d={pathData} fill={fill} opacity="0.3" transform="translate(799, 0)" />
                     </g>
                 </g>
 
@@ -104,7 +104,7 @@ const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#228b44", class
                 <g ref={bob2Ref}>
                     <g ref={layer2Ref}>
                         <path d={pathData} fill={fill} opacity="0.5" />
-                        <path d={pathData} fill={fill} opacity="0.5" transform="translate(800, 0)" />
+                        <path d={pathData} fill={fill} opacity="0.5" transform="translate(799, 0)" />
                     </g>
                 </g>
 
@@ -112,7 +112,7 @@ const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#228b44", class
                 <g ref={bob1Ref}>
                     <g ref={layer1Ref}>
                         <path d={pathData} fill={fill} />
-                        <path d={pathData} fill={fill} transform="translate(800, 0)" />
+                        <path d={pathData} fill={fill} transform="translate(799, 0)" />
                     </g>
                 </g>
             </svg>

@@ -1,7 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
-import Breadcrumbs from './Breadcrumbs';
 import { API_BASE_URL } from '../config';
 
 interface ShopPageProps {
@@ -121,19 +119,13 @@ const ShopPage: React.FC<ShopPageProps> = ({
   const displayCategories = ['All', ...categories];
 
   return (
-    <div className="bg-[#f2f2ec] min-h-screen font-display">
+    <div className="bg-[#f2f2ec] min-h-screen font-satoshi">
       {/* Banner Area */}
       <div className="pt-6 md:pt-10 pb-6 px-4 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto mb-2 flex justify-center">
-          <Breadcrumbs
-            onHomeClick={onHomeClick}
-            steps={filter === 'All' ? [{ label: 'Shop' }] : [{ label: 'Shop', onClick: () => setFilter('All') }, { label: filter }]}
-            className="text-slate-400 !py-0"
-          />
-        </div>
+
         <div className="max-w-4xl mx-auto relative z-10 text-center">
-          <h1 className="text-4xl md:text-8xl font-black uppercase tracking-tighter mb-2 text-[#008a45] font-garet">
-            {searchQuery ? `Results for "${searchQuery}"` : (filter === 'All' ? 'All  Products' : filter)}
+          <h1 className="text-4xl md:text-8xl font-normal !normal-case tracking-tight mb-2 text-[#008a45] font-anton leading-[0.9]">
+            {searchQuery ? `Results for "${searchQuery}"` : (filter === 'All' ? 'All products' : filter.charAt(0).toUpperCase() + filter.slice(1).toLowerCase())}
           </h1>
           <div className="w-32 h-1.5 bg-[#008a45] mx-auto mb-2"></div>
         </div>
@@ -146,7 +138,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-10 py-3 rounded-full font-black text-xs tracking-widest transition-all uppercase shadow-md font-garet ${filter === cat
+              className={`px-10 py-3 rounded-full font-normal text-sm tracking-tight transition-all !normal-case shadow-md font-anton ${filter === cat
                 ? 'bg-[#008a45] text-white'
                 : 'bg-white text-slate-400 hover:text-[#008a45]'
                 }`}

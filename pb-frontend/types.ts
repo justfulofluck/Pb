@@ -82,13 +82,19 @@ export interface HeroSlide {
   id: string;
   category: string;
   headline: string;
-  description: string;
   image: string;
   cta: string;
+  ctaLink?: string;
+  secondaryCta?: string;
+  secondaryCtaLink?: string;
   bgColor: string;
   accentColor: string;
   blobColor: string;
+  productId?: string;
+  transitionType?: string;
   isActive: boolean;
+  order?: number;
+  backgroundImage?: string;
 }
 
 export interface CategoryDisplay {

@@ -214,14 +214,15 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const [eventsRes, blogsRes, storiesRes, productsRes, vFormsRes, categoriesRes, annRes] = await Promise.all([
+        const [eventsRes, blogsRes, storiesRes, productsRes, vFormsRes, categoriesRes, annRes, heroSlidesRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/events/`),
           fetch(`${API_BASE_URL}/api/blog-posts/`),
           fetch(`${API_BASE_URL}/api/stories/`),
           fetch(`${API_BASE_URL}/api/products/`),
           fetch(`${API_BASE_URL}/api/visitor-forms/`),
           fetch(`${API_BASE_URL}/api/categories/`),
-          fetch(`${API_BASE_URL}/api/announcements/`)
+          fetch(`${API_BASE_URL}/api/announcements/`),
+          fetch(`${API_BASE_URL}/api/hero-slides/`)
         ]);
 
         if (annRes.ok) {
@@ -310,6 +311,29 @@ const AppContent: React.FC = () => {
         if (categoriesRes.ok) {
           const categoriesData = await categoriesRes.json();
           if (categoriesData.length > 0) setCategories(categoriesData);
+        }
+
+        if (heroSlidesRes.ok) {
+          const slidesData = await heroSlidesRes.json();
+          const mappedSlides = slidesData.map((s: any) => ({
+            id: String(s.id),
+            category: s.category,
+            headline: s.headline,
+            image: s.image,
+            cta: s.cta,
+            ctaLink: s.cta_link,
+            secondaryCta: s.secondary_cta,
+            secondaryCtaLink: s.secondary_cta_link,
+            bgColor: s.bg_color,
+            accentColor: s.accent_color,
+            blobColor: s.blob_color,
+            backgroundImage: s.background_image,
+            productId: s.product_id,
+            transitionType: s.transition_type,
+            isActive: s.is_active,
+            order: s.order
+          }));
+          setSlides(mappedSlides.sort((a: any, b: any) => (a.order || 0) - (b.order || 0)));
         }
       } catch (error) {
         console.error('Failed to fetch CMS content:', error);
@@ -695,8 +719,129 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleUpdateSlides = (newSlides: HeroSlide[]) => {
-    setSlides(newSlides);
+  const handleAddSlide = async (newSlide: HeroSlide) => {
+    try {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/hero-slides/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          category: newSlide.category,
+          headline: newSlide.headline,
+          image: newSlide.image,
+          cta: newSlide.cta,
+          cta_link: newSlide.ctaLink,
+          secondary_cta: newSlide.secondaryCta,
+          secondary_cta_link: newSlide.secondaryCtaLink,
+          bg_color: newSlide.bgColor,
+          accent_color: newSlide.accentColor,
+          blob_color: newSlide.blobColor,
+          background_image: newSlide.backgroundImage,
+          product_id: newSlide.productId,
+          transition_type: newSlide.transitionType,
+          is_active: newSlide.isActive,
+          order: newSlide.order || 0
+        })
+      });
+      if (response.ok) {
+        const savedSlide = await response.json();
+        const mappedSlide = {
+          id: String(savedSlide.id),
+          category: savedSlide.category,
+          headline: savedSlide.headline,
+          image: savedSlide.image,
+          cta: savedSlide.cta,
+          ctaLink: savedSlide.cta_link,
+          secondaryCta: savedSlide.secondary_cta,
+          secondaryCtaLink: savedSlide.secondary_cta_link,
+          bgColor: savedSlide.bg_color,
+          accentColor: savedSlide.accent_color,
+          blobColor: savedSlide.blob_color,
+          backgroundImage: savedSlide.background_image,
+          productId: savedSlide.product_id,
+          transitionType: savedSlide.transition_type,
+          isActive: savedSlide.is_active,
+          order: savedSlide.order
+        };
+        setSlides(prev => [...prev, mappedSlide].sort((a, b) => (a.order || 0) - (b.order || 0)));
+      } else {
+        console.error("Failed to add slide response:", await response.text());
+      }
+    } catch (err) {
+      console.error("Failed to add slide caught:", err);
+    }
+  };
+
+  const handleUpdateSlide = async (updatedSlide: HeroSlide) => {
+    try {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/hero-slides/${updatedSlide.id}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          category: updatedSlide.category,
+          headline: updatedSlide.headline,
+          image: updatedSlide.image,
+          cta: updatedSlide.cta,
+          cta_link: updatedSlide.ctaLink,
+          secondary_cta: updatedSlide.secondaryCta,
+          secondary_cta_link: updatedSlide.secondaryCtaLink,
+          bg_color: updatedSlide.bgColor,
+          accent_color: updatedSlide.accentColor,
+          blob_color: updatedSlide.blobColor,
+          background_image: updatedSlide.backgroundImage,
+          product_id: updatedSlide.productId,
+          transition_type: updatedSlide.transitionType,
+          is_active: updatedSlide.isActive,
+          order: updatedSlide.order || 0
+        })
+      });
+      if (response.ok) {
+        const savedSlide = await response.json();
+        const mappedSlide = {
+          id: String(savedSlide.id),
+          category: savedSlide.category,
+          headline: savedSlide.headline,
+          image: savedSlide.image,
+          cta: savedSlide.cta,
+          ctaLink: savedSlide.cta_link,
+          secondaryCta: savedSlide.secondary_cta,
+          secondaryCtaLink: savedSlide.secondary_cta_link,
+          bgColor: savedSlide.bg_color,
+          accentColor: savedSlide.accent_color,
+          blobColor: savedSlide.blob_color,
+          backgroundImage: savedSlide.background_image,
+          productId: savedSlide.product_id,
+          transitionType: savedSlide.transition_type,
+          isActive: savedSlide.is_active,
+          order: savedSlide.order
+        };
+        setSlides(prev => prev.map(s => s.id === mappedSlide.id ? mappedSlide : s).sort((a, b) => (a.order || 0) - (b.order || 0)));
+      } else {
+        console.error("Failed to update slide response:", await response.text());
+      }
+    } catch (err) {
+      console.error("Failed to update slide caught:", err);
+    }
+  };
+
+  const handleDeleteSlide = async (id: string) => {
+    try {
+      const token = localStorage.getItem('admin_access_token');
+      await fetch(`${API_BASE_URL}/api/hero-slides/${id}/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      setSlides(prev => prev.filter(s => s.id !== id));
+    } catch (err) {
+      console.error("Failed to delete slide", err);
+    }
   };
 
   const handleAddBlog = async (newBlog: BlogPost) => {
@@ -1169,7 +1314,9 @@ const AppContent: React.FC = () => {
         onAddEvent={handleAddEvent}
         onDeleteEvent={handleDeleteEvent}
         slides={slides}
-        onUpdateSlides={handleUpdateSlides}
+        onAddSlide={handleAddSlide}
+        onUpdateSlide={handleUpdateSlide}
+        onDeleteSlide={handleDeleteSlide}
         blogPosts={blogPosts}
         onAddBlog={handleAddBlog}
         onUpdateBlog={handleUpdateBlog}
@@ -1236,7 +1383,7 @@ const AppContent: React.FC = () => {
             <Hero onShopClick={navigateToShop} slides={slides} />
             <CategoryList onCategoryClick={navigateToShopCategory} products={products} />
             <StoryCarousel stories={[...stories].reverse().slice(0, 5)} products={products} onProductClick={navigateToProduct} onAddToCart={addToCart} />
-            <div className="snaxxo-wrapper relative w-full overflow-hidden bg-[#fcf6e5]">
+            <div className="snaxxo-wrapper relative w-full overflow-hidden bg-whiteboard-alt texture-overlay texture-speckles">
               <SnaxxoProductWheel
                 products={products}
                 onAddToCart={addToCart}

@@ -13,17 +13,17 @@ const COMPARISON_DATA: ComparisonRow[] = [
 
 const ComparisonTable: React.FC = () => {
   return (
-    <section className="py-24 bg-slate-50 overflow-hidden">
+    <section className="py-24 bg-whiteboard texture-overlay texture-speckles overflow-hidden">
       <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-4xl md:text-5xl font-black text-center mb-20 uppercase italic tracking-tight text-slate-900">
-          PINOBITE <span className="text-primary italic">VS.</span> THE REST
+        <h2 className="text-4xl md:text-5xl font-normal text-center mb-20 italic tracking-tight leading-[0.9] text-slate-900 font-anton !normal-case">
+          Pinobite <span className="text-primary italic">vs.</span> The rest
         </h2>
 
         <div className="overflow-x-auto pb-8 pt-8">
           <table className="w-full border-separate border-spacing-x-1 border-spacing-y-0 min-w-[800px]">
             <thead>
               <tr className="text-slate-900 uppercase">
-                <th className="p-6 text-left font-handdrawn text-3xl align-bottom w-1/4">Features</th>
+                <th className="p-6 text-left font-jakarta text-3xl align-bottom w-1/4">Features</th>
                 <th className="p-6 text-center bg-white/50 backdrop-blur rounded-t-3xl font-black text-sm tracking-widest w-1/4">Ghar Ka Khaana</th>
                 <th className="relative p-0 w-1/4">
                   <div className="absolute top-[-10px] left-1/2 -translate-x-1/2 z-10 bg-secondary text-slate-900 px-4 py-1.5 rounded-full text-[10px] font-black shadow-sm whitespace-nowrap transform -rotate-1">

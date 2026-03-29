@@ -40,7 +40,7 @@ const SnaxxoLanding: React.FC<SnaxxoLandingProps> = ({
     }, []);
 
     return (
-        <div className="snaxxo-wrapper relative w-full overflow-hidden bg-[#FAF9F5]">
+        <div className="snaxxo-wrapper relative w-full overflow-hidden bg-whiteboard texture-overlay texture-speckles">
         </div>
     );
 };

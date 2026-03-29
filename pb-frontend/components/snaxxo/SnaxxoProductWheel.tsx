@@ -369,23 +369,23 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
     }
 
     return (
-        <section className="product-slider-section bg-[#f2f2ec] py-12 md:py-24 overflow-visible">
+        <section className="product-slider-section bg-whiteboard texture-overlay texture-speckles py-12 md:py-24 overflow-visible">
             {/* Desktop Header */}
             <div className="hidden lg:flex flex-col items-center justify-center text-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 relative z-10">
-                <div className="bg-[#008a45] text-white font-black text-[10px] sm:text-xs md:text-sm uppercase tracking-widest px-3 py-1 md:px-4 md:py-1.5 rounded-sm -rotate-3 mb-1 inline-block shadow-sm z-10" style={{ transformOrigin: 'center' }}>
+                <div className="bg-[#0b3d2e] texture-overlay texture-speckles text-white font-black text-[10px] sm:text-xs md:text-sm uppercase tracking-widest px-3 py-1 md:px-4 md:py-1.5 rounded-sm -rotate-3 mb-1 inline-block shadow-sm z-10" style={{ transformOrigin: 'center' }}>
                     Flavors you Love
                 </div>
-                <h2 className="text-5xl sm:text-6xl md:text-8xl lg:text-[100px] text-[#008a45] tracking-[0.05em] leading-tight sm:leading-none mb-1 relative z-0" style={{ fontFamily: '"Bebas Neue", sans-serif' }}>
-                    CUSTOMER'S FAVORITE
+                <h2 className="text-5xl sm:text-6xl md:text-8xl lg:text-[100px] text-textured-green tracking-tight leading-[0.85] mb-1 relative z-0 font-anton font-normal !normal-case">
+                    Customer's<br />favorite
                 </h2>
-                <div className="w-24 md:w-32 h-2 md:h-2.5 bg-[#008a45] mb-4 rounded-full"></div>
+                <div className="w-24 md:w-32 h-2 md:h-2.5 bg-[#0b3d2e] mb-4 rounded-full"></div>
                 <div className="relative z-[300] w-full flex justify-center mt-2">
                     <button
                         onClick={() => {
                             if (onShopClick) onShopClick();
                             else window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
-                        className="bg-[#008a45] text-white px-6 py-2 md:px-8 md:py-2.5 rounded-full font-bold text-xs md:text-sm uppercase tracking-wider hover:bg-[#007038] transition-colors shadow flex items-center gap-1 hover:scale-105 active:scale-95 cursor-pointer pointer-events-auto"
+                        className="btn-greenboard text-white px-8 py-3 rounded-full font-bold text-xs md:text-sm uppercase tracking-widest transition-all shadow-md flex items-center gap-2 hover:scale-105 active:scale-95 cursor-pointer pointer-events-auto"
                     >
                         SHOP ALL
                     </button>
@@ -396,7 +396,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
             <div className="hidden lg:block">
                 <div className="product-slider relative w-full" ref={wrapperRef}>
                     <button
-                        className="product-prev z-[200] absolute left-2 sm:left-4 bg-[#008a45] hover:bg-[#007038] text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-100"
+                        className="btn-greenboard z-[200] absolute left-2 sm:left-4 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-100"
                         style={{ top: '45%', transform: 'translateY(-50%)' }}
                         onClick={() => goPrevRef.current?.()}
                         aria-label="Previous product"
@@ -404,7 +404,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                         <span className="material-symbols-outlined text-lg sm:text-xl">chevron_left</span>
                     </button>
                     <button
-                        className="product-next z-[200] absolute right-2 sm:right-4 bg-[#008a45] hover:bg-[#007038] text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
+                        className="btn-greenboard z-[200] absolute right-2 sm:right-4 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
                         style={{ top: '45%', transform: 'translateY(-50%)' }}
                         onClick={() => goNextRef.current?.()}
                         aria-label="Next product"
