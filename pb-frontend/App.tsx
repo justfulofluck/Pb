@@ -114,17 +114,30 @@ const AppContent: React.FC = () => {
   // Handle browser back/forward buttons and initial state restoration
   useEffect(() => {
     const syncState = async (state: any) => {
-      if (state && state.view) {
-        // Only update view if it's different to prevent redundant re-renders on data refresh
-        if (currentView !== state.view) {
-          setCurrentView(state.view);
+      if (!state || !state.view) {
+        // Fallback or home - only update if actually on a different view
+        if (window.history.state?.view !== 'home') {
+          // Careful not to trigger loop here
         }
+        return;
+      }
 
-        if (state.productId) {
+      // 1. Sync View
+      if (window.history.state?.view !== state.view) {
+        setCurrentView(state.view);
+      }
+
+      // 2. Sync Product (only if needed)
+      if (state.productId) {
+        // Check if we already have the FULL product in state to avoid redundant cycles
+        const alreadyLoaded = selectedProduct &&
+          String(selectedProduct.id) === String(state.productId) &&
+          (selectedProduct.benefits?.length || 0) > 0;
+
+        if (!alreadyLoaded) {
           const p = products.find(prod => String(prod.id) === String(state.productId));
           if (p) {
             setSelectedProduct(p);
-            // Fetch full details
             try {
               const res = await fetch(`${API_BASE_URL}/api/products/${p.id}/`);
               if (res.ok) {
@@ -147,32 +160,16 @@ const AppContent: React.FC = () => {
             } catch (e) { }
           }
         }
-        if (state.eventId) {
-          const e = events.find(ev => String(ev.id) === String(state.eventId));
-          if (e) setSelectedEvent(e);
-        }
-        if (state.blogId) {
-          const b = blogPosts.find(post => String(post.id) === String(state.blogId));
-          if (b) setSelectedBlogPost(b);
-        }
-        if (state.view === 'visitor-form' && state.formId) {
-          setSelectedFormId(state.formId);
-        }
-        if (state.view === 'shop') {
-          setShopCategory(state.category || 'All');
-          setGlobalSearchQuery(state.query || '');
-        }
+      }
 
-        // Clear selections if not in state
-        if (!state.productId) setSelectedProduct(null);
-        if (!state.eventId) setSelectedEvent(null);
-        if (!state.blogId) setSelectedBlogPost(null);
-      } else {
-        // Fallback to home if no state
-        setCurrentView('home');
-        setSelectedProduct(null);
-        setSelectedEvent(null);
-        setSelectedBlogPost(null);
+      // Minimal sync for others to avoid logic loops
+      if (state.eventId) {
+        const e = events.find(ev => String(ev.id) === String(state.eventId));
+        if (e && (!selectedEvent || selectedEvent.id !== e.id)) setSelectedEvent(e);
+      }
+      if (state.blogId) {
+        const b = blogPosts.find(post => String(post.id) === String(state.blogId));
+        if (b && (!selectedBlogPost || selectedBlogPost.id !== b.id)) setSelectedBlogPost(b);
       }
     };
 
@@ -182,15 +179,13 @@ const AppContent: React.FC = () => {
 
     window.addEventListener('popstate', handlePopState);
 
-    // Sync current state on mount or when data updates
-    if (window.history.state) {
+    // Run once on mount if we have a deep linked product or state
+    if (window.history.state && window.history.state.productId && !selectedProduct) {
       syncState(window.history.state);
-    } else {
-      window.history.replaceState({ view: 'home' }, '');
     }
 
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [products, events, blogPosts]);
+  }, [products]); // Only depend on the loaded data catalogs
 
   useEffect(() => {
     setIsLoggedIn(!!user);

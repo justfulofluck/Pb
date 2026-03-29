@@ -27,24 +27,20 @@ interface ProductPageProps {
 }
 
 const StableModelViewer = React.memo(({ product }: { product: Product }) => {
-  const jarWrapperRef = React.useRef<HTMLDivElement>(null);
-
-  const getModelSrc = () => {
+  const modelSrc = React.useMemo(() => {
     if (product.model3d) return product.model3d;
     if (product.name === 'American Nuts Crunchy Peanut Butter') return '/3D-assets/AmericanNuts-v1.glb';
     if (product.name === 'Strawberry with Chia Peanut Butter') return '/3D-assets/Strawberry-with-Chia.glb';
     if (product.name === 'Dark Chocolate & Almond Crunchy Peanut Butter') return '/3D-assets/Dark-Chocolate-Almond.glb';
     return null;
-  };
-
-  const modelSrc = getModelSrc();
+  }, [product.id, product.model3d, product.name]);
 
   if (!modelSrc) {
     return <img src={product.image} alt={product.name} className="content-image _100-full" />;
   }
 
   return (
-    <div ref={jarWrapperRef} style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <style>{`
         @keyframes floatJar {
           0% { transform: translateY(0px); }
@@ -57,34 +53,42 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
           100% { transform: scale(1); opacity: 0.5; }
         }
       `}</style>
-      <div
-        dangerouslySetInnerHTML={{
-          __html: `<model-viewer 
-            src="${modelSrc}" 
-            alt="${product.name}" 
-            camera-controls 
-            disable-zoom 
-            disable-pan 
-            disable-tap 
-            bounds="tight" 
-            min-camera-orbit="auto auto auto" 
-            max-camera-orbit="auto auto auto" 
-            min-field-of-view="auto" 
-            max-field-of-view="auto" 
-            touch-action="pan-y" 
-            interaction-prompt="none" 
-            auto-rotate 
-            rotation-speed="20deg" 
-            orientation="${product.orientation || '0deg 0deg -15deg'}" 
-            style="width: 100%; max-width: 750px; height: clamp(400px, 65vh, 800px); outline: none; margin: 0 auto; pointer-events: auto; animation: floatJar 6s ease-in-out infinite; z-index: 2; position: relative;">
-          </model-viewer>`
-        }}
-        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-      />
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        {/* @ts-ignore */}
+        <model-viewer
+          src={modelSrc}
+          alt={product.name}
+          camera-controls
+          disable-zoom
+          disable-pan
+          disable-tap
+          bounds="tight"
+          min-camera-orbit="auto auto auto"
+          max-camera-orbit="auto auto auto"
+          min-field-of-view="auto"
+          max-field-of-view="auto"
+          touch-action="pan-y"
+          interaction-prompt="none"
+          auto-rotate
+          rotation-speed="20deg"
+          orientation={product.orientation || '0deg 0deg -15deg'}
+          style={{
+            width: '100%',
+            maxWidth: '750px',
+            height: 'clamp(400px, 65vh, 800px)',
+            outline: 'none',
+            margin: '0 auto',
+            pointerEvents: 'auto',
+            animation: 'floatJar 6s ease-in-out infinite',
+            zIndex: 2,
+            position: 'relative'
+          }}
+        />
+      </div>
       <div style={{ width: '280px', height: '30px', background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 70%)', position: 'absolute', bottom: '0px', animation: 'floatShadow 6s ease-in-out infinite', zIndex: 1, pointerEvents: 'none' }} />
     </div>
   );
-}, (prev, next) => prev.product.id === next.product.id);
+}, (prev, next) => prev.product.id === next.product.id && prev.product.name === next.product.name);
 
 const ProductPage: React.FC<ProductPageProps> = ({
   product,
