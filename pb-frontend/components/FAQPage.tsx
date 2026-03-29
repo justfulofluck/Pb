@@ -114,7 +114,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onHomeClick }) => {
               ))}
               {filteredFAQs.length === 0 && (
                 <div className="text-center py-12 bg-white rounded-3xl border-2 border-dashed border-slate-300">
-                  <span className="font-jakarta text-2xl text-slate-400">Hmm, that's a tough nut to crack...</span>
+                  <span className="font-satoshi text-2xl text-slate-400">Hmm, that's a tough nut to crack...</span>
                   <p className="text-slate-500 mt-2">Try searching for something else!</p>
                 </div>
               )}
@@ -125,7 +125,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onHomeClick }) => {
               </div>
               <div>
                 <h4 className="font-bold text-lg text-slate-900 font-satoshi">Pro-Tip from the Roastery</h4>
-                <p className="font-jakarta text-slate-600 text-lg mt-1">
+                <p className="font-satoshi text-slate-600 text-lg mt-1">
                   Try crushing them over your morning porridge for an extra artisanal texture!
                 </p>
               </div>

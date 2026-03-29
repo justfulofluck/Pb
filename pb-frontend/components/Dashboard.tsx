@@ -236,7 +236,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
                       <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">
                         Welcome back,<br /> {authUser.first_name || authUser.username}
                       </h2>
-                      <p className="font-jakarta text-2xl text-white/70">Fueling your ambition since {new Date(authUser.date_joined || Date.now()).getFullYear()} ✨</p>
+                      <p className="font-satoshi text-2xl text-white/70">Fueling your ambition since {new Date(authUser.date_joined || Date.now()).getFullYear()} ✨</p>
                     </div>
                     {/* Decorative Elements */}
                     <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
@@ -427,7 +427,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
                 >
                   <div className="mb-12 border-b border-slate-100 pb-8">
                     <h2 className="text-4xl font-black uppercase tracking-tighter">Profile Settings</h2>
-                    <p className="font-jakarta text-2xl text-slate-400 mt-2">Personalize your Pinobite experience</p>
+                    <p className="font-satoshi text-2xl text-slate-400 mt-2">Personalize your Pinobite experience</p>
                   </div>
 
                   <form onSubmit={handleUpdateProfile} className="space-y-12">
@@ -563,7 +563,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
                   <div className="bg-white p-8 md:p-12 rounded-[40px] border border-slate-100 shadow-sm overflow-hidden relative">
                     <div className="relative z-10 max-w-xl">
                       <h2 className="text-4xl font-black uppercase tracking-tighter">Pinopoints Loyalty</h2>
-                      <p className="font-jakarta text-2xl text-primary mt-2">The more you fuel, the more you save!</p>
+                      <p className="font-satoshi text-2xl text-primary mt-2">The more you fuel, the more you save!</p>
 
                       <div className="mt-12 space-y-8">
                         <div className="space-y-2">
@@ -771,7 +771,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
                 </div>
 
                 <div className="pt-8 border-t border-dashed border-slate-100 flex flex-col items-center">
-                  <p className="text-center text-slate-400 font-jakarta text-2xl">
+                  <p className="text-center text-slate-400 font-satoshi text-2xl">
                     Fueling your ambition, one bite at a time! 🚀
                   </p>
                   <button onClick={() => setSelectedOrder(null)} className="mt-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 hover:text-slate-900 transition-colors">Close Details</button>

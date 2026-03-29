@@ -3025,7 +3025,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'events' && activeTab !== 'orders' && activeTab !== 'ui-settings' && activeTab !== 'visitor-forms' && activeTab !== 'blogs' && activeTab !== 'announcements' && activeTab !== 'distributors' && activeTab !== 'rewards' && (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
                 <span className="material-symbols-outlined text-6xl opacity-20">construction</span>
-                <p className="font-jakarta text-2xl">This module is under construction</p>
+                <p className="font-satoshi text-2xl">This module is under construction</p>
               </div>
             )
           }

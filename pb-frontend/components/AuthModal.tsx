@@ -127,7 +127,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Welcome Back!</h2>
-              <p className="font-jakarta text-xl text-primary mt-1">Ready for your health fix? ✨</p>
+              <p className="font-satoshi text-xl text-primary mt-1">Ready for your health fix? ✨</p>
             </div>
 
             {error && (
@@ -193,7 +193,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Join The Club</h2>
-              <p className="font-jakarta text-xl text-primary mt-1">Get 10% off your first order! 🎁</p>
+              <p className="font-satoshi text-xl text-primary mt-1">Get 10% off your first order! 🎁</p>
             </div>
 
             {error && (
@@ -291,7 +291,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Forgot it?</h2>
-              <p className="font-jakarta text-xl text-primary mt-1">Don't worry, we got you! 🔑</p>
+              <p className="font-satoshi text-xl text-primary mt-1">Don't worry, we got you! 🔑</p>
             </div>
 
             <p className="text-slate-500 text-sm text-center font-medium leading-relaxed">
@@ -332,7 +332,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Verify Code</h2>
-              <p className="font-jakarta text-xl text-primary mt-1">Check your inbox! 📧</p>
+              <p className="font-satoshi text-xl text-primary mt-1">Check your inbox! 📧</p>
             </div>
 
             {error && (

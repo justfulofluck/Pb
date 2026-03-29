@@ -45,7 +45,7 @@ const Footer: React.FC<FooterProps> = ({
                 className="h-full w-auto object-contain brightness-0 invert"
               />
             </button>
-            <p className="text-slate-400 text-sm leading-relaxed mb-8">
+            <p className="text-slate-400 text-sm leading-relaxed mb-8 font-satoshi">
               Pinobite is a group of modern healthy snack specialists transforming your daily energy intake with handcrafted, nutritious muesli and peanut butter. Founded with a passion for goodness.
             </p>
             <div className="flex gap-4">

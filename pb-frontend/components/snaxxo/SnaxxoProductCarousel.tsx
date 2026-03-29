@@ -140,24 +140,23 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                         </div>
 
                         <h3
-                            className="font-extrabold text-center text-slate-900 mb-1 px-1 line-clamp-2 h-[2.8rem] uppercase tracking-tight text-sm leading-[1.3] cursor-pointer hover:text-[#008a45] transition-colors"
-                            onClick={(e) => handleProductClick(e, product)}
+                            className="text-textured-green-big !text-[1.9rem] text-center mb-3 px-1 line-clamp-2 h-[2.8rem] uppercase tracking-normal leading-[1] cursor-default !inline-block w-full"
                         >
                             {product.name}
                         </h3>
 
-                        <div className="flex items-center gap-2 mb-5">
-                            <span className="font-black text-xl text-slate-900">₹{product.price}</span>
+                        <div className="flex items-center gap-1 mb-4">
+                            <span className="font-black text-xl text-[#0b3d2e]">₹{product.price}</span>
                             {product.originalPrice && product.originalPrice > product.price && (
-                                <span className="text-slate-400 line-through text-xs font-bold">₹{product.originalPrice}</span>
+                                <span className="text-slate-400 line-through text-[11px] font-bold">₹{product.originalPrice}</span>
                             )}
                         </div>
 
                         <button
                             onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
-                            className="btn-greenboard text-white w-full py-3.5 rounded-full font-black text-[12px] uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] mt-auto flex items-center justify-center gap-1.5"
+                            className="btn-greenboard text-white w-full py-3.5 rounded-full font-black text-[12px] uppercase tracking-widest transition-all shadow-lg active:scale-95 mt-auto flex items-center justify-center gap-1.5"
                         >
-                            ADD TO CART
+                            {product.stock <= 0 ? 'SOLD OUT' : 'ADD TO CART'}
                         </button>
                     </div>
                 ))}

@@ -39,7 +39,7 @@ const PressUpdates: React.FC<PressUpdatesProps> = ({ pressUpdates }) => {
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-16">
-          <span className="font-jakarta text-2xl text-primary transform -rotate-2 inline-block mb-2">
+          <span className="font-satoshi text-2xl text-primary transform -rotate-2 inline-block mb-2">
             Viral Hit Group
           </span>
           <h2 className="text-5xl md:text-6xl font-black text-slate-900 uppercase tracking-tight leading-none">

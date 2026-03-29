@@ -112,7 +112,7 @@ const BlogsPage: React.FC<BlogsPageProps> = ({ posts, onBlogClick, onHomeClick }
         ) : (
           <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
             <span className="material-symbols-outlined text-6xl text-slate-300 mb-4">menu_book</span>
-            <p className="text-2xl font-jakarta text-slate-400">No stories found matching your search.</p>
+            <p className="text-2xl font-satoshi text-slate-400">No stories found matching your search.</p>
           </div>
         )}
       </div>

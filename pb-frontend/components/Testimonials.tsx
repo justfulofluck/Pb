@@ -17,7 +17,7 @@ const Testimonials: React.FC<TestimonialsProps> = ({ reviews }) => {
           <div className="max-w-xl">
             <h2 className="text-textured-green-big">
               From those<br />who made the switch
-              <span className="font-jakarta text-[#0b3d2e] opacity-40 text-4xl align-middle inline-block transform -rotate-12 ml-6">:)</span>
+              <span className="font-satoshi text-[#0b3d2e] opacity-40 text-4xl align-middle inline-block transform -rotate-12 ml-6">:)</span>
             </h2>
           </div>
           <div className="flex gap-2">
@@ -52,7 +52,7 @@ const Testimonials: React.FC<TestimonialsProps> = ({ reviews }) => {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="font-jakarta text-2xl text-slate-500">No reviews yet. Be the first!</p>
+            <p className="font-satoshi text-2xl text-slate-500">No reviews yet. Be the first!</p>
           </div>
         )}
       </div>

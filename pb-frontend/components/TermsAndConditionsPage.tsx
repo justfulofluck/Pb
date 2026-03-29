@@ -10,7 +10,7 @@ const TermsAndConditionsPage: React.FC<TermsAndConditionsPageProps> = ({ onHomeC
     <div className="bg-background-light min-h-screen pb-24 animate-in fade-in duration-500">
       <div className="bg-secondary/5 pt-10 pb-20 px-4 relative overflow-hidden">
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <span className="font-jakarta text-3xl text-primary transform -rotate-2 inline-block mb-4">The Fine Print</span>
+          <span className="font-satoshi text-3xl text-primary transform -rotate-2 inline-block mb-4">The Fine Print</span>
           <h1 className="text-5xl md:text-7xl font-black uppercase text-slate-900 tracking-tight mb-6">
             Terms & Conditions
           </h1>

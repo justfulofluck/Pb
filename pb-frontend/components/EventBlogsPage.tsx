@@ -21,7 +21,7 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick, o
       <div className="bg-slate-900 text-white pt-10 pb-24 px-4 relative overflow-hidden">
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <span className="font-jakarta text-3xl text-secondary transform -rotate-2 inline-block mb-4">Reliving the Vibes</span>
+          <span className="font-satoshi text-3xl text-secondary transform -rotate-2 inline-block mb-4">Reliving the Vibes</span>
           <h1 className="text-5xl md:text-8xl font-black uppercase tracking-tight mb-6 font-satoshi">
             Event Stories
           </h1>
@@ -98,7 +98,7 @@ const EventBlogsPage: React.FC<EventBlogsPageProps> = ({ events, onEventClick, o
         {filteredEvents.length === 0 && (
           <div className="text-center py-32 space-y-4">
             <span className="material-symbols-outlined text-6xl text-slate-200">event_busy</span>
-            <p className="text-2xl font-jakarta text-slate-400">No events found matching your search.</p>
+            <p className="text-2xl font-satoshi text-slate-400">No events found matching your search.</p>
             <button
               onClick={() => setSearchQuery('')}
               className="text-primary font-bold hover:underline"

@@ -111,7 +111,7 @@ const LatestProductShowcase: React.FC = () => {
             {benefitsLeft.map((item, idx) => (
               <div key={idx} className="group px-4 md:px-0">
                 <h3 className="text-xl md:text-2xl font-normal text-slate-900 mb-1 md:mb-2 font-anton !normal-case tracking-tight">{item.title}</h3>
-                <p className="text-[11px] md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:ml-auto">
+                <p className="text-[11px] md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:ml-auto font-satoshi">
                   {item.desc}
                 </p>
               </div>
@@ -179,7 +179,7 @@ const LatestProductShowcase: React.FC = () => {
             {benefitsRight.map((item, idx) => (
               <div key={idx} className="group px-4 md:px-0">
                 <h3 className="text-xl md:text-2xl font-normal text-slate-900 mb-1 md:mb-2 font-anton !normal-case tracking-tight">{item.title}</h3>
-                <p className="text-[11px] md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:mr-auto">
+                <p className="text-[11px] md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:mr-auto font-satoshi">
                   {item.desc}
                 </p>
               </div>

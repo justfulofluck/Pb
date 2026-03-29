@@ -23,7 +23,7 @@ const ComparisonTable: React.FC = () => {
           <table className="w-full border-separate border-spacing-x-1 border-spacing-y-0 min-w-[800px]">
             <thead>
               <tr className="text-slate-900 uppercase">
-                <th className="p-6 text-left font-jakarta text-3xl align-bottom w-1/4">Features</th>
+                <th className="p-6 text-left font-satoshi text-3xl align-bottom w-1/4">Features</th>
                 <th className="p-6 text-center bg-white/50 backdrop-blur rounded-t-3xl font-black text-sm tracking-widest w-1/4">Ghar Ka Khaana</th>
                 <th className="relative p-0 w-1/4">
                   <div className="absolute top-[-10px] left-1/2 -translate-x-1/2 z-10 bg-secondary text-slate-900 px-4 py-1.5 rounded-full text-[10px] font-black shadow-sm whitespace-nowrap transform -rotate-1">

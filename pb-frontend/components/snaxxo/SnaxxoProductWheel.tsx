@@ -395,24 +395,25 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
             {/* Desktop Wheel */}
             <div className="hidden lg:block">
                 <div className="product-slider relative w-full" ref={wrapperRef}>
-                    <button
-                        className="btn-greenboard z-[200] absolute left-2 sm:left-4 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-100"
-                        style={{ top: '45%', transform: 'translateY(-50%)' }}
-                        onClick={() => goPrevRef.current?.()}
-                        aria-label="Previous product"
-                    >
-                        <span className="material-symbols-outlined text-lg sm:text-xl">chevron_left</span>
-                    </button>
-                    <button
-                        className="btn-greenboard z-[200] absolute right-2 sm:right-4 text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
-                        style={{ top: '45%', transform: 'translateY(-50%)' }}
-                        onClick={() => goNextRef.current?.()}
-                        aria-label="Next product"
-                    >
-                        <span className="material-symbols-outlined text-lg sm:text-xl">chevron_right</span>
-                    </button>
+                    <div className="product-wheel-viewport relative w-full min-h-[400px] sm:min-h-[500px] lg:min-h-[700px] overflow-visible">
+                        {/* Navigation Arrows (Anchored to Viewport) */}
+                        <button
+                            className="btn-greenboard z-[300] !absolute left-4 sm:left-8 text-white rounded-full w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95 pointer-events-auto"
+                            style={{ top: '45%', transform: 'translateY(-50%)' }}
+                            onClick={() => goPrevRef.current?.()}
+                            aria-label="Previous product"
+                        >
+                            <span className="material-symbols-outlined text-xl sm:text-2xl">chevron_left</span>
+                        </button>
+                        <button
+                            className="btn-greenboard z-[300] !absolute right-4 sm:right-8 text-white rounded-full w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95 pointer-events-auto"
+                            style={{ top: '45%', transform: 'translateY(-50%)' }}
+                            onClick={() => goNextRef.current?.()}
+                            aria-label="Next product"
+                        >
+                            <span className="material-symbols-outlined text-xl sm:text-2xl">chevron_right</span>
+                        </button>
 
-                    <div className="product-wheel-viewport relative w-full min-h-[400px] overflow-visible">
                         <div className="product-wheel absolute top-0 left-0 w-full h-full cursor-grab select-none" ref={wheelRef}>
                             {displayProducts.map((product, i) => (
                                 <div
@@ -441,19 +442,19 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                                             )}
                                         </div>
                                         <div className="product-bottom-info-box mt-2 sm:mt-4 flex flex-col items-center text-center px-4 pointer-events-none">
-                                            <h3 className="font-black text-lg sm:text-xl text-slate-900 mb-1 cursor-pointer hover:text-[#008a45] transition-colors uppercase tracking-tight leading-tight pointer-events-auto">
+                                            <h3 className="text-textured-green-big !text-[1.8rem] sm:!text-[2.2rem] md:!text-[2.8rem] mb-4 sm:mb-6 cursor-default uppercase tracking-normal leading-[1] pointer-events-auto !inline-block">
                                                 {product.name}
                                             </h3>
-                                            <div className="flex items-baseline gap-2 mb-2 sm:mb-3 pointer-events-auto">
-                                                <span className="font-black text-slate-900 text-2xl sm:text-3xl">₹{product.price}</span>
+                                            <div className="flex items-baseline gap-2 mb-4 sm:mb-6 pointer-events-auto">
+                                                <span className="font-black text-[#0b3d2e] text-2xl sm:text-3xl lg:text-4xl text-shadow-sm">₹{product.price}</span>
                                                 {product.originalPrice && product.originalPrice > product.price && (
-                                                    <span className="font-bold text-slate-400 text-base sm:text-lg line-through">₹{product.originalPrice}</span>
+                                                    <span className="font-bold text-slate-400 text-sm sm:text-base lg:text-lg line-through">₹{product.originalPrice}</span>
                                                 )}
                                             </div>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
                                                 disabled={product.stock <= 0}
-                                                className="pointer-events-auto bg-[#008a45] text-white px-5 py-2 sm:px-6 sm:py-2.5 rounded-lg font-bold text-[10px] sm:text-xs uppercase tracking-wider shadow-md hover:shadow-lg hover:bg-[#007038] hover:-translate-y-0.5 transition-all active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-1.5"
+                                                className="btn-greenboard pointer-events-auto text-white px-8 py-3.5 sm:px-11 sm:py-4.5 rounded-full font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-1.5"
                                             >
                                                 <span className="material-symbols-outlined text-sm">add</span>
                                                 {product.stock <= 0 ? 'Sold Out' : 'Order'}
