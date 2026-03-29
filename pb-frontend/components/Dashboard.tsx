@@ -167,22 +167,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
     { id: 'profile', label: 'Edit Profile', icon: 'person_edit' },
   ];
 
-  const tierColors: any = {
-    'Starter': 'from-slate-400 to-slate-600',
-    'Pro Member': 'from-primary to-primary-dark',
-    'Pro Elite': 'from-secondary to-orange-600',
-    'Legend': 'from-purple-600 to-indigo-900'
-  };
+  // Hero banner now uses the global chalkboard texture for better contrast
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA]">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-whiteboard texture-overlay texture-speckles relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 py-8 relative z-10">
 
 
         <div className="grid lg:grid-cols-[280px_1fr] gap-8 items-start">
           {/* Sidebar */}
-          <aside className="bg-white doodle-border p-6 space-y-8 sticky top-8 shadow-sm">
-            <div className="flex items-center gap-4 pb-6 border-b border-slate-100">
+          <aside className="bg-white doodle-border p-4 lg:p-6 flex flex-col lg:block gap-4 lg:space-y-8 sticky top-4 lg:top-8 shadow-sm z-20 overflow-hidden">
+            {/* User Profile - desktop only */}
+            <div className="hidden lg:flex items-center gap-4 pb-6 border-b border-slate-100">
               <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center font-black text-xl">
                 {(userData.name || ' ')[0]}
               </div>
@@ -192,25 +188,35 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
               </div>
             </div>
 
-            <nav className="space-y-1">
+            <nav className="flex overflow-x-auto hide-scrollbar lg:flex-col lg:space-y-1 gap-2 pb-2 lg:pb-0">
               {navItems.map(item => (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id as TabType)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === item.id
-                      ? 'bg-slate-900 text-white shadow-lg scale-[1.02]'
-                      : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
+                  className={`flex-shrink-0 flex items-center justify-center lg:justify-start gap-2 lg:gap-3 px-5 py-3 rounded-xl font-bold text-[10px] lg:text-xs uppercase tracking-widest transition-all ${activeTab === item.id
+                    ? 'bg-slate-900 text-white shadow-lg lg:scale-[1.02]'
+                    : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600 border border-slate-100 lg:border-transparent'
                     }`}
                 >
-                  <span className="material-symbols-outlined text-sm">{item.icon}</span>
+                  <span className="material-symbols-outlined text-sm lg:text-sm">{item.icon}</span>
                   {item.label}
                 </button>
               ))}
+
+              {/* Sign out inline for mobile */}
+              <button
+                onClick={onLogout}
+                className="lg:hidden flex-shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all border border-red-100"
+              >
+                <span className="material-symbols-outlined text-sm">logout</span>
+                Sign Out
+              </button>
             </nav>
 
+            {/* Sign out for desktop */}
             <button
               onClick={onLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all mt-12"
+              className="hidden lg:flex w-full items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all mt-12 lg:mt-12"
             >
               <span className="material-symbols-outlined text-sm">logout</span>
               Sign Out
@@ -228,12 +234,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
                   className="space-y-8"
                 >
                   {/* Hero Banner */}
-                  <div className={`p-8 rounded-[40px] bg-gradient-to-br ${tierColors[userData.tier] || 'from-slate-900 to-black'} text-white relative overflow-hidden shadow-2xl`}>
+                  <div className="p-8 rounded-[40px] bg-slate-900 texture-chalkboard-strong text-white relative overflow-hidden shadow-2xl">
                     <div className="relative z-10 space-y-4">
                       <span className="bg-white/20 backdrop-blur-md px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
                         {userData.tier} Status
                       </span>
-                      <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter leading-none">
+                      <h2 className="text-4xl md:text-5xl font-anton uppercase tracking-normal leading-none" style={{ letterSpacing: '0.05em' }}>
                         Welcome back,<br /> {authUser.first_name || authUser.username}
                       </h2>
                       <p className="font-satoshi text-2xl text-white/70">Fueling your ambition since {new Date(authUser.date_joined || Date.now()).getFullYear()} ✨</p>
@@ -409,8 +415,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
                       ))}
                     </div>
                   ) : (
-                    <div className="bg-white p-24 rounded-[40px] text-center border-2 border-dashed border-slate-100">
-                      <span className="material-symbols-outlined text-6xl text-slate-200 mb-4 scale-150">shopping_cart_off</span>
+                    <div className="bg-white p-24 rounded-[40px] text-center border-2 border-dashed border-slate-100 flex flex-col items-center">
+                      <span className="material-symbols-outlined text-8xl text-slate-200 mb-6 block leading-none">shopping_cart_off</span>
                       <h3 className="text-2xl font-black text-slate-400 uppercase tracking-tight">No orders yet!</h3>
                       <p className="text-slate-400 mt-2 mb-8 uppercase tracking-widest font-bold text-xs">Start your health journey today</p>
                       <button onClick={onHomeClick} className="bg-primary text-white px-8 py-3 rounded-full font-black uppercase tracking-widest hover:scale-105 transition-transform">Shop Now</button>
