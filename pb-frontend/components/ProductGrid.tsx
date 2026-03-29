@@ -28,7 +28,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
           <div className="bg-[#008a45] text-white font-black text-xs uppercase tracking-widest px-4 py-1.5 rounded-sm -rotate-2 mb-2 inline-block shadow-sm">
             Our Favorites
           </div>
-          <h2 className="text-6xl md:text-8xl text-[#008a45] tracking-tight leading-none mb-4" style={{ fontFamily: '"Bebas Neue", sans-serif' }}>
+          <h2 className="text-6xl md:text-8xl text-[#008a45] tracking-tight leading-none mb-4 font-anton">
             Customer's Favourite
           </h2>
           <div className="w-24 h-1 bg-[#008a45] rounded-full"></div>
