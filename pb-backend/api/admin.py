@@ -62,6 +62,17 @@ class AnnouncementAdmin(admin.ModelAdmin):
 class RewardRuleAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'points', 'is_enabled')
     list_filter = ('is_enabled',)
+    
+    def has_delete_permission(self, request, obj=None):
+        # Admins cannot delete reward rules
+        return False
+
+    def has_add_permission(self, request):
+        # Admins cannot add new reward rules (they are fixed in code)
+        return False
+
+    # Optional: make event_name read-only so it can't be changed to something non-existent
+    readonly_fields = ('event_name',)
 
 @admin.register(RewardTransaction)
 class RewardTransactionAdmin(admin.ModelAdmin):

@@ -67,9 +67,9 @@ const CategoryList: React.FC<CategoryListProps> = ({
   });
 
   return (
-    <section className="py-24 bg-whiteboard texture-overlay texture-speckles relative z-20 overflow-hidden">
+    <section className="pt-20 pb-12 md:py-24 bg-whiteboard texture-overlay texture-speckles relative z-20 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <div className="text-center mb-16 md:mb-24 relative">
+        <div className="text-center mb-8 md:mb-24 relative">
           <span className="font-handdrawn text-2xl md:text-3xl text-primary transform rotate-6 inline-block mb-2 absolute -top-10 left-1/2 translate-x-[20px] md:translate-x-[90px] lg:translate-x-[120px] drop-shadow-sm">Pick your fav!</span>
           <h2 className="text-5xl md:text-8xl font-normal text-textured-green !normal-case tracking-tight leading-[0.9] font-anton">
             Shop by category
@@ -123,24 +123,16 @@ const CategoryList: React.FC<CategoryListProps> = ({
 
         {/* Mobile & Tablet View (Premium Arched Layout) */}
         <div className="lg:hidden mt-0">
-          <div className="relative pt-4 pb-20 px-2 overflow-visible">
+          <div className="relative pt-4 pb-4 md:pb-20 px-2 overflow-visible">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[300px] bg-gradient-radial from-primary/5 to-transparent rounded-[100%] blur-2xl opacity-60 z-0"></div>
 
-            <div
-              ref={scrollRef}
-              onMouseDown={handleMouseDown}
-              onMouseLeave={handleMouseLeave}
-              onMouseUp={handleMouseUp}
-              onMouseMove={handleMouseMove}
-              className={`relative z-10 flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3 md:gap-8 px-4 py-10 ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'}`}
-              style={{ scrollBehavior: isDragging ? 'auto' : 'smooth' }}
-            >
+            <div className="relative z-10 flex justify-center items-center gap-1 sm:gap-4 md:gap-8 px-1 py-4 md:py-10 w-full overflow-hidden">
               {categories.map((item, i) => {
                 const isCenter = i === Math.floor(categories.length / 2);
                 return (
                   <div
                     key={item.id}
-                    className="flex flex-col items-center group flex-shrink-0 snap-center min-w-[120px]"
+                    className="flex flex-col items-center group flex-shrink-1 w-1/3 min-w-[100px] xs:min-w-[120px]"
                     onClick={() => handleCategoryClick(item.id)}
                     style={{
                       transform: isCenter ? 'translateY(-20px)' : 'translateY(0)',

@@ -16,10 +16,10 @@ const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProd
   const getProduct = (id: string) => products.find(p => p.id === id);
 
   return (
-    <section className="py-24 bg-whiteboard texture-overlay texture-speckles overflow-hidden">
+    <section className="py-10 md:py-24 bg-whiteboard texture-overlay texture-speckles overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 relative flex flex-col items-center">
         {/* Centered Header */}
-        <div className="text-center mb-16 relative w-full flex flex-col items-center">
+        <div className="text-center mb-8 md:mb-16 relative w-full flex flex-col items-center">
           <span className="font-handdrawn text-3xl md:text-4xl text-secondary/80 transform -rotate-3 inline-block z-10 whitespace-nowrap mb-[-0rem] md:mb-[-0.5rem] ml-[-10rem] md:ml-[-14rem]">
             @pinobitehealth
           </span>

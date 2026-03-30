@@ -815,6 +815,18 @@ class RewardRuleViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsStaffUser()]
 
+    def create(self, request, *args, **kwargs):
+        return Response(
+            {"error": "Reward Rules are hardcoded. You cannot add new ones."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    def destroy(self, request, *args, **kwargs):
+        return Response(
+            {"error": "Reward Rules are hardcoded. You cannot delete them."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
 
 class RewardTransactionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = RewardTransaction.objects.all().order_by("-timestamp")
