@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { HeroSlide } from '../types';
+import SliderWave from './SliderWave';
 
 interface HeroProps {
   onShopClick: () => void;
@@ -232,6 +233,9 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
           </div>
         </div>
       </div>
+
+      {/* Static Wave Under Slider */}
+      <SliderWave />
     </section>
   );
 };

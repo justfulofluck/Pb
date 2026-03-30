@@ -28,6 +28,7 @@ from .views import (
     RewardRuleViewSet,
     RewardTransactionViewSet,
     ProcessDriveVideoView,
+    WishlistViewSet,
 )
 
 router = DefaultRouter()
@@ -48,6 +49,7 @@ router.register(r"announcements", AnnouncementViewSet)
 router.register(r"distributor-applications", DistributorApplicationViewSet)
 router.register(r"reward-rules", RewardRuleViewSet)
 router.register(r"reward-transactions", RewardTransactionViewSet)
+router.register(r"wishlist", WishlistViewSet, basename="wishlist")
 
 urlpatterns = [
     path(

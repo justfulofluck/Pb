@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { API_BASE_URL } from '../config';
+import { useAuth } from '../hooks/useAuth';
 
 interface ShopPageProps {
   onProductClick: (p: Product) => void;
@@ -21,6 +22,8 @@ const ShopPage: React.FC<ShopPageProps> = ({
   const [categories, setCategories] = useState<string[]>([]);
   const [filter, setFilter] = useState(selectedCategory);
   const [isLoading, setIsLoading] = useState(true);
+  const [wishlistIds, setWishlistIds] = useState<Set<number>>(new Set());
+  const { user } = useAuth();
 
   // Sync internal filter with selectedCategory prop
   useEffect(() => {
@@ -28,6 +31,30 @@ const ShopPage: React.FC<ShopPageProps> = ({
       setFilter(selectedCategory);
     }
   }, [selectedCategory]);
+
+  // Fetch Wishlist
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      if (!user) {
+        setWishlistIds(new Set());
+        return;
+      }
+      try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch(`${API_BASE_URL}/api/wishlist/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const ids = new Set(data.map((item: any) => item.product));
+          setWishlistIds(ids as Set<number>);
+        }
+      } catch (error) {
+        console.error("Failed to fetch wishlist", error);
+      }
+    };
+    fetchWishlist();
+  }, [user]);
 
   // Fetch Categories
   useEffect(() => {
@@ -123,11 +150,11 @@ const ShopPage: React.FC<ShopPageProps> = ({
       {/* Banner Area */}
       <div className="pt-6 md:pt-10 pb-6 px-4 relative overflow-hidden">
 
-        <div className="max-w-4xl mx-auto relative z-10 text-center">
-          <h1 className="text-4xl md:text-8xl font-normal !normal-case tracking-tight mb-2 text-[#008a45] font-anton leading-[0.9]">
+        <div className="max-w-4xl mx-auto relative z-10 text-center flex flex-col items-center">
+          <h1 className="text-6xl md:text-8xl font-normal !normal-case tracking-tight mb-2 font-anton text-textured-any bg-[#0b3d2e] leading-[0.9] inline-block pb-[0.1em]">
             {searchQuery ? `Results for "${searchQuery}"` : (filter === 'All' ? 'All products' : filter.charAt(0).toUpperCase() + filter.slice(1).toLowerCase())}
           </h1>
-          <div className="w-32 h-1.5 bg-[#008a45] mx-auto mb-2"></div>
+          <div className="w-32 h-1.5 bg-[#0b3d2e] mb-2 texture-chalkboard-strong"></div>
         </div>
       </div>
 
@@ -138,9 +165,9 @@ const ShopPage: React.FC<ShopPageProps> = ({
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-10 py-3 rounded-full font-normal text-sm tracking-tight transition-all !normal-case shadow-md font-anton ${filter === cat
-                ? 'bg-[#008a45] text-white'
-                : 'bg-white text-slate-400 hover:text-[#008a45]'
+              className={`px-10 py-3 rounded-full font-normal text-base tracking-widest transition-all !normal-case shadow-md font-anton ${filter === cat
+                ? 'bg-[#0b3d2e] text-white'
+                : 'bg-white text-slate-400 hover:text-[#0b3d2e]'
                 }`}
             >
               {cat}
@@ -183,8 +210,37 @@ const ShopPage: React.FC<ShopPageProps> = ({
 
                     {/* Wishlist Heart - Top Right */}
                     <button
-                      className="absolute top-2 right-2 z-20 p-2 text-white/30 hover:text-red-500 transition-colors"
-                      onClick={(e) => { e.stopPropagation(); /* Handle wishlist */ }}
+                      className={`absolute top-2 right-2 z-20 p-2 transition-colors ${wishlistIds.has(product.id as any) ? 'text-red-500' : 'text-white/30 hover:text-red-500'}`}
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (!user) {
+                          alert('Please log in to save to your wishlist.');
+                          return;
+                        }
+                        try {
+                          const token = localStorage.getItem('access_token');
+                          const response = await fetch(`${API_BASE_URL}/api/wishlist/toggle/`, {
+                            method: 'POST',
+                            headers: {
+                              'Authorization': `Bearer ${token}`,
+                              'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ product_id: product.id })
+                          });
+                          if (response.ok) {
+                            const data = await response.json();
+                            const newIds = new Set(wishlistIds);
+                            if (data.status === 'added') {
+                              newIds.add(product.id as any);
+                            } else {
+                              newIds.delete(product.id as any);
+                            }
+                            setWishlistIds(newIds);
+                          }
+                        } catch (error) {
+                          console.error("Failed to toggle wishlist", error);
+                        }
+                      }}
                     >
                       <span className="material-symbols-outlined fill-1 text-2xl">favorite</span>
                     </button>
@@ -224,7 +280,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
                     </div>
 
                     {/* Title - Fixed min height for alignment */}
-                    <h3 className="text-sm md:text-lg font-bold uppercase tracking-tight text-[#228b44] mb-2 px-2 leading-tight group-hover:opacity-80 transition-all text-center min-h-[2.5rem] md:min-h-[3rem] flex items-center justify-center">
+                    <h3 className="text-xl md:text-2xl font-normal capitalize tracking-normal text-textured-any bg-[#0b3d2e] mb-2 px-2 leading-tight group-hover:opacity-80 transition-all text-center min-h-[3rem] md:min-h-[4rem] flex items-center justify-center font-anton pb-1">
                       {product.name}
                     </h3>
 
@@ -232,14 +288,14 @@ const ShopPage: React.FC<ShopPageProps> = ({
                     <div className="mt-auto w-full">
                       {/* Price */}
                       <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-                        <span className="text-base md:text-xl font-bold text-[#228b44]">Rs. {product.price.toFixed(2)}</span>
+                        <span className="text-xl md:text-2xl font-bold text-[#228b44]">Rs. {product.price.toFixed(2)}</span>
                         {product.originalPrice && product.originalPrice > product.price && (
-                          <span className="text-xs md:text-sm font-medium text-slate-400 line-through">Rs. {product.originalPrice.toFixed(2)}</span>
+                          <span className="text-sm md:text-base font-medium text-slate-400 line-through">Rs. {product.originalPrice.toFixed(2)}</span>
                         )}
                       </div>
 
                       <button
-                        className="w-full bg-[#228b44] text-white py-2 md:py-3 rounded-md font-bold text-[10px] md:text-xs uppercase tracking-widest shadow-md hover:bg-slate-900 transition-all active:scale-95 flex items-center justify-center gap-2"
+                        className="w-5/6 mx-auto btn-greenboard py-3 md:py-4 rounded-xl font-bold text-xs md:text-sm uppercase tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
                         onClick={(e) => {
                           e.stopPropagation();
                           onAddToCart(product);

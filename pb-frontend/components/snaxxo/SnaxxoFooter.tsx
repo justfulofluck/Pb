@@ -67,14 +67,14 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
             <div className="border-b border-white/10 lg:border-none w-full">
                 <button
                     onClick={() => toggleSection(id)}
-                    className="w-full flex items-center justify-between py-3 lg:py-0 lg:mb-3 text-left focus:outline-none group"
+                    className="w-full flex items-center justify-between py-2 lg:py-0 lg:mb-0 text-left focus:outline-none group"
                 >
-                    <h4 className="font-bold text-white text-base lg:text-lg uppercase tracking-wider textured-font">{title}</h4>
+                    <h4 className="font-bold text-white text-xl lg:text-2xl uppercase tracking-widest font-anton leading-none">{title}</h4>
                     <span className={`lg:hidden transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
                         <i className="fa-solid fa-chevron-down text-white/50 text-xs"></i>
                     </span>
                 </button>
-                <div className={`overflow-hidden transition-all duration-300 lg:h-auto lg:opacity-100 ${isOpen ? 'max-h-[500px] opacity-100 pb-3' : 'max-h-0 opacity-0 lg:max-h-none'}`}>
+                <div className={`overflow-hidden transition-all duration-300 lg:h-auto lg:opacity-100 lg:-mt-2 ${isOpen ? 'max-h-[500px] opacity-100 pb-3' : 'max-h-0 opacity-0 lg:max-h-none'}`}>
                     {children}
                 </div>
             </div>

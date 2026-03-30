@@ -20,6 +20,7 @@ from .models import (
     DistributorApplication,
     RewardRule,
     RewardTransaction,
+    WishlistItem,
 )
 
 
@@ -259,3 +260,11 @@ class RewardTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = RewardTransaction
         fields = "__all__"
+
+class WishlistItemSerializer(serializers.ModelSerializer):
+    product_details = ProductSerializer(source='product', read_only=True)
+
+    class Meta:
+        model = WishlistItem
+        fields = ['id', 'user', 'product', 'product_details', 'added_at']
+        read_only_fields = ['user', 'added_at']
