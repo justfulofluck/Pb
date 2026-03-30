@@ -140,7 +140,7 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                         </div>
 
                         <h3
-                            className="text-textured-green-big !text-[1.9rem] text-center mb-3 px-1 line-clamp-2 h-[2.8rem] uppercase tracking-normal leading-[1] cursor-default !inline-block w-full"
+                            className="text-textured-green-big !text-[1.9rem] text-center mb-3 px-1 line-clamp-3 h-[6.5rem] uppercase tracking-normal leading-[1.1] cursor-default !inline-block w-full overflow-hidden flex-shrink-0"
                         >
                             {product.name}
                         </h3>
@@ -154,7 +154,7 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
 
                         <button
                             onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
-                            className="btn-greenboard text-white w-full py-3.5 rounded-full font-black text-[12px] uppercase tracking-widest transition-all shadow-lg active:scale-95 mt-auto flex items-center justify-center gap-1.5"
+                            className="btn-greenboard text-white w-[85%] mx-auto py-3.5 rounded-full font-black text-[12px] uppercase tracking-widest transition-all shadow-lg active:scale-95 mt-auto flex items-center justify-center gap-1.5"
                         >
                             {product.stock <= 0 ? 'SOLD OUT' : 'ADD TO CART'}
                         </button>

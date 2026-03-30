@@ -453,7 +453,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
                                                 disabled={product.stock <= 0}
-                                                className="btn-greenboard pointer-events-auto text-white px-8 py-3.5 sm:px-11 sm:py-4.5 rounded-full font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-1.5"
+                                                className="btn-greenboard pointer-events-auto text-white px-8 py-3.5 sm:px-11 sm:py-4.5 mb-8 sm:mb-12 rounded-full font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-1.5"
                                             >
                                                 <span className="material-symbols-outlined text-sm">add</span>
                                                 {product.stock <= 0 ? 'Sold Out' : 'Order'}

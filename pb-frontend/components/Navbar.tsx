@@ -419,8 +419,9 @@ const Navbar: React.FC<NavbarProps> = ({
         ></div>
 
         {/* Menu Panel - Coming from RIGHT */}
-        <div className={`absolute top-0 right-0 bottom-0 w-full max-w-[340px] bg-[#1daa61] text-white shadow-2xl transition-transform duration-500 ease-out z-10 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-          <div className="flex flex-col h-full relative px-8 pt-12 pb-10">
+        <div className={`absolute top-0 right-0 bottom-0 w-full max-w-[340px] bg-[#0b3d2e] text-white shadow-2xl transition-transform duration-500 ease-out z-10 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+          <div className="!absolute inset-0 texture-overlay texture-speckles pointer-events-none z-0"></div>
+          <div className="flex flex-col h-full relative z-20 px-8 pt-12 pb-10">
 
             {/* Sidebar Top Header */}
             <div className="flex items-center justify-between mb-12">
