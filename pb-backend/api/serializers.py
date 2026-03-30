@@ -75,6 +75,12 @@ class ProductListSerializer(serializers.ModelSerializer):
             "stock",
             "is_top_rated",
             "theme_color",
+            "description",
+            "benefits",
+            "nutrients",
+            "gallery",
+            "model_3d",
+            "orientation",
         ]
 
 
