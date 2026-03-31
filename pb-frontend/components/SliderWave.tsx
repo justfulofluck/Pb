@@ -25,27 +25,7 @@ const SliderWave: React.FC = () => {
         };
     }, []);
 
-    return (
-        <div className="absolute bottom-[-1px] left-0 w-full overflow-hidden leading-[0] z-30 pointer-events-none">
-            <svg
-                className="relative block w-full h-[60px] md:h-[120px] lg:h-[180px] scale-[1.01]"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 1440 320"
-                preserveAspectRatio="none"
-            >
-                <defs>
-                    <linearGradient id="waveGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#0b3d2e" stopOpacity="1" />
-                        <stop offset="100%" stopColor="#f2f2ec" stopOpacity="1" />
-                    </linearGradient>
-                </defs>
-                <g ref={waveRef}>
-                    <path fill="url(#waveGradient)" d={pathD} />
-                    <path fill="url(#waveGradient)" d={pathD} transform="translate(1440, 0)" />
-                </g>
-            </svg>
-        </div>
-    );
+    return null;
 };
 
 export default SliderWave;
