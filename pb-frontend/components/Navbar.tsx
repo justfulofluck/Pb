@@ -151,13 +151,13 @@ const Navbar: React.FC<NavbarProps> = ({
           <div className="hidden lg:grid grid-cols-[1fr_auto_1fr] items-center h-24">
             {/* Left side: Navigation Links */}
             <div className="flex items-center gap-10 font-black text-[13px] tracking-widest text-slate-800 transition-all duration-300">
-              <button onClick={onJourneyClick} className="hover:text-primary transition-colors uppercase font-anton text-lg">OUR JOURNEY</button>
+              <button onClick={onJourneyClick} className="hover:text-primary transition-colors uppercase font-anton text-lg tracking-widest">OUR JOURNEY</button>
               <div className="relative group/menu" ref={dropdownRef}>
                 <button
                   onClick={() => setIsProductsDropdownOpen(!isProductsDropdownOpen)}
-                  className={`hover:text-primary transition-colors uppercase font-anton text-lg flex items-center gap-1 ${isProductsDropdownOpen ? 'text-primary' : ''}`}
+                  className={`hover:text-primary transition-colors uppercase font-anton text-lg tracking-widest flex items-center gap-1 ${isProductsDropdownOpen ? 'text-primary' : ''}`}
                 >
-                  PRODUCTS <span className="material-symbols-outlined text-[14px]">expand_more</span>
+                  PRODUCTS <span className="material-symbols-outlined text-[14px] font-bold">expand_more</span>
                 </button>
 
                 {/* Products Dropdown */}

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import HeroSliderVersion2 from './components/herosliderverson2';
 import CategoryList from './components/CategoryList';
 import ProductGrid from './components/ProductGrid';
 import LatestProductShowcase from './components/LatestProductShowcase';
@@ -1375,7 +1376,7 @@ const AppContent: React.FC = () => {
       <main className="animate-in fade-in duration-500">
         {currentView === 'home' && (
           <>
-            <Hero onShopClick={navigateToShop} slides={slides} />
+            <HeroSliderVersion2 />
             <CategoryList onCategoryClick={navigateToShopCategory} products={products} />
             <StoryCarousel stories={[...stories].reverse().slice(0, 5)} products={products} onProductClick={navigateToProduct} onAddToCart={addToCart} />
             <div className="snaxxo-wrapper relative w-full overflow-hidden bg-whiteboard-alt texture-overlay texture-speckles">
