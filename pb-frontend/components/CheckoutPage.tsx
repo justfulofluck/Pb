@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { CartItem } from '../types';
 import { API_BASE_URL } from '../config';
 import { triggerRewardNotification } from './RewardNotification';
+import { useToast } from './Toast';
 
 interface CheckoutPageProps {
   items: CartItem[];
@@ -19,6 +20,7 @@ declare global {
 }
 
 const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSuccess, onLoginRequired, checkAuth }) => {
+  const { showToast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -109,7 +111,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const shipping = subtotal > 999 ? 0 : 50;
   const tax = subtotal * 0.05; // 5% GST
-  
+
   // 10 points = 1 Rupee discount
   const maxRedeemablePoints = Math.min(userPoints, Math.floor(subtotal * 10));
   const potentialDiscount = usePoints ? maxRedeemablePoints / 10 : 0;
@@ -143,28 +145,28 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
 
       if (verifyResponse.ok) {
         const verifyData = await verifyResponse.json();
-        
+
         // Trigger notification using backend data if available, fallback to calculation
         const earnedPoints = verifyData.points_earned !== undefined ? verifyData.points_earned : Math.floor(subtotal / 10);
         if (earnedPoints > 0) {
-            triggerRewardNotification(earnedPoints, `Order #${orderId} Verified!`);
+          triggerRewardNotification(earnedPoints, `Order #${orderId} Verified!`);
         }
-        
+
         // Refresh auth state to show new points in dashboard
         if (checkAuth) {
-            await checkAuth();
+          await checkAuth();
         }
-        
+
         setIsSuccess(true);
         setTimeout(() => {
           onOrderSuccess();
         }, 3000); // Wait 3 seconds to show success message
       } else {
-        alert("Payment verification failed. Please contact support.");
+        showToast("Payment verification failed. Please contact support.", 'error');
       }
     } catch (error) {
       console.error("Verification Error:", error);
-      alert("Payment verification failed. Please check your connection.");
+      showToast("Payment verification failed. Please check your connection.", 'error');
     } finally {
       setIsProcessing(false);
     }
@@ -244,18 +246,18 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
 
         const rzp = new window.Razorpay(options);
         rzp.on('payment.failed', function (response: any) {
-          alert(response.error.description);
+          showToast(response.error.description, 'error');
           setIsProcessing(false);
         });
         rzp.open();
       } else {
         const errData = await response.json();
-        alert(`Order creation failed: ${errData.error || 'Unknown error'}`);
+        showToast(`Order creation failed: ${errData.error || 'Unknown error'}`, 'error');
         setIsProcessing(false);
       }
     } catch (error: any) {
       console.error("Order Creation Error:", error);
-      alert(error.message || "Failed to initiate order. Please try again.");
+      showToast(error.message || "Failed to initiate order. Please try again.", 'error');
       setIsProcessing(false);
     }
   };
@@ -440,7 +442,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{userPoints} Available</p>
                   </div>
                 </div>
-                <button 
+                <button
                   type="button"
                   onClick={togglePoints}
                   className={`w-12 h-6 rounded-full transition-all relative ${usePoints ? 'bg-primary' : 'bg-slate-300'}`}

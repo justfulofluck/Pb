@@ -12,9 +12,11 @@ type AuthView = 'login' | 'signup' | 'reset' | 'otp';
 
 import { useAuth } from '../hooks/useAuth';
 import { triggerRewardNotification } from './RewardNotification';
+import { useToast } from './Toast';
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
   const { login, register } = useAuth();
+  const { showToast } = useToast();
   const [view, setView] = useState<AuthView>('login');
 
   // Form State
@@ -83,7 +85,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
           throw new Error(data.error || 'Failed to send reset email');
         }
 
-        alert('Password reset OTP has been sent to your email!');
+        showToast('Password reset OTP has been sent to your email!', 'success');
         setView('otp');
       } else if (view === 'otp') {
         const response = await fetch(`${API_BASE_URL}/api/password-reset/confirm/`, {
@@ -97,7 +99,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
           throw new Error(data.error || 'Invalid OTP or password requirement not met');
         }
 
-        alert('Password reset successfully! Please log in with your new password.');
+        showToast('Password reset successfully! Please log in with your new password.', 'success');
         setView('login');
       }
     } catch (err: any) {

@@ -158,8 +158,8 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
         </p>
         <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Corporate ID / Email</label>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
-            <span className="material-symbols-outlined text-lg">badge</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center justify-center">
+            <span className="material-symbols-outlined text-lg leading-none">badge</span>
           </span>
           <input
             type="email"
@@ -193,8 +193,8 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
         </p>
         <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">One-Time Password</label>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
-            <span className="material-symbols-outlined text-lg">lock_clock</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center justify-center">
+            <span className="material-symbols-outlined text-lg leading-none">lock_clock</span>
           </span>
           <input
             type="text"
@@ -227,8 +227,8 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
 
         <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">New Password</label>
         <div className="relative mb-4">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
-            <span className="material-symbols-outlined text-lg">vpn_key</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center justify-center">
+            <span className="material-symbols-outlined text-lg leading-none">vpn_key</span>
           </span>
           <input
             type="password"
@@ -242,8 +242,8 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
 
         <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Confirm Password</label>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
-            <span className="material-symbols-outlined text-lg">check_circle</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center justify-center">
+            <span className="material-symbols-outlined text-lg leading-none">check_circle</span>
           </span>
           <input
             type="password"
@@ -304,8 +304,8 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Corporate ID / Email</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
-                    <span className="material-symbols-outlined text-lg">badge</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center justify-center">
+                    <span className="material-symbols-outlined text-lg leading-none">badge</span>
                   </span>
                   <input
                     type="email"
@@ -321,8 +321,8 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Access Key</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
-                    <span className="material-symbols-outlined text-lg">vpn_key</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center justify-center">
+                    <span className="material-symbols-outlined text-lg leading-none">vpn_key</span>
                   </span>
                   <input
                     type="password"

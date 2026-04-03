@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import HeroSliderVersion2 from './components/herosliderverson2';
@@ -41,6 +41,7 @@ import SnaxxoProductWheel from './components/snaxxo/SnaxxoProductWheel';
 import PressUpdates from './components/PressUpdates';
 import MobileBottomNav from './components/MobileBottomNav';
 import RewardNotification from './components/RewardNotification';
+import { ToastProvider, useToast } from './components/Toast';
 
 const INITIAL_PRODUCTS: Product[] = [];
 const INITIAL_STORIES: Story[] = [];
@@ -62,6 +63,7 @@ import { API_BASE_URL } from './config';
 
 const AppContent: React.FC = () => {
   const { user, logout, checkAuth } = useAuth();
+  const { showToast } = useToast();
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [events, setEvents] = useState<EventBlog[]>(INITIAL_EVENTS);
@@ -450,7 +452,7 @@ const AppContent: React.FC = () => {
         setProducts(prev => [mappedProduct, ...prev]);
       } else {
         const errData = await response.json();
-        alert(`Failed to add product: ${errData.detail || 'Unknown error'}`);
+        showToast(`Failed to add product: ${errData.detail || 'Unknown error'}`, 'error');
       }
     } catch (err) {
       console.error("Failed to add product", err);
@@ -506,7 +508,7 @@ const AppContent: React.FC = () => {
         };
         setProducts(prev => prev.map(p => p.id === mappedProduct.id ? mappedProduct : p));
       } else {
-        alert("Failed to update product");
+        showToast("Failed to update product", 'error');
       }
     } catch (err) {
       console.error("Failed to update product", err);
@@ -527,7 +529,7 @@ const AppContent: React.FC = () => {
       if (response.ok) {
         setProducts(prev => prev.filter(p => p.id !== id));
       } else {
-        alert("Failed to delete product");
+        showToast("Failed to delete product", 'error');
       }
     } catch (err) {
       console.error("Failed to delete product", err);
@@ -580,7 +582,7 @@ const AppContent: React.FC = () => {
       if (response.ok) {
         setVisitorForms(prev => prev.filter(f => f.id !== id));
       } else {
-        alert("Failed to delete form");
+        showToast("Failed to delete form", 'error');
       }
     } catch (err) {
       console.error("Failed to delete visitor form", err);
@@ -598,7 +600,7 @@ const AppContent: React.FC = () => {
         body: JSON.stringify(newCategory)
       });
       if (response.status === 401) {
-        alert("Session expired. Please log in again.");
+        showToast("Session expired. Please log in again.", 'warning');
         handleAdminLogout();
         return;
       }
@@ -619,7 +621,7 @@ const AppContent: React.FC = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.status === 401) {
-        alert("Session expired. Please log in again.");
+        showToast("Session expired. Please log in again.", 'warning');
         handleAdminLogout();
         return;
       }
@@ -1008,7 +1010,7 @@ const AppContent: React.FC = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.status === 401) {
-        alert("Session expired. Please log in again.");
+        showToast("Session expired. Please log in again.", 'warning');
         handleAdminLogout();
         return;
       }
@@ -1052,14 +1054,14 @@ const AppContent: React.FC = () => {
           productId: String(savedStory.product_id)
         };
         setStories(prev => [...prev, mappedStory]);
-        alert("Story added successfully!");
+        showToast("Story added successfully!", 'success');
       } else {
         const errorData = await response.json().catch(() => ({}));
-        alert(`Failed to add story: ${errorData.detail || errorData.error || response.statusText}`);
+        showToast(`Failed to add story: ${errorData.detail || errorData.error || response.statusText}`, 'error');
       }
     } catch (err) {
       console.error("Failed to add story", err);
-      alert("Error adding story. The image might be too large or the server is busy.");
+      showToast("Error adding story. The image might be too large or the server is busy.", 'error');
     }
   };
 
@@ -1336,6 +1338,53 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen selection:bg-primary/20 bg-background-light">
+      {/* Full Page Premium Loading Screen */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            className="fixed inset-0 z-[10000] bg-white flex flex-col items-center justify-center"
+          >
+            <div className="relative mb-12">
+              {/* Outer ring */}
+              <div className="w-32 h-32 border-4 border-slate-100 rounded-full"></div>
+              {/* Spinning primary ring */}
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                className="absolute top-0 left-0 w-32 h-32 border-4 border-primary border-t-transparent rounded-full"
+              ></motion.div>
+              {/* Pulsing Logo */}
+              <motion.img
+                src="/logos/Pinobite-logo.png"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 object-contain"
+                alt="Pinobite Logo"
+              />
+            </div>
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-3xl font-black uppercase tracking-[0.2em] text-slate-900 mb-2"
+            >
+              Pinobite
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-[10px] font-black uppercase tracking-[0.5em] text-primary animate-pulse ml-2"
+            >
+              Fueling your potential...
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {currentView !== 'checkout' && currentView !== 'visitor-form' && (
         <Navbar
           cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
@@ -1387,6 +1436,18 @@ const AppContent: React.FC = () => {
                   onProductClick={navigateToProduct}
                   isLoading={isLoading}
                   onShopClick={navigateToShop}
+                  onHomeClick={goHome}
+                  onFAQClick={navigateToFAQ}
+
+                  onBlogsClick={navigateToBlogs}
+                  onEventBlogsClick={navigateToEventBlogs}
+                  onAdminClick={navigateToAdmin}
+                  onJourneyClick={navigateToJourney}
+                  onPrivacyClick={navigateToPrivacy}
+                  onTermsClick={navigateToTerms}
+                  onRefundClick={navigateToRefund}
+                  onShippingClick={navigateToShipping}
+                  onDistributorClick={navigateToDistributor}
                 />
               </div>
             )}
@@ -1411,25 +1472,6 @@ const AppContent: React.FC = () => {
             )}
             {pressUpdates.length > 0 && <PressUpdates pressUpdates={pressUpdates} />}
             <Newsletter />
-            <SnaxxoLanding
-              products={products.slice(-5).reverse()}
-              onAddToCart={addToCart}
-              onProductClick={navigateToProduct}
-              isLoading={isLoading}
-              onShopClick={navigateToShop}
-              onHomeClick={goHome}
-              onFAQClick={navigateToFAQ}
-
-              onBlogsClick={navigateToBlogs}
-              onEventBlogsClick={navigateToEventBlogs}
-              onAdminClick={navigateToAdmin}
-              onJourneyClick={navigateToJourney}
-              onPrivacyClick={navigateToPrivacy}
-              onTermsClick={navigateToTerms}
-              onRefundClick={navigateToRefund}
-              onShippingClick={navigateToShipping}
-              onDistributorClick={navigateToDistributor}
-            />
           </>
         )}
 
@@ -1616,9 +1658,11 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ToastProvider>
   );
 };
 

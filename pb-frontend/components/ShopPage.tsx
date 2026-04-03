@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { API_BASE_URL } from '../config';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from './Toast';
 
 interface ShopPageProps {
   onProductClick: (p: Product) => void;
@@ -24,6 +25,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [wishlistIds, setWishlistIds] = useState<Set<number>>(new Set());
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   // Sync internal filter with selectedCategory prop
   useEffect(() => {
@@ -214,7 +216,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
                       onClick={async (e) => {
                         e.stopPropagation();
                         if (!user) {
-                          alert('Please log in to save to your wishlist.');
+                          showToast('Please log in to save to your wishlist.', 'warning');
                           return;
                         }
                         try {

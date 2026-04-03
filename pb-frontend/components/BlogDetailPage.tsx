@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { BlogPost } from '../types';
+import { useToast } from './Toast';
 
 interface BlogDetailPageProps {
   post: BlogPost;
@@ -9,6 +9,7 @@ interface BlogDetailPageProps {
 }
 
 const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeClick }) => {
+  const { showToast } = useToast();
   const [isLiked, setIsLiked] = useState(false);
   const [showCopied, setShowCopied] = useState(false);
 
@@ -53,7 +54,7 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeCli
         setShowCopied(true);
         setTimeout(() => setShowCopied(false), 2500);
       } catch (fallbackErr) {
-        alert("Please copy the URL from your browser's address bar.");
+        showToast("Please copy the URL from your browser's address bar.", 'info');
       }
       document.body.removeChild(textArea);
     }

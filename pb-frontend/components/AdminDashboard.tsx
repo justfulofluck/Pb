@@ -3,6 +3,7 @@ import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Cat
 import { API_BASE_URL } from '../config';
 import { jsPDF } from "jspdf";
 import ConfirmationModal from './ConfirmationModal';
+import { useToast } from './Toast';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -91,6 +92,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onAddPressUpdate,
   onDeletePressUpdate
 }) => {
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   const [productView, setProductView] = useState<'list' | 'add' | 'categories'>('list');
   const [eventView, setEventView] = useState<'list' | 'add'>('list');
@@ -143,7 +145,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handlePressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!pressForm.logo || !pressForm.quote || !pressForm.mediaHouse) {
-      alert('Please fill in the logo, media house name, and quote.');
+      showToast('Please fill in the logo, media house name, and quote.', 'warning');
       return;
     }
     const newPress: PressUpdate = {
@@ -400,7 +402,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleAddStory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStoryForm.mediaUrl || !newStoryForm.productId) {
-      alert("Please provide a Google Drive URL and select a product.");
+      showToast("Please provide a Google Drive URL and select a product.", 'warning');
       return;
     }
 
@@ -427,7 +429,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setNewStoryForm({ mediaUrl: '', mediaType: 'image', productId: '' });
     } catch (error) {
       console.error(error);
-      alert("Error processing your Google Drive URL. Ensure it's a public link.");
+      showToast("Error processing your Google Drive URL. Ensure it's a public link.", 'error');
     } finally {
       setIsProcessingDriveVideo(false);
     }
@@ -494,7 +496,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!productForm.image) {
-      alert("Please upload a featured image.");
+      showToast("Please upload a featured image.", 'warning');
       return;
     }
 
@@ -583,7 +585,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     e.preventDefault();
 
     if (!blogForm.image) {
-      alert("Please upload a cover image.");
+      showToast("Please upload a cover image.", 'warning');
       return;
     }
 
@@ -766,7 +768,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading QR code:', error);
-      alert('Failed to download QR code');
+      showToast('Failed to download QR code', 'error');
     }
   };
 
@@ -899,7 +901,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleEventSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!eventForm.image) {
-      alert("Please upload a cover image.");
+      showToast("Please upload a cover image.", 'warning');
       return;
     }
 
@@ -1106,7 +1108,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       }
     } catch (error) {
       console.error("Failed to update status", error);
-      alert("Failed to update status");
+      showToast("Failed to update status", 'error');
     }
   };
 
@@ -1352,27 +1354,27 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <div className={`absolute -bottom-4 -right-4 w-20 h-20 rounded-full blur-2xl opacity-40 ${slide.blobColor}`}></div>
                           <img src={slide.image} className="w-full h-auto object-contain drop-shadow-lg z-10" alt="Preview" />
                         </div>
-                        <div className="flex-1 p-6 flex flex-col">
+                        <div className="flex-1 p-8 flex flex-col">
                           <div className="flex justify-between items-start mb-4">
                             <div>
-                              <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${slide.accentColor}`}>{slide.category}</span>
-                              <h4 className="font-black uppercase text-xl leading-tight mt-1">{slide.headline}</h4>
+                              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 block mb-1">{slide.category || 'Slide Label'}</span>
+                              <h4 className="font-anton uppercase text-3xl leading-tight text-slate-900 tracking-tight">{slide.headline || 'Asset Preview'}</h4>
                             </div>
-                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button onClick={() => moveSlide(index, 'up')} disabled={index === 0} className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-400 flex items-center justify-center disabled:opacity-30"><span className="material-symbols-outlined text-sm">keyboard_arrow_up</span></button>
-                              <button onClick={() => moveSlide(index, 'down')} disabled={index === slides.length - 1} className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-400 flex items-center justify-center disabled:opacity-30"><span className="material-symbols-outlined text-sm">keyboard_arrow_down</span></button>
+                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => moveSlide(index, 'up')} disabled={index === 0} className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 flex items-center justify-center disabled:opacity-30 transition-all shadow-sm"><span className="material-symbols-outlined text-lg">keyboard_arrow_up</span></button>
+                              <button onClick={() => moveSlide(index, 'down')} disabled={index === slides.length - 1} className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 flex items-center justify-center disabled:opacity-30 transition-all shadow-sm"><span className="material-symbols-outlined text-lg">keyboard_arrow_down</span></button>
                             </div>
                           </div>
-                          <div className="flex items-center justify-between pt-4 border-t border-slate-50 mt-auto">
-                            <div className="flex items-center gap-4">
-                              <button onClick={() => toggleSlideStatus(slide.id)} className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${slide.isActive ? 'text-green-500' : 'text-slate-400'}`}>
-                                <span className="material-symbols-outlined text-lg">{slide.isActive ? 'check_circle' : 'circle'}</span>
+                          <div className="flex items-center justify-between pt-6 border-t border-slate-50 mt-auto">
+                            <div className="flex items-center gap-6">
+                              <button onClick={() => toggleSlideStatus(slide.id)} className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${slide.isActive ? 'text-green-500' : 'text-slate-400 hover:text-slate-600'}`}>
+                                <span className="material-symbols-outlined text-xl">{slide.isActive ? 'check_circle' : 'radio_button_unchecked'}</span>
                                 {slide.isActive ? 'Active' : 'Hidden'}
                               </button>
                             </div>
-                            <div className="flex gap-2">
-                              <button onClick={() => deleteSlide(slide.id)} className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"><span className="material-symbols-outlined text-lg">delete</span></button>
-                              <button onClick={() => openEditSlideModal(slide)} className="bg-slate-900 text-white px-6 py-2.5 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-primary transition-colors">Edit Content</button>
+                            <div className="flex gap-3">
+                              <button onClick={() => { if (confirm('Permanently delete this slide?')) deleteSlide(slide.id); }} className="w-12 h-12 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"><span className="material-symbols-outlined">delete</span></button>
+                              <button onClick={() => openEditSlideModal(slide)} className="bg-slate-900 text-white px-8 h-12 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-primary transition-all shadow-lg hover:-translate-y-0.5">Manage Slide</button>
                             </div>
                           </div>
                         </div>
@@ -1829,7 +1831,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           onClick={() => {
                             navigator.clipboard.writeText(selectedVisitorForm.link);
                             // Visual feedback could be added here, e.g. toast
-                            alert("Link copied to clipboard!");
+                            showToast("Link copied to clipboard!", 'success');
                           }}
                           className="text-primary hover:text-primary/80"
                           title="Copy Link"
@@ -3037,7 +3039,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {isSlideModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={closeSlideModal} />
-          
+
           <div className="bg-white w-full max-w-6xl rounded-[40px] shadow-2xl relative z-10 p-0 animate-in zoom-in duration-500 max-h-[96vh] overflow-hidden flex flex-col md:flex-row shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)]">
             {/* Left Side: Controls (Canvas Style) */}
             <div className="w-full md:w-[400px] bg-slate-50 border-r border-slate-100 p-8 overflow-y-auto custom-scroll flex flex-col">
@@ -3050,176 +3052,93 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
 
               <form onSubmit={handleSlideSubmit} id="slide-editor-form" className="space-y-8 flex-1">
-                {/* Visual Theme Section */}
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                    <span className="w-4 h-[1px] bg-primary"></span> 01. Visual Environment
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {COLOR_THEMES.map(theme => (
-                      <button
-                        key={theme.name}
-                        type="button"
-                        onClick={() => setSlideForm(prev => ({ ...prev, bgColor: theme.bgColor, accentColor: theme.accentColor, blobColor: theme.blobColor }))}
-                        className={`w-10 h-10 rounded-xl border-2 transition-all flex items-center justify-center p-0.5 ${slideForm.bgColor === theme.bgColor ? 'border-primary ring-4 ring-primary/10' : 'border-white bg-white hover:border-slate-200 shadow-sm'}`}
-                      >
-                        <span className={`w-full h-full rounded-lg ${theme.bgColor.replace('bg-', 'bg-')} border border-black/5`}></span>
-                      </button>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">Transition</label>
-                      <select value={slideForm.transitionType} onChange={e => setSlideForm({ ...slideForm, transitionType: e.target.value })} className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold focus:ring-primary">
-                        <option value="fade">Smooth Fade</option>
-                        <option value="slide">Side Slide</option>
-                        <option value="scale">Bounce Scale</option>
-                        <option value="none">Instant</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">Status</label>
-                      <select value={slideForm.isActive ? 'active' : 'inactive'} onChange={e => setSlideForm({ ...slideForm, isActive: e.target.value === 'active' })} className="w-full px-3 py-2 bg-white rounded-xl border border-slate-200 text-xs font-bold focus:ring-primary">
-                        <option value="active">Active</option>
-                        <option value="inactive">Draft</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Typography Section */}
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                    <span className="w-4 h-[1px] bg-primary"></span> 02. Content & Copy
-                  </label>
-                  <div className="space-y-3">
-                    <input required type="text" placeholder="Category (e.g. SUPER MUESLI)" value={slideForm.category} onChange={e => setSlideForm({ ...slideForm, category: e.target.value.toUpperCase() })} className="w-full px-4 py-3 bg-white rounded-xl border border-slate-200 font-bold text-xs focus:ring-primary focus:border-primary placeholder:text-slate-300" />
-                    <input required type="text" placeholder="Headline (The Big Title)" value={slideForm.headline} onChange={e => setSlideForm({ ...slideForm, headline: e.target.value })} className="w-full px-4 py-3 bg-white rounded-xl border border-slate-200 font-bold text-xs focus:ring-primary focus:border-primary placeholder:text-slate-300" />
-                  </div>
-                </div>
-
-                {/* Product Association */}
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                    <span className="w-4 h-[1px] bg-primary"></span> 03. Product Sync
-                  </label>
-                  <select
-                    value={slideForm.productId}
-                    onChange={e => {
-                      const pid = e.target.value;
-                      const product = products.find(p => p.id === pid);
-                      setSlideForm(prev => ({
-                        ...prev,
-                        productId: pid,
-                        category: product ? product.category.toUpperCase() : prev.category,
-                        headline: product ? product.name : prev.headline,
-                        image: product ? product.image : prev.image,
-                        ctaLink: product ? `/product/${product.id}` : prev.ctaLink
-                      }));
-                    }}
-                    className="w-full px-4 py-3 bg-white rounded-xl border border-slate-200 font-bold text-xs focus:ring-primary bg-white"
-                  >
-                    <option value="">Link to a Product...</option>
-                    {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
-                </div>
-
-                {/* Buttons Section */}
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                    <span className="w-4 h-[1px] bg-primary"></span> 04. Actions (Buttons)
-                  </label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <input type="text" placeholder="Button 1 Label" value={slideForm.cta} onChange={e => setSlideForm({ ...slideForm, cta: e.target.value })} className="w-full px-3 py-2 bg-white rounded-lg border border-slate-200 text-[10px] font-black uppercase focus:ring-primary" />
-                      <input type="text" placeholder="URL Link" value={slideForm.ctaLink} onChange={e => setSlideForm({ ...slideForm, ctaLink: e.target.value })} className="w-full px-3 py-2 bg-white rounded-lg border border-slate-200 text-[9px] font-mono focus:ring-primary" />
-                    </div>
-                    <div className="space-y-2">
-                      <input type="text" placeholder="Button 2 (Optional)" value={slideForm.secondaryCta} onChange={e => setSlideForm({ ...slideForm, secondaryCta: e.target.value })} className="w-full px-3 py-2 bg-white rounded-lg border border-slate-200 text-[10px] font-black uppercase focus:ring-primary" />
-                      <input type="text" placeholder="URL Link" value={slideForm.secondaryCtaLink} onChange={e => setSlideForm({ ...slideForm, secondaryCtaLink: e.target.value })} className="w-full px-3 py-2 bg-white rounded-lg border border-slate-200 text-[9px] font-mono focus:ring-primary" />
-                    </div>
-                  </div>
-                </div>
-
                 {/* Image Upload */}
-                <div className="space-y-2 pt-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Overlay Image</label>
-                  <div className="relative group overflow-hidden rounded-2xl bg-white border border-slate-200 p-2 shadow-sm transition-all hover:shadow-md">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                    <span className="w-4 h-[1px] bg-primary"></span> 01. Slider Asset
+                  </label>
+                  <div className="relative group overflow-hidden rounded-2xl bg-white border border-slate-200 p-8 shadow-sm transition-all hover:shadow-md cursor-pointer">
                     <input type="file" accept="image/*" onChange={handleSlideImageUpload} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined">image</span>
+                    <div className="flex flex-col items-center justify-center gap-4 text-center">
+                      <div className="w-20 h-20 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors border-2 border-dashed border-slate-200">
+                        <span className="material-symbols-outlined text-4xl">upload_file</span>
                       </div>
-                      <span className="text-xs font-black uppercase tracking-tight text-slate-600">Swap Visual Asset</span>
+                      <div>
+                        <span className="text-sm font-black uppercase tracking-tight text-slate-900 block">Upload Slider Image</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">PNG, JPG, WEBP (Max 5MB)</span>
+                      </div>
+                    </div>
+                  </div>
+                  {slideForm.image && (
+                    <div className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 group">
+                      <img src={slideForm.image} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setSlideForm(prev => ({ ...prev, image: '' }))}
+                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <span className="material-symbols-outlined text-white text-3xl">delete</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Configuration Section */}
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                    <span className="w-4 h-[1px] bg-primary"></span> 02. Final Configuration
+                  </label>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase">Slide Status</label>
+                      <select
+                        value={slideForm.isActive ? 'active' : 'inactive'}
+                        onChange={e => setSlideForm({ ...slideForm, isActive: e.target.value === 'active' })}
+                        className="w-full px-4 py-3 bg-white rounded-xl border border-slate-200 font-bold text-xs focus:ring-primary focus:border-primary"
+                      >
+                        <option value="active">Live (Visible on Homepage)</option>
+                        <option value="inactive">Draft (Hidden)</option>
+                      </select>
                     </div>
                   </div>
                 </div>
               </form>
 
               <div className="pt-8 mt-auto flex gap-3">
-                <button type="button" onClick={closeSlideModal} className="flex-1 px-4 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400 hover:bg-white hover:text-slate-600 transition-all border border-transparent hover:border-slate-200">Reset</button>
-                <button type="submit" form="slide-editor-form" className="flex-[2] px-8 py-4 rounded-2xl bg-slate-900 text-white font-black uppercase text-[10px] tracking-[0.2em] shadow-xl hover:bg-primary transition-all hover:-translate-y-1">Publish Slide</button>
+                <button type="button" onClick={closeSlideModal} className="flex-1 px-4 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400 hover:bg-white hover:text-slate-600 transition-all border border-transparent hover:border-slate-200">Cancel</button>
+                <button type="submit" form="slide-editor-form" className="flex-[2] px-8 py-4 rounded-2xl bg-slate-900 text-white font-black uppercase text-[10px] tracking-[0.2em] shadow-xl hover:bg-primary transition-all hover:-translate-y-1">Confirm Slider</button>
               </div>
             </div>
 
             {/* Right Side: Live Canvas Preview */}
-            <div className="flex-1 bg-white relative flex flex-col items-center justify-center p-0 overflow-hidden group/canvas">
+            <div className="flex-1 bg-slate-100 relative flex flex-col items-center justify-center p-0 overflow-hidden group/canvas">
               <div className="absolute top-8 left-8 z-30 pointer-events-none">
                 <div className="px-3 py-1.5 bg-slate-900/10 backdrop-blur-md rounded-full border border-white/20 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest">Live Dynamic Preview</span>
+                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                  <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest">Slider Preview</span>
                 </div>
               </div>
 
-              {/* The Actual Preview Container (Scaled Down Hero) */}
-              <div className={`w-full h-full relative overflow-hidden transition-colors duration-1000 ${slideForm.bgColor}`}>
-                {/* Abstract blobs */}
-                <div className={`absolute -top-20 -left-20 w-80 h-80 rounded-full blur-[100px] opacity-40 transition-colors duration-1000 ${slideForm.blobColor}`}></div>
-                <div className={`absolute top-1/2 -right-20 w-80 h-80 rounded-full blur-[100px] opacity-40 transition-colors duration-1000 ${slideForm.blobColor}`}></div>
-
-                <div className="relative w-full h-full flex items-center px-12 md:px-20">
-                  <div className="grid grid-cols-2 gap-10 items-center w-full">
-                    {/* Text */}
-                    <div className="space-y-4 animate-in fade-in slide-in-from-left-8 duration-700">
-                      <span className={`inline-block font-black uppercase tracking-[0.2em] text-[10px] transform -rotate-1 transition-colors duration-700 ${slideForm.accentColor}`}>
-                        {slideForm.category || 'CATEGORY LABEL'}
-                      </span>
-                      <h1 className="text-4xl lg:text-5xl font-black text-slate-900 leading-[1.05] tracking-tight">
-                        {slideForm.headline || 'Your Big Headline Here'}
-                      </h1>
-                      <div className="flex gap-4 pt-4">
-                        <div className="px-6 py-3 bg-slate-900 rounded-full text-[10px] font-black uppercase text-white tracking-widest flex items-center gap-2 shadow-lg">
-                          {slideForm.cta || 'ACTION'}
-                          <span className="material-symbols-outlined text-[10px]">arrow_forward</span>
-                        </div>
-                        {slideForm.secondaryCta && (
-                          <div className="px-6 py-3 border border-slate-200 rounded-full text-[10px] font-black uppercase text-slate-900 tracking-widest">
-                            {slideForm.secondaryCta}
-                          </div>
-                        )}
-                      </div>
+              {/* The Actual Preview Container */}
+              <div className="w-full h-full relative overflow-hidden bg-white">
+                <div className="relative w-full h-full flex items-center justify-center">
+                  {slideForm.image ? (
+                    <img
+                      src={slideForm.image}
+                      alt="Preview"
+                      className="w-full h-full object-cover shadow-sm"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-slate-300">
+                      <span className="material-symbols-outlined text-6xl mb-4">image</span>
+                      <p className="text-xs font-black uppercase tracking-widest">No Image Selected</p>
                     </div>
-
-                    {/* Image Preview Area */}
-                    <div className="relative flex justify-center items-center h-[300px] animate-in fade-in zoom-in-95 duration-1000 delay-200">
-                      {slideForm.image ? (
-                        <div className="relative group">
-                          <div className={`absolute inset-0 border-2 rounded-full transform scale-110 rotate-12 opacity-10 transition-colors duration-1000 ${slideForm.accentColor.replace('text-', 'border-')}`}></div>
-                          <img src={slideForm.image} alt="Preview" className="max-h-[280px] w-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.15)] group-hover:scale-110 transition-transform duration-500" />
-                        </div>
-                      ) : (
-                        <div className="w-48 h-48 rounded-full border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300">
-                          <span className="material-symbols-outlined text-4xl mb-2">image_not_supported</span>
-                          <span className="text-[10px] font-black uppercase tracking-widest">No Asset</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
               <div className="absolute right-8 bottom-8 text-[9px] font-black text-slate-300 uppercase tracking-widest">
-                WYSIWYG CANVAS BUILDER
+                Simple Slider Editor
               </div>
             </div>
           </div>

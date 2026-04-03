@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { VisitorForm } from '../types';
 import { API_BASE_URL } from '../config';
+import { useToast } from './Toast';
 
 interface VisitorFormPageProps {
     formId: string;
@@ -8,6 +9,7 @@ interface VisitorFormPageProps {
 }
 
 const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }) => {
+    const { showToast } = useToast();
     const [form, setForm] = useState<VisitorForm | null>(null);
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -80,12 +82,12 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
         if (!form) return;
 
         if (formData.flavorPreferences.length === 0) {
-            alert("Please select at least one flavor you would like to try.");
+            showToast("Please select at least one flavor you would like to try.", 'warning');
             return;
         }
 
         if (!formData.marketingConsent) {
-            alert("You must agree to receive updates to proceed.");
+            showToast("You must agree to receive updates to proceed.", 'warning');
             return;
         }
 
@@ -113,11 +115,11 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
             if (response.ok) {
                 setSubmitted(true);
             } else {
-                alert("Failed to submit. Please try again.");
+                showToast("Failed to submit. Please try again.", 'error');
             }
         } catch (err) {
             console.error(err);
-            alert("An error occurred.");
+            showToast("An error occurred.", 'error');
         } finally {
             setIsSubmitting(false);
         }
