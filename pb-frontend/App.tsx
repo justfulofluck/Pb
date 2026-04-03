@@ -1376,34 +1376,40 @@ const AppContent: React.FC = () => {
       <main className="animate-in fade-in duration-500">
         {currentView === 'home' && (
           <>
-            <HeroSliderVersion2 />
-            <CategoryList onCategoryClick={navigateToShopCategory} products={products} />
-            <StoryCarousel stories={[...stories].reverse().slice(0, 5)} products={products} onProductClick={navigateToProduct} onAddToCart={addToCart} />
-            <div className="snaxxo-wrapper relative w-full overflow-hidden bg-whiteboard-alt texture-overlay texture-speckles">
-              <SnaxxoProductWheel
-                products={products}
-                onAddToCart={addToCart}
-                onProductClick={navigateToProduct}
-                isLoading={isLoading}
-                onShopClick={navigateToShop}
-              />
-            </div>
+            {slides.length > 0 && <HeroSliderVersion2 slides={slides} />}
+            {products.length > 0 && <CategoryList onCategoryClick={navigateToShopCategory} products={products} />}
+            {stories.length > 0 && <StoryCarousel stories={[...stories].reverse().slice(0, 5)} products={products} onProductClick={navigateToProduct} onAddToCart={addToCart} />}
+            {products.length > 0 && (
+              <div className="snaxxo-wrapper relative w-full overflow-hidden bg-whiteboard-alt texture-overlay texture-speckles">
+                <SnaxxoProductWheel
+                  products={products}
+                  onAddToCart={addToCart}
+                  onProductClick={navigateToProduct}
+                  isLoading={isLoading}
+                  onShopClick={navigateToShop}
+                />
+              </div>
+            )}
             <LatestProductShowcase />
 
             <ComparisonTable />
 
-            <Testimonials reviews={reviews} />
-            <BlogSection
-              posts={blogPosts}
-              onPostClick={navigateToBlogDetail}
-              onViewAllClick={navigateToBlogs}
-            />
-            <EventsSection
-              events={events}
-              onParticipateClick={() => setIsEventModalOpen(true)}
-              onViewRecapsClick={navigateToEventBlogs}
-            />
-            <PressUpdates pressUpdates={pressUpdates} />
+            {reviews.length > 0 && <Testimonials reviews={reviews} />}
+            {blogPosts.length > 0 && (
+              <BlogSection
+                posts={blogPosts}
+                onPostClick={navigateToBlogDetail}
+                onViewAllClick={navigateToBlogs}
+              />
+            )}
+            {events.length > 0 && (
+              <EventsSection
+                events={events}
+                onParticipateClick={() => setIsEventModalOpen(true)}
+                onViewRecapsClick={navigateToEventBlogs}
+              />
+            )}
+            {pressUpdates.length > 0 && <PressUpdates pressUpdates={pressUpdates} />}
             <Newsletter />
             <SnaxxoLanding
               products={products.slice(-5).reverse()}
