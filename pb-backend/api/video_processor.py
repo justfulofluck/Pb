@@ -48,8 +48,8 @@ def process_google_drive_video_to_mp4(drive_url: str) -> dict:
         print("DEBUG: Processing snippet...")
         with VideoFileClip(temp_in) as video:
             duration = min(video.duration, 5)
-            # Resize and remove audio for the loop
-            snippet = video.subclip(0, duration).without_audio().resize(height=360)
+            # Remove resize to avoid Pillow ANTIALIAS bug and save CPU
+            snippet = video.subclip(0, duration).without_audio()
             snippet.write_videofile(
                 temp_loop, 
                 codec="libx264", 
