@@ -168,6 +168,10 @@ class StoryViewSet(viewsets.ModelViewSet):
     queryset = Story.objects.all()
     serializer_class = StorySerializer
 
+    def create(self, request, *args, **kwargs):
+        print("DEBUG: Story Post Data:", request.data)
+        return super().create(request, *args, **kwargs)
+
 
 class HeroSlideViewSet(viewsets.ModelViewSet):
     queryset = HeroSlide.objects.all()
@@ -845,7 +849,7 @@ class RewardTransactionViewSet(viewsets.ReadOnlyModelViewSet):
 
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
-from .video_processor import process_google_drive_video_to_gif
+from .video_processor import process_google_drive_video_to_mp4
 
 
 class WishlistViewSet(viewsets.ModelViewSet):
@@ -887,8 +891,12 @@ class ProcessDriveVideoView(APIView):
             )
 
         try:
-            gif_url = process_google_drive_video_to_gif(drive_url)
-            return Response({"mediaUrl": gif_url})
+            video_data = process_google_drive_video_to_mp4(drive_url)
+            return Response({
+                "mediaUrl": video_data["loop_url"],
+                "fullVideoUrl": video_data["full_url"],
+                "mediaType": "video"
+            })
         except Exception as e:
             import traceback
 

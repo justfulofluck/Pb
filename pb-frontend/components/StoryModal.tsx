@@ -10,16 +10,20 @@ interface StoryModalProps {
 
 const getDriveStreamUrl = (url: string) => {
     if (!url) return '';
+    if (url.startsWith('/media/')) return url; // Let the browser handle proxy or absolute
     const fileIdMatch = url.match(/(?:id=|file\/d\/)([\w-]+)/);
     if (fileIdMatch && fileIdMatch[1]) {
-        // This trick streams the raw video bytes if it's small enough (avoiding virus scan page)
         return `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`;
     }
     return url;
 };
 
 const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddToCart }) => {
-    const [isMuted, setIsMuted] = useState(false);
+    const [isMuted, setIsMuted] = useState(false); // Enable audio by default in the full view
+
+    // Fail-safe: Always prioritize local files (full or loop) over Drive links to avoid ORB blocking
+    const videoUrl = story.fullVideoUrl || story.mediaUrl || story.originalDriveUrl || '';
+    const isVideo = story.mediaType === 'video' || (videoUrl && (videoUrl.toLowerCase().includes('.mp4') || videoUrl.includes('drive.google.com')));
 
     // Prevent background scrolling while modal is active
     useEffect(() => {
@@ -67,9 +71,9 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
 
                 {/* Left Side: Full Video */}
                 <div className="w-full md:w-1/2 h-1/2 md:h-full bg-black relative flex items-center justify-center overflow-hidden">
-                    {story.originalDriveUrl ? (
+                    {isVideo ? (
                         <video
-                            src={getDriveStreamUrl(story.originalDriveUrl)}
+                            src={getDriveStreamUrl(videoUrl)}
                             className="w-full h-full object-cover"
                             autoPlay
                             loop

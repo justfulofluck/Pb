@@ -125,6 +125,7 @@ export interface BlogPost {
 export interface Story {
   id: string;
   mediaUrl: string;
+  fullVideoUrl?: string;
   originalDriveUrl?: string;
   mediaType: 'image' | 'video';
   productId: string;

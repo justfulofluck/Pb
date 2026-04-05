@@ -1,6 +1,8 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
+import { useAuth } from '../hooks/useAuth';
+import { useToast } from './Toast';
+import { API_BASE_URL } from '../config';
 
 interface ProductGridProps {
   products: Product[];
@@ -10,6 +12,68 @@ interface ProductGridProps {
 }
 
 const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProductClick, isLoading }) => {
+  const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
+  const { user } = useAuth();
+  const { showToast } = useToast();
+
+  // Fetch Wishlist
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      if (!user) {
+        setWishlistIds(new Set());
+        return;
+      }
+      try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch(`${API_BASE_URL}/api/wishlist/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const ids = new Set(data.map((item: any) => String(item.product)));
+          setWishlistIds(ids);
+        }
+      } catch (error) {
+        console.error("Failed to fetch wishlist", error);
+      }
+    };
+    fetchWishlist();
+  }, [user]);
+
+  const toggleWishlist = async (e: React.MouseEvent, productId: string) => {
+    e.stopPropagation();
+    if (!user) {
+      showToast('Please log in to save to your wishlist.', 'warning');
+      return;
+    }
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`${API_BASE_URL}/api/wishlist/toggle/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ product_id: productId })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const newIds = new Set(wishlistIds);
+        if (data.status === 'added') {
+          newIds.add(productId);
+          showToast('Added to wishlist!', 'success');
+        } else {
+          newIds.delete(productId);
+          showToast('Removed from wishlist', 'info');
+        }
+        setWishlistIds(newIds);
+      }
+    } catch (error) {
+      console.error("Failed to toggle wishlist", error);
+      showToast('Failed to update wishlist', 'error');
+    }
+  };
+
   // Skeleton loader component matching the new style
   const LoadingSkeleton = () => (
     <div className="flex flex-col animate-pulse">
@@ -45,9 +109,10 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
             ))
           ) : (
             products.map((product) => {
-              const discount = product.originalPrice
+              const discount = product.originalPrice && product.originalPrice > product.price
                 ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
                 : null;
+              const isWishlisted = wishlistIds.has(String(product.id));
 
               return (
                 <div
@@ -66,9 +131,12 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
                     )}
 
                     {/* Heart Icon */}
-                    <div className="absolute top-2 right-2 z-20 p-2 text-white/30 group-hover:text-red-500 transition-colors">
-                      <span className="material-symbols-outlined fill-1 text-2xl">favorite</span>
-                    </div>
+                    <button
+                      onClick={(e) => toggleWishlist(e, String(product.id))}
+                      className={`absolute top-2 right-2 z-20 p-2 transition-colors ${isWishlisted ? 'text-red-500' : 'text-white/30 hover:text-red-500'}`}
+                    >
+                      <span className={`material-symbols-outlined text-2xl ${isWishlisted ? 'fill-1' : ''}`}>favorite</span>
+                    </button>
 
                     <div className="w-full h-full flex items-center justify-center relative">
                       <img

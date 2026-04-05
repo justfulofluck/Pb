@@ -299,6 +299,7 @@ const AppContent: React.FC = () => {
           const mappedStories = storiesData.map((s: any) => ({
             id: String(s.id),
             mediaUrl: s.media_url,
+            fullVideoUrl: s.full_video_url,
             originalDriveUrl: s.original_drive_url,
             mediaType: s.media_type,
             productId: String(s.product_id),
@@ -1041,6 +1042,7 @@ const AppContent: React.FC = () => {
           media_url: newStory.mediaUrl,
           media_type: newStory.mediaType,
           original_drive_url: newStory.originalDriveUrl,
+          full_video_url: newStory.fullVideoUrl,
           product_id: newStory.productId
         })
       });
@@ -1049,6 +1051,7 @@ const AppContent: React.FC = () => {
         const mappedStory = {
           id: String(savedStory.id),
           mediaUrl: savedStory.media_url,
+          fullVideoUrl: savedStory.full_video_url,
           originalDriveUrl: savedStory.original_drive_url,
           mediaType: savedStory.media_type,
           productId: String(savedStory.product_id)
@@ -1068,13 +1071,19 @@ const AppContent: React.FC = () => {
   const handleDeleteStory = async (id: string) => {
     try {
       const token = localStorage.getItem('admin_access_token');
-      await fetch(`${API_BASE_URL}/api/stories/${id}/`, {
+      const response = await fetch(`${API_BASE_URL}/api/stories/${id}/`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      setStories(prev => prev.filter(s => s.id !== id));
+      if (response.ok) {
+        setStories(prev => prev.filter(s => s.id !== id));
+        showToast("Story deleted successfully!", 'success');
+      } else {
+        showToast("Failed to delete story", 'error');
+      }
     } catch (err) {
       console.error("Failed to delete story", err);
+      showToast("Error deleting story", 'error');
     }
   };
 
