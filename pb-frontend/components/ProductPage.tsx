@@ -9,6 +9,7 @@ import Testimonials from './Testimonials';
 import StoryCarousel from './StoryCarousel';
 import { useSnaxxoAnimations } from '../hooks/useSnaxxoAnimations';
 import { gsap } from 'gsap';
+import PrecisionComparison from './PrecisionComparison';
 
 interface ProductPageProps {
   product: Product;
@@ -442,6 +443,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
           </div>
         </div>
       </section>
+
+      <PrecisionComparison />
 
       <section className="section overflow-hidden" style={{ backgroundColor: '#f2f2ec' }}>
         <div className="w-layout-blockcontainer container product-page-intro w-container">
