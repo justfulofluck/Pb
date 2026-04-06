@@ -1,18 +1,68 @@
 import yagmail
 from django.conf import settings
 
+from django.core.mail import EmailMultiAlternatives
+from django.utils.html import strip_tags
+
 def send_email(to, subject, contents):
     """
-    Send an email using yagmail with configured credentials.
+    Send an email using Django's EmailMultiAlternatives.
+    Supports both plain text and HTML.
     """
     try:
-        yag = yagmail.SMTP(settings.YAGMAIL_USER, settings.YAGMAIL_PASSWORD)
-        yag.send(to=to, subject=subject, contents=contents)
+        from_email = settings.EMAIL_HOST_USER
+        text_content = strip_tags(contents)
+        msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+        if "<html" in contents.lower():
+            msg.attach_alternative(contents, "text/html")
+        msg.send()
         print(f"Email sent to {to}")
         return True
     except Exception as e:
         print(f"Failed to send email: {e}")
         return False
+
+from django.template.loader import render_to_string
+
+def send_order_confirmation_emails(order, razorpay_payment_id):
+    """
+    Send order confirmation emails to the customer and the admin using HTML templates.
+    """
+    from .models import OrderItem
+    
+    items = OrderItem.objects.filter(order=order)
+    frontend_url = getattr(settings, "FRONTEND_URL", "https://pinobite.com")
+    admin_url = getattr(settings, "ADMIN_URL", "https://pinobite.com/admin")
+
+    context = {
+        'order': order,
+        'items': items,
+        'razorpay_payment_id': razorpay_payment_id,
+        'frontend_url': frontend_url,
+        'admin_url': admin_url,
+    }
+
+    # 1. Customer Email
+    customer_subject = f"Order Confirmed! Your Pinobite Order #{order.id} is being processed"
+    try:
+        customer_html = render_to_string('emails/order_confirmation.html', context)
+        send_email(order.user_email, customer_subject, customer_html)
+    except Exception as e:
+        print(f"Error rendering customer email: {e}")
+        # Build simple fallback if template fails
+        items_list = "\n".join([f"- {i.quantity} x {i.product_name}" for i in items])
+        fallback_msg = f"Order Confirmed #{order.id}\nItems:\n{items_list}\nTotal: ₹{order.total_amount}"
+        send_email(order.user_email, customer_subject, fallback_msg)
+
+    # 2. Admin Email
+    admin_email = getattr(settings, "ADMIN_EMAIL", settings.EMAIL_HOST_USER)
+    admin_subject = f"NEW ORDER RECEIVED: #{order.id}"
+    try:
+        admin_html = render_to_string('emails/admin_order_notification.html', context)
+        send_email(admin_email, admin_subject, admin_html)
+    except Exception as e:
+        print(f"Error rendering admin email: {e}")
+        send_email(admin_email, admin_subject, f"New Order Received! Check dashboard for #{order.id}")
 
 import razorpay
 

@@ -1,0 +1,52 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h1 style="color: #008a45; font-size: 28px; margin-bottom: 20px;">NEW ORDER ALERT! 🚀</h1>
+
+<p>A new order has been placed on Pinobite. Here are the details:</p>
+
+<div class="highlight-box">
+    <h3 style="margin-top: 0; color: #0b3d2e; font-size: 18px; text-transform: uppercase;">Order #{{ order.id }} Details
+    </h3>
+    <table width="100%" cellpadding="10" cellspacing="0">
+        <tr>
+            <td><strong>Customer:</strong></td>
+            <td>{{ order.first_name }} {{ order.last_name }} ({{ order.user_email }})</td>
+        </tr>
+        <tr>
+            <td><strong>Phone:</strong></td>
+            <td>{{ order.phone }}</td>
+        </tr>
+        <tr>
+            <td><strong>Address:</strong></td>
+            <td>{{ order.address }}, {{ order.city }}, {{ order.state }} - {{ order.pin_code }}</td>
+        </tr>
+        <tr>
+            <td><strong>Amount:</strong></td>
+            <td style="font-weight: 800; font-size: 18px; color: #008a45;">₹{{ order.total_amount }}</td>
+        </tr>
+        <tr>
+            <td><strong>Payment ID:</strong></td>
+            <td>{{ razorpay_payment_id }}</td>
+        </tr>
+    </table>
+
+    <div class="divider"></div>
+
+    <h3 style="margin-top: 0; color: #0b3d2e; font-size: 16px; text-transform: uppercase;">Ordered Items</h3>
+    <ul style="padding: 0; list-style: none;">
+        {% for item in items %}
+        <li style="padding: 10px 0; border-bottom: 1px dashed #cccccc;">
+            <strong>{{ item.quantity }} x {{ item.product_name }}</strong><br>
+            <span style="font-size: 14px; color: #666666;">SKU/ID: {{ item.product_id }} | Price: ₹{{ item.price
+                }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div style="text-align: center;">
+    <a href="{{ admin_url }}/api/order/{{ order.id }}/change/" class="button">MANAGE ORDER</a>
+</div>
+
+{% endblock %}

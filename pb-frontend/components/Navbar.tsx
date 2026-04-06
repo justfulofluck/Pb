@@ -500,17 +500,11 @@ const Navbar: React.FC<NavbarProps> = ({
 
             {/* Footer Social Icons */}
             <div className="flex items-center gap-8 pt-8 border-t border-white/10 mt-auto">
-              <a href="#" className="text-white/70 hover:text-white active:scale-90 transition-all">
+              <a href="https://www.facebook.com/profile.php?id=61574254086582" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white active:scale-90 transition-all">
                 <i className="fa-brands fa-facebook-f text-xl"></i>
               </a>
-              <a href="#" className="text-white/70 hover:text-white active:scale-90 transition-all">
-                <i className="fa-brands fa-twitter text-xl"></i>
-              </a>
-              <a href="#" className="text-white/70 hover:text-white active:scale-90 transition-all">
-                <i className="fa-brands fa-linkedin-in text-xl"></i>
-              </a>
-              <a href="#" className="text-white/70 hover:text-white active:scale-90 transition-all">
-                <i className="fa-brands fa-youtube text-xl"></i>
+              <a href="https://www.instagram.com/pino.bite/" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white active:scale-90 transition-all">
+                <i className="fa-brands fa-instagram text-xl"></i>
               </a>
             </div>
 

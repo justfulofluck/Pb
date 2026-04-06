@@ -109,17 +109,11 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
                                 Pinobite is a group of modern healthy snack specialists transforming your daily energy intake with handcrafted, nutritious muesli and peanut butter. Founded with a passion for goodness.
                             </p>
                             <div className="flex gap-4">
-                                <a href="#" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white hover:bg-white/10 transition-all">
-                                    <i className="fa-brands fa-linkedin-in text-sm"></i>
-                                </a>
-                                <a href="#" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white hover:bg-white/10 transition-all">
-                                    <i className="fa-brands fa-x-twitter text-sm"></i>
-                                </a>
-                                <a href="#" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white hover:bg-white/10 transition-all">
+                                <a href="https://www.facebook.com/profile.php?id=61574254086582" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white hover:bg-white/10 transition-all">
                                     <i className="fa-brands fa-facebook-f text-sm"></i>
                                 </a>
-                                <a href="#" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white hover:bg-white/10 transition-all">
-                                    <i className="fa-brands fa-youtube text-sm"></i>
+                                <a href="https://www.instagram.com/pino.bite/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full border border-white/40 flex items-center justify-center text-white hover:bg-white/10 transition-all">
+                                    <i className="fa-brands fa-instagram text-sm"></i>
                                 </a>
                             </div>
                         </div>

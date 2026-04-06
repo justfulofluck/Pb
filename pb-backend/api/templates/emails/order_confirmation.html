@@ -1,0 +1,44 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+<h1 style="color: #008a45; font-size: 28px; margin-bottom: 20px;">Order Confirmed! 🍿</h1>
+
+<p>Hello <strong>{{ order.first_name|default:"Customer" }}</strong>,</p>
+
+<p>Thank you for choosing Pinobite! Your order <strong>#{{ order.id }}</strong> has been received and is now being
+    processed with care.</p>
+
+<div class="highlight-box">
+    <h3 style="margin-top: 0; color: #0b3d2e; font-size: 18px; text-transform: uppercase;">Order Summary</h3>
+    <table width="100%" cellpadding="10" cellspacing="0">
+        {% for item in items %}
+        <tr>
+            <td style="border-bottom: 1px solid #eeeeee;">{{ item.quantity }} x {{ item.product_name }}</td>
+            <td align="right" style="border-bottom: 1px solid #eeeeee;">₹{{ item.price }}</td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td style="font-weight: 800; font-size: 18px; padding-top: 20px;">TOTAL</td>
+            <td align="right" style="font-weight: 800; font-size: 18px; padding-top: 20px;">₹{{ order.total_amount }}
+            </td>
+        </tr>
+    </table>
+    <div style="margin-top: 15px; font-size: 14px; color: #666666;">
+        <strong>Payment ID:</strong> {{ razorpay_payment_id }}
+    </div>
+</div>
+
+<p>We'll notify you as soon as your treats are shipped! In the meantime, you can track your order in your dashboard.</p>
+
+<div style="text-align: center;">
+    <a href="{{ frontend_url }}/account" class="button">VIEW ORDER</a>
+</div>
+
+<p style="font-size: 14px; color: #666666; margin-top: 30px;">
+    <strong>Shipping to:</strong><br>
+    {{ order.first_name }} {{ order.last_name }}<br>
+    {{ order.address }}<br>
+    {{ order.city }}, {{ order.state }} - {{ order.pin_code }}
+</p>
+
+{% endblock %}

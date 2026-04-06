@@ -178,7 +178,7 @@ class HeroSlideViewSet(viewsets.ModelViewSet):
     serializer_class = HeroSlideSerializer
 
 
-from .utils import get_razorpay_client, send_email
+from .utils import get_razorpay_client, send_email, send_order_confirmation_emails
 from django.conf import settings
 
 
@@ -361,6 +361,9 @@ class OrderViewSet(viewsets.ModelViewSet):
                     if order_count == 1:
                         total_awarded += award_points(request.user, "first_order")
 
+                    # Send Confirmation Emails (Internal + Customer)
+                    send_order_confirmation_emails(order, razorpay_payment_id)
+
                     return Response(
                         {
                             "status": "Payment verified successfully (Mock)",
@@ -414,12 +417,8 @@ class OrderViewSet(viewsets.ModelViewSet):
             if order_count == 1:
                 total_awarded += award_points(request.user, "first_order")
 
-            # Send Email
-            send_email(
-                request.user.email,
-                f"Order Confirmed #{order.id}",
-                f"Thank you for your order! Your payment ID is {razorpay_payment_id}. We are processing it.",
-            )
+            # Send Emails (Customer + Admin)
+            send_order_confirmation_emails(order, razorpay_payment_id)
 
             return Response(
                 {

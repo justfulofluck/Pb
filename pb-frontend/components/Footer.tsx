@@ -49,17 +49,11 @@ const Footer: React.FC<FooterProps> = ({
               Pinobite is a group of modern healthy snack specialists transforming your daily energy intake with handcrafted, nutritious muesli and peanut butter. Founded with a passion for goodness.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:border-white transition-all">
-                <i className="fa-brands fa-linkedin-in text-sm"></i>
-              </a>
-              <a href="#" className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:border-white transition-all">
-                <i className="fa-brands fa-x-twitter text-sm"></i>
-              </a>
-              <a href="#" className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:border-white transition-all">
+              <a href="https://www.facebook.com/profile.php?id=61574254086582" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:border-white transition-all">
                 <i className="fa-brands fa-facebook-f text-sm"></i>
               </a>
-              <a href="#" className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:border-white transition-all">
-                <i className="fa-brands fa-youtube text-sm"></i>
+              <a href="https://www.instagram.com/pino.bite/" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:border-white transition-all">
+                <i className="fa-brands fa-instagram text-sm"></i>
               </a>
             </div>
           </div>

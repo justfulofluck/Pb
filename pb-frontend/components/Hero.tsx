@@ -105,7 +105,7 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
 
   return (
     <section
-      className="relative overflow-hidden h-[90vh] md:h-screen flex items-center bg-whiteboard texture-overlay texture-speckles"
+      className="relative overflow-hidden h-screen flex items-center bg-whiteboard texture-overlay texture-speckles pt-12 pb-32 md:pt-0 md:pb-0"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >
@@ -131,15 +131,15 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
               <div
                 key={slide.id}
                 className={`absolute inset-0 flex flex-col justify-center text-center md:text-left transition-all duration-1000 cubic-bezier(0.16, 1, 0.3, 1) ${index === currentSlide
-                  ? 'opacity-100 translate-y-0 pointer-events-auto delay-300'
-                  : 'opacity-0 translate-y-12 pointer-events-none'
+                  ? 'opacity-100 translate-y-0 pointer-events-auto'
+                  : 'opacity-0 translate-y-8 pointer-events-none'
                   }`}
               >
                 <span className={`inline-block font-bold uppercase tracking-[0.3em] text-[10px] md:text-xs mb-6 ${slide.accentColor} font-satoshi`}>
                   {slide.category}
                 </span>
 
-                <h1 className="text-5xl md:text-8xl font-normal text-slate-900 leading-[0.9] mb-8 tracking-tight font-anton !normal-case">
+                <h1 className="text-3xl md:text-8xl font-normal text-slate-900 leading-[0.9] mb-4 md:mb-8 tracking-tight font-anton !normal-case">
                   {slide.headline}
                 </h1>
 
@@ -168,7 +168,7 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
           </div>
 
           {/* Image Content */}
-          <div className="order-1 md:order-2 relative h-[350px] md:h-[650px] flex items-center justify-center">
+          <div className="order-1 md:order-2 relative h-[250px] md:h-[650px] flex items-center justify-center pt-4 md:pt-0">
             {activeSlides.map((slide, index) => (
               <div
                 key={slide.id}
@@ -177,7 +177,7 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
                   : 'opacity-0 scale-75 rotate-12 translate-x-20 blur-md z-0'
                   }`}
               >
-                <div className="relative w-full max-w-[280px] md:max-w-lg">
+                <div className="relative w-full max-w-[180px] md:max-w-lg">
                   {/* Glassmorphic card background effect */}
                   <div className={`absolute inset-0 bg-white/10 backdrop-blur-[2px] rounded-full transform scale-90 -rotate-6 opacity-0 transition-opacity duration-1000 delay-500 ${index === currentSlide ? 'opacity-100' : ''}`}></div>
 
@@ -197,7 +197,7 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
       </div>
 
       {/* Navigation - Bottom */}
-      <div className="absolute bottom-8 md:bottom-16 left-0 w-full z-30">
+      <div className="absolute bottom-28 md:bottom-16 left-0 w-full z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           {/* Progress/Dots */}
           <div className="flex gap-4">
