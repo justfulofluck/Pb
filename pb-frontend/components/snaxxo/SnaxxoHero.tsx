@@ -136,8 +136,19 @@ const SnaxxoHero: React.FC<SnaxxoHeroProps> = ({ onShopClick }) => {
 
         tl.call(startFloating, undefined, 1.55);
 
+        // Visibility observer for floating animation
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                startFloating();
+            } else {
+                chips.forEach(el => gsap.killTweensOf(el, "y"));
+            }
+        }, { threshold: 0.1 });
+        observer.observe(hero);
+
         return () => {
             tl.kill();
+            observer.disconnect();
             chips.forEach(el => gsap.killTweensOf(el));
         }
     }, []);

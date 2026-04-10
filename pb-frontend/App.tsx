@@ -14,34 +14,35 @@ import CartDrawer from './components/CartDrawer';
 import ProductModal from './components/ProductModal';
 import AuthModal from './components/AuthModal';
 import ProductPage from './components/ProductPage';
-import ShopPage from './components/ShopPage';
-import CheckoutPage from './components/CheckoutPage';
-import Dashboard from './components/Dashboard';
-import FAQPage from './components/FAQPage';
-import BlogsPage from './components/BlogsPage';
-import DistributorPage from './components/DistributorPage';
+const ShopPage = React.lazy(() => import('./components/ShopPage'));
+const CheckoutPage = React.lazy(() => import('./components/CheckoutPage'));
+const Dashboard = React.lazy(() => import('./components/Dashboard'));
+const FAQPage = React.lazy(() => import('./components/FAQPage'));
+const BlogsPage = React.lazy(() => import('./components/BlogsPage'));
+const DistributorPage = React.lazy(() => import('./components/DistributorPage'));
+const BlogDetailPage = React.lazy(() => import('./components/BlogDetailPage'));
+const EventBlogsPage = React.lazy(() => import('./components/EventBlogsPage'));
+const EventDetailsPage = React.lazy(() => import('./components/EventDetailsPage'));
+const AdminLoginPage = React.lazy(() => import('./components/AdminLoginPage'));
+const AdminDashboard = React.lazy(() => import('./components/AdminDashboard'));
+const VisitorFormPage = React.lazy(() => import('./components/VisitorFormPage'));
+const JourneyPage = React.lazy(() => import('./components/JourneyPage'));
+const PrivacyPolicyPage = React.lazy(() => import('./components/PrivacyPolicyPage'));
+const TermsAndConditionsPage = React.lazy(() => import('./components/TermsAndConditionsPage'));
+const RefundPolicyPage = React.lazy(() => import('./components/RefundPolicyPage'));
+const ShippingPolicyPage = React.lazy(() => import('./components/ShippingPolicyPage'));
+
+import RewardNotification from './components/RewardNotification';
+import { ToastProvider, useToast } from './components/Toast';
 import BlogSection from './components/BlogSection';
-import BlogDetailPage from './components/BlogDetailPage';
-import EventBlogsPage from './components/EventBlogsPage';
-import EventDetailsPage from './components/EventDetailsPage';
 import EventsSection from './components/EventsSection';
 import EventModal from './components/EventModal';
-import AdminLoginPage from './components/AdminLoginPage';
-import AdminDashboard from './components/AdminDashboard';
-import VisitorFormPage from './components/VisitorFormPage';
-import JourneyPage from './components/JourneyPage';
-import PrivacyPolicyPage from './components/PrivacyPolicyPage';
-import TermsAndConditionsPage from './components/TermsAndConditionsPage';
-import RefundPolicyPage from './components/RefundPolicyPage';
-import ShippingPolicyPage from './components/ShippingPolicyPage';
 import StoryCarousel from './components/StoryCarousel';
 import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category, Announcement, PressUpdate } from './types';
 import SnaxxoLanding from './components/snaxxo/SnaxxoLanding';
 import SnaxxoProductWheel from './components/snaxxo/SnaxxoProductWheel';
 import PressUpdates from './components/PressUpdates';
 import MobileBottomNav from './components/MobileBottomNav';
-import RewardNotification from './components/RewardNotification';
-import { ToastProvider, useToast } from './components/Toast';
 
 const INITIAL_PRODUCTS: Product[] = [];
 const INITIAL_STORIES: Story[] = [];
@@ -1280,165 +1281,171 @@ const AppContent: React.FC = () => {
       }
 
       <main className="animate-in fade-in duration-500">
-        {currentView === 'home' && (
-          <>
-            {slides.length > 0 && <HeroSliderVersion2 slides={slides} />}
-            {products.length > 0 && <CategoryList onCategoryClick={navigateToShopCategory} products={products} />}
-            {stories.length > 0 && <StoryCarousel stories={[...stories].reverse().slice(0, 5)} products={products} onProductClick={navigateToProduct} onAddToCart={addToCart} />}
-            {products.length > 0 && (
-              <div className="snaxxo-wrapper relative w-full overflow-hidden bg-whiteboard-alt texture-overlay texture-speckles">
-                <SnaxxoProductWheel
-                  products={products}
-                  onAddToCart={addToCart}
-                  onProductClick={navigateToProduct}
-                  isLoading={isLoading}
-                  onShopClick={navigateToShop}
-                  onHomeClick={goHome}
-                  onFAQClick={navigateToFAQ}
+        <React.Suspense fallback={
+          <div className="min-h-screen flex items-center justify-center bg-white">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        }>
+          {currentView === 'home' && (
+            <>
+              {slides.length > 0 && <HeroSliderVersion2 slides={slides} />}
+              {products.length > 0 && <CategoryList onCategoryClick={navigateToShopCategory} products={products} />}
+              {stories.length > 0 && <StoryCarousel stories={[...stories].reverse().slice(0, 5)} products={products} onProductClick={navigateToProduct} onAddToCart={addToCart} />}
+              {products.length > 0 && (
+                <div className="snaxxo-wrapper relative w-full overflow-hidden bg-whiteboard-alt texture-overlay texture-speckles">
+                  <SnaxxoProductWheel
+                    products={products}
+                    onAddToCart={addToCart}
+                    onProductClick={navigateToProduct}
+                    isLoading={isLoading}
+                    onShopClick={navigateToShop}
+                    onHomeClick={goHome}
+                    onFAQClick={navigateToFAQ}
 
-                  onBlogsClick={navigateToBlogs}
-                  onEventBlogsClick={navigateToEventBlogs}
-                  onAdminClick={navigateToAdmin}
-                  onJourneyClick={navigateToJourney}
-                  onPrivacyClick={navigateToPrivacy}
-                  onTermsClick={navigateToTerms}
-                  onRefundClick={navigateToRefund}
-                  onShippingClick={navigateToShipping}
-                  onDistributorClick={navigateToDistributor}
+                    onBlogsClick={navigateToBlogs}
+                    onEventBlogsClick={navigateToEventBlogs}
+                    onAdminClick={navigateToAdmin}
+                    onJourneyClick={navigateToJourney}
+                    onPrivacyClick={navigateToPrivacy}
+                    onTermsClick={navigateToTerms}
+                    onRefundClick={navigateToRefund}
+                    onShippingClick={navigateToShipping}
+                    onDistributorClick={navigateToDistributor}
+                  />
+                </div>
+              )}
+              <LatestProductShowcase />
+
+              <ComparisonTable />
+
+              {reviews.length > 0 && <Testimonials reviews={reviews} />}
+              {blogPosts.length > 0 && (
+                <BlogSection
+                  posts={blogPosts}
+                  onPostClick={navigateToBlogDetail}
+                  onViewAllClick={navigateToBlogs}
                 />
-              </div>
-            )}
-            <LatestProductShowcase />
+              )}
+              {events.length > 0 && (
+                <EventsSection
+                  events={events}
+                  onParticipateClick={() => setIsEventModalOpen(true)}
+                  onViewRecapsClick={navigateToEventBlogs}
+                />
+              )}
+              {pressUpdates.length > 0 && <PressUpdates pressUpdates={pressUpdates} />}
+              <Newsletter />
+            </>
+          )}
 
-            <ComparisonTable />
+          {currentView === 'distributor' && (
+            <DistributorPage onHomeClick={goHome} />
+          )}
 
-            {reviews.length > 0 && <Testimonials reviews={reviews} />}
-            {blogPosts.length > 0 && (
-              <BlogSection
-                posts={blogPosts}
-                onPostClick={navigateToBlogDetail}
-                onViewAllClick={navigateToBlogs}
-              />
-            )}
-            {events.length > 0 && (
-              <EventsSection
-                events={events}
-                onParticipateClick={() => setIsEventModalOpen(true)}
-                onViewRecapsClick={navigateToEventBlogs}
-              />
-            )}
-            {pressUpdates.length > 0 && <PressUpdates pressUpdates={pressUpdates} />}
-            <Newsletter />
-          </>
-        )}
+          {currentView === 'shop' && (
+            <ShopPage
+              onProductClick={navigateToProduct}
+              onAddToCart={addToCart}
+              searchQuery={globalSearchQuery}
+              selectedCategory={shopCategory}
+              onHomeClick={goHome}
+            />
+          )}
 
-        {currentView === 'distributor' && (
-          <DistributorPage onHomeClick={goHome} />
-        )}
+          {currentView === 'product' && selectedProduct && (
+            <ProductPage
+              product={selectedProduct}
+              products={products}
+              stories={stories}
+              onProductClick={navigateToProduct}
+              onShopClick={navigateToShop}
+              onAddToCart={addToCart}
+              onBack={navigateToShop}
+              reviews={reviews}
+              onAddReview={handleAddReview}
+              isLoggedIn={isLoggedIn}
+              onLoginClick={() => setIsAuthOpen(true)}
+              onPopupToggle={setIsNutritionOpen}
+              onHomeClick={goHome}
+            />
+          )}
 
-        {currentView === 'shop' && (
-          <ShopPage
-            onProductClick={navigateToProduct}
-            onAddToCart={addToCart}
-            searchQuery={globalSearchQuery}
-            selectedCategory={shopCategory}
-            onHomeClick={goHome}
-          />
-        )}
+          {currentView === 'checkout' && (
+            <CheckoutPage
+              items={cart}
+              onBack={() => setCurrentView('shop')}
+              onOrderSuccess={() => {
+                setCart([]);
+                setCurrentView('home');
+              }}
+              onLoginRequired={() => setIsAuthOpen(true)}
+              checkAuth={checkAuth}
+            />
+          )}
 
-        {currentView === 'product' && selectedProduct && (
-          <ProductPage
-            product={selectedProduct}
-            products={products}
-            stories={stories}
-            onProductClick={navigateToProduct}
-            onShopClick={navigateToShop}
-            onAddToCart={addToCart}
-            onBack={navigateToShop}
-            reviews={reviews}
-            onAddReview={handleAddReview}
-            isLoggedIn={isLoggedIn}
-            onLoginClick={() => setIsAuthOpen(true)}
-            onPopupToggle={setIsNutritionOpen}
-            onHomeClick={goHome}
-          />
-        )}
+          {currentView === 'dashboard' && (
+            <Dashboard onLogout={handleLogout} onHomeClick={goHome} />
+          )}
 
-        {currentView === 'checkout' && (
-          <CheckoutPage
-            items={cart}
-            onBack={() => setCurrentView('shop')}
-            onOrderSuccess={() => {
-              setCart([]);
-              setCurrentView('home');
-            }}
-            onLoginRequired={() => setIsAuthOpen(true)}
-            checkAuth={checkAuth}
-          />
-        )}
+          {currentView === 'faq' && (
+            <FAQPage onHomeClick={goHome} />
+          )}
 
-        {currentView === 'dashboard' && (
-          <Dashboard onLogout={handleLogout} onHomeClick={goHome} />
-        )}
+          {currentView === 'blogs' && (
+            <BlogsPage
+              posts={blogPosts}
+              onBlogClick={navigateToBlogDetail}
+              onHomeClick={goHome}
+            />
+          )}
 
-        {currentView === 'faq' && (
-          <FAQPage onHomeClick={goHome} />
-        )}
+          {currentView === 'blog-detail' && selectedBlogPost && (
+            <BlogDetailPage
+              post={selectedBlogPost}
+              onBack={navigateToBlogs}
+              onHomeClick={goHome}
+            />
+          )}
 
-        {currentView === 'blogs' && (
-          <BlogsPage
-            posts={blogPosts}
-            onBlogClick={navigateToBlogDetail}
-            onHomeClick={goHome}
-          />
-        )}
+          {currentView === 'event-blogs' && (
+            <EventBlogsPage
+              events={events}
+              onEventClick={navigateToEventDetail}
+              onHomeClick={goHome}
+            />
+          )}
 
-        {currentView === 'blog-detail' && selectedBlogPost && (
-          <BlogDetailPage
-            post={selectedBlogPost}
-            onBack={navigateToBlogs}
-            onHomeClick={goHome}
-          />
-        )}
+          {currentView === 'event-detail' && selectedEvent && (
+            <EventDetailsPage
+              event={selectedEvent}
+              onBack={navigateToEventBlogs}
+              onHomeClick={goHome}
+            />
+          )}
 
-        {currentView === 'event-blogs' && (
-          <EventBlogsPage
-            events={events}
-            onEventClick={navigateToEventDetail}
-            onHomeClick={goHome}
-          />
-        )}
+          {currentView === 'journey' && (
+            <JourneyPage onShopClick={navigateToShop} onHomeClick={goHome} />
+          )}
 
-        {currentView === 'event-detail' && selectedEvent && (
-          <EventDetailsPage
-            event={selectedEvent}
-            onBack={navigateToEventBlogs}
-            onHomeClick={goHome}
-          />
-        )}
+          {currentView === 'privacy-policy' && (
+            <PrivacyPolicyPage onHomeClick={goHome} />
+          )}
 
-        {currentView === 'journey' && (
-          <JourneyPage onShopClick={navigateToShop} onHomeClick={goHome} />
-        )}
+          {currentView === 'terms-and-conditions' && (
+            <TermsAndConditionsPage onHomeClick={goHome} />
+          )}
 
-        {currentView === 'privacy-policy' && (
-          <PrivacyPolicyPage onHomeClick={goHome} />
-        )}
+          {currentView === 'refund-policy' && (
+            <RefundPolicyPage onHomeClick={goHome} />
+          )}
 
-        {currentView === 'terms-and-conditions' && (
-          <TermsAndConditionsPage onHomeClick={goHome} />
-        )}
-
-        {currentView === 'refund-policy' && (
-          <RefundPolicyPage onHomeClick={goHome} />
-        )}
-
-        {currentView === 'shipping-policy' && (
-          <ShippingPolicyPage onHomeClick={goHome} />
-        )}
-        {currentView === 'visitor-form' && selectedFormId && (
-          <VisitorFormPage formId={selectedFormId} onHomeClick={goHome} />
-        )}
+          {currentView === 'shipping-policy' && (
+            <ShippingPolicyPage onHomeClick={goHome} />
+          )}
+          {currentView === 'visitor-form' && selectedFormId && (
+            <VisitorFormPage formId={selectedFormId} onHomeClick={goHome} />
+          )}
+        </React.Suspense>
       </main>
 
       {

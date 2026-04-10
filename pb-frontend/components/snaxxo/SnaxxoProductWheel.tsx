@@ -32,6 +32,19 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
         return items;
     }, [products]);
 
+    const [isInView, setIsInView] = React.useState(false);
+
+    // Track intersection
+    useEffect(() => {
+        if (!wrapperRef.current) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => setIsInView(entry.isIntersecting),
+            { threshold: 0.1 }
+        );
+        observer.observe(wrapperRef.current);
+        return () => observer.disconnect();
+    }, []);
+
     useEffect(() => {
         const slider = wrapperRef.current;
         if (!slider) return;
@@ -349,7 +362,9 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
             layout(false);
         };
         window.addEventListener('resize', refresh);
-        setTimeout(refresh, 100);
+        setTimeout(() => {
+            if (isInView) refresh();
+        }, 100);
         return () => {
             window.removeEventListener('resize', refresh);
             window.removeEventListener('keydown', onKeyDown);
@@ -357,7 +372,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
             wheel.removeEventListener('pointermove', onPointerMove as any);
             wheel.removeEventListener('pointerup', onPointerUp as any);
         };
-    }, [isLoading, displayProducts, products, onProductClick]);
+    }, [isLoading, displayProducts, products, onProductClick, isInView]);
 
     if (isLoading) {
         return (

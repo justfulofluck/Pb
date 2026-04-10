@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { HeroSlide } from '../types';
-import SliderWave from './SliderWave';
+
 
 interface HeroProps {
   onShopClick: () => void;
@@ -12,7 +12,20 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isInView, setIsInView] = useState(true);
+  const heroRef = useRef<HTMLElement>(null);
   const autoPlayRef = useRef<any>(null);
+
+  // Pause auto-play when hero is not in view
+  useEffect(() => {
+    if (!heroRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInView(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    observer.observe(heroRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   // Handle undefined or empty slides array - NEVER return early before all hooks
   const validSlides = slides && Array.isArray(slides) ? slides : [];
@@ -42,18 +55,18 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
   };
 
   useEffect(() => {
-    if (isAutoPlaying && activeSlides.length > 0) {
+    if (isAutoPlaying && activeSlides.length > 0 && isInView) {
       autoPlayRef.current = setInterval(nextSlide, 7000);
     }
     return () => {
       if (autoPlayRef.current) clearInterval(autoPlayRef.current);
     };
-  }, [isAutoPlaying, nextSlide, activeSlides.length]);
+  }, [isAutoPlaying, nextSlide, activeSlides.length, isInView]);
 
   // EARLY RETURN AFTER ALL HOOKS - This is the key fix!
   if (activeSlides.length === 0) {
     return (
-      <div className="h-screen flex items-center justify-center bg-whiteboard texture-overlay texture-speckles">
+      <div ref={heroRef} className="h-screen flex items-center justify-center bg-whiteboard texture-overlay texture-speckles">
         <div className="text-center">
           <h1 className="text-4xl font-black text-slate-300">NO ACTIVE SLIDES</h1>
           <button onClick={onShopClick} className="mt-4 text-primary font-bold">Go to Shop</button>
@@ -105,6 +118,7 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
 
   return (
     <section
+      ref={heroRef}
       className="relative overflow-hidden h-screen flex items-center bg-whiteboard texture-overlay texture-speckles pt-12 pb-32 md:pt-0 md:pb-0"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
@@ -233,9 +247,6 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
           </div>
         </div>
       </div>
-
-      {/* Static Wave Under Slider */}
-      <SliderWave />
     </section>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 
 interface MultiLayerWaveProps {
@@ -14,12 +14,28 @@ const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#0b3d2e", class
     const bob1Ref = useRef<SVGGElement>(null);
     const bob2Ref = useRef<SVGGElement>(null);
     const bob3Ref = useRef<SVGGElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [isInView, setIsInView] = useState(true);
 
     const pathData = "M0 100 C 150 20, 250 180, 400 100 C 550 20, 650 180, 800 100 L 800 500 L 0 500 Z";
+
+    // Track visibility - pause animation when off-screen
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => setIsInView(entry.isIntersecting),
+            { threshold: 0.1 }
+        );
+        observer.observe(containerRef.current);
+        return () => observer.disconnect();
+    }, []);
 
     useEffect(() => {
         const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (prefersReducedMotion) return;
+
+        // Skip animations if not in view to save CPU
+        if (!isInView) return;
 
         const tl1 = gsap.to(layer1Ref.current, {
             x: "-50%",
@@ -82,10 +98,10 @@ const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#0b3d2e", class
             bob2.kill();
             bob3.kill();
         };
-    }, []);
+    }, [isInView]);
 
     return (
-        <div className={`relative overflow-hidden w-full h-full ${className || ''}`} style={flipped ? { transform: 'scaleY(-1)' } : {}}>
+        <div ref={containerRef} className={`relative overflow-hidden w-full h-full ${className || ''}`} style={flipped ? { transform: 'scaleY(-1)' } : {}}>
             <svg
                 viewBox="0 0 1600 240"
                 preserveAspectRatio="none"

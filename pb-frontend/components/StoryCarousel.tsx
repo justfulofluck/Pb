@@ -31,16 +31,23 @@ const StoryCard: React.FC<{
 }> = ({ story, product, onClick, onProductClick }) => {
   const storyRef = useRef<HTMLDivElement>(null);
   const [isInView, setIsInView] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (!videoRef.current) return;
+    if (isInView) {
+      videoRef.current.play().catch(() => { });
+    } else {
+      videoRef.current.pause();
+    }
+  }, [isInView]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.unobserve(entry.target);
-        }
+        setIsInView(entry.isIntersecting);
       },
-      { threshold: 0.05, rootMargin: '100px' }
+      { threshold: 0.25, rootMargin: '0px' }
     );
 
     if (storyRef.current) {
@@ -72,9 +79,9 @@ const StoryCard: React.FC<{
       {/* Background Story Media */}
       {isVideo ? (
         <video
+          ref={videoRef}
           src={videoSrc}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 group-hover:scale-105 ${isInView ? 'opacity-100' : 'opacity-0'}`}
-          autoPlay
           muted
           loop
           playsInline
