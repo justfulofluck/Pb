@@ -3,11 +3,11 @@ import React from 'react';
 
 const PrecisionComparison: React.FC = () => {
     return (
-        <section className="py-24 px-6 max-w-7xl mx-auto bg-transparent relative z-10 font-jakarta">
+        <section className="py-24 px-6 max-w-7xl mx-auto bg-transparent relative z-10 font-satoshi">
             {/* Comparison Header */}
             <header className="text-center mb-16 md:mb-24">
-                <h1 className="font-anton text-5xl md:text-7xl lg:text-8xl uppercase leading-[0.9] tracking-tight mb-4 text-slate-800">
-                    The Science of <br /><span className="text-alpino-primary">Superior</span> Fuel
+                <h1 className="text-textured-green-big leading-[1.1] tracking-normal [word-spacing:0.2em] mb-4">
+                    The Science Of <br /><span>Superior</span> Fuel
                 </h1>
                 <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto font-medium">
                     Comparing the nutritional precision of Pinobite Super Foods against leading generic alternatives.
@@ -97,24 +97,6 @@ const PrecisionComparison: React.FC = () => {
                 </div>
             </div>
 
-            {/* Metric Details / Why it matters */}
-            <div className="mt-24 grid md:grid-cols-3 gap-6 lg:gap-8">
-                <div className="bg-white/50 backdrop-blur-sm p-6 lg:p-8 rounded-[32px] border border-slate-100 hover:shadow-xl transition-all duration-500 group">
-                    <span className="material-symbols-outlined text-alpino-primary text-2xl lg:text-3xl mb-4 p-3 bg-alpino-primary/10 rounded-2xl group-hover:bg-alpino-primary group-hover:text-white transition-colors duration-500">bolt</span>
-                    <h3 className="font-anton text-lg lg:text-xl uppercase mb-2 text-slate-800">Double Protein</h3>
-                    <p className="text-[13px] lg:text-sm text-slate-500 font-medium leading-relaxed">Isolated whey and pea protein blend ensures maximum bioavailability for muscle recovery.</p>
-                </div>
-                <div className="bg-white/50 backdrop-blur-sm p-6 lg:p-8 rounded-[32px] border border-slate-100 hover:shadow-xl transition-all duration-500 group">
-                    <span className="material-symbols-outlined text-alpino-primary text-2xl lg:text-3xl mb-4 p-3 bg-alpino-primary/10 rounded-2xl group-hover:bg-alpino-primary group-hover:text-white transition-colors duration-500">spa</span>
-                    <h3 className="font-anton text-lg lg:text-xl uppercase mb-2 text-slate-800">Glycemic Control</h3>
-                    <p className="text-[13px] lg:text-sm text-slate-500 font-medium leading-relaxed">Zero refined sugars means steady energy levels without the traditional insulin spike.</p>
-                </div>
-                <div className="bg-white/50 backdrop-blur-sm p-6 lg:p-8 rounded-[32px] border border-slate-100 hover:shadow-xl transition-all duration-500 group">
-                    <span className="material-symbols-outlined text-alpino-primary text-2xl lg:text-3xl mb-4 p-3 bg-alpino-primary/10 rounded-2xl group-hover:bg-alpino-primary group-hover:text-white transition-colors duration-500">biotech</span>
-                    <h3 className="font-anton text-lg lg:text-xl uppercase mb-2 text-slate-800">Superfood Matrix</h3>
-                    <p className="text-[13px] lg:text-sm text-slate-500 font-medium leading-relaxed">Infused with Chia, Flax, and Raw Cacao for natural antioxidants and omega-3s.</p>
-                </div>
-            </div>
         </section>
     );
 };

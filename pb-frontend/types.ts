@@ -25,6 +25,7 @@ export interface Product {
   orientation?: string;
   mainIngredient?: string;
   mainIngredientImage?: string;
+  usageIdeas?: UsageIdea[];
 }
 
 export interface CartItem extends Product {
@@ -107,6 +108,7 @@ export interface CategoryDisplay {
   textClass: string;
   accentClass: string;
   rotation: string;
+  imagePosition?: string;
 }
 
 export interface BlogPost {
@@ -131,39 +133,51 @@ export interface Story {
   productId: string;
 }
 
+export interface UsageIdea {
+  id: string;
+  productId: string;
+  title: string;
+  description: string;
+  image: string;
+  order: number;
+}
+
 export const CATEGORY_DISPLAY_DATA: CategoryDisplay[] = [
   {
     id: "Peanut Butter",
     display: "Peanut Butter",
-    image: "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=600&auto=format&fit=crop",
+    image: "/assets/peanut-butter-display.jpg",
     count: "0 Flavors",
     bgClass: "bg-[#fff7ed]",
     borderClass: "border-orange-100 hover:border-orange-300",
     textClass: "text-orange-950",
     accentClass: "bg-orange-600",
-    rotation: "rotate-2"
+    rotation: "rotate-2",
+    imagePosition: "object-center"
   },
   {
     id: "Muesli",
     display: "Muesli",
-    image: "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?q=80&w=600&auto=format&fit=crop",
+    image: "/assets/muesli-display.jpg",
     count: "0 Blends",
     bgClass: "bg-[#fefce8]",
     borderClass: "border-yellow-100 hover:border-yellow-300",
     textClass: "text-yellow-950",
     accentClass: "bg-yellow-500",
-    rotation: "-rotate-2"
+    rotation: "-rotate-2",
+    imagePosition: "object-bottom"
   },
   {
     id: "Oats",
     display: "Oats",
-    image: "https://images.unsplash.com/photo-1613769049987-b31b641f25b1?q=80&w=600&auto=format&fit=crop",
+    image: "/assets/oats-display.jpg",
     count: "0 Varieties",
     bgClass: "bg-[#f0fdf4]",
     borderClass: "border-green-100 hover:border-green-300",
     textClass: "text-green-950",
     accentClass: "bg-green-600",
-    rotation: "rotate-1"
+    rotation: "rotate-1",
+    imagePosition: "object-bottom"
   }
 ];
 export interface VisitorSubmission {

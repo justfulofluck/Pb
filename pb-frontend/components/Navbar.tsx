@@ -260,10 +260,10 @@ const Navbar: React.FC<NavbarProps> = ({
               {/* Hamburger Button (Colored Square) */}
               <button
                 onClick={() => setIsMenuOpen(true)}
-                className="w-11 h-11 bg-primary text-white rounded-lg flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+                className="w-11 h-11 bg-[#0b3d2e] texture-overlay texture-speckles text-white rounded-lg flex items-center justify-center shadow-lg active:scale-95 transition-transform relative overflow-hidden"
                 aria-label="Open menu"
               >
-                <span className="material-symbols-outlined text-[28px]">menu</span>
+                <span className="material-symbols-outlined text-[28px] relative z-10">menu</span>
               </button>
             </div>
           </div>
@@ -444,22 +444,20 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Primary Navigation Items */}
-            <div className="space-y-6 mb-12 overflow-y-auto pr-4 custom-scrollbar">
+            <div className="space-y-6 mb-12 overflow-y-auto pr-4 hide-scrollbar">
               <button
                 onClick={() => { onProductsClick(); closeMenu(); }}
-                className="flex items-center justify-between w-full group"
+                className="flex items-center w-full group"
               >
                 <span className="font-anton text-[22px] tracking-tight group-hover:translate-x-2 transition-transform duration-300">PRODUCTS</span>
-                <span className="material-symbols-outlined text-[20px] text-white/60">chevron_right</span>
               </button>
 
 
               <button
                 onClick={() => { onJourneyClick(); closeMenu(); }}
-                className="flex items-center justify-between w-full group"
+                className="flex items-center w-full group"
               >
                 <span className="font-anton text-[22px] tracking-tight group-hover:translate-x-2 transition-transform duration-300">OUR JOURNEY</span>
-                <span className="material-symbols-outlined text-[20px] text-white/60">chevron_right</span>
               </button>
 
             </div>

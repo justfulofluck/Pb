@@ -33,9 +33,9 @@ const MobileBottomNav: React.FC<MobileBottomNavProps & { isHidden?: boolean }> =
     const isHomeActive = currentView === 'home' && !isCartOpen && !isAuthOpen;
 
     const getButtonClass = (isActive: boolean) => `
-        flex items-center justify-center h-12 rounded-full transition-all duration-500
+        flex items-center justify-center h-12 rounded-full transition-all duration-500 relative overflow-hidden
         ${isActive
-            ? 'bg-[#1daa61] text-white px-5 shadow-sm'
+            ? 'bg-[#0b3d2e] texture-overlay texture-speckles text-white px-5 shadow-lg'
             : 'text-slate-500 hover:text-slate-800 w-12 hover:bg-black/5'
         }
     `;

@@ -203,7 +203,7 @@ YAGMAIL_USER = EMAIL_HOST_USER
 YAGMAIL_PASSWORD = EMAIL_HOST_PASSWORD
 
 # Admin Email for Order Notifications
-ADMIN_EMAIL = "thakarkushagra@gmail.com"
+ADMIN_EMAIL = "thakarkushagra@gmail.com"    
 
 # Razorpay Configuration
 RAZORPAY_KEY_ID = "rzp_test_z4U8U86g666666"  # Replace with env or real key if available

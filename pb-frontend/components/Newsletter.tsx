@@ -63,10 +63,12 @@ const Newsletter: React.FC = () => {
                 disabled={status === 'loading'}
               />
               <button
-                className={`bg-secondary text-slate-900 px-10 py-5 rounded-3xl font-bold uppercase hover:shadow-xl hover:-translate-y-1 transition-all active:scale-95 font-satoshi ${status === 'loading' ? 'opacity-70 cursor-not-allowed' : ''}`}
+                className={`btn-greenboard px-10 py-5 rounded-3xl font-bold uppercase active:scale-95 font-satoshi relative overflow-hidden ${status === 'loading' ? 'opacity-70 cursor-not-allowed' : ''}`}
                 disabled={status === 'loading'}
               >
-                {status === 'loading' ? 'SUBSCRIBING...' : 'SUBSCRIBE'}
+                <span className="relative z-10">
+                  {status === 'loading' ? 'SUBSCRIBING...' : 'SUBSCRIBE'}
+                </span>
               </button>
             </form>
 

@@ -21,6 +21,7 @@ from .models import (
     RewardRule,
     RewardTransaction,
     WishlistItem,
+    UsageIdea,
 )
 
 
@@ -55,7 +56,15 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class UsageIdeaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UsageIdea
+        fields = "__all__"
+
+
 class ProductSerializer(serializers.ModelSerializer):
+    usage_ideas = UsageIdeaSerializer(many=True, read_only=True)
+
     class Meta:
         model = Product
         fields = "__all__"
@@ -82,6 +91,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "gallery",
             "model_3d",
             "orientation",
+            "usage_ideas",
         ]
 
 

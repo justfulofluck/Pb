@@ -36,6 +36,19 @@ class Product(models.Model):
         return self.name
 
 
+class UsageIdea(models.Model):
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="usage_ideas"
+    )
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    image = models.TextField()  # Assuming base64 or URL like other models
+    order = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.title} for {self.product.name}"
+
+
 class Review(models.Model):
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name="reviews", null=True, blank=True

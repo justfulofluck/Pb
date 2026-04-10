@@ -1382,54 +1382,48 @@ const AppContent: React.FC = () => {
             >
               Pinobite
             </motion.h1>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="text-[10px] font-black uppercase tracking-[0.5em] text-primary animate-pulse ml-2"
-            >
-              Fueling your potential...
-            </motion.p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {currentView !== 'checkout' && currentView !== 'visitor-form' && (
-        <Navbar
-          cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
-          isLoggedIn={isLoggedIn}
-          onCartClick={() => setIsCartOpen(true)}
-          onAccountClick={() => isLoggedIn ? navigateToDashboard() : setIsAuthOpen(true)}
-          onLogoClick={goHome}
-          onProductsClick={() => navigateToShop()}
-          onCategoryClick={navigateToShopCategory}
-          onDashboardClick={() => navigateToDashboard()}
-          onStoriesClick={() => setCurrentView('blogs')}
-          onJourneyClick={() => setCurrentView('journey')}
-          onSearch={handleGlobalSearch}
-          products={products}
-          blogPosts={blogPosts}
-          events={events}
-          onProductClick={navigateToProduct}
-          onBlogClick={navigateToBlogDetail}
-          onEventClick={navigateToEventDetail}
-          categories={categories}
-          onMenuStateChange={setIsMenuOpen}
-          announcements={announcements
-            .filter(a => {
-              if (!a.is_active) return false;
-              const now = new Date();
-              const year = now.getFullYear();
-              const month = String(now.getMonth() + 1).padStart(2, '0');
-              const day = String(now.getDate()).padStart(2, '0');
-              const localTodayStr = `${year}-${month}-${day}`;
-              const startStr = a.start_date.split('T')[0];
-              const endStr = a.end_date.split('T')[0];
-              return localTodayStr >= startStr && localTodayStr <= endStr;
-            })
-            .map(a => a.message)}
-        />
-      )}
+      {
+        currentView !== 'checkout' && currentView !== 'visitor-form' && (
+          <Navbar
+            cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
+            isLoggedIn={isLoggedIn}
+            onCartClick={() => setIsCartOpen(true)}
+            onAccountClick={() => isLoggedIn ? navigateToDashboard() : setIsAuthOpen(true)}
+            onLogoClick={goHome}
+            onProductsClick={() => navigateToShop()}
+            onCategoryClick={navigateToShopCategory}
+            onDashboardClick={() => navigateToDashboard()}
+            onStoriesClick={() => setCurrentView('blogs')}
+            onJourneyClick={() => setCurrentView('journey')}
+            onSearch={handleGlobalSearch}
+            products={products}
+            blogPosts={blogPosts}
+            events={events}
+            onProductClick={navigateToProduct}
+            onBlogClick={navigateToBlogDetail}
+            onEventClick={navigateToEventDetail}
+            categories={categories}
+            onMenuStateChange={setIsMenuOpen}
+            announcements={announcements
+              .filter(a => {
+                if (!a.is_active) return false;
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const localTodayStr = `${year}-${month}-${day}`;
+                const startStr = a.start_date.split('T')[0];
+                const endStr = a.end_date.split('T')[0];
+                return localTodayStr >= startStr && localTodayStr <= endStr;
+              })
+              .map(a => a.message)}
+          />
+        )
+      }
 
       <main className="animate-in fade-in duration-500">
         {currentView === 'home' && (
@@ -1593,23 +1587,25 @@ const AppContent: React.FC = () => {
         )}
       </main>
 
-      {currentView !== 'checkout' && currentView !== 'visitor-form' && (
-        <SnaxxoFooter
-          onShopClick={(cat) => cat ? navigateToShopCategory(cat) : navigateToShop()}
-          onHomeClick={goHome}
-          onFAQClick={navigateToFAQ}
+      {
+        currentView !== 'checkout' && currentView !== 'visitor-form' && (
+          <SnaxxoFooter
+            onShopClick={(cat) => cat ? navigateToShopCategory(cat) : navigateToShop()}
+            onHomeClick={goHome}
+            onFAQClick={navigateToFAQ}
 
-          onBlogsClick={navigateToBlogs}
-          onEventBlogsClick={navigateToEventBlogs}
-          onAdminClick={navigateToAdmin}
-          onJourneyClick={navigateToJourney}
-          onPrivacyClick={navigateToPrivacy}
-          onTermsClick={navigateToTerms}
-          onRefundClick={navigateToRefund}
-          onShippingClick={navigateToShipping}
-          onDistributorClick={navigateToDistributor}
-        />
-      )}
+            onBlogsClick={navigateToBlogs}
+            onEventBlogsClick={navigateToEventBlogs}
+            onAdminClick={navigateToAdmin}
+            onJourneyClick={navigateToJourney}
+            onPrivacyClick={navigateToPrivacy}
+            onTermsClick={navigateToTerms}
+            onRefundClick={navigateToRefund}
+            onShippingClick={navigateToShipping}
+            onDistributorClick={navigateToDistributor}
+          />
+        )
+      }
 
 
 
@@ -1635,33 +1631,35 @@ const AppContent: React.FC = () => {
         events={events}
       />
 
-      {currentView !== 'admin-dashboard' && currentView !== 'admin-login' && currentView !== 'checkout' && currentView !== 'visitor-form' && (
-        <MobileBottomNav
-          currentView={currentView}
-          onHomeClick={goHome}
-          onShopClick={navigateToShop}
-          onCartClick={() => {
-            setIsCartOpen(true);
-            setIsAuthOpen(false);
-          }}
-          onAccountClick={() => {
-            if (isLoggedIn) {
-              navigateToDashboard();
+      {
+        currentView !== 'admin-dashboard' && currentView !== 'admin-login' && currentView !== 'checkout' && currentView !== 'visitor-form' && !isLoading && (
+          <MobileBottomNav
+            currentView={currentView}
+            onHomeClick={goHome}
+            onShopClick={navigateToShop}
+            onCartClick={() => {
+              setIsCartOpen(true);
               setIsAuthOpen(false);
-              setIsCartOpen(false);
-            } else {
-              setIsAuthOpen(true);
-              setIsCartOpen(false);
-            }
-          }}
-          cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
-          isCartOpen={isCartOpen}
-          isAuthOpen={isAuthOpen}
-          isMenuOpen={isMenuOpen}
-          isHidden={isNutritionOpen}
-        />
-      )}
-    </div>
+            }}
+            onAccountClick={() => {
+              if (isLoggedIn) {
+                navigateToDashboard();
+                setIsAuthOpen(false);
+                setIsCartOpen(false);
+              } else {
+                setIsAuthOpen(true);
+                setIsCartOpen(false);
+              }
+            }}
+            cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
+            isCartOpen={isCartOpen}
+            isAuthOpen={isAuthOpen}
+            isMenuOpen={isMenuOpen}
+            isHidden={isNutritionOpen}
+          />
+        )
+      }
+    </div >
   );
 };
 

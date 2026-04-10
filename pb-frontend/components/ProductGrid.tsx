@@ -187,12 +187,14 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
                       <button
                         onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
                         disabled={product.stock <= 0}
-                        className="w-full bg-[#228b44] text-white py-2 md:py-4 rounded-md font-bold text-[10px] md:text-xs uppercase tracking-widest shadow-md hover:bg-slate-900 transition-all active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-2"
+                        className="w-full btn-greenboard py-2 md:py-4 rounded-md font-bold text-[10px] md:text-xs uppercase tracking-widest active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-2 relative overflow-hidden"
                       >
                         {product.stock <= 0 ? 'Out of Stock' : (
                           <>
-                            ADD TO CART
-                            <i className="fa-solid fa-cart-shopping text-[10px] md:text-sm"></i>
+                            <span className="relative z-10 flex items-center gap-2">
+                              ADD TO CART
+                              <i className="fa-solid fa-cart-shopping text-[10px] md:text-sm"></i>
+                            </span>
                           </>
                         )}
                       </button>

@@ -23,7 +23,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
       <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-[1100] shadow-2xl transform transition-transform duration-500 ease-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b flex justify-between items-center">
           <h2 className="text-2xl font-black uppercase flex items-center gap-2">
-            Your Cart <span className="font-satoshi text-primary text-xl tracking-normal">({items.length} items)</span>
+            Your Cart <span className="font-handdrawn text-textured-green text-3xl tracking-normal translate-y-0.5 ml-1">({items.length} items)</span>
           </h2>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
             <span className="material-symbols-outlined">close</span>
@@ -34,8 +34,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
           {items.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-50">
               <span className="material-symbols-outlined text-7xl">shopping_basket</span>
-              <p className="font-satoshi text-2xl">Your basket is feeling light!</p>
-              <button onClick={onClose} className="text-primary font-bold hover:underline">Start Shopping</button>
+              <p className="font-handdrawn text-4xl text-slate-800">Your basket is feeling light!</p>
+              <button onClick={onClose} className="text-textured-green font-handdrawn text-3xl hover:underline">Start Shopping</button>
             </div>
           ) : (
             items.map((item) => (
@@ -69,9 +69,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
             <p className="text-xs text-slate-500 text-center italic">Shipping & taxes calculated at checkout</p>
             <button
               onClick={onCheckout}
-              className="w-full bg-primary text-white py-4 rounded-xl font-black text-lg hover:shadow-xl transition-all hover:-translate-y-1"
+              className="w-full btn-greenboard py-4 rounded-xl font-black text-lg active:scale-95 relative overflow-hidden"
             >
-              CHECKOUT NOW
+              <span className="relative z-10">CHECKOUT NOW</span>
             </button>
           </div>
         )}

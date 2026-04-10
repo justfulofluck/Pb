@@ -10,6 +10,7 @@ import StoryCarousel from './StoryCarousel';
 import { useSnaxxoAnimations } from '../hooks/useSnaxxoAnimations';
 import { gsap } from 'gsap';
 import PrecisionComparison from './PrecisionComparison';
+import UsageIdeas from './UsageIdeas';
 
 interface ProductPageProps {
   product: Product;
@@ -53,6 +54,14 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
           50% { transform: scale(0.8); opacity: 0.15; }
           100% { transform: scale(1); opacity: 0.5; }
         }
+        .pdp-model-viewer {
+          height: 350px;
+        }
+        @media (min-width: 768px) {
+          .pdp-model-viewer {
+            height: clamp(400px, 65vh, 800px);
+          }
+        }
       `}</style>
       <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         {/* @ts-ignore */}
@@ -76,7 +85,6 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
           style={{
             width: '100%',
             maxWidth: '750px',
-            height: 'clamp(400px, 65vh, 800px)',
             outline: 'none',
             margin: '0 auto',
             pointerEvents: 'auto',
@@ -84,6 +92,7 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
             zIndex: 2,
             position: 'relative'
           }}
+          className="pdp-model-viewer"
         />
       </div>
       <div style={{ width: '280px', height: '30px', background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 70%)', position: 'absolute', bottom: '0px', animation: 'floatShadow 6s ease-in-out infinite', zIndex: 1, pointerEvents: 'none' }} />
@@ -189,11 +198,11 @@ const ProductPage: React.FC<ProductPageProps> = ({
   return (
     <div className="page-wrapper" style={{ opacity: 1, backgroundColor: tintColor }}>
 
-      <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-[90vh] flex flex-col items-center pt-0 pb-20 texture-overlay texture-speckles">
-        <div className="w-layout-blockcontainer container product-page-hero w-container !pt-8 !mt-0">
+      <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-[70vh] md:min-h-[90vh] flex flex-col items-center pt-0 pb-20 texture-overlay texture-speckles">
+        <div className="w-layout-blockcontainer container product-page-hero w-container !pt-2 md:!pt-8 !mt-0">
           <div className="content-wrapper product-page-hero">
             <div className="heading-text-box pdp-h1 mt-0 pt-0">
-              <h1 ref={titleRef} style={{ color: 'rgb(255, 255, 255)' }} className="h1-heading pdp-hero font-anton font-normal uppercase text-6xl md:text-[8rem] leading-[0.95] tracking-[-0.01em] md:[word-spacing:0.25em]">
+              <h1 ref={titleRef} style={{ color: 'rgb(255, 255, 255)' }} className="h1-heading pdp-hero font-anton font-normal uppercase text-5xl md:text-[8rem] leading-[0.95] tracking-[-0.01em] md:[word-spacing:0.25em]">
                 {product.name}
               </h1>
             </div>
@@ -444,7 +453,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
         </div>
       </section>
 
-      <PrecisionComparison />
 
       <section className="section overflow-hidden" style={{ backgroundColor: '#f2f2ec' }}>
         <div className="w-layout-blockcontainer container product-page-intro w-container">
@@ -492,22 +500,9 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
 
 
+      <PrecisionComparison />
 
-      <section className="section overflow-hidden relative" style={{ padding: 0, height: '70vh', minHeight: '500px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        <img src="/Media/images/product-image.jpeg" alt="Snaxxo Product" className="absolute inset-0 w-full h-full object-cover" style={{ zIndex: 1 }} />
-
-        {/* Top Wave: overlaps the image from above, matching previous section's background (#ffffff) */}
-        <div style={{ position: 'relative', zIndex: 10, width: '100%' }}>
-          <MultiLayerWave flipped fill="#f2f2ec" />
-
-        </div>
-
-        {/* Bottom Wave: overlaps the image from below, matching next section's background (#ffffff) */}
-        <div style={{ position: 'relative', zIndex: 10, width: '100%' }}>
-          <MultiLayerWave className="below" fill="#f2f2ec" />
-
-        </div>
-      </section>
+      <UsageIdeas ideas={product.usageIdeas || []} bgColor={bgColor} />
 
       <StoryCarousel
         stories={[...(stories.filter(s => s.productId === product.id).length > 0

@@ -96,18 +96,18 @@ const CategoryList: React.FC<CategoryListProps> = ({
               </div>
 
               <div className="relative z-20 mt-8">
-                <h3 className={`text-6xl !normal-case leading-[0.85] tracking-tight ${item.textClass} !font-anton`}>
-                  {item.display.split(' ').map((word, w) => <span key={w} className="block">{word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()}</span>)}
+                <h3 className={`text-6xl uppercase leading-none tracking-wider ${item.textClass} !font-anton drop-shadow-[0_2px_8px_rgba(255,255,255,0.8)]`}>
+                  {item.display.split(' ').map((word, w) => <span key={w} className="block">{word}</span>)}
                 </h3>
               </div>
 
-              <div className="absolute bottom-0 left-0 w-full h-[65%] z-10 transition-transform duration-700 group-hover:scale-105 group-hover:rotate-1 origin-bottom">
+              <div className="absolute bottom-0 left-0 w-full h-[75%] z-10 transition-transform duration-700 group-hover:scale-105 group-hover:rotate-1 origin-bottom">
                 <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-[140%] h-[120%] bg-white rounded-t-full opacity-40 blur-xl`}></div>
                 <img
                   src={item.image}
                   alt={item.display}
-                  className={`w-full h-full object-cover object-center drop-shadow-2xl`}
-                  style={{ maskImage: 'linear-gradient(to top, black 80%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to top, black 80%, transparent 100%)' }}
+                  className={`w-full h-full object-cover ${item.imagePosition || 'object-center'} drop-shadow-2xl`}
+                  style={{ maskImage: 'linear-gradient(to top, black 70%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to top, black 70%, transparent 100%)' }}
                   draggable={false}
                 />
               </div>

@@ -129,7 +129,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Welcome Back!</h2>
-              <p className="font-satoshi text-xl text-primary mt-1">Ready for your health fix? ✨</p>
+              <p className="font-handdrawn text-3xl text-textured-green mt-1">Ready for your health fix? ✨</p>
             </div>
 
             {error && (
@@ -165,28 +165,28 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                 <button
                   type="button"
                   onClick={() => setView('reset')}
-                  className="text-xs font-bold text-slate-400 hover:text-primary transition-colors"
+                  className="text-xs font-bold text-slate-400 hover:text-primary transition-colors font-handdrawn text-lg"
                 >
                   FORGOT PASSWORD?
                 </button>
               </div>
               <button
                 disabled={isLoading}
-                className="w-full bg-primary text-white py-4 rounded-2xl font-black text-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full btn-greenboard py-4 rounded-2xl font-black text-lg active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'LOGGING IN...' : "LET'S GO!"}
               </button>
             </form>
 
-            <p className="text-center text-sm font-bold text-slate-500">
-              NEW TO PINOBITE? {' '}
+            <div className="flex items-center justify-center gap-2 text-sm font-bold text-slate-500">
+              NEW TO PINOBITE?
               <button
                 onClick={() => setView('signup')}
-                className="text-primary hover:underline"
+                className="text-textured-green hover:underline font-handdrawn text-2xl -translate-y-0.5"
               >
                 JOIN THE CLUB
               </button>
-            </p>
+            </div>
           </div>
         )}
 
@@ -195,7 +195,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Join The Club</h2>
-              <p className="font-satoshi text-xl text-primary mt-1">Get 10% off your first order! 🎁</p>
             </div>
 
             {error && (
@@ -279,12 +278,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
               </button>
             </form>
 
-            <p className="text-center text-sm font-bold text-slate-500">
-              ALREADY A MEMBER? {' '}
-              <button onClick={() => setView('login')} className="text-primary hover:underline">
+            <div className="flex items-center justify-center gap-2 text-sm font-bold text-slate-500">
+              ALREADY A MEMBER?
+              <button onClick={() => setView('login')} className="text-textured-green hover:underline font-handdrawn text-2xl -translate-y-0.5">
                 LOG IN
               </button>
-            </p>
+            </div>
           </div>
         )}
 
@@ -293,7 +292,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Forgot it?</h2>
-              <p className="font-satoshi text-xl text-primary mt-1">Don't worry, we got you! 🔑</p>
+              <p className="font-handdrawn text-3xl text-textured-green mt-1">Don't worry, we got you! 🔑</p>
             </div>
 
             <p className="text-slate-500 text-sm text-center font-medium leading-relaxed">
@@ -312,7 +311,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                   placeholder="Enter your email"
                 />
               </div>
-              <button className="w-full bg-primary text-white py-4 rounded-2xl font-black text-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95">
+              <button className="w-full btn-greenboard py-4 rounded-2xl font-black text-lg active:scale-95">
                 {isLoading ? 'SENDING CODE...' : 'SEND RESET CODE'}
               </button>
             </form>
@@ -320,7 +319,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
             <div className="text-center">
               <button
                 onClick={() => setView('login')}
-                className="text-xs font-black text-slate-400 hover:text-primary transition-colors flex items-center justify-center gap-1 mx-auto"
+                className="text-xs font-black text-slate-400 hover:text-primary transition-colors flex items-center justify-center gap-1 mx-auto font-handdrawn text-lg"
               >
                 <span className="material-symbols-outlined text-sm">arrow_back</span>
                 BACK TO LOGIN
@@ -334,7 +333,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Verify Code</h2>
-              <p className="font-satoshi text-xl text-primary mt-1">Check your inbox! 📧</p>
+              <p className="font-handdrawn text-3xl text-textured-green mt-1">Check your inbox! 📧</p>
             </div>
 
             {error && (
@@ -369,7 +368,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
               </div>
               <button
                 disabled={isLoading}
-                className="w-full bg-primary text-white py-4 rounded-2xl font-black text-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full btn-greenboard py-4 rounded-2xl font-black text-lg active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'RESETTING...' : 'RESET PASSWORD'}
               </button>
@@ -378,7 +377,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
             <div className="text-center">
               <button
                 onClick={() => setView('reset')}
-                className="text-xs font-black text-slate-400 hover:text-primary transition-colors"
+                className="text-xs font-black text-slate-400 hover:text-primary transition-colors font-handdrawn text-lg"
               >
                 DIDN'T GET CODE? TRY AGAIN
               </button>

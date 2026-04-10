@@ -363,7 +363,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     model3d: '',
     themeColor: '#FF6F00', // Default to a brand color if none selected
     orientation: '0deg 0deg 0deg',
-    originalPrice: 0
+    originalPrice: 0,
+    usageIdeas: []
   });
 
   // Event Form State
@@ -464,7 +465,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       model3d: '',
       themeColor: '#FF6F00',
       orientation: '0deg 0deg 0deg',
-      originalPrice: 0
+      originalPrice: 0,
+      usageIdeas: []
     });
     setProductView('add');
   };
@@ -474,7 +476,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setProductForm({
       ...product,
       themeColor: product.themeColor || '#FF6F00',
-      orientation: product.orientation || '0deg 0deg 0deg'
+      orientation: product.orientation || '0deg 0deg 0deg',
+      usageIdeas: product.usageIdeas || []
     });
     setProductView('add');
   };
@@ -491,6 +494,37 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const removeBenefit = (index: number) => {
     setProductForm(prev => ({ ...prev, benefits: prev.benefits?.filter((_, i) => i !== index) }));
+  };
+
+  const addUsageIdea = () => {
+    setProductForm(prev => ({
+      ...prev,
+      usageIdeas: [...(prev.usageIdeas || []), { id: `new-${Date.now()}`, productId: prev.id || '', title: '', description: '', image: '', order: (prev.usageIdeas?.length || 0) }]
+    }));
+  };
+
+  const removeUsageIdea = (index: number) => {
+    setProductForm(prev => ({
+      ...prev,
+      usageIdeas: prev.usageIdeas?.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateUsageIdea = (index: number, field: keyof UsageIdea, value: any) => {
+    const newIdeas = [...(productForm.usageIdeas || [])];
+    newIdeas[index] = { ...newIdeas[index], [field]: value };
+    setProductForm(prev => ({ ...prev, usageIdeas: newIdeas }));
+  };
+
+  const handleUsageIdeaImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateUsageIdea(index, 'image', reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // Handlers for Products
@@ -551,7 +585,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       model3d: '',
       themeColor: '#FF6F00',
       orientation: '0deg 0deg 0deg',
-      originalPrice: 0
+      originalPrice: 0,
+      usageIdeas: []
     });
   };
 
@@ -2483,6 +2518,63 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <div className="space-y-2">
                           <label className="text-xs font-black uppercase tracking-widest text-slate-500">Full Ingredients</label>
                           <textarea value={productForm.ingredients} onChange={e => setProductForm({ ...productForm, ingredients: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={3} placeholder="Peanuts, Sea Salt, etc..." />
+                        </div>
+                      </div>
+
+                      {/* Usage Ideas Section */}
+                      <div className="space-y-4 border-t border-slate-100 pt-6">
+                        <div className="flex justify-between items-center">
+                          <h4 className="text-sm font-black uppercase tracking-widest text-slate-900 border-l-4 border-primary pl-3">Usage Ideas</h4>
+                          <button type="button" onClick={addUsageIdea} className="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-1 hover:underline">
+                            <span className="material-symbols-outlined text-sm">add</span> Add Idea
+                          </button>
+                        </div>
+                        <div className="grid gap-6">
+                          {productForm.usageIdeas?.map((idea, idx) => (
+                            <div key={idx} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 relative group animate-in zoom-in-95 duration-200">
+                              <button
+                                type="button"
+                                onClick={() => removeUsageIdea(idx)}
+                                className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-white shadow-md text-slate-400 hover:text-red-500 flex items-center justify-center transition-all z-10 border border-slate-100"
+                              >
+                                <span className="material-symbols-outlined text-lg">close</span>
+                              </button>
+                              <div className="flex gap-4">
+                                <div className="w-24 h-24 rounded-xl overflow-hidden bg-white border border-slate-200 flex-shrink-0 relative">
+                                  {idea.image ? (
+                                    <img src={idea.image} alt="Idea" className="w-full h-full object-cover" />
+                                  ) : (
+                                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
+                                      <span className="material-symbols-outlined text-2xl">image</span>
+                                    </div>
+                                  )}
+                                  <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                    <span className="material-symbols-outlined text-white">cloud_upload</span>
+                                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handleUsageIdeaImageUpload(e, idx)} />
+                                  </label>
+                                </div>
+                                <div className="flex-1 space-y-3">
+                                  <input
+                                    type="text"
+                                    placeholder="Title (e.g. Blend It)"
+                                    value={idea.title}
+                                    onChange={(e) => updateUsageIdea(idx, 'title', e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary"
+                                  />
+                                  <input
+                                    type="text"
+                                    placeholder="Description (e.g. Into smoothies)"
+                                    value={idea.description}
+                                    onChange={(e) => updateUsageIdea(idx, 'description', e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 font-medium text-sm focus:ring-primary focus:border-primary text-slate-500"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {(productForm.usageIdeas?.length === 0) && (
+                            <p className="text-xs text-slate-400 italic text-center py-4 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No usage ideas added. These help customers visualize how to use the product!</p>
+                          )}
                         </div>
                       </div>
 

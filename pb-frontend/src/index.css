@@ -3,8 +3,8 @@
 @import "tailwindcss";
 
 @theme {
-  --font-anton: "Anton", "Anton Placeholder", sans-serif;
-  --font-satoshi: "Satoshi", "Satoshi Placeholder", sans-serif;
+  --font-anton: "Anton", sans-serif;
+  --font-satoshi: "Satoshi", sans-serif;
   --font-jakarta: "Plus Jakarta Sans", sans-serif;
   --font-handdrawn: "Gochi Hand", cursive;
 
@@ -40,7 +40,6 @@
   body,
   p,
   li,
-  span,
   button,
   input,
   select,
@@ -149,7 +148,7 @@
 /* Big Textured Header (Footer-Matched) */
 .text-textured-green-big {
   color: #0b3d2e !important;
-  font-family: Anton, "Anton Placeholder", sans-serif !important;
+  font-family: Anton, sans-serif !important;
   font-size: clamp(3.5rem, 8vw, 7.5rem);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E") !important;
   -webkit-background-clip: text;
