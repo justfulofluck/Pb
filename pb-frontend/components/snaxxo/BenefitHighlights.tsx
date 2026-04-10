@@ -164,6 +164,16 @@ const BenefitHighlights: React.FC = () => {
             containerRef.current.addEventListener('touchstart', onTouchStart, { passive: true });
             containerRef.current.addEventListener('touchmove', onTouchMove, { passive: false });
             containerRef.current.addEventListener('touchend', onTouchEnd, { passive: true });
+
+            // Mark that we have touch listeners to clean up
+            hasTouchListeners = true;
+            touchCleanup = () => {
+                if (containerRef.current) {
+                    containerRef.current.removeEventListener('touchstart', onTouchStart);
+                    containerRef.current.removeEventListener('touchmove', onTouchMove);
+                    containerRef.current.removeEventListener('touchend', onTouchEnd);
+                }
+            };
         }
 
         // Clamp velocity
@@ -202,6 +212,9 @@ const BenefitHighlights: React.FC = () => {
 
         // --- GYROSCOPE support (mobile: tilt device to move gravity) ---
         let gyroHandler: ((e: DeviceOrientationEvent) => void) | null = null;
+        let gyroTimeoutRef: ReturnType<typeof setTimeout> | null = null;
+        let hasTouchListeners = false;
+        let touchCleanup: (() => void) | null = null;
 
         if (isTouchDevice) {
             gyroHandler = (e: DeviceOrientationEvent) => {
@@ -235,11 +248,19 @@ const BenefitHighlights: React.FC = () => {
             };
 
             // Only start gyro after the 3s drop delay
-            setTimeout(requestGyro, 3000);
+            gyroTimeoutRef = setTimeout(requestGyro, 3000);
         }
 
+        // Shared cleanup for all cases
         return () => {
+            // Clean up touch listeners if present
+            if (hasTouchListeners && touchCleanup) {
+                touchCleanup();
+            }
             clearTimeout(dropTimeout);
+            if (gyroTimeoutRef) {
+                clearTimeout(gyroTimeoutRef);
+            }
             if (gyroHandler) {
                 window.removeEventListener('deviceorientation', gyroHandler);
             }

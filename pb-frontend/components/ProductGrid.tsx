@@ -210,4 +210,4 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
   );
 };
 
-export default ProductGrid;
+export default React.memo(ProductGrid);

@@ -475,4 +475,4 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
     );
 };
 
-export default SnaxxoProductWheel;
+export default React.memo(SnaxxoProductWheel);

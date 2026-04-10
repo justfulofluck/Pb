@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category, Announcement, DistributorApplication, PressUpdate, RewardRule, RewardTransaction } from '../types';
+import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category, Announcement, DistributorApplication, PressUpdate, RewardRule, RewardTransaction, UsageIdea } from '../types';
 import { API_BASE_URL } from '../config';
-import { jsPDF } from "jspdf";
+// import { jsPDF } from "jspdf"; // Removed deprecated dependency
 import ConfirmationModal from './ConfirmationModal';
 import { useToast } from './Toast';
 
@@ -1046,75 +1046,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Invoice Generation
   const handleDownloadInvoice = () => {
     if (!viewingOrder) return;
-
+    showToast("Invoice generation is temporarily disabled (dependency cleanup). Please use Browser Print for now.", 'info');
+    /*
     const doc = new jsPDF();
-
-    // Brand
-    doc.setFontSize(22);
-    doc.setTextColor(0, 138, 69); // Pinobite Green
-    doc.text("PINOBITE GLOBAL", 20, 20);
-
-    // Invoice Label
-    doc.setFontSize(16);
-    doc.setTextColor(0, 0, 0);
-    doc.text("INVOICE", 150, 20);
-
-    // Order Details
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Order ID: ${viewingOrder.id}`, 20, 40);
-    doc.text(`Date: ${new Date(viewingOrder.created_at).toLocaleDateString()}`, 20, 46);
-    doc.text(`Status: ${viewingOrder.status}`, 20, 52);
-    doc.text(`Payment: ${viewingOrder.razorpay_payment_id ? 'Paid' : 'Pending'}`, 20, 58);
-
-    // Customer Details
-    doc.text(`Customer: ${viewingOrder.user_name}`, 150, 40);
-    doc.text(viewingOrder.shipping_address || 'No Address', 150, 46);
-
-    // Divider
-    doc.setDrawColor(220, 220, 220);
-    doc.line(20, 65, 190, 65);
-
-    // Table Header
-    doc.setFontSize(11);
-    doc.setTextColor(0);
-    doc.text("Item Description", 20, 75);
-    doc.text("Qty", 130, 75);
-    doc.text("Price", 160, 75);
-
-    // Divider
-    doc.line(20, 80, 190, 80);
-
-    // Table Body
-    let y = 90;
-    doc.setFontSize(10);
-    doc.setTextColor(60);
-
-    viewingOrder.items.forEach((item) => {
-      doc.text(item.product_name, 20, y);
-      doc.text(item.quantity.toString(), 130, y);
-      doc.text(`Rs. ${item.price}`, 160, y);
-      y += 10;
-    });
-
-    // Divider
-    doc.line(20, y, 190, y);
-    y += 10;
-
-    // Total
-    doc.setFontSize(14);
-    doc.setTextColor(0);
-    doc.text("Total Amount:", 110, y + 5);
-    doc.setTextColor(0, 138, 69);
-    doc.text(`Rs. ${viewingOrder.total_amount.toLocaleString()}`, 160, y + 5);
-
-    // Footer
-    doc.setFontSize(9);
-    doc.setTextColor(150);
-    doc.text("Thank you for your business!", 20, y + 30);
-    doc.text("This is a computer generated invoice.", 20, y + 35);
-
+    ...
     doc.save(`Invoice-${viewingOrder.id}.pdf`);
+    */
   };
 
   // Update Status Logic

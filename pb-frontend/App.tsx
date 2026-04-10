@@ -60,20 +60,141 @@ type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'bl
 
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { API_BASE_URL } from './config';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+// --- Fetcher Functions ---
+const fetchProducts = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/products/`);
+  if (!res.ok) throw new Error('Failed to fetch products');
+  const productsData = await res.json();
+  if (!Array.isArray(productsData)) return [];
+  return productsData.map((p: any) => ({
+    ...p,
+    id: String(p.id),
+    price: parseFloat(p.price),
+    originalPrice: p.original_price ? parseFloat(p.original_price) : undefined,
+    reviewCount: p.review_count || 0,
+    isTopRated: p.is_top_rated,
+    model3d: p.model_3d || null,
+    themeColor: p.theme_color,
+    orientation: p.orientation ? p.orientation.replace(/[Oo]/g, '0') : '0deg 0deg 0deg',
+    gallery: p.gallery || [],
+    benefits: p.benefits || [],
+    nutrients: p.nutrients || [],
+    mainIngredient: p.main_ingredient || (p.name?.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : p.name?.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : p.name?.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : p.name?.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : p.name?.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
+    mainIngredientImage: p.main_ingredient_image || (p.name?.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
+  }));
+};
+
+const fetchCategories = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/categories/`);
+  if (!res.ok) throw new Error('Failed to fetch categories');
+  const data = await res.json();
+  if (!Array.isArray(data)) return [];
+  return data.map((c: any) => ({ ...c, id: String(c.id) }));
+};
+
+const fetchAnnouncements = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/announcements/`);
+  if (!res.ok) throw new Error('Failed to fetch announcements');
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+};
+
+const fetchHeroSlides = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/hero-slides/`);
+  if (!res.ok) throw new Error('Failed to fetch hero slides');
+  const data = await res.json();
+  if (!Array.isArray(data)) return [];
+  return data.map((s: any) => ({
+    ...s,
+    id: String(s.id),
+    ctaLink: s.cta_link,
+    secondaryCta: s.secondary_cta,
+    secondaryCtaLink: s.secondary_cta_link,
+    bgColor: s.bg_color,
+    accentColor: s.accent_color,
+    blobColor: s.blob_color,
+    backgroundImage: s.background_image,
+    productId: s.product_id,
+    transitionType: s.transition_type,
+    isActive: s.is_active,
+    order: s.order
+  })).sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+};
+
+const fetchEvents = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/events/`);
+  if (!res.ok) throw new Error('Failed to fetch events');
+  const data = await res.json();
+  if (!Array.isArray(data)) return [];
+  return data.map((e: any) => ({
+    ...e,
+    id: String(e.id),
+    fullStory: e.full_story || [],
+    featuredProducts: (e.featured_products || []).map(String),
+    gallery: e.gallery || [],
+  }));
+};
+
+const fetchBlogs = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/blog-posts/`);
+  if (!res.ok) throw new Error('Failed to fetch blogs');
+  const data = await res.json();
+  if (!Array.isArray(data)) return [];
+  return data.map((b: any) => ({
+    ...b,
+    id: String(b.id),
+    type: b.post_type,
+    readTime: b.read_time,
+    content: Array.isArray(b.content) ? b.content.join('\n\n') : (b.content || ''),
+    tags: b.tags || [],
+  }));
+};
+
+const fetchStories = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/stories/`);
+  if (!res.ok) throw new Error('Failed to fetch stories');
+  const data = await res.json();
+  if (!Array.isArray(data)) return [];
+  return data.map((s: any) => ({
+    ...s,
+    id: String(s.id),
+    mediaUrl: s.media_url || s.mediaUrl,
+    mediaType: s.media_type || s.mediaType,
+    fullVideoUrl: s.full_video_url,
+    originalDriveUrl: s.original_drive_url,
+    productId: s.product ? String(s.product) : undefined
+  }));
+};
 
 const AppContent: React.FC = () => {
   const { user, logout, checkAuth } = useAuth();
   const { showToast } = useToast();
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const queryClient = useQueryClient();
+
+  // --- TanStack Queries ---
+  const productsQuery = useQuery({ queryKey: ['products'], queryFn: fetchProducts });
+  const categoriesQuery = useQuery({ queryKey: ['categories'], queryFn: fetchCategories });
+  const announcementsQuery = useQuery({ queryKey: ['announcements'], queryFn: fetchAnnouncements });
+  const heroSlidesQuery = useQuery({ queryKey: ['hero-slides'], queryFn: fetchHeroSlides });
+  const eventsQuery = useQuery({ queryKey: ['events'], queryFn: fetchEvents });
+  const blogPostsQuery = useQuery({ queryKey: ['blog-posts'], queryFn: fetchBlogs });
+  const storiesQuery = useQuery({ queryKey: ['stories'], queryFn: fetchStories });
+
+  // Derived values (to maintain compatibility with existing props)
+  const products = productsQuery.data || INITIAL_PRODUCTS;
+  const categories = categoriesQuery.data || INITIAL_CATEGORIES;
+  const announcements = announcementsQuery.data || [];
+  const slides = heroSlidesQuery.data || INITIAL_SLIDES;
+  const events = eventsQuery.data || INITIAL_EVENTS;
+  const blogPosts = blogPostsQuery.data || [];
+  const stories = storiesQuery.data || INITIAL_STORIES;
+
+  // Local-only state
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
-  const [events, setEvents] = useState<EventBlog[]>(INITIAL_EVENTS);
-  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
-  const [slides, setSlides] = useState<HeroSlide[]>(INITIAL_SLIDES);
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [stories, setStories] = useState<Story[]>(INITIAL_STORIES);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [visitorForms, setVisitorForms] = useState<VisitorForm[]>([]);
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [pressUpdates, setPressUpdates] = useState<PressUpdate[]>(() => {
     try {
       const saved = localStorage.getItem('pinobite_press_updates');
@@ -100,7 +221,9 @@ const AppContent: React.FC = () => {
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNutritionOpen, setIsNutritionOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+
+  // App is loading until critical data is fetched
+  const isLoading = productsQuery.isLoading || categoriesQuery.isLoading;
 
   // Handle URL routing for manual links
   useEffect(() => {
@@ -156,8 +279,8 @@ const AppContent: React.FC = () => {
                   benefits: fullP.benefits || [],
                   nutrients: fullP.nutrients || [],
                   gallery: fullP.gallery || [],
-                  mainIngredient: fullP.main_ingredient || (fullP.name.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : fullP.name.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : fullP.name.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : fullP.name.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : fullP.name.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
-                  mainIngredientImage: fullP.main_ingredient_image || (fullP.name.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : fullP.name.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : fullP.name.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : fullP.name.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : fullP.name.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
+                  mainIngredient: fullP.main_ingredient || (fullP.name?.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : fullP.name?.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : fullP.name?.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : fullP.name?.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : fullP.name?.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
+                  mainIngredientImage: fullP.main_ingredient_image || (fullP.name?.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : fullP.name?.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : fullP.name?.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : fullP.name?.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : fullP.name?.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
                 });
               }
             } catch (e) { }
@@ -188,7 +311,7 @@ const AppContent: React.FC = () => {
     }
 
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [products]); // Only depend on the loaded data catalogs
+  }, [products, events, blogPosts]); // Depend on relevant query results
 
   useEffect(() => {
     setIsLoggedIn(!!user);
@@ -209,140 +332,15 @@ const AppContent: React.FC = () => {
     }
   }, [user, isLoading, currentView]);
 
+  // CMS Content is now handled by useQuery hooks above.
+
+  // Sync pressUpdates to localStorage with a cap
   useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const [eventsRes, blogsRes, storiesRes, productsRes, vFormsRes, categoriesRes, annRes, heroSlidesRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/events/`),
-          fetch(`${API_BASE_URL}/api/blog-posts/`),
-          fetch(`${API_BASE_URL}/api/stories/`),
-          fetch(`${API_BASE_URL}/api/products/`),
-          fetch(`${API_BASE_URL}/api/visitor-forms/`),
-          fetch(`${API_BASE_URL}/api/categories/`),
-          fetch(`${API_BASE_URL}/api/announcements/`),
-          fetch(`${API_BASE_URL}/api/hero-slides/`)
-        ]);
-
-        if (annRes.ok) {
-          const annData = await annRes.json();
-          setAnnouncements(annData);
-        }
-
-        if (vFormsRes.ok) {
-          const vFormsData = await vFormsRes.json();
-          const mappedVForms = vFormsData.map((f: any) => ({
-            id: String(f.id),
-            title: f.title,
-            eventName: f.event_name,
-            status: f.status,
-            createdAt: f.created_at,
-            link: `${window.location.origin}/forms/${f.id}`,
-            submissions: f.submissions ? f.submissions.map((s: any) => ({
-              id: String(s.id),
-              name: s.name,
-              email: s.email,
-              phone: s.phone,
-              submittedAt: s.submitted_at
-            })) : []
-          }));
-          if (mappedVForms.length > 0) setVisitorForms(mappedVForms);
-        }
-
-        if (productsRes.ok) {
-          const productsData = await productsRes.json();
-          const mappedProducts = productsData.map((p: any) => ({
-            ...p,
-            id: String(p.id),
-            price: parseFloat(p.price),
-            originalPrice: p.original_price ? parseFloat(p.original_price) : undefined,
-            reviewCount: p.review_count || 0,
-            isTopRated: p.is_top_rated,
-            model3d: p.model_3d || null,
-            themeColor: p.theme_color,
-            orientation: p.orientation ? p.orientation.replace(/[Oo]/g, '0') : '0deg 0deg 0deg',
-            gallery: p.gallery || [],
-            benefits: p.benefits || [],
-            nutrients: p.nutrients || [],
-            mainIngredient: p.main_ingredient || (p.name.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : p.name.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : p.name.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : p.name.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : p.name.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
-            mainIngredientImage: p.main_ingredient_image || (p.name.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : p.name.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : p.name.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : p.name.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : p.name.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
-          }));
-          setProducts(mappedProducts);
-        }
-
-        if (eventsRes.ok) {
-          const eventsData = await eventsRes.json();
-          const mappedEvents = eventsData.map((e: any) => ({
-            ...e,
-            id: String(e.id),
-            fullStory: e.full_story || [],
-            featuredProducts: (e.featured_products || []).map(String),
-            gallery: e.gallery || [],
-          }));
-          if (mappedEvents.length > 0) setEvents(mappedEvents);
-        }
-
-        if (blogsRes.ok) {
-          const blogsData = await blogsRes.json();
-          const mappedBlogs = blogsData.map((b: any) => ({
-            ...b,
-            id: String(b.id),
-            type: b.post_type,
-            readTime: b.read_time,
-            content: Array.isArray(b.content) ? b.content.join('\n\n') : (b.content || ''),
-            tags: b.tags || [],
-          }));
-          if (mappedBlogs.length > 0) setBlogPosts(mappedBlogs);
-        }
-
-        if (storiesRes.ok) {
-          const storiesData = await storiesRes.json();
-          const mappedStories = storiesData.map((s: any) => ({
-            id: String(s.id),
-            mediaUrl: s.media_url,
-            fullVideoUrl: s.full_video_url,
-            originalDriveUrl: s.original_drive_url,
-            mediaType: s.media_type,
-            productId: String(s.product_id),
-          }));
-          setStories(mappedStories);
-        }
-
-        if (categoriesRes.ok) {
-          const categoriesData = await categoriesRes.json();
-          if (categoriesData.length > 0) setCategories(categoriesData);
-        }
-
-        if (heroSlidesRes.ok) {
-          const slidesData = await heroSlidesRes.json();
-          const mappedSlides = slidesData.map((s: any) => ({
-            id: String(s.id),
-            category: s.category,
-            headline: s.headline,
-            image: s.image,
-            cta: s.cta,
-            ctaLink: s.cta_link,
-            secondaryCta: s.secondary_cta,
-            secondaryCtaLink: s.secondary_cta_link,
-            bgColor: s.bg_color,
-            accentColor: s.accent_color,
-            blobColor: s.blob_color,
-            backgroundImage: s.background_image,
-            productId: s.product_id,
-            transitionType: s.transition_type,
-            isActive: s.is_active,
-            order: s.order
-          }));
-          setSlides(mappedSlides.sort((a: any, b: any) => (a.order || 0) - (b.order || 0)));
-        }
-      } catch (error) {
-        console.error('Failed to fetch CMS content:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchContent();
-  }, []);
+    if (pressUpdates.length > 0) {
+      const capped = pressUpdates.slice(-20);
+      localStorage.setItem('pinobite_press_updates', JSON.stringify(capped));
+    }
+  }, [pressUpdates]);
 
   useEffect(() => {
     if (currentView === 'admin-dashboard') {
@@ -356,31 +354,7 @@ const AppContent: React.FC = () => {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (response.ok) {
-            const data = await response.json();
-            const mappedVForms = data.map((f: any) => ({
-              id: String(f.id),
-              title: f.title,
-              eventName: f.event_name,
-              status: f.status,
-              createdAt: f.created_at,
-              link: `${window.location.origin}/forms/${f.id}`,
-              submissions: f.submissions ? f.submissions.map((s: any) => ({
-                id: String(s.id),
-                name: s.name,
-                email: s.email,
-                phone: s.phone,
-                submittedAt: s.submitted_at,
-                addressDetails: s.address_details,
-                buyingSource: s.buying_source,
-                brandAwareness: s.brand_awareness,
-                currentUsage: s.current_usage,
-                flavorPreferences: s.flavor_preferences,
-                reviewedProduct: s.reviewed_product,
-                reviewContent: s.review_content,
-                marketingConsent: s.marketing_consent
-              })) : []
-            }));
-            setVisitorForms(mappedVForms);
+            queryClient.invalidateQueries({ queryKey: ['visitor-forms'] });
           }
 
           // Refresh Announcements
@@ -388,8 +362,7 @@ const AppContent: React.FC = () => {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (annRes.ok) {
-            const annData = await annRes.json();
-            setAnnouncements(annData);
+            queryClient.invalidateQueries({ queryKey: ['announcements'] });
           }
         } catch (error) {
           console.error("Failed to refresh admin data:", error);
@@ -436,23 +409,10 @@ const AppContent: React.FC = () => {
         return;
       }
       if (response.ok) {
-        const savedProduct = await response.json();
-        const mappedProduct = {
-          ...savedProduct,
-          id: String(savedProduct.id),
-          originalPrice: savedProduct.original_price,
-          reviewCount: savedProduct.review_count,
-          isTopRated: savedProduct.is_top_rated,
-          model3d: savedProduct.model_3d,
-          themeColor: savedProduct.theme_color,
-          orientation: savedProduct.orientation,
-          gallery: savedProduct.gallery || [],
-          benefits: savedProduct.benefits || [],
-          nutrients: savedProduct.nutrients || []
-        };
-        setProducts(prev => [mappedProduct, ...prev]);
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+        showToast("Product added successfully!", 'success');
       } else {
-        const errData = await response.json();
+        const errData = await response.json().catch(() => ({}));
         showToast(`Failed to add product: ${errData.detail || 'Unknown error'}`, 'error');
       }
     } catch (err) {
@@ -493,21 +453,8 @@ const AppContent: React.FC = () => {
         return;
       }
       if (response.ok) {
-        const savedProduct = await response.json();
-        const mappedProduct = {
-          ...savedProduct,
-          id: String(savedProduct.id),
-          originalPrice: savedProduct.original_price,
-          reviewCount: savedProduct.review_count,
-          isTopRated: savedProduct.is_top_rated,
-          model3d: savedProduct.model_3d,
-          themeColor: savedProduct.theme_color,
-          orientation: savedProduct.orientation,
-          gallery: savedProduct.gallery || [],
-          benefits: savedProduct.benefits || [],
-          nutrients: savedProduct.nutrients || []
-        };
-        setProducts(prev => prev.map(p => p.id === mappedProduct.id ? mappedProduct : p));
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+        showToast("Product updated successfully!", 'success');
       } else {
         showToast("Failed to update product", 'error');
       }
@@ -528,7 +475,8 @@ const AppContent: React.FC = () => {
         return;
       }
       if (response.ok) {
-        setProducts(prev => prev.filter(p => p.id !== id));
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+        showToast("Product deleted successfully!", 'success');
       } else {
         showToast("Failed to delete product", 'error');
       }
@@ -552,17 +500,7 @@ const AppContent: React.FC = () => {
         })
       });
       if (response.ok) {
-        const savedForm = await response.json();
-        const mappedForm = {
-          id: String(savedForm.id),
-          title: savedForm.title,
-          eventName: savedForm.event_name,
-          status: savedForm.status,
-          createdAt: savedForm.created_at,
-          link: `${window.location.origin}/forms/${savedForm.id}`,
-          submissions: savedForm.submissions || []
-        };
-        setVisitorForms(prev => [mappedForm, ...prev]);
+        queryClient.invalidateQueries({ queryKey: ['visitor-forms'] });
       }
     } catch (err) {
       console.error("Failed to add visitor form", err);
@@ -581,7 +519,7 @@ const AppContent: React.FC = () => {
         return;
       }
       if (response.ok) {
-        setVisitorForms(prev => prev.filter(f => f.id !== id));
+        queryClient.invalidateQueries({ queryKey: ['visitor-forms'] });
       } else {
         showToast("Failed to delete form", 'error');
       }
@@ -606,8 +544,7 @@ const AppContent: React.FC = () => {
         return;
       }
       if (response.ok) {
-        const savedCategory = await response.json();
-        setCategories(prev => [...prev, savedCategory]);
+        queryClient.invalidateQueries({ queryKey: ['categories'] });
       }
     } catch (err) {
       console.error("Failed to add category", err);
@@ -627,7 +564,7 @@ const AppContent: React.FC = () => {
         return;
       }
       if (!response.ok) throw new Error('Failed to delete category');
-      setCategories(prev => prev.filter(c => c.id !== Number(id) && c.id !== String(id))); // Handle generic ID types
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
     } catch (err) {
       console.error("Failed to delete category", err);
     }
@@ -654,15 +591,7 @@ const AppContent: React.FC = () => {
         })
       });
       if (response.ok) {
-        const savedEvent = await response.json();
-        const mappedEvent = {
-          ...savedEvent,
-          id: String(savedEvent.id),
-          fullStory: savedEvent.full_story || [],
-          featuredProducts: (savedEvent.featured_products || []).map(String),
-          gallery: savedEvent.gallery || []
-        };
-        setEvents(prev => [mappedEvent, ...prev]);
+        queryClient.invalidateQueries({ queryKey: ['events'] });
       }
     } catch (err) {
       console.error("Failed to add event", err);
@@ -690,15 +619,7 @@ const AppContent: React.FC = () => {
         })
       });
       if (response.ok) {
-        const savedEvent = await response.json();
-        const mappedEvent = {
-          ...savedEvent,
-          id: String(savedEvent.id),
-          fullStory: savedEvent.full_story || [],
-          featuredProducts: (savedEvent.featured_products || []).map(String),
-          gallery: savedEvent.gallery || []
-        };
-        setEvents(prev => prev.map(e => e.id === mappedEvent.id ? mappedEvent : e));
+        queryClient.invalidateQueries({ queryKey: ['events'] });
       }
     } catch (err) {
       console.error("Failed to update event", err);
@@ -712,7 +633,7 @@ const AppContent: React.FC = () => {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      setEvents(prev => prev.filter(e => e.id !== id));
+      queryClient.invalidateQueries({ queryKey: ['events'] });
     } catch (err) {
       console.error("Failed to delete event", err);
     }
@@ -746,26 +667,7 @@ const AppContent: React.FC = () => {
         })
       });
       if (response.ok) {
-        const savedSlide = await response.json();
-        const mappedSlide = {
-          id: String(savedSlide.id),
-          category: savedSlide.category,
-          headline: savedSlide.headline,
-          image: savedSlide.image,
-          cta: savedSlide.cta,
-          ctaLink: savedSlide.cta_link,
-          secondaryCta: savedSlide.secondary_cta,
-          secondaryCtaLink: savedSlide.secondary_cta_link,
-          bgColor: savedSlide.bg_color,
-          accentColor: savedSlide.accent_color,
-          blobColor: savedSlide.blob_color,
-          backgroundImage: savedSlide.background_image,
-          productId: savedSlide.product_id,
-          transitionType: savedSlide.transition_type,
-          isActive: savedSlide.is_active,
-          order: savedSlide.order
-        };
-        setSlides(prev => [...prev, mappedSlide].sort((a, b) => (a.order || 0) - (b.order || 0)));
+        queryClient.invalidateQueries({ queryKey: ['hero-slides'] });
       } else {
         console.error("Failed to add slide response:", await response.text());
       }
@@ -802,26 +704,7 @@ const AppContent: React.FC = () => {
         })
       });
       if (response.ok) {
-        const savedSlide = await response.json();
-        const mappedSlide = {
-          id: String(savedSlide.id),
-          category: savedSlide.category,
-          headline: savedSlide.headline,
-          image: savedSlide.image,
-          cta: savedSlide.cta,
-          ctaLink: savedSlide.cta_link,
-          secondaryCta: savedSlide.secondary_cta,
-          secondaryCtaLink: savedSlide.secondary_cta_link,
-          bgColor: savedSlide.bg_color,
-          accentColor: savedSlide.accent_color,
-          blobColor: savedSlide.blob_color,
-          backgroundImage: savedSlide.background_image,
-          productId: savedSlide.product_id,
-          transitionType: savedSlide.transition_type,
-          isActive: savedSlide.is_active,
-          order: savedSlide.order
-        };
-        setSlides(prev => prev.map(s => s.id === mappedSlide.id ? mappedSlide : s).sort((a, b) => (a.order || 0) - (b.order || 0)));
+        queryClient.invalidateQueries({ queryKey: ['hero-slides'] });
       } else {
         console.error("Failed to update slide response:", await response.text());
       }
@@ -837,7 +720,7 @@ const AppContent: React.FC = () => {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      setSlides(prev => prev.filter(s => s.id !== id));
+      queryClient.invalidateQueries({ queryKey: ['hero-slides'] });
     } catch (err) {
       console.error("Failed to delete slide", err);
     }
@@ -865,16 +748,7 @@ const AppContent: React.FC = () => {
         })
       });
       if (response.ok) {
-        const savedBlog = await response.json();
-        const mappedBlog = {
-          ...savedBlog,
-          id: String(savedBlog.id),
-          type: savedBlog.post_type,
-          readTime: savedBlog.read_time,
-          content: savedBlog.content || [],
-          tags: savedBlog.tags || []
-        };
-        setBlogPosts(prev => [mappedBlog, ...prev]);
+        queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
       }
     } catch (err) {
       console.error("Failed to add blog", err);
@@ -898,8 +772,7 @@ const AppContent: React.FC = () => {
         })
       });
       if (response.ok) {
-        const saved = await response.json();
-        setAnnouncements(prev => [saved, ...prev]);
+        queryClient.invalidateQueries({ queryKey: ['announcements'] });
       }
     } catch (err) {
       console.error("Failed to add announcement", err);
@@ -923,8 +796,7 @@ const AppContent: React.FC = () => {
         })
       });
       if (response.ok) {
-        const saved = await response.json();
-        setAnnouncements(prev => prev.map(a => a.id === saved.id ? saved : a));
+        queryClient.invalidateQueries({ queryKey: ['announcements'] });
       }
     } catch (err) {
       console.error("Failed to update announcement", err);
@@ -941,7 +813,7 @@ const AppContent: React.FC = () => {
         }
       });
       if (response.ok) {
-        setAnnouncements(prev => prev.filter(a => String(a.id) !== String(id)));
+        queryClient.invalidateQueries({ queryKey: ['announcements'] });
       }
     } catch (err) {
       console.error("Failed to delete announcement", err);
@@ -987,16 +859,7 @@ const AppContent: React.FC = () => {
         })
       });
       if (response.ok) {
-        const savedBlog = await response.json();
-        const mappedBlog = {
-          ...savedBlog,
-          id: String(savedBlog.id),
-          type: savedBlog.post_type,
-          readTime: savedBlog.read_time,
-          content: savedBlog.content || [],
-          tags: savedBlog.tags || []
-        };
-        setBlogPosts(prev => prev.map(b => b.id === mappedBlog.id ? mappedBlog : b));
+        queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
       }
     } catch (err) {
       console.error("Failed to update blog", err);
@@ -1016,7 +879,7 @@ const AppContent: React.FC = () => {
         return;
       }
       if (response.ok) {
-        setBlogPosts(prev => prev.filter(b => b.id !== id));
+        queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
       }
     } catch (err) {
       console.error("Failed to delete blog", err);
@@ -1047,16 +910,7 @@ const AppContent: React.FC = () => {
         })
       });
       if (response.ok) {
-        const savedStory = await response.json();
-        const mappedStory = {
-          id: String(savedStory.id),
-          mediaUrl: savedStory.media_url,
-          fullVideoUrl: savedStory.full_video_url,
-          originalDriveUrl: savedStory.original_drive_url,
-          mediaType: savedStory.media_type,
-          productId: String(savedStory.product_id)
-        };
-        setStories(prev => [...prev, mappedStory]);
+        queryClient.invalidateQueries({ queryKey: ['stories'] });
         showToast("Story added successfully!", 'success');
       } else {
         const errorData = await response.json().catch(() => ({}));
@@ -1076,7 +930,7 @@ const AppContent: React.FC = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
-        setStories(prev => prev.filter(s => s.id !== id));
+        queryClient.invalidateQueries({ queryKey: ['stories'] });
         showToast("Story deleted successfully!", 'success');
       } else {
         showToast("Failed to delete story", 'error');
@@ -1408,9 +1262,9 @@ const AppContent: React.FC = () => {
             onEventClick={navigateToEventDetail}
             categories={categories}
             onMenuStateChange={setIsMenuOpen}
-            announcements={announcements
+            announcements={(announcements || [])
               .filter(a => {
-                if (!a.is_active) return false;
+                if (!a || !a.is_active || !a.start_date || !a.end_date) return false;
                 const now = new Date();
                 const year = now.getFullYear();
                 const month = String(now.getMonth() + 1).padStart(2, '0');

@@ -53,7 +53,7 @@ const StoryCard: React.FC<{
   // Always prefer the local optimized mediaUrl (MP4) over the originalDriveUrl to avoid ORB blocking
   const videoUrl = story.mediaUrl || story.originalDriveUrl || '';
   const isVideo = story.mediaType === 'video' ||
-    story.mediaUrl.toLowerCase().includes('.mp4');
+    (story.mediaUrl || '').toLowerCase().includes('.mp4');
 
   const videoSrc = getDriveStreamUrl(videoUrl);
   const driveId = videoUrl.match(/(?:id=|file\/d\/)([\w-]+)/)?.[1];
