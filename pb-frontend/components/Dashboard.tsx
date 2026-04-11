@@ -663,21 +663,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
 
                     <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
                       <h3 className="text-xl font-black uppercase tracking-tight mb-8">Tier Benefits</h3>
-                      <div className="space-y-4">
-                        {[
-                          { name: 'Starter', range: '0 - 500', benefits: 'Base rewards only' },
-                          { name: 'Pro Member', range: '500 - 1000', benefits: '5% extra points on orders' },
-                          { name: 'Pro Elite', range: '1000 - 3000', benefits: 'Early access + 10% extra points' },
-                          { name: 'Legend', range: '3000+', benefits: 'Free shipping + Birthday gifts' },
-                        ].map((t, i) => (
-                          <div key={i} className={`p-4 rounded-2xl border-2 transition-all ${userData.tier === t.name ? 'border-primary bg-primary/5' : 'border-slate-50 bg-white opacity-60'}`}>
-                            <div className="flex justify-between items-center mb-1">
-                              <p className="font-black text-sm uppercase">{t.name}</p>
-                              <p className="text-[10px] font-bold uppercase tracking-widest">{t.range} Pts</p>
-                            </div>
-                            <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">{t.benefits}</p>
-                          </div>
-                        ))}
+                      <div className="flex flex-col items-center justify-center py-12 text-center">
+                        <span className="material-symbols-outlined text-5xl text-slate-300 mb-4">lock</span>
+                        <p className="text-lg font-black uppercase tracking-tight text-slate-400">Coming Soon</p>
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-300 mt-2">Tier benefits are not yet active</p>
                       </div>
                     </div>
                   </div>

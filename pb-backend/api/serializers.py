@@ -150,12 +150,15 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    tier_benefits = serializers.SerializerMethodField()
+
     class Meta:
         model = UserProfile
         fields = [
             "points",
             "tier",
             "savings",
+            "tier_benefits",
             "phone",
             "address",
             "city",
@@ -163,6 +166,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "pin_code",
             "birth_date",
         ]
+
+    def get_tier_benefits(self, obj):
+        return "coming soon"
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -204,7 +210,7 @@ class UserSerializer(serializers.ModelSerializer):
                 profile.phone = phone
             if birth_date:
                 profile.birth_date = birth_date
-            profile.save()
+            profile.save(update_fields=['phone', 'birth_date'])
             
         return user
 

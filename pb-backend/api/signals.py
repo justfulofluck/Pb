@@ -43,8 +43,6 @@ def handle_user_onboarding(sender, instance, created, **kwargs):
         UserProfile.objects.get_or_create(user=instance)
     elif not hasattr(instance, "profile"):
         UserProfile.objects.create(user=instance)
-    
-    instance.profile.save()
 
     from .utils import award_points
 

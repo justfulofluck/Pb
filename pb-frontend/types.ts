@@ -143,43 +143,43 @@ export interface UsageIdea {
 }
 
 export const CATEGORY_DISPLAY_DATA: CategoryDisplay[] = [
-  {
-    id: "Peanut Butter",
-    display: "Peanut Butter",
-    image: "/assets/peanut-butter-display.jpg",
-    count: "0 Flavors",
-    bgClass: "bg-[#fff7ed]",
-    borderClass: "border-orange-100 hover:border-orange-300",
-    textClass: "text-orange-950",
-    accentClass: "bg-orange-600",
-    rotation: "rotate-2",
-    imagePosition: "object-center"
-  },
-  {
-    id: "Muesli",
-    display: "Muesli",
-    image: "/assets/muesli-display.jpg",
-    count: "0 Blends",
-    bgClass: "bg-[#fefce8]",
-    borderClass: "border-yellow-100 hover:border-yellow-300",
-    textClass: "text-yellow-950",
-    accentClass: "bg-yellow-500",
-    rotation: "-rotate-2",
-    imagePosition: "object-bottom"
-  },
-  {
-    id: "Oats",
-    display: "Oats",
-    image: "/assets/oats-display.jpg",
-    count: "0 Varieties",
-    bgClass: "bg-[#f0fdf4]",
-    borderClass: "border-green-100 hover:border-green-300",
-    textClass: "text-green-950",
-    accentClass: "bg-green-600",
-    rotation: "rotate-1",
-    imagePosition: "object-bottom"
-  }
-];
+   {
+     id: "Peanut Butter",
+     display: "Peanut Butter",
+     image: "/assets/peanut-butter-display.jpg",
+     count: "0 Flavors",
+     bgClass: "bg-[#fff7ed]",
+     borderClass: "border-orange-100 hover:border-orange-300",
+     textClass: "text-orange-950",
+     accentClass: "bg-orange-600",
+     rotation: "rotate-2",
+     imagePosition: "object-center"
+   },
+   {
+     id: "Muesli",
+     display: "Muesli",
+     image: "/assets/muesli-display.jpg",
+     count: "0 Blends",
+     bgClass: "bg-[#fefce8]",
+     borderClass: "border-yellow-100 hover:border-yellow-300",
+     textClass: "text-yellow-950",
+     accentClass: "bg-yellow-500",
+     rotation: "-rotate-2",
+     imagePosition: "object-bottom"
+   },
+   {
+     id: "Oats",
+     display: "Oats",
+     image: "/assets/oats-display.jpg",
+     count: "0 Varieties",
+     bgClass: "bg-[#f0fdf4]",
+     borderClass: "border-green-100 hover:border-green-300",
+     textClass: "text-green-950",
+     accentClass: "bg-green-600",
+     rotation: "rotate-1",
+     imagePosition: "object-bottom"
+   }
+ ];
 export interface VisitorSubmission {
   id: string;
   form: string;
