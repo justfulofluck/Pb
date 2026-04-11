@@ -80,7 +80,7 @@ const fetchProducts = async () => {
     themeColor: p.theme_color,
     orientation: p.orientation ? p.orientation.replace(/[Oo]/g, '0') : '0deg 0deg 0deg',
     gallery: p.gallery || [],
-    benefits: p.benefits || [],
+    benefits: (p.benefits || []).filter((b: any) => b && String(b).trim() !== ""),
     nutrients: p.nutrients || [],
     mainIngredient: p.main_ingredient || (p.name?.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : p.name?.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : p.name?.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : p.name?.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : p.name?.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
     mainIngredientImage: p.main_ingredient_image || (p.name?.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
@@ -165,7 +165,7 @@ const fetchStories = async () => {
     mediaType: s.media_type || s.mediaType,
     fullVideoUrl: s.full_video_url,
     originalDriveUrl: s.original_drive_url,
-    productId: s.product ? String(s.product) : undefined
+    productId: s.product_id ? String(s.product_id) : undefined
   }));
 };
 
@@ -277,7 +277,7 @@ const AppContent: React.FC = () => {
                   themeColor: fullP.theme_color,
                   model3d: fullP.model_3d,
                   orientation: fullP.orientation ? fullP.orientation.replace(/[Oo]/g, '0') : '0deg 0deg -15deg',
-                  benefits: fullP.benefits || [],
+                  benefits: (fullP.benefits || []).filter((b: any) => b && String(b).trim() !== ""),
                   nutrients: fullP.nutrients || [],
                   gallery: fullP.gallery || [],
                   mainIngredient: fullP.main_ingredient || (fullP.name?.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : fullP.name?.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : fullP.name?.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : fullP.name?.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : fullP.name?.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),

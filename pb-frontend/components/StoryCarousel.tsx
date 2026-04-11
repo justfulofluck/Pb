@@ -91,7 +91,7 @@ const StoryCard: React.FC<{
         />
       ) : (
         <img
-          src={story.mediaUrl}
+          src={getDriveStreamUrl(story.mediaUrl)}
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           alt="Social Story"
         />
@@ -138,7 +138,7 @@ const StoryCard: React.FC<{
 
 const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProductClick, onAddToCart }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeStory, setActiveStory] = useState<{ story: Story, product: Product } | null>(null);
+  const [activeStory, setActiveStory] = useState<{ story: Story, product: Product | null } | null>(null);
 
   const getProduct = (id: string) => products.find(p => String(p.id) === String(id));
 
@@ -167,7 +167,7 @@ const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProd
               product={getProduct(story.productId)}
               onClick={() => {
                 const product = getProduct(story.productId);
-                if (product) setActiveStory({ story, product });
+                setActiveStory({ story, product: product || null });
               }}
               onProductClick={onProductClick}
             />

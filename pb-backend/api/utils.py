@@ -84,18 +84,24 @@ def award_points(user, event_name, custom_points=None, reason_override=None):
         if points <= 0:
             return 0
             
+        from django.db.models import F
         profile, created = UserProfile.objects.get_or_create(user=user)
-        profile.points += points
+        
+        # Atomically increment points in DB
+        UserProfile.objects.filter(id=profile.id).update(points=F('points') + points)
+        
+        # Refresh to get the actual value for tier calculation
+        profile.refresh_from_db()
         
         # Update Tier Logic
         if profile.points >= 3000:
-            profile.tier = "Legend Tier" # Matching model choices
+            profile.tier = "Legend Tier"
         elif profile.points >= 1000:
             profile.tier = "Pro Elite"
         elif profile.points >= 500:
              profile.tier = "Pro Member"
         
-        profile.save()
+        profile.save(update_fields=['tier'])
         
         reason = reason_override if reason_override else rule.description
         RewardTransaction.objects.create(

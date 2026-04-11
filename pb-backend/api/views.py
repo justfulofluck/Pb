@@ -447,11 +447,9 @@ class RegisterView(generics.CreateAPIView):
 
             try:
                 rule = RewardRule.objects.get(event_name="signup")
-                if rule.is_enabled:
-                    response.data["points_earned"] = rule.points
-                else:
-                    response.data["points_earned"] = 0
-            except RewardRule.DoesNotExist:
+                response.data["points_earned"] = rule.points if rule.is_enabled else 0
+            except Exception as e:
+                print(f"Error getting signup rule: {e}")
                 response.data["points_earned"] = 0
         return response
 

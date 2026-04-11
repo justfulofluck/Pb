@@ -116,10 +116,31 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
       } catch (err) { }
     };
 
+    const fetchWishlist = async () => {
+      try {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        const res = await fetch(`${API_BASE_URL}/api/wishlist/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            setWishlistItems(data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch wishlist", err);
+      } finally {
+        setIsLoadingWishlist(false);
+      }
+    };
+
     if (authUser) {
       fetchOrders();
       fetchRewardTransactions();
       fetchRewardRules();
+      fetchWishlist();
     }
   }, [authUser]);
 
@@ -774,9 +795,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
                         </div>
                         <h3 className="text-2xl font-black uppercase tracking-tight text-slate-900 mb-2">Your wishlist is empty</h3>
                         <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-8">Save items you love to view them later.</p>
-                        <button onClick={onHomeClick} className="bg-slate-900 text-white px-8 py-4 rounded-xl font-black uppercase tracking-[0.2em] hover:bg-primary transition-colors shadow-lg">
-                          Discover Snaxx
-                        </button>
+
                       </div>
                     )}
                   </div>

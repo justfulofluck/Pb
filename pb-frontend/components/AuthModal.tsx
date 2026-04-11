@@ -67,7 +67,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
         });
 
         if (success) {
-          triggerRewardNotification(50, 'Welcome Gift: Signup Bonus!');
           onLogin();
           onClose();
         } else {
