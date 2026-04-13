@@ -82,8 +82,8 @@ const BlogsPage: React.FC<BlogsPageProps> = ({ posts, onBlogClick, onHomeClick }
                     {post.type === 'Recipe' ? 'Article' : post.type}
                   </span>
                   <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[13px]">
-                    <span className="material-symbols-outlined text-[18px]">hourglass_empty</span>
-                    {post.readTime}
+                    <span className="uppercase tracking-widest text-[10px]">reading time:</span>
+                    {post.readTime} mins
                   </div>
                 </div>
 

@@ -79,7 +79,7 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeCli
             </span>
             <span className="text-slate-300">•</span>
             <span className="text-slate-400 font-bold text-xs uppercase tracking-widest">
-              {post.readTime}
+              {post.readTime} mins
             </span>
           </div>
           <h1 className="text-4xl md:text-6xl font-black uppercase text-slate-900 leading-tight mb-8">

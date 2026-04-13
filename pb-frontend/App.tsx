@@ -135,6 +135,11 @@ const fetchEvents = async () => {
     fullStory: e.full_story || [],
     featuredProducts: (e.featured_products || []).map(String),
     gallery: e.gallery || [],
+    impactParticipants: e.impact_participants,
+    fuelBarsShared: e.fuel_bars_shared,
+    vibeEnergy: e.vibe_energy,
+    scheduledDate: e.scheduled_date,
+    isActive: e.is_active,
   }));
 };
 
@@ -150,6 +155,8 @@ const fetchBlogs = async () => {
     readTime: b.read_time,
     content: Array.isArray(b.content) ? b.content.join('\n\n') : (b.content || ''),
     tags: b.tags || [],
+    scheduledDate: b.scheduled_date,
+    isActive: b.is_active,
   }));
 };
 
@@ -191,6 +198,35 @@ const AppContent: React.FC = () => {
   const events = eventsQuery.data || INITIAL_EVENTS;
   const blogPosts = blogPostsQuery.data || [];
   const stories = storiesQuery.data || INITIAL_STORIES;
+
+  // Filter scheduled posts for public view
+  const visibleBlogs = blogPosts.filter(post => {
+    if (post.isActive === false) return false;
+    if (!post.scheduledDate) return true;
+    try {
+      const [y, m, d] = post.scheduledDate.split('-').map(Number);
+      const scheduled = new Date(y, m - 1, d);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return scheduled <= today;
+    } catch {
+      return true;
+    }
+  });
+
+  const visibleEvents = events.filter(event => {
+    if (event.isActive === false) return false;
+    if (!event.scheduledDate) return true;
+    try {
+      const [y, m, d] = event.scheduledDate.split('-').map(Number);
+      const scheduled = new Date(y, m - 1, d);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return scheduled <= today;
+    } catch {
+      return true;
+    }
+  });
 
   // Local-only state
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
@@ -588,14 +624,23 @@ const AppContent: React.FC = () => {
           full_story: newEvent.fullStory,
           gallery: newEvent.gallery,
           featured_products: newEvent.featuredProducts,
-          date: newEvent.date
+          date: newEvent.date,
+          impact_participants: newEvent.impactParticipants,
+          fuel_bars_shared: newEvent.fuelBarsShared,
+          vibe_energy: newEvent.vibeEnergy,
+          scheduled_date: newEvent.scheduledDate || null,
+          is_active: newEvent.isActive !== false
         })
       });
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ['events'] });
+        showToast("Event story published successfully!", 'success');
+      } else {
+        showToast("Failed to publish event story", 'error');
       }
     } catch (err) {
       console.error("Failed to add event", err);
+      showToast("An error occurred while publishing the event", 'error');
     }
   };
 
@@ -616,27 +661,42 @@ const AppContent: React.FC = () => {
           full_story: updatedEvent.fullStory,
           gallery: updatedEvent.gallery,
           featured_products: updatedEvent.featuredProducts,
-          date: updatedEvent.date
+          date: updatedEvent.date,
+          impact_participants: updatedEvent.impactParticipants,
+          fuel_bars_shared: updatedEvent.fuelBarsShared,
+          vibe_energy: updatedEvent.vibeEnergy,
+          scheduled_date: updatedEvent.scheduledDate || null,
+          is_active: updatedEvent.isActive !== false
         })
       });
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ['events'] });
+        showToast("Event story updated successfully!", 'success');
+      } else {
+        showToast("Failed to update event story", 'error');
       }
     } catch (err) {
       console.error("Failed to update event", err);
+      showToast("An error occurred while updating the event", 'error');
     }
   };
 
   const handleDeleteEvent = async (id: string) => {
     try {
       const token = localStorage.getItem('admin_access_token');
-      await fetch(`${API_BASE_URL}/api/events/${id}/`, {
+      const response = await fetch(`${API_BASE_URL}/api/events/${id}/`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      queryClient.invalidateQueries({ queryKey: ['events'] });
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['events'] });
+        showToast("Event story deleted successfully!", 'success');
+      } else {
+        showToast("Failed to delete event story", 'error');
+      }
     } catch (err) {
       console.error("Failed to delete event", err);
+      showToast("An error occurred while deleting the event", 'error');
     }
   };
 
@@ -745,7 +805,9 @@ const AppContent: React.FC = () => {
           read_time: newBlog.readTime,
           author: newBlog.author,
           content: newBlog.content,
-          tags: newBlog.tags
+          tags: newBlog.tags,
+          scheduled_date: newBlog.scheduledDate || null,
+          is_active: newBlog.isActive !== false
         })
       });
       if (response.ok) {
@@ -856,7 +918,9 @@ const AppContent: React.FC = () => {
           read_time: updatedBlog.readTime,
           author: updatedBlog.author,
           content: updatedBlog.content,
-          tags: updatedBlog.tags
+          tags: updatedBlog.tags,
+          scheduled_date: updatedBlog.scheduledDate || null,
+          is_active: updatedBlog.isActive !== false
         })
       });
       if (response.ok) {
@@ -972,6 +1036,9 @@ const AppContent: React.FC = () => {
     setCurrentView('product');
     window.history.pushState({ view: 'product', productId: product.id }, '');
     window.scrollTo(0, 0);
+
+    // Skip redundant fetch if we already have full details (prevents double-animation/double-loading)
+    if (product.benefits && product.benefits.length > 0) return;
 
     // Fetch full details since list view is now minimal
     try {
@@ -1174,6 +1241,7 @@ const AppContent: React.FC = () => {
         onDeleteCategory={handleDeleteCategory}
         events={events}
         onAddEvent={handleAddEvent}
+        onUpdateEvent={handleUpdateEvent}
         onDeleteEvent={handleDeleteEvent}
         slides={slides}
         onAddSlide={handleAddSlide}
@@ -1257,7 +1325,7 @@ const AppContent: React.FC = () => {
             onSearch={handleGlobalSearch}
             products={products}
             blogPosts={blogPosts}
-            events={events}
+            events={visibleEvents}
             onProductClick={navigateToProduct}
             onBlogClick={navigateToBlogDetail}
             onEventClick={navigateToEventDetail}
@@ -1321,14 +1389,14 @@ const AppContent: React.FC = () => {
               {reviews.length > 0 && <Testimonials reviews={reviews} />}
               {blogPosts.length > 0 && (
                 <BlogSection
-                  posts={blogPosts}
+                  posts={visibleBlogs}
                   onPostClick={navigateToBlogDetail}
                   onViewAllClick={navigateToBlogs}
                 />
               )}
               {events.length > 0 && (
                 <EventsSection
-                  events={events}
+                  events={visibleEvents}
                   onParticipateClick={() => setIsEventModalOpen(true)}
                   onViewRecapsClick={navigateToEventBlogs}
                 />
@@ -1393,7 +1461,7 @@ const AppContent: React.FC = () => {
 
           {currentView === 'blogs' && (
             <BlogsPage
-              posts={blogPosts}
+              posts={visibleBlogs}
               onBlogClick={navigateToBlogDetail}
               onHomeClick={goHome}
             />
@@ -1409,7 +1477,7 @@ const AppContent: React.FC = () => {
 
           {currentView === 'event-blogs' && (
             <EventBlogsPage
-              events={events}
+              events={visibleEvents}
               onEventClick={navigateToEventDetail}
               onHomeClick={goHome}
             />

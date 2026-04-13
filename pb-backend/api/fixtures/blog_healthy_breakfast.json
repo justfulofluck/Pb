@@ -1,0 +1,70 @@
+{
+  "post_type": "Recipe",
+  "title": "Healthy Breakfast Ideas with Flavored Peanut Butter",
+  "excerpt": "We've all heard breakfast is the most important meal of the day, but mornings are busy. Flavored and classic peanut butter offer quick, tasty, and nutritious options to simplify breakfast.",
+  "image": "https://images.unsplash.com/photo-1599599810769-bcde5a45dd03?w=800",
+  "date": "September 2, 2025",
+  "read_time": "5 min read",
+  "author": "Pinobite",
+  "content": [
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "5 Easy Breakfast Recipes with Flavored Peanut Butter"
+    },
+    {
+      "type": "paragraph",
+      "text": "We've all heard breakfast is the most important meal of the day, but mornings are busy. Flavored and classic peanut butter offer quick, tasty, and nutritious options to simplify breakfast."
+    },
+    {
+      "type": "recipe",
+      "name": "Peanut Butter and Fruit Toast",
+      "description": "Toast with flavored peanut butter (e.g., strawberry), topped with banana slices or berries.",
+      "tips": "Sprinkle chia or flax seeds for extra crunch and nutrition."
+    },
+    {
+      "type": "recipe",
+      "name": "Tropical Smoothie Bowl",
+      "description": "Blend frozen mango, yogurt, and a splash of milk; drizzle pineapple peanut butter on top.",
+      "tips": "Add granola or coconut flakes for texture; peanut butter adds protein and healthy fats."
+    },
+    {
+      "type": "recipe",
+      "name": "Overnight Oats with Peanut Butter",
+      "description": "Mix oats, chia seeds, and milk in a jar overnight; stir in mango peanut butter in the morning.",
+      "tips": "Prep multiple jars at once for grab-and-go breakfasts; add nuts or honey if desired."
+    },
+    {
+      "type": "recipe",
+      "name": "Dark Chocolate Peanut Butter Yogurt Bowl",
+      "description": "Scoop Greek yogurt, drizzle dark chocolate peanut butter, add sliced strawberries or bananas.",
+      "tips": "Top with granola or crushed nuts for café-style crunch."
+    },
+    {
+      "type": "recipe",
+      "name": "Classic Peanut Butter Wrap",
+      "description": "Spread natural peanut butter on a whole wheat wrap, add banana slices, and roll up.",
+      "tips": "Optional drizzle of honey or a sprinkle of cinnamon for extra flavor."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Why Flavored Peanut Butter?"
+    },
+    {
+      "type": "paragraph",
+      "text": "Flavored peanut butter adds variety without extra effort; one jar can change the flavor profile of many breakfasts while providing protein and healthy fats to keep you full."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "text": "Final Thoughts"
+    },
+    {
+      "type": "paragraph",
+      "text": "Breakfast can be simple and healthy with flavored or classic peanut butter—pair with toast, fruit, oats, or yogurt for quick, satisfying meals."
+    }
+  ],
+  "tags": ["Peanut Butter", "Breakfast", "Healthy Eating", "Recipes", "Quick Meals"],
+  "is_active": true
+}

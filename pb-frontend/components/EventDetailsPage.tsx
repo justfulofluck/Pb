@@ -45,23 +45,25 @@ const EventDetailsPage: React.FC<EventDetailsPageProps> = ({ event, onBack, onHo
         <div className="bg-white doodle-border shadow-xl grid grid-cols-2 md:grid-cols-4 gap-4 p-8">
           <div className="text-center border-r border-slate-100 last:border-none">
             <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Impact</p>
-            <p className="text-2xl font-black text-primary">500+</p>
+            <p className="text-2xl font-black text-primary">{event.impactParticipants || '500+'}</p>
             <p className="text-xs font-bold text-slate-500 uppercase">Participants</p>
           </div>
           <div className="text-center border-r border-slate-100 last:border-none">
             <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Fuel</p>
-            <p className="text-2xl font-black text-primary">1.2k</p>
+            <p className="text-2xl font-black text-primary">{event.fuelBarsShared || '1.2k'}</p>
             <p className="text-xs font-bold text-slate-500 uppercase">Bars Shared</p>
           </div>
           <div className="text-center border-r border-slate-100 last:border-none">
             <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Vibe</p>
-            <p className="text-2xl font-black text-primary">100%</p>
+            <p className="text-2xl font-black text-primary">{event.vibeEnergy || '100%'}</p>
             <p className="text-xs font-bold text-slate-500 uppercase">High Energy</p>
           </div>
           <div className="text-center border-r border-slate-100 last:border-none">
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">City</p>
-            <p className="text-2xl font-black text-primary">Live</p>
-            <p className="text-xs font-bold text-slate-500 uppercase">{event.location.split(',').pop()}</p>
+            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Location</p>
+            <p className="text-2xl font-black text-primary truncate px-2" title={event.location.split(',').pop()?.trim()}>
+              {event.location.split(',').pop()?.trim() || 'Vadodara'}
+            </p>
+            <p className="text-xs font-bold text-slate-500 uppercase">City</p>
           </div>
         </div>
       </section>
@@ -89,13 +91,7 @@ const EventDetailsPage: React.FC<EventDetailsPageProps> = ({ event, onBack, onHo
           </div>
         </div>
         <aside className="space-y-8">
-          <div className="bg-secondary/10 p-8 rounded-3xl doodle-border">
-            <h4 className="font-satoshi text-3xl text-primary mb-4 transform -rotate-1">Word on Street ✨</h4>
-            <p className="font-bold text-slate-700 italic leading-relaxed text-lg">
-              "The energy at the {event.title} was insane. Loved fueling up with the Muesli bars mid-session!"
-            </p>
-            <p className="mt-4 text-xs font-black uppercase text-primary">- Anjali, Participant</p>
-          </div>
+          {/* Section removed as per user request (Word on Street) */}
         </aside>
       </section>
     </div>

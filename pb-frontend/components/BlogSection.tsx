@@ -12,6 +12,16 @@ const BlogSection: React.FC<BlogSectionProps> = ({ posts, onPostClick, onViewAll
   // Display only the first 3 posts
   const displayPosts = posts.slice(0, 3);
 
+  if (!displayPosts || displayPosts.length === 0) {
+    return (
+      <section className="py-24 bg-whiteboard texture-overlay texture-speckles overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4">
+          <p className="text-center text-slate-500">No blog posts available.</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="py-24 bg-whiteboard texture-overlay texture-speckles overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 relative z-10">
@@ -48,8 +58,8 @@ const BlogSection: React.FC<BlogSectionProps> = ({ posts, onPostClick, onViewAll
                   {post.type === 'Recipe' ? 'Article' : post.type}
                 </span>
                 <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[13px]">
-                  <span className="material-symbols-outlined text-[18px]">hourglass_empty</span>
-                  {post.readTime}
+                  <span className="uppercase tracking-widest text-[10px]">reading time:</span>
+                  {post.readTime} mins
                 </div>
               </div>
 

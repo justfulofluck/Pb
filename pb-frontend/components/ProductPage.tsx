@@ -148,7 +148,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
     return () => {
     };
-  }, [product]);
+  }, [product?.id]); // Only re-animate and reset if the actual product ID changes
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -413,45 +413,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
         </div>
       </section >
 
-      {/* NEW: Powerful Natural Ingredient Blend Section */}
-      <section className="py-20 relative overflow-hidden bg-[#faf7f2] border-y border-stone-200 texture-overlay texture-speckles">
-        {/* Decorative background elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#008a45]/5 rounded-full blur-[100px] -mr-48 -mt-48"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] -ml-48 -mb-48"></div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-16">
-            <div className="w-full md:w-1/2" data-snaxxo-animate>
-              <h2 className="text-textured-green-big text-5xl md:text-[5.2rem] !italic tracking-normal !leading-[1.1] mb-0 [word-spacing:0.1em] pr-10 overflow-visible">
-                THE <br />
-                POWERFUL <br />
-                NATURAL <br />
-                INGREDIENT <br />
-                BLEND
-              </h2>
-            </div>
-            <div className="w-full md:w-1/2 flex flex-col items-center relative" data-snaxxo-animate>
-              {/* Natural Seal Badge */}
-              <div className="absolute -top-10 -right-4 md:right-10 z-20 w-32 h-32 md:w-44 md:h-44 bg-secondary rounded-full flex items-center justify-center border-4 border-white shadow-2xl rotate-12 hover:rotate-0 transition-transform duration-500 cursor-default">
-                <div className="text-center font-anton text-primary uppercase leading-tight select-none">
-                  <div className="text-xs md:text-sm">100%</div>
-                  <div className="text-xl md:text-3xl">NATURAL</div>
-                  <div className="text-[10px] md:text-xs">PREMIUM QUALITY</div>
-                </div>
-              </div>
-
-              <div className="relative w-64 h-64 md:w-[400px] md:h-[400px] mb-8 group">
-                <div className="absolute inset-0 bg-primary/10 rounded-full blur-[80px] scale-125" />
-                <img
-                  src={product.mainIngredientImage || "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop"}
-                  alt={product.mainIngredient || "Roasted Peanuts"}
-                  className="w-full h-full object-contain relative z-10 drop-shadow-[0_30px_50px_rgba(0,0,0,0.25)] group-hover:scale-105 transition-all duration-1000 rotate-[-3deg] group-hover:rotate-0"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
 
       <section className="section overflow-hidden" style={{ backgroundColor: '#f2f2ec' }}>

@@ -79,6 +79,11 @@ class Event(models.Model):
     gallery = models.JSONField(default=list)
     featured_products = models.JSONField(default=list)  # List of product IDs
     date = models.CharField(max_length=50)
+    impact_participants = models.CharField(max_length=100, blank=True, null=True)
+    fuel_bars_shared = models.CharField(max_length=100, blank=True, null=True)
+    vibe_energy = models.CharField(max_length=100, blank=True, null=True)
+    scheduled_date = models.DateField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title
@@ -99,6 +104,8 @@ class BlogPost(models.Model):
     author = models.CharField(max_length=100)
     content = models.JSONField(default=list)  # List of paragraphs
     tags = models.JSONField(default=list, blank=True)
+    scheduled_date = models.DateField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title

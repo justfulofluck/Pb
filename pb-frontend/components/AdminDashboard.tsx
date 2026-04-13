@@ -4,6 +4,7 @@ import { API_BASE_URL } from '../config';
 // import { jsPDF } from "jspdf"; // Removed deprecated dependency
 import ConfirmationModal from './ConfirmationModal';
 import { useToast } from './Toast';
+import TiptapEditor from './TiptapEditor';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -17,6 +18,7 @@ interface AdminDashboardProps {
   onDeleteCategory: (id: string) => void; // Added prop
   events: EventBlog[];
   onAddEvent: (e: EventBlog) => void;
+  onUpdateEvent: (e: EventBlog) => void;
   onDeleteEvent: (id: string) => void;
   slides: HeroSlide[];
   onAddSlide: (s: HeroSlide) => void;
@@ -69,6 +71,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onDeleteCategory,
   events,
   onAddEvent,
+  onUpdateEvent,
   onDeleteEvent,
   slides,
   onAddSlide,
@@ -335,7 +338,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     readTime: '',
     author: '',
-    content: ''
+    content: '',
+    scheduledDate: '',
+    isActive: true
   });
 
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -367,6 +372,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     usageIdeas: []
   });
 
+  const [editingEvent, setEditingEvent] = useState<EventBlog | null>(null);
+
   // Event Form State
   const [eventForm, setEventForm] = useState<Partial<EventBlog>>({
     title: '',
@@ -376,7 +383,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     summary: '',
     fullStory: [{ heading: '', content: '' }],
     gallery: [],
-    featuredProducts: []
+    featuredProducts: [],
+    impactParticipants: '',
+    fuelBarsShared: '',
+    vibeEnergy: '',
+    scheduledDate: '',
+    isActive: true
   });
 
   const [slideForm, setSlideForm] = useState<Partial<HeroSlide>>({
@@ -605,7 +617,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       readTime: '',
       author: '',
-      content: ''
+      content: '',
+      scheduledDate: '',
+      isActive: true
     });
     setBlogView('form');
   };
@@ -613,7 +627,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const openEditBlog = (post: BlogPost) => {
     setEditingBlogPost(post);
     const content = Array.isArray(post.content) ? post.content.join('\n\n') : (post.content || '');
-    setBlogForm({ ...post, content });
+    setBlogForm({
+      ...post,
+      content,
+      scheduledDate: post.scheduledDate || ''
+    });
     setBlogView('form');
   };
 
@@ -634,7 +652,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       date: blogForm.date || new Date().toDateString(),
       readTime: blogForm.readTime || '5 min read',
       author: blogForm.author || 'Admin',
-      content: blogForm.content || ''
+      content: blogForm.content || '',
+      scheduledDate: blogForm.scheduledDate || '',
+      isActive: blogForm.isActive !== false
     };
 
     if (editingBlogPost) {
@@ -656,19 +676,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  const updateBlogContent = (index: number, value: string) => {
-    const newContent = [...(blogForm.content || [])];
-    newContent[index] = value;
-    setBlogForm(prev => ({ ...prev, content: newContent }));
-  };
 
-  const addBlogParagraph = () => {
-    setBlogForm(prev => ({ ...prev, content: [...(prev.content || []), ''] }));
-  };
-
-  const removeBlogParagraph = (index: number) => {
-    setBlogForm(prev => ({ ...prev, content: prev.content?.filter((_, i) => i !== index) }));
-  };
 
   const handleSlideSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -934,6 +942,38 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   // Handlers for Events
+  const openAddEvent = () => {
+    setEditingEvent(null);
+    setEventForm({
+      title: '',
+      date: new Date().toISOString().split('T')[0],
+      location: '',
+      image: '',
+      summary: '',
+      fullStory: [{ heading: '', content: '' }],
+      gallery: [],
+      featuredProducts: [],
+      impactParticipants: '',
+      fuelBarsShared: '',
+      vibeEnergy: '',
+      scheduledDate: ''
+    });
+    setEventView('add');
+  };
+
+  const openEditEvent = (event: EventBlog) => {
+    setEditingEvent(event);
+    setEventForm({
+      ...event,
+      date: event.date || '',
+      impactParticipants: event.impactParticipants || '',
+      fuelBarsShared: event.fuelBarsShared || '',
+      vibeEnergy: event.vibeEnergy || '',
+      scheduledDate: event.scheduledDate || ''
+    });
+    setEventView('add');
+  };
+
   const handleEventSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!eventForm.image) {
@@ -941,20 +981,35 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       return;
     }
 
-    const newEvent: EventBlog = {
-      id: Date.now().toString(),
-      title: eventForm.title || 'New Event',
-      date: eventForm.date || new Date().toDateString(),
-      location: eventForm.location || 'Online',
-      image: eventForm.image || '',
-      summary: eventForm.summary || '',
-      fullStory: eventForm.fullStory?.filter(s => s.heading && s.content) || [],
-      gallery: eventForm.gallery || [],
-      featuredProducts: []
-    };
-    onAddEvent(newEvent);
+    if (editingEvent) {
+      const updatedEvent: EventBlog = {
+        ...editingEvent,
+        ...eventForm as EventBlog,
+        id: editingEvent.id,
+        fullStory: eventForm.fullStory?.filter(s => s.heading && s.content) || []
+      };
+      onUpdateEvent(updatedEvent);
+    } else {
+      const newEvent: EventBlog = {
+        id: Date.now().toString(),
+        title: eventForm.title || 'New Event',
+        date: eventForm.date || new Date().toDateString(),
+        location: eventForm.location || 'Online',
+        image: eventForm.image || '',
+        summary: eventForm.summary || '',
+        fullStory: eventForm.fullStory?.filter(s => s.heading && s.content) || [],
+        gallery: eventForm.gallery || [],
+        featuredProducts: eventForm.featuredProducts || [],
+        impactParticipants: eventForm.impactParticipants || '',
+        fuelBarsShared: eventForm.fuelBarsShared || '',
+        vibeEnergy: eventForm.vibeEnergy || '',
+        scheduledDate: eventForm.scheduledDate || ''
+      };
+      onAddEvent(newEvent);
+    }
     setEventView('list');
-    setEventForm({ title: '', date: '', location: '', image: '', summary: '', fullStory: [{ heading: '', content: '' }], gallery: [], featuredProducts: [] });
+    setEditingEvent(null);
+    setEventForm({ title: '', date: '', location: '', image: '', summary: '', fullStory: [{ heading: '', content: '' }], gallery: [], featuredProducts: [], impactParticipants: '', fuelBarsShared: '', vibeEnergy: '', scheduledDate: '' });
   };
 
   const handleEventImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'gallery') => {
@@ -1933,20 +1988,53 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* View: List */}
                 {blogView === 'list' && (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {blogPosts.map(post => (
+                    {[...blogPosts].reverse().map(post => (
                       <div key={post.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col group">
                         <div className="h-48 overflow-hidden relative">
                           <img src={post.image} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={post.title} />
-                          <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-900">
-                            {post.type}
-                          </span>
+                          <div className="absolute top-4 left-4 flex flex-col gap-1.5">
+                            <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-900 w-fit">
+                              {post.type}
+                            </span>
+                            {post.scheduledDate && (() => {
+                              try {
+                                const [y, m, d] = post.scheduledDate.split('-').map(Number);
+                                const scheduled = new Date(y, m - 1, d);
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                                return scheduled > today;
+                              } catch { return false; }
+                            })() && (
+                                <span className="bg-primary/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white w-fit flex items-center gap-1 shadow-lg">
+                                  <span className="material-symbols-outlined text-[12px]">schedule</span>
+                                  Scheduled: {post.scheduledDate}
+                                </span>
+                              )}
+                          </div>
                           <div className="absolute top-4 right-4 flex gap-2">
-                            <button onClick={() => onDeleteBlog(post.id)} className="w-8 h-8 rounded-full bg-white text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onUpdateBlog({ ...post, isActive: post.isActive === false });
+                                showToast(`Post ${post.isActive === false ? 'shown' : 'hidden'}`, 'info');
+                              }}
+                              className={`w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform ${post.isActive === false ? 'bg-amber-500 text-white' : 'bg-white text-slate-400'}`}
+                              title={post.isActive === false ? "Show Post" : "Hide Post"}
+                            >
+                              <span className="material-symbols-outlined text-lg">{post.isActive === false ? 'visibility' : 'visibility_off'}</span>
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); onDeleteBlog(post.id); }} className="w-8 h-8 rounded-full bg-white text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
                               <span className="material-symbols-outlined text-lg">delete</span>
                             </button>
                           </div>
                         </div>
                         <div className="p-6 flex-1 flex flex-col">
+                          {post.isActive === false && (
+                            <div className="bg-amber-50 text-amber-700 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">visibility_off</span>
+                              Hidden from Live Site
+                            </div>
+                          )}
                           <div className="flex justify-between items-center mb-2">
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{post.date}</span>
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{post.readTime}</span>
@@ -2004,7 +2092,25 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </div>
                         <div className="space-y-2">
                           <label className="text-xs font-black uppercase tracking-widest text-slate-500">Read Time</label>
-                          <input required type="text" value={blogForm.readTime} onChange={e => setBlogForm({ ...blogForm, readTime: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. 5 min read" />
+                          <input required type="text" value={blogForm.readTime} onChange={e => setBlogForm({ ...blogForm, readTime: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. 5" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Schedule Publish (Optional)</label>
+                          <div className="flex items-center gap-3">
+                            <input type="date" value={blogForm.scheduledDate} onChange={e => setBlogForm({ ...blogForm, scheduledDate: e.target.value })} className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" />
+                            <span className="material-symbols-outlined text-slate-400">calendar_today</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-2">
+                            <button
+                              type="button"
+                              onClick={() => setBlogForm({ ...blogForm, isActive: !blogForm.isActive })}
+                              className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${blogForm.isActive !== false ? 'bg-green-50 border-green-200 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
+                            >
+                              <span className="material-symbols-outlined text-lg">{blogForm.isActive !== false ? 'visibility' : 'visibility_off'}</span>
+                              <span className="text-xs font-bold uppercase tracking-widest">{blogForm.isActive !== false ? 'Visible on Site' : 'Hidden from Site'}</span>
+                            </button>
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-bold">Pick a date to schedule when this blog appears on the site.</p>
                         </div>
                         <div className="md:col-span-2 space-y-2">
                           <label className="text-xs font-black uppercase tracking-widest text-slate-500">Excerpt</label>
@@ -2023,55 +2129,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <section className="space-y-4 pt-6 border-t border-slate-100">
                         <div className="flex items-center justify-between">
                           <h4 className="text-sm font-black uppercase text-slate-800">Article Content</h4>
-                          <span className="text-[10px] font-bold text-primary uppercase tracking-widest border border-primary/20 px-2 py-0.5 rounded">HTML Supported</span>
                         </div>
-                        <p className="text-xs text-slate-500">Enter your article content. You can use HTML tags like &lt;h1&gt;, &lt;h2&gt;, &lt;p&gt;, and &lt;a&gt; for headings and links.</p>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          <button
-                            type="button"
-                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '\n<p>New paragraph here...</p>' })}
-                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
-                          >
-                            <span className="material-symbols-outlined text-sm">segment</span> Paragraph
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '\n<h2>Heading 2</h2>' })}
-                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
-                          >
-                            <span className="material-symbols-outlined text-sm">title</span> Heading
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '<strong>Bold Text</strong>' })}
-                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
-                          >
-                            <span className="material-symbols-outlined text-sm">format_bold</span> Bold
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '<a href="https://example.com">Link Text</a>' })}
-                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
-                          >
-                            <span className="material-symbols-outlined text-sm">link</span> Link
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '\n<img src="IMAGE_URL_HERE" alt="description" className="w-full rounded-2xl my-6" />' })}
-                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
-                          >
-                            <span className="material-symbols-outlined text-sm">image</span> Add Image
-                          </button>
-                        </div>
-                        <div className="relative">
-                          <textarea
-                            placeholder="Write your article story here... Use HTML for headings and links!"
-                            value={blogForm.content}
-                            onChange={(e) => setBlogForm({ ...blogForm, content: e.target.value })}
-                            rows={15}
-                            className="w-full px-4 py-4 rounded-xl border border-slate-200 text-slate-700 focus:ring-primary focus:border-primary font-mono text-sm leading-relaxed bg-slate-50/30"
-                          />
-                        </div>
+                        <TiptapEditor
+                          content={blogForm.content || ''}
+                          onChange={(newContent) => setBlogForm({ ...blogForm, content: newContent })}
+                          placeholder="Write your article story here..."
+                        />
                       </section>
 
                       <div className="pt-6 flex justify-end gap-4 border-t border-slate-100">
@@ -2099,7 +2162,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       All Events
                     </button>
                     <button
-                      onClick={() => setEventView('add')}
+                      onClick={openAddEvent}
                       className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${eventView === 'add' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                       Add Event
@@ -2110,36 +2173,87 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* View: List */}
                 {eventView === 'list' && (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {events.map(event => (
+                    {[...events].reverse().map(event => (
                       <div key={event.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
                         <div className="h-48 overflow-hidden relative">
                           <img src={event.image} className="w-full h-full object-cover" alt={event.title} />
+                          <div className="absolute top-4 left-4 flex flex-col gap-1.5">
+                            {event.scheduledDate && (() => {
+                              try {
+                                const [y, m, d] = event.scheduledDate.split('-').map(Number);
+                                const scheduled = new Date(y, m - 1, d);
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                                return scheduled > today;
+                              } catch { return false; }
+                            })() && (
+                                <span className="bg-primary/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white w-fit flex items-center gap-1 shadow-lg">
+                                  <span className="material-symbols-outlined text-[12px]">schedule</span>
+                                  Scheduled: {event.scheduledDate}
+                                </span>
+                              )}
+                          </div>
                           <div className="absolute top-4 right-4 flex gap-2">
-                            <button onClick={() => onDeleteEvent(event.id)} className="w-8 h-8 rounded-full bg-white text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onUpdateEvent({ ...event, isActive: event.isActive === false });
+                                showToast(`Event ${event.isActive === false ? 'shown' : 'hidden'}`, 'info');
+                              }}
+                              className={`w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform ${event.isActive === false ? 'bg-amber-500 text-white' : 'bg-white text-slate-400'}`}
+                              title={event.isActive === false ? "Show Event" : "Hide Event"}
+                            >
+                              <span className="material-symbols-outlined text-lg">{event.isActive === false ? 'visibility' : 'visibility_off'}</span>
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); openEditEvent(event); }} className="w-8 h-8 rounded-full bg-white text-primary flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                              <span className="material-symbols-outlined text-lg">edit</span>
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); onDeleteEvent(event.id); }} className="w-8 h-8 rounded-full bg-white text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
                               <span className="material-symbols-outlined text-lg">delete</span>
                             </button>
                           </div>
                         </div>
                         <div className="p-6 flex-1 flex flex-col">
+                          {event.isActive === false && (
+                            <div className="bg-amber-50 text-amber-700 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">visibility_off</span>
+                              Hidden from Live Site
+                            </div>
+                          )}
                           <h4 className="font-black uppercase text-lg mb-2 leading-tight">{event.title}</h4>
                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">{event.date} • {event.location}</p>
                           <p className="text-sm text-slate-600 line-clamp-2 mb-4 flex-1">{event.summary}</p>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase">Tagged Products:</span>
-                            <div className="flex -space-x-2">
-                              {event.featuredProducts.map((pid, idx) => (
-                                <div key={idx} className="w-6 h-6 rounded-full bg-slate-200 border-2 border-white overflow-hidden">
-                                  {/* Just a placeholder visually, would match ID in real app */}
-                                  <div className="w-full h-full bg-primary/20"></div>
-                                </div>
-                              ))}
-                            </div>
+                          <div className="flex flex-wrap gap-x-4 gap-y-2 mt-auto pt-4 border-t border-slate-50">
+                            {event.impactParticipants && (
+                              <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Impact</span>
+                                <span className="text-xs font-black text-primary">{event.impactParticipants}</span>
+                              </div>
+                            )}
+                            {event.fuelBarsShared && (
+                              <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Fuel</span>
+                                <span className="text-xs font-black text-primary">{event.fuelBarsShared}</span>
+                              </div>
+                            )}
+                            {event.vibeEnergy && (
+                              <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Vibe</span>
+                                <span className="text-xs font-black text-primary">{event.vibeEnergy}</span>
+                              </div>
+                            )}
+                            {event.scheduledDate && (
+                              <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Scheduled</span>
+                                <span className="text-xs font-black text-slate-600">{event.scheduledDate}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
                     ))}
                     <div
-                      onClick={() => setEventView('add')}
+                      onClick={openAddEvent}
                       className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors min-h-[300px]"
                     >
                       <span className="material-symbols-outlined text-4xl mb-2">add_circle</span>
@@ -2151,7 +2265,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* View: Add Event */}
                 {eventView === 'add' && (
                   <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-4xl mx-auto">
-                    <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">Create New Event Story</h3>
+                    <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">{editingEvent ? 'Edit Event Story' : 'Create New Event Story'}</h3>
                     <form onSubmit={handleEventSubmit} className="space-y-8">
                       {/* Basic Info */}
                       <section className="space-y-4">
@@ -2161,14 +2275,53 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <input required type="text" value={eventForm.title} onChange={e => setEventForm({ ...eventForm, title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Morning Yoga Session" />
                           </div>
                           <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Date</label>
-                            <input required type="text" value={eventForm.date} onChange={e => setEventForm({ ...eventForm, date: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Nov 12, 2023" />
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Event Date</label>
+                            <input required type="date" value={eventForm.date} onChange={e => setEventForm({ ...eventForm, date: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" />
                           </div>
                         </div>
                         <div className="grid md:grid-cols-2 gap-6">
                           <div className="space-y-2">
                             <label className="text-xs font-black uppercase tracking-widest text-slate-500">Location</label>
                             <input required type="text" value={eventForm.location} onChange={e => setEventForm({ ...eventForm, location: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Cubbon Park, Bangalore" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Post Scheduler (Optional)</label>
+                            <div className="flex items-center gap-3">
+                              <input type="date" value={eventForm.scheduledDate} onChange={e => setEventForm({ ...eventForm, scheduledDate: e.target.value })} className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" />
+                              <span className="material-symbols-outlined text-slate-400">schedule</span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-2">
+                              <button
+                                type="button"
+                                onClick={() => setEventForm({ ...eventForm, isActive: !eventForm.isActive })}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${eventForm.isActive !== false ? 'bg-green-50 border-green-200 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
+                              >
+                                <span className="material-symbols-outlined text-lg">{eventForm.isActive !== false ? 'visibility' : 'visibility_off'}</span>
+                                <span className="text-xs font-bold uppercase tracking-widest">{eventForm.isActive !== false ? 'Visible on Site' : 'Hidden from Site'}</span>
+                              </button>
+                            </div>
+                            <p className="text-[10px] text-slate-400 font-bold">Pick a date to schedule when this story appears on the site.</p>
+                          </div>
+                        </div>
+
+                        {/* Vitals Section */}
+                        <div className="pt-6 mt-6 border-t border-slate-100">
+                          <h4 className="text-sm font-black uppercase text-slate-800 mb-4 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-primary">analytics</span> Event Vitals
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Impact (Participants)</label>
+                              <input type="number" value={eventForm.impactParticipants} onChange={e => setEventForm({ ...eventForm, impactParticipants: e.target.value })} className="w-full px-4 py-2 rounded-lg border border-slate-200 font-bold text-sm" placeholder="e.g. 500" />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Fuel (Bars Shared)</label>
+                              <input type="number" value={eventForm.fuelBarsShared} onChange={e => setEventForm({ ...eventForm, fuelBarsShared: e.target.value })} className="w-full px-4 py-2 rounded-lg border border-slate-200 font-bold text-sm" placeholder="e.g. 1200" />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Vibe (Energy %)</label>
+                              <input type="number" value={eventForm.vibeEnergy} onChange={e => setEventForm({ ...eventForm, vibeEnergy: e.target.value })} className="w-full px-4 py-2 rounded-lg border border-slate-200 font-bold text-sm" placeholder="e.g. 100" />
+                            </div>
                           </div>
                         </div>
                         <div className="space-y-2">
@@ -2239,8 +2392,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </section>
 
                       <div className="pt-6 flex justify-end gap-4">
-                        <button type="button" onClick={() => setEventView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
-                        <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Publish Story</button>
+                        <button type="button" onClick={() => { setEventView('list'); setEditingEvent(null); }} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                        <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">{editingEvent ? 'Update Story' : 'Publish Story'}</button>
                       </div>
                     </form>
                   </div>
@@ -3066,114 +3219,116 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </main >
 
       {/* Slide Edit/Add Modal */}
-      {isSlideModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={closeSlideModal} />
+      {
+        isSlideModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={closeSlideModal} />
 
-          <div className="bg-white w-full max-w-6xl rounded-[40px] shadow-2xl relative z-10 p-0 animate-in zoom-in duration-500 max-h-[96vh] overflow-hidden flex flex-col md:flex-row shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)]">
-            {/* Left Side: Controls (Canvas Style) */}
-            <div className="w-full md:w-[400px] bg-slate-50 border-r border-slate-100 p-8 overflow-y-auto custom-scroll flex flex-col">
-              <div className="flex justify-between items-center mb-10">
-                <div>
-                  <h3 className="text-xl font-black uppercase text-slate-900 tracking-tighter">{editingSlide ? 'Edit Slide' : 'Add New Slide'}</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Canvas Mode v2.0</p>
+            <div className="bg-white w-full max-w-6xl rounded-[40px] shadow-2xl relative z-10 p-0 animate-in zoom-in duration-500 max-h-[96vh] overflow-hidden flex flex-col md:flex-row shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)]">
+              {/* Left Side: Controls (Canvas Style) */}
+              <div className="w-full md:w-[400px] bg-slate-50 border-r border-slate-100 p-8 overflow-y-auto custom-scroll flex flex-col">
+                <div className="flex justify-between items-center mb-10">
+                  <div>
+                    <h3 className="text-xl font-black uppercase text-slate-900 tracking-tighter">{editingSlide ? 'Edit Slide' : 'Add New Slide'}</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Canvas Mode v2.0</p>
+                  </div>
+                  <button onClick={closeSlideModal} className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100 transition-all shadow-sm"><span className="material-symbols-outlined text-slate-400">close</span></button>
                 </div>
-                <button onClick={closeSlideModal} className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100 transition-all shadow-sm"><span className="material-symbols-outlined text-slate-400">close</span></button>
-              </div>
 
-              <form onSubmit={handleSlideSubmit} id="slide-editor-form" className="space-y-8 flex-1">
-                {/* Image Upload */}
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                    <span className="w-4 h-[1px] bg-primary"></span> 01. Slider Asset
-                  </label>
-                  <div className="relative group overflow-hidden rounded-2xl bg-white border border-slate-200 p-8 shadow-sm transition-all hover:shadow-md cursor-pointer">
-                    <input type="file" accept="image/*" onChange={handleSlideImageUpload} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                    <div className="flex flex-col items-center justify-center gap-4 text-center">
-                      <div className="w-20 h-20 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors border-2 border-dashed border-slate-200">
-                        <span className="material-symbols-outlined text-4xl">upload_file</span>
+                <form onSubmit={handleSlideSubmit} id="slide-editor-form" className="space-y-8 flex-1">
+                  {/* Image Upload */}
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                      <span className="w-4 h-[1px] bg-primary"></span> 01. Slider Asset
+                    </label>
+                    <div className="relative group overflow-hidden rounded-2xl bg-white border border-slate-200 p-8 shadow-sm transition-all hover:shadow-md cursor-pointer">
+                      <input type="file" accept="image/*" onChange={handleSlideImageUpload} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                      <div className="flex flex-col items-center justify-center gap-4 text-center">
+                        <div className="w-20 h-20 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors border-2 border-dashed border-slate-200">
+                          <span className="material-symbols-outlined text-4xl">upload_file</span>
+                        </div>
+                        <div>
+                          <span className="text-sm font-black uppercase tracking-tight text-slate-900 block">Upload Slider Image</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">PNG, JPG, WEBP (Max 5MB)</span>
+                        </div>
                       </div>
-                      <div>
-                        <span className="text-sm font-black uppercase tracking-tight text-slate-900 block">Upload Slider Image</span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">PNG, JPG, WEBP (Max 5MB)</span>
+                    </div>
+                    {slideForm.image && (
+                      <div className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 group">
+                        <img src={slideForm.image} alt="Preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setSlideForm(prev => ({ ...prev, image: '' }))}
+                          className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <span className="material-symbols-outlined text-white text-3xl">delete</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Configuration Section */}
+                  <div className="space-y-4 pt-4 border-t border-slate-100">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                      <span className="w-4 h-[1px] bg-primary"></span> 02. Final Configuration
+                    </label>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Slide Status</label>
+                        <select
+                          value={slideForm.isActive ? 'active' : 'inactive'}
+                          onChange={e => setSlideForm({ ...slideForm, isActive: e.target.value === 'active' })}
+                          className="w-full px-4 py-3 bg-white rounded-xl border border-slate-200 font-bold text-xs focus:ring-primary focus:border-primary"
+                        >
+                          <option value="active">Live (Visible on Homepage)</option>
+                          <option value="inactive">Draft (Hidden)</option>
+                        </select>
                       </div>
                     </div>
                   </div>
-                  {slideForm.image && (
-                    <div className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 group">
-                      <img src={slideForm.image} alt="Preview" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => setSlideForm(prev => ({ ...prev, image: '' }))}
-                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <span className="material-symbols-outlined text-white text-3xl">delete</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+                </form>
 
-                {/* Configuration Section */}
-                <div className="space-y-4 pt-4 border-t border-slate-100">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                    <span className="w-4 h-[1px] bg-primary"></span> 02. Final Configuration
-                  </label>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase">Slide Status</label>
-                      <select
-                        value={slideForm.isActive ? 'active' : 'inactive'}
-                        onChange={e => setSlideForm({ ...slideForm, isActive: e.target.value === 'active' })}
-                        className="w-full px-4 py-3 bg-white rounded-xl border border-slate-200 font-bold text-xs focus:ring-primary focus:border-primary"
-                      >
-                        <option value="active">Live (Visible on Homepage)</option>
-                        <option value="inactive">Draft (Hidden)</option>
-                      </select>
-                    </div>
+                <div className="pt-8 mt-auto flex gap-3">
+                  <button type="button" onClick={closeSlideModal} className="flex-1 px-4 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400 hover:bg-white hover:text-slate-600 transition-all border border-transparent hover:border-slate-200">Cancel</button>
+                  <button type="submit" form="slide-editor-form" className="flex-[2] px-8 py-4 rounded-2xl bg-slate-900 text-white font-black uppercase text-[10px] tracking-[0.2em] shadow-xl hover:bg-primary transition-all hover:-translate-y-1">Confirm Slider</button>
+                </div>
+              </div>
+
+              {/* Right Side: Live Canvas Preview */}
+              <div className="flex-1 bg-slate-100 relative flex flex-col items-center justify-center p-0 overflow-hidden group/canvas">
+                <div className="absolute top-8 left-8 z-30 pointer-events-none">
+                  <div className="px-3 py-1.5 bg-slate-900/10 backdrop-blur-md rounded-full border border-white/20 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest">Slider Preview</span>
                   </div>
                 </div>
-              </form>
 
-              <div className="pt-8 mt-auto flex gap-3">
-                <button type="button" onClick={closeSlideModal} className="flex-1 px-4 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400 hover:bg-white hover:text-slate-600 transition-all border border-transparent hover:border-slate-200">Cancel</button>
-                <button type="submit" form="slide-editor-form" className="flex-[2] px-8 py-4 rounded-2xl bg-slate-900 text-white font-black uppercase text-[10px] tracking-[0.2em] shadow-xl hover:bg-primary transition-all hover:-translate-y-1">Confirm Slider</button>
-              </div>
-            </div>
-
-            {/* Right Side: Live Canvas Preview */}
-            <div className="flex-1 bg-slate-100 relative flex flex-col items-center justify-center p-0 overflow-hidden group/canvas">
-              <div className="absolute top-8 left-8 z-30 pointer-events-none">
-                <div className="px-3 py-1.5 bg-slate-900/10 backdrop-blur-md rounded-full border border-white/20 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                  <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest">Slider Preview</span>
+                {/* The Actual Preview Container */}
+                <div className="w-full h-full relative overflow-hidden bg-white">
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    {slideForm.image ? (
+                      <img
+                        src={slideForm.image}
+                        alt="Preview"
+                        className="w-full h-full object-cover shadow-sm"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-slate-300">
+                        <span className="material-symbols-outlined text-6xl mb-4">image</span>
+                        <p className="text-xs font-black uppercase tracking-widest">No Image Selected</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* The Actual Preview Container */}
-              <div className="w-full h-full relative overflow-hidden bg-white">
-                <div className="relative w-full h-full flex items-center justify-center">
-                  {slideForm.image ? (
-                    <img
-                      src={slideForm.image}
-                      alt="Preview"
-                      className="w-full h-full object-cover shadow-sm"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center text-slate-300">
-                      <span className="material-symbols-outlined text-6xl mb-4">image</span>
-                      <p className="text-xs font-black uppercase tracking-widest">No Image Selected</p>
-                    </div>
-                  )}
+                <div className="absolute right-8 bottom-8 text-[9px] font-black text-slate-300 uppercase tracking-widest">
+                  Simple Slider Editor
                 </div>
-              </div>
-
-              <div className="absolute right-8 bottom-8 text-[9px] font-black text-slate-300 uppercase tracking-widest">
-                Simple Slider Editor
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Order Details Modal */}
       {

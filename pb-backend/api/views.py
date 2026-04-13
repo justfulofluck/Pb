@@ -163,6 +163,9 @@ class BlogPostViewSet(viewsets.ModelViewSet):
     queryset = BlogPost.objects.all()
     serializer_class = BlogPostSerializer
 
+    def get_queryset(self):
+        return BlogPost.objects.filter(is_active=True).order_by("-id")
+
 
 class StoryViewSet(viewsets.ModelViewSet):
     queryset = Story.objects.all()
@@ -854,28 +857,35 @@ class WishlistViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return WishlistItem.objects.filter(user=self.request.user).order_by('-added_at')
+        return WishlistItem.objects.filter(user=self.request.user).order_by("-added_at")
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=["post"])
     def toggle(self, request):
-        product_id = request.data.get('product_id')
+        product_id = request.data.get("product_id")
         if not product_id:
-            return Response({'error': 'product_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"error": "product_id is required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             product = Product.objects.get(id=product_id)
-            wishlist_item = WishlistItem.objects.filter(user=request.user, product=product).first()
+            wishlist_item = WishlistItem.objects.filter(
+                user=request.user, product=product
+            ).first()
             if wishlist_item:
                 wishlist_item.delete()
-                return Response({'status': 'removed'})
+                return Response({"status": "removed"})
             else:
                 WishlistItem.objects.create(user=request.user, product=product)
-                return Response({'status': 'added'})
+                return Response({"status": "added"})
         except Product.DoesNotExist:
-            return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
 
 class ProcessDriveVideoView(APIView):
     permission_classes = [permissions.AllowAny]  # Or permissions.IsAuthenticated
@@ -889,11 +899,13 @@ class ProcessDriveVideoView(APIView):
 
         try:
             video_data = process_google_drive_video_to_mp4(drive_url)
-            return Response({
-                "mediaUrl": video_data["loop_url"],
-                "fullVideoUrl": video_data["full_url"],
-                "mediaType": "video"
-            })
+            return Response(
+                {
+                    "mediaUrl": video_data["loop_url"],
+                    "fullVideoUrl": video_data["full_url"],
+                    "mediaType": "video",
+                }
+            )
         except Exception as e:
             import traceback
 
