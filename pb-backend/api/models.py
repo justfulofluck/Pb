@@ -141,6 +141,7 @@ class HeroSlide(models.Model):
     transition_type = models.CharField(max_length=50, default="fade") # fade, slide, scale, etc.
     order = models.IntegerField(default=0)
     background_image = models.TextField(blank=True, null=True)
+    mobile_image = models.TextField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):

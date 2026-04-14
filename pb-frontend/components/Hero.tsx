@@ -15,6 +15,14 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
   const [isInView, setIsInView] = useState(true);
   const heroRef = useRef<HTMLElement>(null);
   const autoPlayRef = useRef<any>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Pause auto-play when hero is not in view
   useEffect(() => {
@@ -198,7 +206,7 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
                   <img
                     alt={slide.headline}
                     className="relative w-full h-auto object-contain drop-shadow-[0_50px_80px_rgba(0,0,0,0.25)] hover:scale-105 transition-transform duration-700"
-                    src={slide.image}
+                    src={(isMobile && slide.mobileImage) ? slide.mobileImage : slide.image}
                   />
 
                   {/* Secondary small floating asset if needed, or just a ring */}

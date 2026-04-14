@@ -10,6 +10,14 @@ interface HeroSliderProps {
 const SimpleHeroSlider: React.FC<HeroSliderProps> = ({ slides = [] }) => {
     const [current, setCurrent] = useState(0);
     const [direction, setDirection] = useState(0);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const activeSlides = slides.filter(s => s.isActive);
 
@@ -63,7 +71,7 @@ const SimpleHeroSlider: React.FC<HeroSliderProps> = ({ slides = [] }) => {
                     className="absolute inset-0 w-full h-full"
                 >
                     <img
-                        src={activeSlides[current].image}
+                        src={(isMobile && activeSlides[current].mobileImage) ? activeSlides[current].mobileImage : activeSlides[current].image}
                         alt={`Slide ${current + 1}`}
                         className="w-full h-full object-cover"
                     />

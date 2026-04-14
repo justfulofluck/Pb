@@ -120,7 +120,8 @@ const fetchHeroSlides = async () => {
     productId: s.product_id,
     transitionType: s.transition_type,
     isActive: s.is_active,
-    order: s.order
+    order: s.order,
+    mobileImage: s.mobile_image
   })).sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
 };
 
@@ -724,7 +725,8 @@ const AppContent: React.FC = () => {
           product_id: newSlide.productId,
           transition_type: newSlide.transitionType,
           is_active: newSlide.isActive,
-          order: newSlide.order || 0
+          order: newSlide.order || 0,
+          mobile_image: newSlide.mobileImage
         })
       });
       if (response.ok) {
@@ -761,7 +763,8 @@ const AppContent: React.FC = () => {
           product_id: updatedSlide.productId,
           transition_type: updatedSlide.transitionType,
           is_active: updatedSlide.isActive,
-          order: updatedSlide.order || 0
+          order: updatedSlide.order || 0,
+          mobile_image: updatedSlide.mobileImage
         })
       });
       if (response.ok) {

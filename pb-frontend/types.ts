@@ -101,6 +101,7 @@ export interface HeroSlide {
   isActive: boolean;
   order?: number;
   backgroundImage?: string;
+  mobileImage?: string;
 }
 
 export interface CategoryDisplay {

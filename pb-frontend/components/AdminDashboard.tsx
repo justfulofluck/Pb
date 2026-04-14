@@ -98,6 +98,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   const [productView, setProductView] = useState<'list' | 'add' | 'categories'>('list');
+  const [previewMode, setPreviewMode] = useState<'pc' | 'mobile'>('pc');
   const [eventView, setEventView] = useState<'list' | 'add'>('list');
   const [blogView, setBlogView] = useState<'list' | 'form'>('list');
   const [uiView, setUiView] = useState<'hero' | 'stories' | 'press'>('hero');
@@ -404,6 +405,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     blobColor: COLOR_THEMES[0].blobColor,
     productId: '',
     transitionType: 'fade',
+    mobileImage: '',
     isActive: true
   });
 
@@ -701,6 +703,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         backgroundImage: slideForm.backgroundImage || '',
         productId: slideForm.productId || '',
         transitionType: slideForm.transitionType || 'fade',
+        mobileImage: slideForm.mobileImage || '',
         isActive: slideForm.isActive ?? true,
         order: slides.length > 0 ? Math.max(...slides.map(s => s.order || 0)) + 1 : 0
       };
@@ -725,6 +728,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       backgroundImage: '',
       productId: '',
       transitionType: 'fade',
+      mobileImage: '',
       isActive: true
     });
     setIsSlideModalOpen(true);
@@ -775,6 +779,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const reader = new FileReader();
       reader.onloadend = () => {
         setSlideForm(prev => ({ ...prev, image: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleMobileSlideImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSlideForm(prev => ({ ...prev, mobileImage: reader.result as string }));
       };
       reader.readAsDataURL(file);
     }
@@ -3267,10 +3282,41 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     )}
                   </div>
 
+                  {/* Mobile Image Upload */}
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                      <span className="w-4 h-[1px] bg-primary"></span> 02. Mobile Asset (Optional)
+                    </label>
+                    <div className="relative group overflow-hidden rounded-2xl bg-white border border-slate-200 p-8 shadow-sm transition-all hover:shadow-md cursor-pointer">
+                      <input type="file" accept="image/*" onChange={handleMobileSlideImageUpload} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                      <div className="flex flex-col items-center justify-center gap-4 text-center">
+                        <div className="w-20 h-20 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors border-2 border-dashed border-slate-200">
+                          <span className="material-symbols-outlined text-4xl">smartphone</span>
+                        </div>
+                        <div>
+                          <span className="text-sm font-black uppercase tracking-tight text-slate-900 block">Upload Mobile Image</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">PNG, JPG, WEBP (Vertical Recommended)</span>
+                        </div>
+                      </div>
+                    </div>
+                    {slideForm.mobileImage && (
+                      <div className="relative aspect-[9/16] w-32 mx-auto rounded-xl overflow-hidden border border-slate-200 group">
+                        <img src={slideForm.mobileImage} alt="Mobile Preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setSlideForm(prev => ({ ...prev, mobileImage: '' }))}
+                          className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <span className="material-symbols-outlined text-white text-3xl">delete</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Configuration Section */}
                   <div className="space-y-4 pt-4 border-t border-slate-100">
                     <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
-                      <span className="w-4 h-[1px] bg-primary"></span> 02. Final Configuration
+                      <span className="w-4 h-[1px] bg-primary"></span> 03. Final Configuration
                     </label>
                     <div className="grid grid-cols-1 gap-4">
                       <div className="space-y-2">
@@ -3304,21 +3350,55 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
 
                 {/* The Actual Preview Container */}
-                <div className="w-full h-full relative overflow-hidden bg-white">
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    {slideForm.image ? (
-                      <img
-                        src={slideForm.image}
-                        alt="Preview"
-                        className="w-full h-full object-cover shadow-sm"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center text-slate-300">
-                        <span className="material-symbols-outlined text-6xl mb-4">image</span>
-                        <p className="text-xs font-black uppercase tracking-widest">No Image Selected</p>
-                      </div>
-                    )}
+                <div className="w-full h-full relative overflow-hidden bg-white flex items-center justify-center">
+                  <div className="flex gap-4 absolute top-20 z-30">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewMode('pc')}
+                      className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${previewMode === 'pc' ? 'bg-slate-900 text-white shadow-lg' : 'bg-white/80 text-slate-400 backdrop-blur-md'}`}
+                    >
+                      PC View
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewMode('mobile')}
+                      className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${previewMode === 'mobile' ? 'bg-slate-900 text-white shadow-lg' : 'bg-white/80 text-slate-400 backdrop-blur-md'}`}
+                    >
+                      Mobile View
+                    </button>
                   </div>
+
+                  {previewMode === 'pc' ? (
+                    <div className="w-full h-full relative flex items-center justify-center">
+                      {slideForm.image ? (
+                        <img src={slideForm.image} alt="PC Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-slate-300">
+                          <span className="material-symbols-outlined text-6xl mb-4">image</span>
+                          <p className="text-xs font-black uppercase tracking-widest">No PC Image</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-[300px] h-[533px] relative rounded-[40px] border-[8px] border-slate-900 shadow-2xl overflow-hidden bg-slate-50">
+                      {slideForm.mobileImage ? (
+                        <img src={slideForm.mobileImage} alt="Mobile Preview" className="w-full h-full object-cover" />
+                      ) : slideForm.image ? (
+                        <div className="relative w-full h-full">
+                          <img src={slideForm.image} alt="PC Fallback" className="w-full h-full object-cover blur-[2px] opacity-50" />
+                          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                            <span className="material-symbols-outlined text-4xl text-slate-400 mb-2">smartphone</span>
+                            <p className="text-[10px] font-black text-slate-900 uppercase leading-tight">No specific mobile asset. Desktop image will be used.</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-slate-300">
+                          <span className="material-symbols-outlined text-4xl mb-2">image</span>
+                          <p className="text-[10px] font-black uppercase tracking-widest">No Image</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="absolute right-8 bottom-8 text-[9px] font-black text-slate-300 uppercase tracking-widest">
