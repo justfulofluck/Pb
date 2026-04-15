@@ -723,8 +723,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                 });
                                 const data = await res.json();
                                 if (res.ok) {
-                                  await navigator.clipboard.writeText(data.share_url);
-                                  showToast('Wishlist link copied to clipboard!', 'success');
+                                  // Copy individual product links
+                                  const linksText = data.product_links
+                                    .map((p: any) => `${p.product_name} - ${p.product_url}`)
+                                    .join('\n\n');
+                                  const message = `Check out these products from Pinobite!\n\n${linksText}`;
+                                  await navigator.clipboard.writeText(message);
+                                  showToast('Product links copied to clipboard!', 'success');
                                 } else {
                                   showToast(data.error || 'Failed to create share link', 'error');
                                 }
@@ -745,7 +750,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                   headers: { 'Authorization': `Bearer ${token}` }
                                 });
                                 const items = await res.json();
-                                
+
                                 // Add items to cart instead of creating orders
                                 if (onAddToCart) {
                                   for (const item of items) {
@@ -753,6 +758,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                       id: String(item.product),
                                       name: item.product_details?.name || '',
                                       price: parseFloat(item.product_details?.price) || 0,
+                                      originalPrice: item.product_details?.original_price ? parseFloat(item.product_details.original_price) : undefined,
                                       image: item.product_details?.image || '',
                                       category: item.product_details?.category_name || '',
                                     };
@@ -782,53 +788,80 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                     ) : wishlistItems.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {wishlistItems.map((item: any) => (
-                          <div key={item.id} className="group flex flex-col bg-white border-2 border-slate-50 rounded-[32px] overflow-hidden hover:border-primary/30 hover:shadow-xl transition-all h-[360px] relative">
+                          <div key={item.id} className="group relative bg-white border border-slate-100 rounded-[32px] overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col h-[400px]">
+                            {/* Remove Button */}
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const token = localStorage.getItem('access_token');
+                                  const res = await fetch(`${API_BASE_URL}/api/wishlist/toggle/`, {
+                                    method: 'POST',
+                                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ product_id: item.product })
+                                  });
+                                  if (res.ok) {
+                                    setWishlistItems(prev => prev.filter(w => w.id !== item.id));
+                                  }
+                                } catch (err) { }
+                              }}
+                              className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/80 backdrop-blur-md text-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+                            >
+                              <span className="material-symbols-outlined text-[20px] fill-1">favorite</span>
+                            </button>
+
                             {/* Image Section */}
-                            <div className="w-full h-1/2 bg-slate-50 relative overflow-hidden flex-shrink-0 cursor-pointer text-center">
+                            <div className="relative h-56 bg-white p-6 flex-shrink-0">
                               {item.product_details?.image ? (
                                 <img
                                   src={item.product_details.image.startsWith('http') ? item.product_details.image : `${API_BASE_URL}${item.product_details.image}`}
                                   alt={item.product_details.name}
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-slate-200">
-                                  <span className="material-symbols-outlined text-4xl">image</span>
+                                  <span className="material-symbols-outlined text-5xl">inventory_2</span>
                                 </div>
                               )}
                             </div>
 
                             {/* Content Section */}
-                            <div className="p-5 flex flex-col flex-1 pb-6 bg-gradient-to-t from-[#0b3d2e] via-[#115e45] to-[#1a805e] texture-chalkboard-strong text-white group-hover:from-white group-hover:via-white group-hover:to-white group-hover:text-slate-900 group-hover:texture-none transition-all duration-300">
-                              <h3 className="font-anton text-2xl uppercase leading-none tracking-tight line-clamp-2">
-                                {item.product_details?.name}
-                              </h3>
-                              <p className="font-black text-xs opacity-60 mt-2 uppercase tracking-widest leading-none">
-                                {item.product_details?.category_name}
-                              </p>
+                            <div className="p-6 pt-0 flex flex-col flex-1">
+                              <div className="mb-auto">
+                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">
+                                  {item.product_details?.category_name}
+                                </p>
+                                <h3 className="font-anton text-xl uppercase leading-tight tracking-wide text-slate-900 group-hover:text-primary transition-colors">
+                                  {item.product_details?.name}
+                                </h3>
+                              </div>
 
-                              <div className="mt-auto pt-4 flex items-center justify-between">
-                                <span className="font-black text-2xl">
-                                  ₹{item.product_details?.price}
-                                </span>
+                              <div className="flex items-center justify-between mt-4 gap-4">
+                                <div className="flex flex-col">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Price</span>
+                                  <span className="font-black text-2xl text-slate-900">
+                                    ₹{item.product_details?.price}
+                                  </span>
+                                </div>
+
                                 <button
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    try {
-                                      const token = localStorage.getItem('access_token');
-                                      const res = await fetch(`${API_BASE_URL}/api/wishlist/toggle/`, {
-                                        method: 'POST',
-                                        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ product_id: item.product })
+                                  onClick={() => {
+                                    if (onAddToCart) {
+                                      onAddToCart({
+                                        id: String(item.product),
+                                        name: item.product_details?.name || '',
+                                        price: parseFloat(item.product_details?.price) || 0,
+                                        originalPrice: item.product_details?.original_price ? parseFloat(item.product_details.original_price) : undefined,
+                                        image: item.product_details?.image || '',
+                                        category: item.product_details?.category_name || '',
                                       });
-                                      if (res.ok) {
-                                        setWishlistItems(prev => prev.filter(w => w.id !== item.id));
-                                      }
-                                    } catch (err) { }
+                                      showToast('Added to cart!', 'success');
+                                    }
                                   }}
-                                  className="w-10 h-10 bg-white/10 group-hover:bg-slate-100 text-red-500 rounded-full flex items-center justify-center hover:!bg-red-500 hover:text-white transition-all shadow-sm group/btn"
+                                  className="flex-1 bg-slate-900 text-white h-12 rounded-2xl flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest hover:bg-primary transition-all active:scale-95 shadow-lg shadow-slate-200"
                                 >
-                                  <span className="material-symbols-outlined fill-1 text-[20px] group-hover/btn:scale-110 transition-transform text-red-500 hover:text-white">favorite</span>
+                                  <span className="material-symbols-outlined text-sm">shopping_cart</span>
+                                  Add to Cart
                                 </button>
                               </div>
                             </div>

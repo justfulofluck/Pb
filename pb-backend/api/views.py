@@ -316,6 +316,9 @@ class OrderViewSet(viewsets.ModelViewSet):
             profile.pin_code = shipping_addr.get("zip", profile.pin_code)
             profile.save()
 
+        # Calculate Shipping (tax is included in product price)
+        shipping = 0  # Free shipping requirement
+
         # Process points redemption if requested
         points_discount = 0
         points_deducted = 0
@@ -328,15 +331,16 @@ class OrderViewSet(viewsets.ModelViewSet):
                 if success:
                     points_discount = max_redeemable / 10
                     points_deducted = max_redeemable
-                    total_amount -= points_discount
 
-        # Update order total with discount
-        order.total_amount = total_amount
+        # New total including shipping, less points discount
+        final_total = total_amount + shipping - points_discount
+
+        # Update order total
+        order.total_amount = final_total
         order.save()
 
         # Create Razorpay Order
-        # Create Razorpay Order
-        razorpay_amount = int(total_amount * 100)  # Amount in paise
+        razorpay_amount = int(final_total * 100)  # Amount in paise
         try:
             client = get_razorpay_client()
             razorpay_order = client.order.create(
@@ -1010,13 +1014,26 @@ class WishlistViewSet(viewsets.ModelViewSet):
             expires_at=timezone.now() + timedelta(days=30),
         )
 
+        # Get frontend URL for product links
         frontend_url = getattr(settings, "FRONTEND_URL", "https://pinobite.com")
-        share_url = f"{frontend_url}/wishlist/shared/{token}"
+
+        # Generate individual product links instead of wishlist page
+        product_links = []
+        for item in items:
+            product_links.append(
+                {
+                    "product_id": item.product.id,
+                    "product_name": item.product.name,
+                    "product_price": str(item.product.price),
+                    "product_image": item.product.image,
+                    "product_url": f"{frontend_url}/product/{item.product.id}",
+                }
+            )
 
         return Response(
             {
-                "share_url": share_url,
-                "token": token,
+                "share_url": f"{frontend_url}/wishlist/shared/{token}",
+                "product_links": product_links,
                 "items_count": items.count(),
                 "expires_at": share_link.expires_at,
             }
