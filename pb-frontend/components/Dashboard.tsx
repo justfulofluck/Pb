@@ -3,6 +3,7 @@ import { Order, RewardRule } from '../types';
 import { API_BASE_URL } from '../config';
 import { useAuth } from '../hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from './Toast';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -13,6 +14,7 @@ type TabType = 'overview' | 'orders' | 'rewards' | 'profile' | 'wishlist';
 
 const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
   const { user: authUser, checkAuth } = useAuth();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
@@ -706,7 +708,78 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
                   className="space-y-8"
                 >
                   <div className="bg-white p-8 md:p-12 rounded-[40px] border border-slate-100 shadow-sm overflow-hidden relative">
-                    <h2 className="text-4xl font-black uppercase tracking-tighter mb-8">My Wishlist</h2>
+                    <div className="flex justify-between items-center mb-8">
+                      <h2 className="text-4xl font-black uppercase tracking-tighter">My Wishlist</h2>
+                      {wishlistItems.length > 0 && (
+                        <div className="flex gap-3">
+                          <button
+                            onClick={async () => {
+                              try {
+                                const token = localStorage.getItem('access_token');
+                                const res = await fetch(`${API_BASE_URL}/api/wishlist/share/`, {
+                                  method: 'POST',
+                                  headers: { 'Authorization': `Bearer ${token}` }
+                                });
+                                const data = await res.json();
+                                if (res.ok) {
+                                  await navigator.clipboard.writeText(data.share_url);
+                                  showToast('Wishlist link copied to clipboard!', 'success');
+                                } else {
+                                  showToast(data.error || 'Failed to create share link', 'error');
+                                }
+                              } catch (err) {
+                                showToast('Failed to share wishlist', 'error');
+                              }
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-full text-sm font-bold text-slate-700 transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">share</span>
+                            Share
+                          </button>
+                          <button
+                            onClick={async () => {
+                              try {
+                                const token = localStorage.getItem('access_token');
+                                const res = await fetch(`${API_BASE_URL}/api/wishlist/`, {
+                                  headers: { 'Authorization': `Bearer ${token}` }
+                                });
+                                const items = await res.json();
+                                
+                                for (const item of items) {
+                                  await fetch(`${API_BASE_URL}/api/orders/initiate/`, {
+                                    method: 'POST',
+                                    headers: { 
+                                      'Authorization': `Bearer ${token}`,
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                      items: [{ id: item.product, quantity: 1 }],
+                                      email: authUser?.email || '',
+                                      phone: authUser?.profile?.phone || '',
+                                      first_name: authUser?.first_name || '',
+                                      last_name: authUser?.last_name || '',
+                                      shipping_address: {
+                                        street: authUser?.profile?.address || '',
+                                        city: authUser?.profile?.city || '',
+                                        state: authUser?.profile?.state || '',
+                                        zip: authUser?.profile?.pin_code || ''
+                                      }
+                                    })
+                                  });
+                                }
+                                showToast('All items added to cart!', 'success');
+                              } catch (err) {
+                                showToast('Failed to add items to cart', 'error');
+                              }
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-full text-sm font-bold hover:bg-green-700 transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
+                            Add All to Cart
+                          </button>
+                        </div>
+                      )}
+                    </div>
 
                     {isLoadingWishlist ? (
                       <div className="flex justify-center py-20">
