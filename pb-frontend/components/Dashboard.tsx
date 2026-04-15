@@ -8,11 +8,12 @@ import { useToast } from './Toast';
 interface DashboardProps {
   onLogout: () => void;
   onHomeClick: () => void;
+  onAddToCart?: (product: any) => void;
 }
 
 type TabType = 'overview' | 'orders' | 'rewards' | 'profile' | 'wishlist';
 
-const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCart }) => {
   const { user: authUser, checkAuth } = useAuth();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -745,29 +746,22 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
                                 });
                                 const items = await res.json();
                                 
-                                for (const item of items) {
-                                  await fetch(`${API_BASE_URL}/api/orders/initiate/`, {
-                                    method: 'POST',
-                                    headers: { 
-                                      'Authorization': `Bearer ${token}`,
-                                      'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({
-                                      items: [{ id: item.product, quantity: 1 }],
-                                      email: authUser?.email || '',
-                                      phone: authUser?.profile?.phone || '',
-                                      first_name: authUser?.first_name || '',
-                                      last_name: authUser?.last_name || '',
-                                      shipping_address: {
-                                        street: authUser?.profile?.address || '',
-                                        city: authUser?.profile?.city || '',
-                                        state: authUser?.profile?.state || '',
-                                        zip: authUser?.profile?.pin_code || ''
-                                      }
-                                    })
-                                  });
+                                // Add items to cart instead of creating orders
+                                if (onAddToCart) {
+                                  for (const item of items) {
+                                    const product = {
+                                      id: String(item.product),
+                                      name: item.product_details?.name || '',
+                                      price: parseFloat(item.product_details?.price) || 0,
+                                      image: item.product_details?.image || '',
+                                      category: item.product_details?.category_name || '',
+                                    };
+                                    onAddToCart(product);
+                                  }
+                                  showToast('All items added to cart!', 'success');
+                                } else {
+                                  showToast('Cart function not available', 'error');
                                 }
-                                showToast('All items added to cart!', 'success');
                               } catch (err) {
                                 showToast('Failed to add items to cart', 'error');
                               }

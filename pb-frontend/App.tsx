@@ -31,6 +31,7 @@ const PrivacyPolicyPage = React.lazy(() => import('./components/PrivacyPolicyPag
 const TermsAndConditionsPage = React.lazy(() => import('./components/TermsAndConditionsPage'));
 const RefundPolicyPage = React.lazy(() => import('./components/RefundPolicyPage'));
 const ShippingPolicyPage = React.lazy(() => import('./components/ShippingPolicyPage'));
+const SharedWishlistPage = React.lazy(() => import('./components/SharedWishlistPage'));
 
 import RewardNotification from './components/RewardNotification';
 import { ToastProvider, useToast } from './components/Toast';
@@ -38,7 +39,7 @@ import BlogSection from './components/BlogSection';
 import EventsSection from './components/EventsSection';
 import EventModal from './components/EventModal';
 import StoryCarousel from './components/StoryCarousel';
-import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category, Announcement, PressUpdate } from './types';
+import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category, Announcement, PressUpdate, Customer } from './types';
 import SnaxxoLanding from './components/snaxxo/SnaxxoLanding';
 import SnaxxoProductWheel from './components/snaxxo/SnaxxoProductWheel';
 import PressUpdates from './components/PressUpdates';
@@ -57,7 +58,7 @@ const CURRENT_USER = {
   avatar: "https://ui-avatars.com/api/?name=Alex+Fueler&background=008a45&color=fff"
 };
 
-type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey' | 'privacy-policy' | 'terms-and-conditions' | 'refund-policy' | 'shipping-policy' | 'visitor-form' | 'distributor';
+type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey' | 'privacy-policy' | 'terms-and-conditions' | 'refund-policy' | 'shipping-policy' | 'visitor-form' | 'distributor' | 'shared-wishlist';
 
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { API_BASE_URL } from './config';
@@ -121,7 +122,8 @@ const fetchHeroSlides = async () => {
     transitionType: s.transition_type,
     isActive: s.is_active,
     order: s.order,
-    mobileImage: s.mobile_image
+    mobileImage: s.mobile_image,
+    displayDuration: s.display_duration
   })).sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
 };
 
@@ -178,6 +180,39 @@ const fetchStories = async () => {
 };
 
 const AppContent: React.FC = () => {
+  // --- Local State ---
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentView, setCurrentView] = useState<View>(() => {
+    return window.history.state?.view || 'home';
+  });
+  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [visitorForms, setVisitorForms] = useState<VisitorForm[]>([]);
+  const [pressUpdates, setPressUpdates] = useState<PressUpdate[]>(() => {
+    try {
+      const saved = localStorage.getItem('pinobite_press_updates');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<EventBlog | null>(null);
+  const [selectedBlogPost, setSelectedBlogPost] = useState<BlogPost | null>(null);
+  const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
+  const [sharedWishlistToken, setSharedWishlistToken] = useState<string | null>(null);
+  const [globalSearchQuery, setGlobalSearchQuery] = useState(() => {
+    return window.history.state?.query || '';
+  });
+  const [shopCategory, setShopCategory] = useState(() => {
+    return window.history.state?.category || 'All';
+  });
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNutritionOpen, setIsNutritionOpen] = useState(false);
+
+  // --- External Hooks ---
   const { user, logout, checkAuth } = useAuth();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
@@ -190,6 +225,18 @@ const AppContent: React.FC = () => {
   const eventsQuery = useQuery({ queryKey: ['events'], queryFn: fetchEvents });
   const blogPostsQuery = useQuery({ queryKey: ['blog-posts'], queryFn: fetchBlogs });
   const storiesQuery = useQuery({ queryKey: ['stories'], queryFn: fetchStories });
+  const customersQuery = useQuery({
+    queryKey: ['customers'],
+    queryFn: async () => {
+      const token = localStorage.getItem('admin_access_token');
+      const res = await fetch(`${API_BASE_URL}/api/customers/`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error('Failed to fetch customers');
+      return res.json() as Promise<Customer[]>;
+    },
+    enabled: isAdminLoggedIn
+  });
 
   // Derived values (to maintain compatibility with existing props)
   const products = productsQuery.data || INITIAL_PRODUCTS;
@@ -229,36 +276,7 @@ const AppContent: React.FC = () => {
     }
   });
 
-  // Local-only state
-  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [visitorForms, setVisitorForms] = useState<VisitorForm[]>([]);
-  const [pressUpdates, setPressUpdates] = useState<PressUpdate[]>(() => {
-    try {
-      const saved = localStorage.getItem('pinobite_press_updates');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedEvent, setSelectedEvent] = useState<EventBlog | null>(null);
-  const [selectedBlogPost, setSelectedBlogPost] = useState<BlogPost | null>(null);
-  const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<View>(() => {
-    return window.history.state?.view || 'home';
-  });
-  const [globalSearchQuery, setGlobalSearchQuery] = useState(() => {
-    return window.history.state?.query || '';
-  });
-  const [shopCategory, setShopCategory] = useState(() => {
-    return window.history.state?.category || 'All';
-  });
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isNutritionOpen, setIsNutritionOpen] = useState(false);
+
 
   // App is loading until critical data is fetched
   const isLoading = productsQuery.isLoading || categoriesQuery.isLoading;
@@ -271,6 +289,13 @@ const AppContent: React.FC = () => {
       if (formId) {
         setSelectedFormId(formId);
         setCurrentView('visitor-form');
+      }
+    }
+    if (path.startsWith('/wishlist/shared/')) {
+      const token = path.split('/wishlist/shared/')[1];
+      if (token) {
+        setSharedWishlistToken(token);
+        setCurrentView('shared-wishlist');
       }
     }
   }, []);
@@ -701,6 +726,35 @@ const AppContent: React.FC = () => {
     }
   };
 
+  const handleToggleCustomerActive = async (id: string) => {
+    try {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/customers/${id}/toggle_active/`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['customers'] });
+        showToast("Customer status updated", "success");
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteCustomer = async (id: string) => {
+    if (!window.confirm("Are you sure you want to permanently delete this customer?")) return;
+    try {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/customers/${id}/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['customers'] });
+        showToast("Customer deleted successfully", "success");
+      }
+    } catch (err) { console.error(err); }
+  };
+
   const handleAddSlide = async (newSlide: HeroSlide) => {
     try {
       const token = localStorage.getItem('admin_access_token');
@@ -726,17 +780,22 @@ const AppContent: React.FC = () => {
           transition_type: newSlide.transitionType,
           is_active: newSlide.isActive,
           order: newSlide.order || 0,
-          mobile_image: newSlide.mobileImage
+          mobile_image: newSlide.mobileImage,
+          display_duration: newSlide.displayDuration || 5
         })
       });
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ['hero-slides'] });
+        showToast("Slide added successfully!", 'success');
       } else {
         console.error("Failed to add slide response:", await response.text());
       }
     } catch (err) {
       console.error("Failed to add slide caught:", err);
     }
+  };
+
+  const handleAddRewardRule = async (newRule: Omit<RewardRule, 'id'>) => {
   };
 
   const handleUpdateSlide = async (updatedSlide: HeroSlide) => {
@@ -764,7 +823,8 @@ const AppContent: React.FC = () => {
           transition_type: updatedSlide.transitionType,
           is_active: updatedSlide.isActive,
           order: updatedSlide.order || 0,
-          mobile_image: updatedSlide.mobileImage
+          mobile_image: updatedSlide.mobileImage,
+          display_duration: updatedSlide.displayDuration || 5
         })
       });
       if (response.ok) {
@@ -1267,6 +1327,9 @@ const AppContent: React.FC = () => {
         pressUpdates={pressUpdates}
         onAddPressUpdate={handleAddPressUpdate}
         onDeletePressUpdate={handleDeletePressUpdate}
+        customers={customersQuery.data || []}
+        onToggleCustomerActive={handleToggleCustomerActive}
+        onDeleteCustomer={handleDeleteCustomer}
       />
     );
   }
@@ -1282,32 +1345,17 @@ const AppContent: React.FC = () => {
             transition={{ duration: 0.8, ease: "easeInOut" }}
             className="fixed inset-0 z-[10000] bg-white flex flex-col items-center justify-center"
           >
-            <div className="relative mb-12">
-              {/* Outer ring */}
-              <div className="w-32 h-32 border-4 border-slate-100 rounded-full"></div>
-              {/* Spinning primary ring */}
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                className="absolute top-0 left-0 w-32 h-32 border-4 border-primary border-t-transparent rounded-full"
-              ></motion.div>
+            <div className="relative w-32 h-32">
               {/* Pulsing Logo */}
               <motion.img
                 src="/logos/Pinobite-logo.png"
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 object-contain"
+                className="w-full h-full object-contain"
                 alt="Pinobite Logo"
               />
             </div>
-            <motion.h1
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-3xl font-black uppercase tracking-[0.2em] text-slate-900 mb-2"
-            >
-              Pinobite
-            </motion.h1>
+
           </motion.div>
         )}
       </AnimatePresence>
@@ -1413,6 +1461,14 @@ const AppContent: React.FC = () => {
             <DistributorPage onHomeClick={goHome} />
           )}
 
+          {currentView === 'shared-wishlist' && sharedWishlistToken && (
+            <SharedWishlistPage 
+              token={sharedWishlistToken} 
+              onBack={goHome}
+              onAddToCart={addToCart}
+            />
+          )}
+
           {currentView === 'shop' && (
             <ShopPage
               onProductClick={navigateToProduct}
@@ -1455,7 +1511,7 @@ const AppContent: React.FC = () => {
           )}
 
           {currentView === 'dashboard' && (
-            <Dashboard onLogout={handleLogout} onHomeClick={goHome} />
+            <Dashboard onLogout={handleLogout} onHomeClick={goHome} onAddToCart={addToCart} />
           )}
 
           {currentView === 'faq' && (
@@ -1564,7 +1620,7 @@ const AppContent: React.FC = () => {
       />
 
       {
-        currentView !== 'admin-dashboard' && currentView !== 'admin-login' && currentView !== 'checkout' && currentView !== 'visitor-form' && !isLoading && (
+        currentView !== 'checkout' && currentView !== 'visitor-form' && !isLoading && (
           <MobileBottomNav
             currentView={currentView}
             onHomeClick={goHome}
