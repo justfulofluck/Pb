@@ -353,3 +353,16 @@ class WishlistItem(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.product.name}"
+
+
+class WishlistShareLink(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="shared_wishlists"
+    )
+    token = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Share link for {self.user.username} - {self.token[:8]}"

@@ -986,6 +986,122 @@ class WishlistViewSet(viewsets.ModelViewSet):
                 {"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
+    @action(detail=False, methods=["post"])
+    def share(self, request):
+        """Create a shareable wishlist link"""
+        from .models import WishlistShareLink
+        import secrets
+        from django.utils import timezone
+        from datetime import timedelta
+
+        items = WishlistItem.objects.filter(user=request.user)
+        if not items.exists():
+            return Response(
+                {"error": "Wishlist is empty"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Generate unique token
+        token = secrets.token_urlsafe(32)
+
+        # Create share link (expires in 30 days)
+        share_link = WishlistShareLink.objects.create(
+            user=request.user,
+            token=token,
+            expires_at=timezone.now() + timedelta(days=30),
+        )
+
+        frontend_url = getattr(settings, "FRONTEND_URL", "https://pinobite.com")
+        share_url = f"{frontend_url}/wishlist/shared/{token}"
+
+        return Response(
+            {
+                "share_url": share_url,
+                "token": token,
+                "items_count": items.count(),
+                "expires_at": share_link.expires_at,
+            }
+        )
+
+    @action(detail=False, methods=["get"])
+    def get_shared(self, request):
+        """Get a shared wishlist by token (public endpoint)"""
+        from .models import WishlistShareLink
+        from django.utils import timezone
+
+        token = request.query_params.get("token")
+        if not token:
+            return Response(
+                {"error": "Token required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            share_link = WishlistShareLink.objects.get(token=token, is_active=True)
+        except WishlistShareLink.DoesNotExist:
+            return Response(
+                {"error": "Invalid or expired share link"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if share_link.expires_at < timezone.now():
+            share_link.is_active = False
+            share_link.save()
+            return Response(
+                {"error": "Share link has expired"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Get user's wishlist items
+        items = WishlistItem.objects.filter(user=share_link.user)
+        serializer = WishlistItemSerializer(items, many=True)
+
+        return Response(
+            {
+                "user": share_link.user.username,
+                "items": serializer.data,
+                "expires_at": share_link.expires_at,
+            }
+        )
+
+    @action(detail=False, methods=["post"])
+    def add_all_to_cart(self, request):
+        """Add all wishlist items to user's cart (authenticated user imports shared wishlist)"""
+        source_token = request.data.get("token")
+        if not source_token:
+            return Response(
+                {"error": "token required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        from .models import WishlistShareLink
+        from django.utils import timezone
+
+        try:
+            share_link = WishlistShareLink.objects.get(
+                token=source_token, is_active=True
+            )
+        except WishlistShareLink.DoesNotExist:
+            return Response(
+                {"error": "Invalid share link"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        if share_link.expires_at < timezone.now():
+            return Response(
+                {"error": "Share link expired"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Add source user's wishlist items to current user's cart
+        source_items = WishlistItem.objects.filter(user=share_link.user)
+        added_count = 0
+
+        for item in source_items:
+            # Check if already in my wishlist
+            existing = WishlistItem.objects.filter(
+                user=request.user, product=item.product
+            ).first()
+            if not existing:
+                WishlistItem.objects.create(user=request.user, product=item.product)
+                added_count += 1
+
+        return Response({"status": "added", "added_count": added_count})
+
 
 class ProcessDriveVideoView(APIView):
     permission_classes = [permissions.AllowAny]  # Or permissions.IsAuthenticated

@@ -86,6 +86,11 @@ urlpatterns = [
         NewsletterUnsubscribeView.as_view(),
         name="newsletter_unsubscribe",
     ),
+    path(
+        "wishlist/shared/",
+        WishlistViewSet.as_view({"get": "get_shared"}),
+        name="wishlist_shared",
+    ),
 ]
 
 # Triggering auto-reloader

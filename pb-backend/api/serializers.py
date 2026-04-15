@@ -21,6 +21,7 @@ from .models import (
     RewardRule,
     RewardTransaction,
     WishlistItem,
+    WishlistShareLink,
     UsageIdea,
 )
 
@@ -303,3 +304,10 @@ class WishlistItemSerializer(serializers.ModelSerializer):
         model = WishlistItem
         fields = ["id", "user", "product", "product_details", "added_at"]
         read_only_fields = ["user", "added_at"]
+
+
+class WishlistShareLinkSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WishlistShareLink
+        fields = ["id", "user", "token", "created_at", "expires_at", "is_active"]
+        read_only_fields = ["user", "token", "created_at"]
