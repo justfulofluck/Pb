@@ -84,17 +84,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
         });
         if (res.ok) {
           const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setRewardTransactions(data);
-          } else {
-            // Fallback hardcoded transactions if backend is empty
-            setRewardTransactions([
-              { id: 1, reason: 'Welcome Bonus', points_change: 500, timestamp: new Date().toISOString() },
-              { id: 2, reason: 'First Order Reward', points_change: 250, timestamp: new Date(Date.now() - 86400000).toISOString() }
-            ]);
           }
         }
-      } catch (err) { }
+      } catch (err) {
+        console.error('Failed to fetch reward transactions:', err);
+      }
     };
 
     const fetchRewardRules = async () => {
@@ -102,18 +98,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick }) => {
         const res = await fetch(`${API_BASE_URL}/api/reward-rules/`);
         if (res.ok) {
           const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setRewardRules(data.filter((r: RewardRule) => r.is_enabled));
-          } else {
-            // Fallback hardcoded rules if backend is empty
-            setRewardRules([
-              { id: 1, event_name: 'signup', description: 'Join the community', points: 500, is_enabled: true },
-              { id: 2, event_name: 'purchase', description: 'For every ₹100 spent', points: 10, is_enabled: true },
-              { id: 3, event_name: 'review', description: 'Leave a product review', points: 50, is_enabled: true }
-            ] as unknown as RewardRule[]);
           }
         }
-      } catch (err) { }
+      } catch (err) {
+        console.error('Failed to fetch reward rules:', err);
+      }
     };
 
     const fetchWishlist = async () => {
