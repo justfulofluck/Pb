@@ -1,4 +1,5 @@
 from rest_framework import viewsets, generics, permissions, status
+from rest_framework.pagination import PageNumberPagination
 from django.core.cache import cache
 from .models import (
     Category,
@@ -48,7 +49,26 @@ from .serializers import (
     RewardRuleSerializer,
     RewardTransactionSerializer,
     WishlistItemSerializer,
+    CustomerManagementSerializer,
 )
+
+
+class CustomerViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.filter(is_staff=False).order_by("-date_joined")
+    serializer_class = CustomerManagementSerializer
+    permission_classes = [permissions.IsAdminUser]
+    http_method_names = [
+        "get",
+        "delete",
+        "post",
+    ]  # Only allow list, retrieve, delete, and our custom action
+
+    @action(detail=True, methods=["post"])
+    def toggle_active(self, request, pk=None):
+        user = self.get_object()
+        user.is_active = not user.is_active
+        user.save()
+        return Response({"status": "active" if user.is_active else "inactive"})
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -60,12 +80,19 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 
 
+class ProductPagination(PageNumberPagination):
+    page_size = 12
+    page_size_query_param = "page_size"
+    max_page_size = 50
+
+
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ["category", "is_top_rated"]
     search_fields = ["name", "description"]
+    pagination_class = ProductPagination
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -73,20 +100,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         return ProductSerializer
 
     def list(self, request, *args, **kwargs):
-        cache_key = f"products_list_{request.GET.urlencode()}"
-        try:
-            cached_data = cache.get(cache_key)
-            if cached_data is not None:
-                return Response(cached_data)
-        except Exception as e:
-            print(f"Cache get failed: {e}")
-
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
-        try:
-            cache.set(cache_key, serializer.data, 300)
-        except Exception as e:
-            print(f"Cache set failed: {e}")
         return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):

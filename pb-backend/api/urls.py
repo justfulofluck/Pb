@@ -14,6 +14,7 @@ from .views import (
     HeroSlideViewSet,
     OrderViewSet,
     UserViewSet,
+    CustomerViewSet,
     RegisterView,
     VisitorFormViewSet,
     VisitorSubmissionViewSet,
@@ -41,6 +42,7 @@ router.register(r"stories", StoryViewSet)
 router.register(r"hero-slides", HeroSlideViewSet)
 router.register(r"orders", OrderViewSet)
 router.register(r"users", UserViewSet)
+router.register(r"customers", CustomerViewSet, basename="customers")
 router.register(r"visitor-forms", VisitorFormViewSet)
 router.register(r"visitor-submissions", VisitorSubmissionViewSet)
 router.register(r"newsletter-subscribers", NewsletterSubscriberViewSet)

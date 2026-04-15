@@ -102,6 +102,7 @@ export interface HeroSlide {
   order?: number;
   backgroundImage?: string;
   mobileImage?: string;
+  displayDuration?: number;
 }
 
 export interface CategoryDisplay {
@@ -285,4 +286,26 @@ export interface RewardTransaction {
   points_change: number;
   reason: string;
   timestamp: string;
+}
+
+export interface Customer {
+  id: string;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  is_active: boolean;
+  is_staff: boolean;
+  date_joined: string;
+  profile: {
+    points: number;
+    tier: string;
+    savings: number;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    pin_code: string;
+    birth_date: string;
+  };
 }

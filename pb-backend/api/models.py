@@ -25,8 +25,10 @@ class Product(models.Model):
     description = models.TextField()
     benefits = models.JSONField(default=list, blank=True)
     nutrients = models.JSONField(default=list, blank=True)  # List of {label, value}
-    is_top_rated = models.BooleanField(default=False)
-    category = models.CharField(max_length=100)  # Or foreign key to Category
+    is_top_rated = models.BooleanField(default=False, db_index=True)
+    category = models.CharField(
+        max_length=100, db_index=True
+    )  # Or foreign key to Category
     stock = models.IntegerField(default=0)
     model_3d = models.TextField(blank=True, null=True)
     theme_color = models.CharField(max_length=50, blank=True, null=True)
@@ -83,7 +85,7 @@ class Event(models.Model):
     fuel_bars_shared = models.CharField(max_length=100, blank=True, null=True)
     vibe_energy = models.CharField(max_length=100, blank=True, null=True)
     scheduled_date = models.DateField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, db_index=True)
 
     def __str__(self):
         return self.title
@@ -105,7 +107,7 @@ class BlogPost(models.Model):
     content = models.JSONField(default=list)  # List of paragraphs
     tags = models.JSONField(default=list, blank=True)
     scheduled_date = models.DateField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, db_index=True)
 
     def __str__(self):
         return self.title
@@ -119,8 +121,10 @@ class Story(models.Model):
     media_url = models.TextField()
     original_drive_url = models.TextField(blank=True, null=True)
     full_video_url = models.TextField(blank=True, null=True)
-    media_type = models.CharField(max_length=10, choices=MEDIA_TYPE_CHOICES)
-    product_id = models.CharField(max_length=50)
+    media_type = models.CharField(
+        max_length=10, choices=MEDIA_TYPE_CHOICES, db_index=True
+    )
+    product_id = models.CharField(max_length=50, db_index=True)
 
     def __str__(self):
         return f"Story {self.id} for {self.product_id}"
@@ -130,19 +134,24 @@ class HeroSlide(models.Model):
     category = models.CharField(max_length=100)
     headline = models.CharField(max_length=255)
     image = models.TextField()
-    cta = models.CharField(max_length=50) # Primary button text
+    cta = models.CharField(max_length=50)  # Primary button text
     cta_link = models.CharField(max_length=255, blank=True, null=True)
     secondary_cta = models.CharField(max_length=50, blank=True, null=True)
     secondary_cta_link = models.CharField(max_length=255, blank=True, null=True)
     bg_color = models.CharField(max_length=50)
     accent_color = models.CharField(max_length=50)
     blob_color = models.CharField(max_length=50)
-    product_id = models.CharField(max_length=50, blank=True, null=True) # ID of the linked product
-    transition_type = models.CharField(max_length=50, default="fade") # fade, slide, scale, etc.
+    product_id = models.CharField(
+        max_length=50, blank=True, null=True
+    )  # ID of the linked product
+    transition_type = models.CharField(
+        max_length=50, default="fade"
+    )  # fade, slide, scale, etc.
     order = models.IntegerField(default=0)
     background_image = models.TextField(blank=True, null=True)
     mobile_image = models.TextField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
+    display_duration = models.IntegerField(default=5)  # Duration in seconds
+    is_active = models.BooleanField(default=True, db_index=True)
 
     def __str__(self):
         return self.headline
@@ -166,7 +175,9 @@ class Order(models.Model):
     state = models.CharField(max_length=100)
     pin_code = models.CharField(max_length=20)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default="PENDING", db_index=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
     razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
@@ -197,7 +208,9 @@ class RewardRule(models.Model):
 
 
 class RewardTransaction(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reward_transactions")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="reward_transactions"
+    )
     points_change = models.IntegerField()
     reason = models.CharField(max_length=255)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -237,8 +250,6 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"Profile for {self.user.username}"
-
-
 
 
 class VisitorForm(models.Model):
@@ -295,7 +306,7 @@ class PasswordResetOTP(models.Model):
 class NewsletterSubscriber(models.Model):
     email = models.EmailField(unique=True)
     subscribed_at = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, db_index=True)
 
     def __str__(self):
         return self.email
@@ -305,11 +316,12 @@ class Announcement(models.Model):
     message = models.TextField()
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Announcement {self.id}: {self.message[:50]}..."
+
 
 class DistributorApplication(models.Model):
     STATUS_CHOICES = [
@@ -331,11 +343,13 @@ class DistributorApplication(models.Model):
 
 class WishlistItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wishlist")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="wishlisted_by")
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE, related_name="wishlisted_by"
+    )
     added_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'product')
+        unique_together = ("user", "product")
 
     def __str__(self):
         return f"{self.user.username} - {self.product.name}"

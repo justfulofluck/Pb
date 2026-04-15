@@ -91,7 +91,6 @@ class ProductListSerializer(serializers.ModelSerializer):
             "gallery",
             "model_3d",
             "orientation",
-            "usage_ideas",
         ]
 
 
@@ -171,6 +170,24 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return "coming soon"
 
 
+class CustomerManagementSerializer(serializers.ModelSerializer):
+    profile = UserProfileSerializer(read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "profile",
+            "is_active",
+            "is_staff",
+            "date_joined",
+        ]
+
+
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer(read_only=True)
     password = serializers.CharField(write_only=True)
@@ -195,7 +212,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         phone = validated_data.pop("phone", None)
         birth_date = validated_data.pop("birth_date", None)
-        
+
         user = User.objects.create_user(
             username=validated_data["username"],
             email=validated_data["email"],
@@ -203,15 +220,15 @@ class UserSerializer(serializers.ModelSerializer):
             first_name=validated_data.get("first_name", ""),
             last_name=validated_data.get("last_name", ""),
         )
-        
+
         if phone or birth_date:
             profile = user.profile
             if phone:
                 profile.phone = phone
             if birth_date:
                 profile.birth_date = birth_date
-            profile.save(update_fields=['phone', 'birth_date'])
-            
+            profile.save(update_fields=["phone", "birth_date"])
+
         return user
 
 
@@ -260,6 +277,7 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         model = Announcement
         fields = "__all__"
 
+
 class DistributorApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = DistributorApplication
@@ -277,10 +295,11 @@ class RewardTransactionSerializer(serializers.ModelSerializer):
         model = RewardTransaction
         fields = "__all__"
 
+
 class WishlistItemSerializer(serializers.ModelSerializer):
-    product_details = ProductSerializer(source='product', read_only=True)
+    product_details = ProductSerializer(source="product", read_only=True)
 
     class Meta:
         model = WishlistItem
-        fields = ['id', 'user', 'product', 'product_details', 'added_at']
-        read_only_fields = ['user', 'added_at']
+        fields = ["id", "user", "product", "product_details", "added_at"]
+        read_only_fields = ["user", "added_at"]
