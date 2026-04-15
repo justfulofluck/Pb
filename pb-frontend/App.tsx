@@ -298,7 +298,40 @@ const AppContent: React.FC = () => {
         setCurrentView('shared-wishlist');
       }
     }
-  }, []);
+    if (path.startsWith('/product/')) {
+      const productId = path.split('/product/')[1]?.split('?')[0];
+      if (productId) {
+        // Find product in loaded products
+        const product = products.find(p => String(p.id) === String(productId));
+        if (product) {
+          setSelectedProduct(product);
+          setCurrentView('product');
+          window.scrollTo(0, 0);
+        } else {
+          // Fetch product if not in list
+          fetch(`${API_BASE_URL}/api/products/${productId}/`)
+            .then(res => res.json())
+            .then(fullProduct => {
+              const mapped = {
+                ...fullProduct,
+                id: String(fullProduct.id),
+                price: parseFloat(fullProduct.price),
+                originalPrice: fullProduct.original_price ? parseFloat(fullProduct.original_price) : undefined,
+                themeColor: fullProduct.theme_color,
+                model3d: fullProduct.model_3d,
+                orientation: fullProduct.orientation ? fullProduct.orientation.replace(/[Oo]/g, '0') : '0deg 0deg -15deg',
+                benefits: fullProduct.benefits || [],
+                nutrients: fullProduct.nutrients || [],
+                gallery: fullProduct.gallery || [],
+              };
+              setSelectedProduct(mapped as Product);
+              setCurrentView('product');
+              window.scrollTo(0, 0);
+            });
+        }
+      }
+    }
+  }, [products]);
 
   // Handle browser back/forward buttons and initial state restoration
   useEffect(() => {
