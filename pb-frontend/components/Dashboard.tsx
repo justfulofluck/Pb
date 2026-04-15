@@ -723,13 +723,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                 });
                                 const data = await res.json();
                                 if (res.ok) {
-                                  // Copy individual product links
-                                  const linksText = data.product_links
-                                    .map((p: any) => `${p.product_name} - ${p.product_url}`)
-                                    .join('\n\n');
-                                  const message = `Check out these products from Pinobite!\n\n${linksText}`;
-                                  await navigator.clipboard.writeText(message);
-                                  showToast('Product links copied to clipboard!', 'success');
+                                  // Copy just the URLs - one per line
+                                  const urls = data.product_links
+                                    .map((p: any) => p.product_url)
+                                    .join('\n');
+                                  await navigator.clipboard.writeText(urls);
+                                  showToast(`${data.items_count} product links copied!`, 'success');
                                 } else {
                                   showToast(data.error || 'Failed to create share link', 'error');
                                 }
