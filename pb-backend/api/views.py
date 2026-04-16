@@ -174,7 +174,19 @@ class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
 
     def get_queryset(self):
-        return Event.objects.filter(is_active=True).order_by("-id")
+        from django.utils import timezone
+        from django.db.models import Q
+        from datetime import datetime
+
+        try:
+            today = datetime.now().date()
+            # Show: active OR scheduled for future
+            return Event.objects.filter(
+                Q(is_active=True) | Q(scheduled_date__gt=today)
+            ).order_by("-id")
+        except:
+            # Fallback to just active
+            return Event.objects.filter(is_active=True).order_by("-id")
 
 
 class BlogPostViewSet(viewsets.ModelViewSet):

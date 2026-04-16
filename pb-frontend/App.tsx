@@ -1606,6 +1606,9 @@ const AppContent: React.FC = () => {
               event={selectedEvent}
               onBack={navigateToEventBlogs}
               onHomeClick={goHome}
+              products={products}
+              onProductClick={navigateToProduct}
+              onAddToCart={addToCart}
             />
           )}
 
