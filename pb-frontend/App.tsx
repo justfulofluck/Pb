@@ -331,6 +331,32 @@ const AppContent: React.FC = () => {
         }
       }
     }
+    if (path.startsWith('/event/')) {
+      const eventId = path.split('/event/')[1]?.split('?')[0];
+      if (eventId) {
+        const event = events.find(e => String(e.id) === String(eventId));
+        if (event) {
+          setSelectedEvent(event);
+          setCurrentView('event-detail');
+          window.scrollTo(0, 0);
+        } else {
+          fetch(`${API_BASE_URL}/api/events/${eventId}/`)
+            .then(res => res.json())
+            .then(fullEvent => {
+              const mapped = {
+                ...fullEvent,
+                id: String(fullEvent.id),
+                fullStory: fullEvent.full_story || [],
+                featuredProducts: (fullEvent.featured_products || []).map(String),
+                gallery: fullEvent.gallery || [],
+              };
+              setSelectedEvent(mapped as EventBlog);
+              setCurrentView('event-detail');
+              window.scrollTo(0, 0);
+            });
+        }
+      }
+    }
   }, [products]);
 
   // Handle browser back/forward buttons and initial state restoration
@@ -1495,8 +1521,8 @@ const AppContent: React.FC = () => {
           )}
 
           {currentView === 'shared-wishlist' && sharedWishlistToken && (
-            <SharedWishlistPage 
-              token={sharedWishlistToken} 
+            <SharedWishlistPage
+              token={sharedWishlistToken}
               onBack={goHome}
               onAddToCart={addToCart}
             />
@@ -1544,7 +1570,7 @@ const AppContent: React.FC = () => {
           )}
 
           {currentView === 'dashboard' && (
-            <Dashboard onLogout={handleLogout} onHomeClick={goHome} onAddToCart={addToCart} />
+            <Dashboard onLogout={handleLogout} onHomeClick={goHome} onAddToCart={addToCart} onProductClick={navigateToProduct} />
           )}
 
           {currentView === 'faq' && (
