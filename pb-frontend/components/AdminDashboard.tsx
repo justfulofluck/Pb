@@ -1771,6 +1771,26 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {activeTab === 'visitor-forms' && (
             <div className="space-y-6 animate-in fade-in duration-300">
 
+              {/* Analytics Cards */}
+              <div className="grid md:grid-cols-4 gap-4">
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Forms</p>
+                  <p className="text-3xl font-black text-slate-900 mt-2">{visitorForms.length}</p>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Submissions</p>
+                  <p className="text-3xl font-black text-primary mt-2">{visitorForms.reduce((acc, f) => acc + (f.submissions?.length || 0), 0)}</p>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Published</p>
+                  <p className="text-3xl font-black text-green-600 mt-2">{visitorForms.filter(f => f.status === 'Published').length}</p>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Draft</p>
+                  <p className="text-3xl font-black text-orange-500 mt-2">{visitorForms.filter(f => f.status === 'Draft').length}</p>
+                </div>
+              </div>
+
               {/* Toolbar */}
               <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
                 <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
