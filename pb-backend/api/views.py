@@ -934,23 +934,24 @@ class DistributorApplicationViewSet(viewsets.ModelViewSet):
 class RewardRuleViewSet(viewsets.ModelViewSet):
     queryset = RewardRule.objects.all()
     serializer_class = RewardRuleSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:
             return [permissions.AllowAny()]
-        return [permissions.IsStaffUser()]
+        # Only staff can modify
+        if not self.request.user.is_staff:
+            return [permissions.IsAdminUser()]
+        return [permissions.IsAuthenticated()]
 
-    def create(self, request, *args, **kwargs):
-        return Response(
-            {"error": "Reward Rules are hardcoded. You cannot add new ones."},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
+    def perform_create(self, serializer):
+        serializer.save()
 
-    def destroy(self, request, *args, **kwargs):
-        return Response(
-            {"error": "Reward Rules are hardcoded. You cannot delete them."},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED,
-        )
+    def perform_update(self, serializer):
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        instance.delete()
 
 
 class RewardTransactionViewSet(viewsets.ReadOnlyModelViewSet):
