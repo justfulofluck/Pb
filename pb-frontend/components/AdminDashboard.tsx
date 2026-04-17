@@ -1130,12 +1130,50 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Invoice Generation
   const handleDownloadInvoice = () => {
     if (!viewingOrder) return;
-    showToast("Invoice generation is temporarily disabled (dependency cleanup). Please use Browser Print for now.", 'info');
-    /*
-    const doc = new jsPDF();
-    ...
-    doc.save(`Invoice-${viewingOrder.id}.pdf`);
-    */
+    
+    const invoiceText = `
+===============================================
+          PINOBITE HEALTH FOODS
+        Invoice #${viewingOrder.id}
+===============================================
+
+Date: ${new Date(viewingOrder.created_at).toLocaleDateString()}
+Customer: ${viewingOrder.user_name || 'N/A'}
+Email: ${viewingOrder.user_email || 'N/A'}
+
+-----------------------------------------------
+ITEMS
+-----------------------------------------------
+${viewingOrder.items.map(item => 
+  `${item.product_name} x${item.quantity} = ₹${item.price * item.quantity}`
+).join('\n')}
+
+-----------------------------------------------
+SUBTOTAL:      ₹${viewingOrder.total_amount}
+SHIPPING:      ₹0
+TOTAL:        ₹${viewingOrder.total_amount}
+===============================================
+
+Payment Status: ${viewingOrder.razorpay_payment_id ? 'PAID' : 'PENDING'}
+Payment ID: ${viewingOrder.razorpay_payment_id || 'N/A'}
+
+Shipping Address:
+${viewingOrder.first_name} ${viewingOrder.last_name}
+${viewingOrder.address || ''}
+${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
+
+===============================================
+    Thank you for choosing Pinobite!
+    www.pinobite.com
+===============================================
+    `;
+    
+    const blob = new Blob([invoiceText], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `Invoice-${viewingOrder.id}.txt`;
+    link.click();
+    showToast('Invoice downloaded!', 'success');
   };
 
   // Update Status Logic
