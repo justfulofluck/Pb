@@ -2954,6 +2954,42 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
           {/* ----- ORDERS TAB ----- */}
           {activeTab === 'orders' && (
             <div className="space-y-6 animate-in fade-in duration-300">
+              {/* Analytics Cards */}
+              {(() => {
+                const today = new Date().toDateString();
+                const todayOrders = orders.filter(o => o.created_at?.startsWith?.(today) || new Date(o.created_at).toDateString() === today);
+                const todayRevenue = todayOrders.reduce((acc, o) => acc + (o.status !== 'Cancelled' ? Number(o.total_amount) : 0), 0);
+                const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toDateString();
+                const weekOrders = orders.filter(o => new Date(o.created_at).toDateString() >= weekAgo);
+                const weekRevenue = weekOrders.reduce((acc, o) => acc + (o.status !== 'Cancelled' ? Number(o.total_amount) : 0), 0);
+                const avgOrder = orders.length > 0 ? orders.reduce((acc, o) => acc + Number(o.total_amount), 0) / orders.length : 0;
+                
+                return (
+                  <div className="grid md:grid-cols-4 gap-6">
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                      <p className="text-xs font-black uppercase tracking-widest text-slate-400">Today Revenue</p>
+                      <p className="text-3xl font-black text-green-500 mt-2">₹{todayRevenue.toLocaleString()}</p>
+                      <p className="text-[10px] text-slate-400 mt-1">{todayOrders.length} orders</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                      <p className="text-xs font-black uppercase tracking-widest text-slate-400">This Week</p>
+                      <p className="text-3xl font-black text-green-500 mt-2">₹{weekRevenue.toLocaleString()}</p>
+                      <p className="text-[10px] text-slate-400 mt-1">{weekOrders.length} orders</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                      <p className="text-xs font-black uppercase tracking-widest text-slate-400">Avg Order</p>
+                      <p className="text-3xl font-black text-blue-500 mt-2">₹{Math.round(avgOrder).toLocaleString()}</p>
+                      <p className="text-[10px] text-slate-400 mt-1">per order</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                      <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Revenue</p>
+                      <p className="text-3xl font-black text-green-500 mt-2">₹{orders.reduce((acc, curr) => acc + (curr.status !== 'Cancelled' ? Number(curr.total_amount) : 0), 0).toLocaleString()}</p>
+                    </div>
+                  </div>
+);
+              })()}
+
+              {/* Status Cards */}
               <div className="grid md:grid-cols-4 gap-6">
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                   <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Orders</p>
@@ -2968,103 +3004,11 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                   <p className="text-3xl font-black text-blue-500 mt-2">{orders.filter(o => o.status === 'Shipped').length}</p>
                 </div>
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Revenue</p>
-                  <p className="text-3xl font-black text-green-500 mt-2">₹{orders.reduce((acc, curr) => acc + (curr.status !== 'Cancelled' ? Number(curr.total_amount) : 0), 0).toLocaleString()}</p>
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Delivered</p>
+                  <p className="text-3xl font-black text-green-500 mt-2">{orders.filter(o => o.status === 'Delivered').length}</p>
                 </div>
               </div>
-
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-6 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
-                  <h3 className="font-black uppercase text-slate-900">Recent Transactions</h3>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => {
-                        const csvContent = [
-                          ['Order ID', 'Customer', 'Email', 'Date', 'Status', 'Total', 'Items'],
-                          ...orders.map(o => [
-                            o.id,
-                            o.user_name,
-                            o.user_email || '',
-                            new Date(o.created_at).toLocaleDateString(),
-                            o.status,
-                            o.total_amount,
-                            o.items?.length || 0
-                          ])
-                        ].map(row => row.join(',')).join('\n');
-                        
-                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                        const link = document.createElement('a');
-                        link.href = window.URL.createObjectURL(blob);
-                        link.download = `orders_${new Date().toISOString().split('T')[0]}.csv`;
-                        link.click();
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-lg">download</span>
-                      Export CSV
-                    </button>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg">search</span>
-                      <input
-                        type="text"
-                        placeholder="Search orders..."
-                        value={orderSearchQuery}
-                        onChange={(e) => setOrderSearchQuery(e.target.value)}
-                        className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-64"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200">
-                      <tr>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Order ID</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Customer</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Date</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Status</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Total</th>
-                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredOrders.map(order => (
-                        <tr key={order.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="p-4 font-bold text-slate-900">#{order.id}</td>
-                          <td className="p-4">
-                            <div className="font-bold text-slate-700">{order.user_name}</div>
-                            <div className="text-xs text-slate-400">{order.items.length} Items</div>
-                          </td>
-                          <td className="p-4 text-sm font-medium text-slate-600">{new Date(order.created_at).toLocaleDateString()}</td>
-                          <td className="p-4">
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${order.status === 'Delivered' ? 'bg-green-100 text-green-600' :
-                              order.status === 'Processing' ? 'bg-blue-100 text-blue-600' :
-                                order.status === 'Shipped' ? 'bg-purple-100 text-purple-600' :
-                                  order.status === 'Pending' ? 'bg-orange-100 text-orange-600' :
-                                    'bg-red-100 text-red-600'
-                              }`}>
-                              {order.status}
-                            </span>
-                          </td>
-                          <td className="p-4 font-black text-slate-800">₹{order.total_amount}</td>
-                          <td className="p-4 text-right">
-                            <button
-                              onClick={() => setViewingOrder(order)}
-                              className="text-slate-400 hover:text-primary transition-colors p-2 rounded-full hover:bg-slate-100"
-                              title="View Details"
-                            >
-                              <span className="material-symbols-outlined">visibility</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                      {filteredOrders.length === 0 && (
-                        <tr>
-                          <td colSpan={6} className="p-8 text-center text-slate-400 font-bold">
-                            No orders found matching "{orderSearchQuery}"
-                          </td>
-                        </tr>
-                      )}
+            )}
                     </tbody>
                   </table>
                 </div>
