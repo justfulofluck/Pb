@@ -133,6 +133,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Customer Management State
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
 
+  // Product Management State
+  const [productSearchQuery, setProductSearchQuery] = useState('');
+
   const storyFileInputRef = useRef<HTMLInputElement>(null);
   const pressLogoInputRef = useRef<HTMLInputElement>(null);
 
@@ -2485,7 +2488,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {productView === 'list' && (
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg">search</span>
-                    <input type="text" placeholder="Search inventory..." className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-64" />
+                    <input 
+                      type="text" 
+                      placeholder="Search products..." 
+                      value={productSearchQuery}
+                      onChange={(e) => setProductSearchQuery(e.target.value)}
+                      className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-64" 
+                    />
                   </div>
                 )}
               </div>
@@ -2504,7 +2513,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {products.map(product => (
+                      {products
+                        .filter(p => 
+                          !productSearchQuery || 
+                          p.name.toLowerCase().includes(productSearchQuery.toLowerCase()) ||
+                          p.category?.toLowerCase().includes(productSearchQuery.toLowerCase())
+                        )
+                        .map(product => (
                         <tr key={product.id} className="hover:bg-slate-50/50 transition-colors group">
                           <td className="p-4">
                             <div className="flex items-center gap-3">
