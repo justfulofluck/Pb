@@ -72,7 +72,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
         <div className="text-center mb-8 md:mb-24 relative">
           <span className="font-handdrawn text-2xl md:text-3xl text-primary transform rotate-6 inline-block mb-2 absolute -top-10 left-1/2 translate-x-[20px] md:translate-x-[90px] lg:translate-x-[120px] drop-shadow-sm">Pick your fav!</span>
           <h2 className="text-5xl md:text-8xl font-normal text-textured-green !normal-case tracking-tight leading-[0.9] font-anton">
-            Shop by category
+            Explore What You Love
           </h2>
           <div className="w-16 md:w-24 h-1.5 md:h-2 bg-[#0b3d2e] mx-auto mt-4 md:mt-6 rounded-full"></div>
         </div>

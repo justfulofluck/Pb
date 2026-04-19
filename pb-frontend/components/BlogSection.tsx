@@ -29,7 +29,7 @@ const BlogSection: React.FC<BlogSectionProps> = ({ posts, onPostClick, onViewAll
           <div className="max-w-2xl">
             <span className="font-handdrawn text-2xl text-primary transform -rotate-1 inline-block mb-2">Knowledge Base</span>
             <h2 className="text-textured-green-big">
-              The daily crunch
+              The Wellness Journal
             </h2>
             <p className="text-xl md:text-2xl text-slate-600 mt-6 font-medium max-w-xl">
               Nutrition tips, chef-curated recipes, and stories from our kitchen to yours.

@@ -28,7 +28,7 @@ const BlogsPage: React.FC<BlogsPageProps> = ({ posts, onBlogClick, onHomeClick }
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <span className="font-handdrawn text-3xl text-primary transform -rotate-2 inline-block mb-4">Read, Cook, Eat, Repeat</span>
           <h1 className="text-5xl md:text-8xl font-normal !normal-case tracking-tight mb-6 font-anton leading-[0.9]">
-            The daily crunch
+            The Wellness Journal
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto font-medium">
             Your go-to source for healthy recipes, nutrition deep-dives, and behind-the-scenes stories from the Pinobite kitchen.

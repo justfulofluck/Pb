@@ -16,7 +16,7 @@ const Testimonials: React.FC<TestimonialsProps> = ({ reviews }) => {
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
           <div className="max-w-xl">
             <h2 className="text-textured-green-big">
-              From those<br />who made the switch
+              From Our<br />Community
               <span className="font-satoshi text-[#0b3d2e] opacity-40 text-4xl align-middle inline-block transform -rotate-12 ml-6">:)</span>
             </h2>
           </div>

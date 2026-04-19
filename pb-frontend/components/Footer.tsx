@@ -112,7 +112,7 @@ const Footer: React.FC<FooterProps> = ({
             </div>
             <div className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors text-sm text-center md:text-left">
               <i className="fa-solid fa-location-dot text-[#f9bc15]"></i>
-              <span>Fairyland School Dabhoi – Sinor Chowkdi, Sathod, India 391110</span>
+              <a href="https://maps.app.goo.gl/m21Carqf53eYqKaVA" target="_blank" rel="noopener noreferrer" className="hover:underline">Fairyland School Dabhoi – Sinor Chowkdi, Sathod, India 391110</a>
             </div>
           </div>
         </div>

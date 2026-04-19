@@ -22,7 +22,7 @@ const EventsSection: React.FC<EventsSectionProps> = ({ events, onParticipateClic
               Events we've organized
             </h2>
             <p className="text-xl md:text-2xl text-slate-600 mt-6 font-medium max-w-xl">
-              We don't just sell food; we build a community. Join us for workouts, workshops, and tasting sessions across the country.
+              We don't just sell peanut butter; we build a community. Join us for workouts, workshops, and tasting sessions across the country.
             </p>
           </div>
 

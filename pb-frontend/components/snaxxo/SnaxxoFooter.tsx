@@ -180,7 +180,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
                             </div>
                             <div className="flex items-center gap-4 text-white hover:text-white/80 transition-colors text-sm md:text-base text-center md:text-left">
                                 <i className="fa-solid fa-location-dot text-[#f9bc15] text-xl"></i>
-                                <span className="font-medium tracking-wide">Fairyland School Dabhoi – Sinor Chowkdi, India 391110</span>
+                                <a href="https://maps.app.goo.gl/m21Carqf53eYqKaVA" target="_blank" rel="noopener noreferrer" className="font-medium tracking-wide hover:underline cursor-pointer">Fairyland School Dabhoi – Sinor Chowkdi, India 391110</a>
                             </div>
                         </div>
                     </div>
