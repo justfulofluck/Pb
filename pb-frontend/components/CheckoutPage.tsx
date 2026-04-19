@@ -109,13 +109,14 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
   };
 
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = subtotal > 999 ? 0 : 50;
-  const tax = subtotal * 0.05; // 5% GST
+  const mrpTotal = items.reduce((sum, item) => sum + ((item.originalPrice || item.price) * item.quantity), 0);
+  const mrpDiscount = mrpTotal - subtotal;
+  const shipping = 0;
 
   // 10 points = 1 Rupee discount
   const maxRedeemablePoints = Math.min(userPoints, Math.floor(subtotal * 10));
   const potentialDiscount = usePoints ? maxRedeemablePoints / 10 : 0;
-  const total = subtotal + shipping + tax - potentialDiscount;
+  const total = subtotal + shipping - potentialDiscount;
 
   const togglePoints = () => {
     setUsePoints(!usePoints);
@@ -305,9 +306,9 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-12 gap-12 items-start">
+      <div className="flex flex-col-reverse lg:grid lg:grid-cols-12 gap-12 items-start">
         {/* Checkout Form */}
-        <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-10">
+        <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-10 w-full">
           <section className="space-y-6">
             <div className="flex items-center gap-4">
               <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm">1</span>
@@ -388,36 +389,52 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
         </form >
 
         {/* Order Summary */}
-        < div className="lg:col-span-5 bg-slate-50 p-8 rounded-3xl space-y-8 sticky top-8" >
+        <div className="lg:col-span-5 bg-white sm:bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-8 lg:sticky lg:top-8 w-full border border-slate-100 sm:border-none shadow-sm sm:shadow-none">
           <h3 className="text-xl font-black uppercase tracking-tight">Order Summary</h3>
           <div className="space-y-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
             {items.map(item => (
-              <div key={item.id} className="flex gap-4">
-                <div className="w-16 h-16 bg-white rounded-xl overflow-hidden shadow-sm flex-shrink-0">
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+              <div key={item.id} className="flex gap-6 items-center">
+                <div className="w-24 h-24 bg-white rounded-2xl overflow-hidden shadow-sm flex-shrink-0 border border-slate-100 p-2">
+                  <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-bold text-slate-900 text-sm">{item.name}</h4>
-                  <p className="text-xs text-slate-500 mt-1">Qty: {item.quantity}</p>
+                <div className="flex-1 flex flex-col">
+                  <h4 className="font-black text-slate-900 text-lg leading-tight mb-1 tracking-tight">{item.name}</h4>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">
+                      Qty: {item.quantity}
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-black text-slate-900 text-base">₹{item.price * item.quantity}</span>
+                    {item.originalPrice && item.originalPrice > item.price && (
+                      <span className="text-slate-400 line-through text-xs font-bold">₹{item.originalPrice * item.quantity}</span>
+                    )}
+                  </div>
                 </div>
-                <p className="font-bold text-slate-900 text-sm">₹{item.price * item.quantity}</p>
               </div>
             ))}
           </div>
 
           <div className="border-t-2 border-slate-200 border-dashed pt-6 space-y-3">
             <div className="flex justify-between text-slate-500 font-medium text-sm">
+              <span>MRP Total</span>
+              <span>₹{mrpTotal.toFixed(2)}</span>
+            </div>
+            {mrpDiscount > 0 && (
+              <div className="flex justify-between text-green-600 font-bold text-sm">
+                <span>Discount on MRP</span>
+                <span>- ₹{mrpDiscount.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-slate-500 font-medium text-sm border-t border-slate-100 pt-2">
               <span>Subtotal</span>
-              <span>₹{subtotal}</span>
+              <span>₹{subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-slate-500 font-medium text-sm">
               <span>Shipping</span>
               <span>{shipping === 0 ? 'Free' : `₹${shipping}`}</span>
             </div>
-            <div className="flex justify-between text-slate-500 font-medium text-sm">
-              <span>Tax (5% GST)</span>
-              <span>₹{tax.toFixed(2)}</span>
-            </div>
+
             {potentialDiscount > 0 && (
               <div className="flex justify-between text-green-600 font-bold text-sm">
                 <span>Loyalty Discount ({maxRedeemablePoints} Pts)</span>

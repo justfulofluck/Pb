@@ -67,18 +67,20 @@ const MobileBottomNav: React.FC<MobileBottomNavProps & { isHidden?: boolean }> =
                 </button>
 
                 {/* Cart Item */}
-                <button
-                    onClick={onCartClick}
-                    className={`relative ${getButtonClass(isCartActive)}`}
-                >
-                    <span className="material-symbols-outlined text-[24px]">shopping_cart</span>
-                    <span className={getLabelClass(isCartActive)}>Cart</span>
+                <div className="relative">
+                    <button
+                        onClick={onCartClick}
+                        className={getButtonClass(isCartActive)}
+                    >
+                        <span className="material-symbols-outlined text-[24px]">shopping_cart</span>
+                        <span className={getLabelClass(isCartActive)}>Cart</span>
+                    </button>
                     {!isCartActive && cartCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-in zoom-in duration-300">
+                        <span className="absolute -top-1 -right-1 z-20 bg-[#008a45] text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-white animate-in zoom-in duration-300 pointer-events-none shadow-sm">
                             {cartCount}
                         </span>
                     )}
-                </button>
+                </div>
 
                 {/* Profile Item */}
                 <button

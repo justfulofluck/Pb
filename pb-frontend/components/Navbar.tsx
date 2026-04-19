@@ -443,24 +443,7 @@ const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
 
-            {/* Primary Navigation Items */}
-            <div className="space-y-6 mb-12 overflow-y-auto pr-4 hide-scrollbar">
-              <button
-                onClick={() => { onProductsClick(); closeMenu(); }}
-                className="flex items-center w-full group"
-              >
-                <span className="font-anton text-[22px] tracking-tight group-hover:translate-x-2 transition-transform duration-300">PRODUCTS</span>
-              </button>
-
-
-              <button
-                onClick={() => { onJourneyClick(); closeMenu(); }}
-                className="flex items-center w-full group"
-              >
-                <span className="font-anton text-[22px] tracking-tight group-hover:translate-x-2 transition-transform duration-300">OUR JOURNEY</span>
-              </button>
-
-            </div>
+            {/* Primary Navigation Items removed as per user request */}
 
             {/* Secondary Navigation Section */}
             <div className="flex-1 space-y-4">

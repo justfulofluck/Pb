@@ -33,9 +33,10 @@ const SimpleHeroSlider: React.FC<HeroSliderProps> = ({ slides = [] }) => {
 
     useEffect(() => {
         if (activeSlides.length <= 1) return;
-        const timer = setInterval(nextSlide, 5000);
-        return () => clearInterval(timer);
-    }, [nextSlide, activeSlides.length]);
+        const duration = (activeSlides[current]?.displayDuration || 5) * 1000;
+        const timer = setTimeout(nextSlide, duration);
+        return () => clearTimeout(timer);
+    }, [current, nextSlide, activeSlides]);
 
     if (activeSlides.length === 0) return null;
 
@@ -55,7 +56,7 @@ const SimpleHeroSlider: React.FC<HeroSliderProps> = ({ slides = [] }) => {
     };
 
     return (
-        <div className="relative w-full h-[55vh] md:h-[80vh] lg:h-[85vh] overflow-hidden bg-background-light">
+        <div className="relative w-full h-screen md:h-[80vh] lg:h-[85vh] overflow-hidden bg-background-light">
             <AnimatePresence initial={false} custom={direction}>
                 <motion.div
                     key={current}

@@ -9,11 +9,12 @@ interface DashboardProps {
   onLogout: () => void;
   onHomeClick: () => void;
   onAddToCart?: (product: any) => void;
+  onProductClick?: (product: any) => void;
 }
 
 type TabType = 'overview' | 'orders' | 'rewards' | 'profile' | 'wishlist';
 
-const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCart }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCart, onProductClick }) => {
   const { user: authUser, checkAuth } = useAuth();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -262,34 +263,34 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   className="space-y-8"
                 >
                   {/* Hero Banner */}
-                  <div className="p-8 rounded-[40px] bg-slate-900 texture-chalkboard-strong text-white relative overflow-hidden shadow-2xl">
-                    <div className="relative z-10 space-y-4">
-                      <span className="bg-white/20 backdrop-blur-md px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                  <div className="p-6 sm:p-8 rounded-[32px] sm:rounded-[40px] bg-slate-900 texture-chalkboard-strong text-white relative overflow-hidden shadow-2xl">
+                    <div className="relative z-10 space-y-3 sm:space-y-4">
+                      <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest inline-block">
                         {userData.tier} Status
                       </span>
-                      <h2 className="text-4xl md:text-5xl font-anton uppercase tracking-normal leading-none" style={{ letterSpacing: '0.05em' }}>
-                        Welcome back,<br /> {authUser.first_name || authUser.username}
+                      <h2 className="text-3xl sm:text-4xl md:text-5xl font-anton uppercase tracking-normal leading-[1.1]" style={{ letterSpacing: '0.05em' }}>
+                        Welcome back,<br className="hidden sm:block" /> {authUser.first_name || authUser.username}
                       </h2>
-                      <p className="font-satoshi text-2xl text-white/70">Fueling your ambition since {new Date(authUser.date_joined || Date.now()).getFullYear()} ✨</p>
+                      <p className="font-satoshi text-lg sm:text-2xl text-white/70 leading-relaxed">Fueling your ambition since {new Date(authUser.date_joined || Date.now()).getFullYear()} ✨</p>
                     </div>
                     {/* Decorative Elements */}
-                    <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-                    <div className="absolute -left-12 -top-12 w-48 h-48 bg-primary/20 rounded-full blur-2xl" />
+                    <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-white/10 rounded-full blur-3xl opacity-50" />
+                    <div className="absolute -left-12 -top-12 w-48 h-48 bg-primary/20 rounded-full blur-2xl opacity-50" />
                   </div>
 
                   {/* Stats Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                     {[
                       { label: 'PinoPoints', val: userData.points, icon: 'workspace_premium', color: 'text-orange-500' },
                       { label: 'Total Orders', val: orders.length, icon: 'shopping_bag', color: 'text-primary' },
                       { label: 'Total Savings', val: `₹${userData.savings}`, icon: 'savings', color: 'text-green-500' },
                       { label: 'Total Spent', val: `₹${userData.totalSpent}`, icon: 'wallet', color: 'text-slate-900' }
                     ].map((stat, i) => (
-                      <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-                        <span className={`material-symbols-outlined ${stat.color}`}>{stat.icon}</span>
-                        <div className="mt-4">
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
-                          <p className="text-2xl font-black text-slate-900">{stat.val}</p>
+                      <div key={i} className="bg-white p-4 sm:p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                        <span className={`material-symbols-outlined text-xl ${stat.color}`}>{stat.icon}</span>
+                        <div className="mt-3 sm:mt-4">
+                          <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{stat.label}</p>
+                          <p className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">{stat.val}</p>
                         </div>
                       </div>
                     ))}
@@ -708,39 +709,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   animate={{ opacity: 1, y: 0 }}
                   className="space-y-8"
                 >
-                  <div className="bg-white p-8 md:p-12 rounded-[40px] border border-slate-100 shadow-sm overflow-hidden relative">
-                    <div className="flex justify-between items-center mb-8">
-                      <h2 className="text-4xl font-black uppercase tracking-tighter">My Wishlist</h2>
+                  <div className="bg-white p-6 sm:p-8 md:p-12 rounded-[32px] sm:rounded-[40px] border border-slate-100 shadow-sm overflow-hidden relative">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8 sm:mb-12">
+                      <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter">My Wishlist</h2>
                       {wishlistItems.length > 0 && (
-                        <div className="flex gap-3">
-                          <button
-                            onClick={async () => {
-                              try {
-                                const token = localStorage.getItem('access_token');
-                                const res = await fetch(`${API_BASE_URL}/api/wishlist/share/`, {
-                                  method: 'POST',
-                                  headers: { 'Authorization': `Bearer ${token}` }
-                                });
-                                const data = await res.json();
-                                if (res.ok) {
-                                  // Copy just the URLs - one per line
-                                  const urls = data.product_links
-                                    .map((p: any) => p.product_url)
-                                    .join('\n');
-                                  await navigator.clipboard.writeText(urls);
-                                  showToast(`${data.items_count} product links copied!`, 'success');
-                                } else {
-                                  showToast(data.error || 'Failed to create share link', 'error');
-                                }
-                              } catch (err) {
-                                showToast('Failed to share wishlist', 'error');
-                              }
-                            }}
-                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-full text-sm font-bold text-slate-700 transition-colors"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">share</span>
-                            Share
-                          </button>
+                        <div className="flex w-full sm:w-auto gap-3">
                           <button
                             onClick={async () => {
                               try {
@@ -771,7 +744,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                 showToast('Failed to add items to cart', 'error');
                               }
                             }}
-                            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-full text-sm font-bold hover:bg-green-700 transition-colors"
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-full text-xs sm:text-sm font-black uppercase tracking-widest hover:bg-green-700 transition-all shadow-lg shadow-green-100 active:scale-95"
                           >
                             <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
                             Add All to Cart
@@ -787,7 +760,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                     ) : wishlistItems.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {wishlistItems.map((item: any) => (
-                          <div key={item.id} className="group relative bg-white border border-slate-100 rounded-[32px] overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col h-[400px]">
+                          <div
+                            key={item.id}
+                            onClick={() => {
+                              if (onProductClick) {
+                                onProductClick({
+                                  ...item.product_details,
+                                  id: String(item.product),
+                                  price: parseFloat(item.product_details.price),
+                                  originalPrice: item.product_details.original_price ? parseFloat(item.product_details.original_price) : undefined,
+                                });
+                              }
+                            }}
+                            className="group relative bg-white border-2 border-primary/10 rounded-[32px] sm:rounded-[40px] overflow-hidden hover:shadow-[0_20px_50px_rgba(0,138,69,0.15)] hover:border-primary/40 hover:-translate-y-2 transition-all duration-500 flex flex-col h-[400px] sm:h-[420px] cursor-pointer"
+                          >
                             {/* Remove Button */}
                             <button
                               onClick={async (e) => {
@@ -807,6 +793,21 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                               className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/80 backdrop-blur-md text-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
                             >
                               <span className="material-symbols-outlined text-[20px] fill-1">favorite</span>
+                            </button>
+
+                            {/* Share Button */}
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const url = `${window.location.origin}/product/${item.product}`;
+                                  await navigator.clipboard.writeText(url);
+                                  showToast('Product link copied!', 'success');
+                                } catch (err) { }
+                              }}
+                              className="absolute top-4 right-16 z-20 w-10 h-10 bg-white/80 backdrop-blur-md text-slate-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-slate-900 hover:text-white"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">share</span>
                             </button>
 
                             {/* Image Section */}
@@ -844,7 +845,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                 </div>
 
                                 <button
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     if (onAddToCart) {
                                       onAddToCart({
                                         id: String(item.product),
@@ -857,10 +859,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                       showToast('Added to cart!', 'success');
                                     }
                                   }}
-                                  className="flex-1 bg-slate-900 text-white h-12 rounded-2xl flex items-center justify-center gap-2 font-black text-[10px] uppercase tracking-widest hover:bg-primary transition-all active:scale-95 shadow-lg shadow-slate-200"
+                                  className="w-14 h-14 bg-primary text-white rounded-[22px] flex items-center justify-center transition-all active:scale-95 shadow-lg shadow-green-100 hover:bg-green-700 hover:rotate-6 flex-shrink-0"
                                 >
-                                  <span className="material-symbols-outlined text-sm">shopping_cart</span>
-                                  Add to Cart
+                                  <span className="material-symbols-outlined text-[24px]">shopping_cart</span>
                                 </button>
                               </div>
                             </div>
