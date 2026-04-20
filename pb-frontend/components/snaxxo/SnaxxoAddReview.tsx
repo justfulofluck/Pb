@@ -114,7 +114,7 @@ const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddRevie
                                 <span className="material-symbols-outlined text-slate-400 text-3xl">lock</span>
                             </div>
                             <h3 className="text-xl font-black uppercase text-slate-900 mb-2">Login to Review</h3>
-                            <p className="text-slate-500 font-bold mb-6 max-w-xs">Only verified customers can subimt their experience with this product.</p>
+                            <p className="text-slate-500 font-bold mb-6 max-w-xs">Only verified customers can submit their experience with this product.</p>
                             <button
                                 onClick={onLoginClick}
                                 className="px-10 py-4 bg-slate-950 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-colors shadow-lg"
