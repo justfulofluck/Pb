@@ -1522,15 +1522,25 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                     </form>
 
                     {/* Story Preview Area */}
-                    {newStoryForm.mediaUrl && (
+                    {newStoryForm.mediaUrl && (() => {
+                      const driveFileId = (() => {
+                        const match = newStoryForm.mediaUrl?.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                        return match ? match[1] : null;
+                      })();
+                      const previewSrc = driveFileId
+                        ? `https://drive.google.com/thumbnail?id=${driveFileId}&sz=w400`
+                        : newStoryForm.mediaUrl;
+
+                      return (
                       <div className="mt-8 border-t border-slate-100 pt-6">
                         <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Live Preview</h4>
                         <div className="w-[160px] h-[280px] rounded-[18px] overflow-hidden relative shadow-lg">
-                          {newStoryForm.mediaType === 'video' ? (
-                            <video src={newStoryForm.mediaUrl} className="w-full h-full object-cover" autoPlay muted loop />
-                          ) : (
-                            <img src={newStoryForm.mediaUrl} className="w-full h-full object-cover" alt="Preview" />
-                          )}
+                          <img src={previewSrc} className="w-full h-full object-cover" alt="Preview" />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
+                              <span className="material-symbols-outlined text-white text-lg">play_arrow</span>
+                            </div>
+                          </div>
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                           {(() => {
                             const p = products.find(prod => prod.id === newStoryForm.productId);
@@ -1562,7 +1572,8 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                           })()}
                         </div>
                       </div>
-                    )}
+                      );
+                    })()}
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">

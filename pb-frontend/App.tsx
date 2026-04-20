@@ -179,6 +179,20 @@ const fetchStories = async () => {
   }));
 };
 
+const fetchReviews = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/reviews/`);
+  if (!res.ok) throw new Error('Failed to fetch reviews');
+  const data = await res.json();
+  if (!Array.isArray(data)) return [];
+  return data.map((r: any) => ({
+    ...r,
+    id: String(r.id),
+    productId: String(r.product_id_str || r.product),
+    userName: r.user_name,
+    userRole: r.user_role,
+  }));
+};
+
 const AppContent: React.FC = () => {
   // --- Local State ---
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
@@ -186,7 +200,6 @@ const AppContent: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(() => {
     return window.history.state?.view || 'home';
   });
-  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [visitorForms, setVisitorForms] = useState<VisitorForm[]>([]);
   const [pressUpdates, setPressUpdates] = useState<PressUpdate[]>(() => {
@@ -219,6 +232,7 @@ const AppContent: React.FC = () => {
 
   // --- TanStack Queries ---
   const productsQuery = useQuery({ queryKey: ['products'], queryFn: fetchProducts });
+  const reviewsQuery = useQuery({ queryKey: ['reviews'], queryFn: fetchReviews });
   const categoriesQuery = useQuery({ queryKey: ['categories'], queryFn: fetchCategories });
   const announcementsQuery = useQuery({ queryKey: ['announcements'], queryFn: fetchAnnouncements });
   const heroSlidesQuery = useQuery({ queryKey: ['hero-slides'], queryFn: fetchHeroSlides });
@@ -240,6 +254,7 @@ const AppContent: React.FC = () => {
 
   // Derived values (to maintain compatibility with existing props)
   const products = productsQuery.data || INITIAL_PRODUCTS;
+  const reviews = reviewsQuery.data || INITIAL_REVIEWS;
   const categories = categoriesQuery.data || INITIAL_CATEGORIES;
   const announcements = announcementsQuery.data || [];
   const slides = heroSlidesQuery.data || INITIAL_SLIDES;
@@ -1074,7 +1089,7 @@ const AppContent: React.FC = () => {
   };
 
   const handleAddReview = (review: Review) => {
-    setReviews(prev => [review, ...prev]);
+    queryClient.invalidateQueries({ queryKey: ['reviews'] });
     // Refresh user's points to show on dashboard immediately
     checkAuth();
   };

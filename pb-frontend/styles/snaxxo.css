@@ -9856,17 +9856,17 @@ figcaption {
   }
 
   .chip-call-out._01 {
-    top: -10%;
-    right: -74%;
+    top: 0%;
+    right: -5%;
   }
 
   .chip-call-out._02 {
-    left: -46%;
+    left: 0%;
   }
 
   .chip-call-out._03 {
-    bottom: -49%;
-    right: -66%;
+    bottom: -10%;
+    right: -5%;
     transform: rotate(18deg);
   }
 
@@ -10731,18 +10731,18 @@ figcaption {
   }
 
   .chip-call-out._01 {
-    top: -33%;
-    right: -27%;
+    top: -5%;
+    right: 5%;
   }
 
   .chip-call-out._02 {
-    inset: auto auto -36% -11%;
-    transform: rotate(-20deg);
+    inset: auto auto -10% 15%;
+    transform: rotate(-5deg);
   }
 
   .chip-call-out._03 {
-    bottom: -45%;
-    right: -28%;
+    bottom: -15%;
+    right: 5%;
   }
 
   .call-out-title {

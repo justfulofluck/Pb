@@ -131,8 +131,8 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
         : products.slice(0, 6);
 
     return (
-        <section className="bg-whiteboard texture-overlay texture-speckles relative overflow-hidden pb-12 w-full lg:hidden">
-            <div className="pt-12 pb-16 relative">
+        <section className="bg-whiteboard texture-overlay texture-speckles relative overflow-hidden pb-4 w-full lg:hidden">
+            <div className="pt-6 pb-6 relative">
                 <div className="flex flex-col items-center justify-center relative z-10 px-4">
                     <h2 className="text-textured-green text-6xl md:text-8xl font-normal !normal-case tracking-tight leading-[0.9] font-anton text-center">
                         Customer's<br />Favorite
@@ -161,7 +161,7 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                 onMouseLeave={handleMouseLeave}
                 onMouseUp={handleMouseUp}
                 onMouseMove={handleMouseMove}
-                className={`relative z-20 px-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory flex gap-6 pb-12 ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'}`}
+                className={`relative z-20 px-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory flex gap-6 pb-4 ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'}`}
                 style={{ scrollBehavior: isDragging ? 'auto' : 'smooth' }}
             >
                 {favoriteProducts.map((product) => {

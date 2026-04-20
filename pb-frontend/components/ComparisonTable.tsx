@@ -13,13 +13,14 @@ const COMPARISON_DATA: ComparisonRow[] = [
 
 const ComparisonTable: React.FC = () => {
   return (
-    <section className="py-24 bg-whiteboard texture-overlay texture-speckles overflow-hidden">
+    <section className="py-12 md:py-24 bg-whiteboard texture-overlay texture-speckles overflow-hidden">
       <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-4xl md:text-5xl font-normal text-center mb-20 italic tracking-tight leading-[0.9] text-slate-900 font-anton !normal-case">
+        <h2 className="text-4xl md:text-5xl font-normal text-center mb-12 md:mb-20 italic tracking-tight leading-[0.9] text-slate-900 font-anton !normal-case">
           Pinobite <span className="text-primary italic">vs.</span> Others
         </h2>
 
-        <div className="overflow-x-auto pb-8 pt-8">
+        {/* Desktop View */}
+        <div className="hidden md:block overflow-x-auto pb-8 pt-8">
           <table className="w-full border-separate border-spacing-x-1 border-spacing-y-0 min-w-[800px]">
             <thead>
               <tr className="text-slate-900 uppercase">
@@ -59,9 +60,54 @@ const ComparisonTable: React.FC = () => {
           </table>
         </div>
 
+        {/* Mobile View - Matching Reference Screenshot */}
+        <div className="md:hidden">
+          <div className="relative bg-white/60 rounded-[2.5rem] border border-primary/20 overflow-hidden shadow-2xl backdrop-blur-sm">
+            {/* Mobile Header */}
+            <div className="grid grid-cols-3 bg-[#f8fafc]/50 border-b border-primary/10">
+              <div className="p-4 text-center text-[10px] font-black text-slate-800 leading-tight flex items-center justify-center border-r border-primary/5 uppercase tracking-tighter">
+                Ghar Ka<br />Khaana
+              </div>
+              <div className="p-4 text-center text-[10px] font-black text-slate-800 leading-tight flex items-center justify-center border-r border-primary/5 uppercase tracking-tighter">
+                Junk Food
+              </div>
+              <div className="p-4 bg-primary text-white text-center flex flex-col items-center justify-center">
+                <img src="/logos/Pinobite-logo.png" className="h-5 w-auto brightness-0 invert" alt="Pinobite" />
+              </div>
+            </div>
+
+            {/* Mobile Rows */}
+            <div className="divide-y divide-primary/5">
+              {COMPARISON_DATA.map((row, i) => (
+                <div key={i} className="relative py-6 px-1">
+                  {/* Feature Pill Separator */}
+                  <div className="flex justify-center mb-4">
+                    <div className="bg-white text-primary px-6 py-1.5 rounded-full text-sm font-black shadow-sm border border-primary/10 uppercase tracking-widest">
+                      {row.feature}
+                    </div>
+                  </div>
+
+                  {/* Values Row */}
+                  <div className="grid grid-cols-3 text-center items-stretch min-h-[60px]">
+                    <div className="px-3 text-[11px] font-bold text-slate-600 leading-snug border-r border-primary/5 flex items-center justify-center">
+                      {row.ghar}
+                    </div>
+                    <div className="px-3 text-[11px] font-bold text-slate-600 leading-snug border-r border-primary/5 flex items-center justify-center">
+                      {row.junk}
+                    </div>
+                    <div className="px-3 text-xs font-black text-primary bg-primary/5 rounded-xl flex items-center justify-center py-2 h-full">
+                      {row.pino}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Bottom Annotation */}
-        <div className="mt-12 text-center">
-          <p className="font-handdrawn text-xl text-slate-400 transform -rotate-1">made on trusted nutrition standards for family use 💚</p>
+        <div className="mt-8 md:mt-12 text-center">
+          <p className="font-handdrawn text-lg md:text-xl text-slate-400 transform -rotate-1">made on trusted nutrition standards for family use 💚</p>
         </div>
       </div>
     </section>

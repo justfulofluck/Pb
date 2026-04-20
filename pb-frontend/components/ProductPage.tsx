@@ -198,7 +198,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
   return (
     <div className="page-wrapper" style={{ opacity: 1, backgroundColor: tintColor }}>
 
-      <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-[70vh] md:min-h-[90vh] flex flex-col items-center pt-0 pb-20 texture-overlay texture-speckles">
+      <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-[70vh] md:min-h-[90vh] flex flex-col items-center pt-0 pb-32 texture-overlay texture-speckles">
         <div className="w-layout-blockcontainer container product-page-hero w-container !pt-2 md:!pt-8 !mt-0">
           <div className="content-wrapper product-page-hero">
             <div className="heading-text-box pdp-h1 mt-0 pt-0">
@@ -411,10 +411,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
             </div>
           </div>
         </div>
+        <div className="absolute bottom-[-1px] left-0 w-full h-[100px] z-[5] pointer-events-none">
+          <MultiLayerWave fill="#f2f2ec" className="h-full" />
+        </div>
       </section >
-
-
-
+      {reviews.length > 0 && (
+        <Testimonials reviews={reviews.filter(r => r.productId === product.id)} showHeading={false} />
+      )}
 
       <section className="section overflow-hidden" style={{ backgroundColor: '#f2f2ec' }}>
         <div className="w-layout-blockcontainer container product-page-intro w-container">
@@ -475,7 +478,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
         onProductClick={onProductClick}
       />
 
-      <div className="snaxxo-wrapper relative w-full overflow-hidden py-10" style={{ backgroundColor: '#f2f2ec' }}>
+      <div className="snaxxo-wrapper relative w-full overflow-hidden py-0" style={{ backgroundColor: '#f2f2ec' }}>
 
         <SnaxxoProductWheel
           products={products}
@@ -488,16 +491,10 @@ const ProductPage: React.FC<ProductPageProps> = ({
       <SnaxxoAddReview
         productId={product.id}
         onAddReview={onAddReview}
-        color={bgColor}
+        color="#f2f2ec"
         isLoggedIn={isLoggedIn}
         onLoginClick={onLoginClick}
       />
-
-      {reviews.length > 0 && (
-        <Testimonials reviews={reviews.filter(r => r.productId === product.id)} />
-      )}
-
-
     </div>
   );
 };

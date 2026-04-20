@@ -81,7 +81,7 @@ const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddRevie
     };
 
     return (
-        <section className="section py-20 bg-[#f2f2ec]">
+        <section className="section py-10 bg-[#f2f2ec]">
             <div className="container max-w-4xl mx-auto px-4">
                 <div className="bg-white rounded-[2rem] p-8 md:p-12 shadow-sm border border-slate-100 relative overflow-hidden">
                     {showSuccess && (
