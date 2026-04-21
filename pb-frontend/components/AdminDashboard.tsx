@@ -1130,7 +1130,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Invoice Generation
   const handleDownloadInvoice = () => {
     if (!viewingOrder) return;
-    
+
     const invoiceText = `
 ===============================================
           PINOBITE HEALTH FOODS
@@ -1144,9 +1144,9 @@ Email: ${viewingOrder.user_email || 'N/A'}
 -----------------------------------------------
 ITEMS
 -----------------------------------------------
-${viewingOrder.items.map(item => 
-  `${item.product_name} x${item.quantity} = ₹${item.price * item.quantity}`
-).join('\n')}
+${viewingOrder.items.map(item =>
+      `${item.product_name} x${item.quantity} = ₹${item.price * item.quantity}`
+    ).join('\n')}
 
 -----------------------------------------------
 SUBTOTAL:      ₹${viewingOrder.total_amount}
@@ -1167,7 +1167,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
     www.pinobite.com
 ===============================================
     `;
-    
+
     const blob = new Blob([invoiceText], { type: 'text/plain' });
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
@@ -1532,46 +1532,46 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                         : newStoryForm.mediaUrl;
 
                       return (
-                      <div className="mt-8 border-t border-slate-100 pt-6">
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Live Preview</h4>
-                        <div className="w-[160px] h-[280px] rounded-[18px] overflow-hidden relative shadow-lg">
-                          <img src={previewSrc} className="w-full h-full object-cover" alt="Preview" />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
-                              <span className="material-symbols-outlined text-white text-lg">play_arrow</span>
+                        <div className="mt-8 border-t border-slate-100 pt-6">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Live Preview</h4>
+                          <div className="w-[160px] h-[280px] rounded-[18px] overflow-hidden relative shadow-lg">
+                            <img src={previewSrc} className="w-full h-full object-cover" alt="Preview" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
+                                <span className="material-symbols-outlined text-white text-lg">play_arrow</span>
+                              </div>
                             </div>
-                          </div>
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                          {(() => {
-                            const p = products.find(prod => prod.id === newStoryForm.productId);
-                            if (!p) {
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                            {(() => {
+                              const p = products.find(prod => prod.id === newStoryForm.productId);
+                              if (!p) {
+                                return (
+                                  <div className="absolute bottom-2 left-2 right-2">
+                                    <p className="text-[8px] font-bold text-white uppercase truncate">Product will link here</p>
+                                  </div>
+                                );
+                              }
                               return (
-                                <div className="absolute bottom-2 left-2 right-2">
-                                  <p className="text-[8px] font-bold text-white uppercase truncate">Product will link here</p>
-                                </div>
-                              );
-                            }
-                            return (
-                              <div className="absolute bottom-4 left-2 right-2 bg-white rounded-xl p-2.5 shadow-lg flex items-center gap-3 border border-slate-100">
-                                <div className="w-16 h-16 rounded-lg flex-shrink-0 flex items-center justify-center">
-                                  <img src={p.image} className="w-14 h-14 object-contain" alt="P" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="text-[11px] font-bold text-slate-900 leading-[1.2] line-clamp-2">
-                                    {p.name.split('(')[0] || p.name}
-                                  </h4>
-                                  <div className="flex items-center gap-2 mt-0">
-                                    <span className="text-[12px] font-black text-slate-900">₹{p.price.toLocaleString()}</span>
-                                    {p.originalPrice && (
-                                      <span className="text-[9px] text-slate-400 line-through decoration-slate-300">₹{p.originalPrice.toLocaleString()}</span>
-                                    )}
+                                <div className="absolute bottom-4 left-2 right-2 bg-white rounded-xl p-2.5 shadow-lg flex items-center gap-3 border border-slate-100">
+                                  <div className="w-16 h-16 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                    <img src={p.image} className="w-14 h-14 object-contain" alt="P" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="text-[11px] font-bold text-slate-900 leading-[1.2] line-clamp-2">
+                                      {p.name.split('(')[0] || p.name}
+                                    </h4>
+                                    <div className="flex items-center gap-2 mt-0">
+                                      <span className="text-[12px] font-black text-slate-900">₹{p.price.toLocaleString()}</span>
+                                      {p.originalPrice && (
+                                        <span className="text-[9px] text-slate-400 line-through decoration-slate-300">₹{p.originalPrice.toLocaleString()}</span>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            );
-                          })()}
+                              );
+                            })()}
+                          </div>
                         </div>
-                      </div>
                       );
                     })()}
                   </div>
@@ -2537,12 +2537,12 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                 {productView === 'list' && (
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg">search</span>
-                    <input 
-                      type="text" 
-                      placeholder="Search products..." 
+                    <input
+                      type="text"
+                      placeholder="Search products..."
                       value={productSearchQuery}
                       onChange={(e) => setProductSearchQuery(e.target.value)}
-                      className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-64" 
+                      className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-64"
                     />
                   </div>
                 )}
@@ -2563,58 +2563,58 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {products
-                        .filter(p => 
-                          !productSearchQuery || 
+                        .filter(p =>
+                          !productSearchQuery ||
                           p.name.toLowerCase().includes(productSearchQuery.toLowerCase()) ||
                           p.category?.toLowerCase().includes(productSearchQuery.toLowerCase())
                         )
                         .map(product => (
-                        <tr key={product.id} className="hover:bg-slate-50/50 transition-colors group">
-                          <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0">
-                                <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
+                          <tr key={product.id} className="hover:bg-slate-50/50 transition-colors group">
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0">
+                                  <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
+                                </div>
+                                <div>
+                                  <p className="font-bold text-slate-900 text-sm">{product.name}</p>
+                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">ID: {product.id.slice(-4)}</p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="font-bold text-slate-900 text-sm">{product.name}</p>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">ID: {product.id.slice(-4)}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <span className="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black uppercase text-slate-600 tracking-wider">
-                              {product.category}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <span className="font-bold text-slate-700">₹{product.price}</span>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-center gap-2">
-                              <button onClick={() => handleStockUpdate(product, product.stock - 1)} className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center hover:bg-slate-200 text-slate-600">-</button>
-                              <span className={`w-12 text-center font-bold text-sm ${product.stock < 10 ? 'text-red-500' : 'text-slate-700'}`}>
-                                {product.stock}
+                            </td>
+                            <td className="p-4">
+                              <span className="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black uppercase text-slate-600 tracking-wider">
+                                {product.category}
                               </span>
-                              <button onClick={() => handleStockUpdate(product, product.stock + 1)} className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center hover:bg-slate-200 text-slate-600">+</button>
-                              {product.stock < 10 && <span className="text-[10px] text-red-500 font-bold uppercase ml-2">Low</span>}
-                            </div>
-                          </td>
-                          <td className="p-4 text-right">
-                            <button
-                              onClick={() => onDeleteProduct(product.id)}
-                              className="text-slate-400 hover:text-red-500 transition-colors p-2"
-                            >
-                              <span className="material-symbols-outlined text-lg">delete</span>
-                            </button>
-                            <button
-                              onClick={() => openEditProduct(product)}
-                              className="text-slate-400 hover:text-primary transition-colors p-2"
-                            >
-                              <span className="material-symbols-outlined text-lg">edit</span>
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                            <td className="p-4">
+                              <span className="font-bold text-slate-700">₹{product.price}</span>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => handleStockUpdate(product, product.stock - 1)} className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center hover:bg-slate-200 text-slate-600">-</button>
+                                <span className={`w-12 text-center font-bold text-sm ${product.stock < 10 ? 'text-red-500' : 'text-slate-700'}`}>
+                                  {product.stock}
+                                </span>
+                                <button onClick={() => handleStockUpdate(product, product.stock + 1)} className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center hover:bg-slate-200 text-slate-600">+</button>
+                                {product.stock < 10 && <span className="text-[10px] text-red-500 font-bold uppercase ml-2">Low</span>}
+                              </div>
+                            </td>
+                            <td className="p-4 text-right">
+                              <button
+                                onClick={() => onDeleteProduct(product.id)}
+                                className="text-slate-400 hover:text-red-500 transition-colors p-2"
+                              >
+                                <span className="material-symbols-outlined text-lg">delete</span>
+                              </button>
+                              <button
+                                onClick={() => openEditProduct(product)}
+                                className="text-slate-400 hover:text-primary transition-colors p-2"
+                              >
+                                <span className="material-symbols-outlined text-lg">edit</span>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
                     </tbody>
                   </table>
                   {products.length === 0 && (
@@ -2974,7 +2974,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                 const weekOrders = orders.filter(o => new Date(o.created_at).toDateString() >= weekAgo);
                 const weekRevenue = weekOrders.reduce((acc, o) => acc + (o.status !== 'Cancelled' ? Number(o.total_amount) : 0), 0);
                 const avgOrder = orders.length > 0 ? orders.reduce((acc, o) => acc + Number(o.total_amount), 0) / orders.length : 0;
-                
+
                 return (
                   <div className="grid md:grid-cols-4 gap-6">
                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
@@ -2997,7 +2997,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                       <p className="text-3xl font-black text-green-500 mt-2">₹{orders.reduce((acc, curr) => acc + (curr.status !== 'Cancelled' ? Number(curr.total_amount) : 0), 0).toLocaleString()}</p>
                     </div>
                   </div>
-);
+                )
               })()}
 
               {/* Status Cards */}
@@ -3019,13 +3019,9 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                   <p className="text-3xl font-black text-green-500 mt-2">{orders.filter(o => o.status === 'Delivered').length}</p>
                 </div>
               </div>
-            )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
             </div>
           )}
+
 
           {/* ----- CUSTOMERS TAB ----- */}
           {activeTab === 'customers' && (

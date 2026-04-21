@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { Product } from '../types';
+import { formatPrice } from '../utils/formatters';
+import { analytics } from '../utils/analytics';
 
 interface ProductModalProps {
   product: Product;
@@ -9,11 +11,19 @@ interface ProductModalProps {
 }
 
 const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCart }) => {
+  React.useEffect(() => {
+    if (product) {
+      analytics.trackProductView(product);
+    }
+  }, [product?.id]);
+
+  if (!product) return null;
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={onClose} />
       <div className="bg-white w-full max-w-4xl rounded-3xl overflow-hidden relative doodle-border animate-in fade-in zoom-in duration-300 flex flex-col md:flex-row">
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform">
+        <button onClick={onClose} aria-label="Close" className="absolute top-4 right-4 z-10 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform">
           <span className="material-symbols-outlined">close</span>
         </button>
 
@@ -25,14 +35,14 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
           <div>
             <div className="flex items-center gap-2 text-secondary mb-2">
               <span className="material-symbols-outlined fill-1">star</span>
-              <span className="font-bold text-slate-900">{product.rating}</span>
-              <span className="text-slate-400 font-medium">({product.reviewCount} Reviews)</span>
+              <span className="font-bold text-slate-900">{product.rating || 0}</span>
+              <span className="text-slate-400 font-medium">({product.reviewCount || 0} Reviews)</span>
             </div>
             <h2 className="text-4xl font-black uppercase text-slate-900 leading-tight mb-2">{product.name}</h2>
             <div className="flex items-baseline gap-4">
-              <span className="text-3xl font-black text-primary">Rs. {product.price}</span>
+              <span className="text-3xl font-black text-primary">{formatPrice(product.price)}</span>
               {product.originalPrice && (
-                <span className="text-lg text-slate-400 line-through">Rs. {product.originalPrice}</span>
+                <span className="text-lg text-slate-400 line-through">{formatPrice(product.originalPrice)}</span>
               )}
             </div>
           </div>
@@ -63,9 +73,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onAddToCa
             </div>
           </div>
 
-          <button 
+          <button
             onClick={() => {
               onAddToCart(product);
+              analytics.trackAddToCart(product);
               onClose();
             }}
             className="w-full bg-primary text-white py-5 rounded-2xl font-black text-xl hover:shadow-2xl transition-all hover:-translate-y-1 active:scale-95"

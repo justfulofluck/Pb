@@ -118,6 +118,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
       <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden relative doodle-border animate-in zoom-in duration-300 shadow-2xl p-8 md:p-10">
         <button
           onClick={onClose}
+          aria-label="Close"
           className="absolute top-4 right-4 z-10 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors"
         >
           <span className="material-symbols-outlined">close</span>

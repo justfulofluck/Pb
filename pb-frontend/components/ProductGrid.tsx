@@ -3,6 +3,8 @@ import { Product } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from './Toast';
 import { API_BASE_URL } from '../config';
+import { formatPrice } from '../utils/formatters';
+import { analytics } from '../utils/analytics';
 
 interface ProductGridProps {
   products: Product[];
@@ -30,7 +32,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
         });
         if (response.ok) {
           const data = await response.json();
-          const ids = new Set(data.map((item: any) => String(item.product)));
+          const ids = new Set<string>(data.map((item: any) => String(item.product)));
           setWishlistIds(ids);
         }
       } catch (error) {
@@ -58,13 +60,17 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
       });
       if (response.ok) {
         const data = await response.json();
-        const newIds = new Set(wishlistIds);
+        const newIds = new Set<string>(wishlistIds);
         if (data.status === 'added') {
           newIds.add(productId);
           showToast('Added to wishlist!', 'success');
+          const p = products.find(prod => String(prod.id) === productId);
+          if (p) analytics.trackWishlistAction(p, 'add');
         } else {
           newIds.delete(productId);
           showToast('Removed from wishlist', 'info');
+          const p = products.find(prod => String(prod.id) === productId);
+          if (p) analytics.trackWishlistAction(p, 'remove');
         }
         setWishlistIds(newIds);
       }
@@ -100,8 +106,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 md:gap-x-10 gap-y-12 md:gap-y-20">
           {isLoading ? (
-            [...Array(4)].map((_, i) => (
-              <div key={i} className="animate-pulse">
+            [1, 2, 3, 4].map((n) => (
+              <div key={`skeleton-${n}`} className="animate-pulse">
                 <div className="w-full aspect-[4/5] bg-white/50 rounded-2xl mb-4"></div>
                 <div className="w-3/4 h-5 bg-white/50 rounded mb-2 mx-auto"></div>
                 <div className="w-1/2 h-4 bg-white/50 rounded mx-auto"></div>
@@ -178,14 +184,18 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
                     {/* Bottom Section - Pushed to bottom for alignment */}
                     <div className="mt-auto w-full">
                       <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-                        <span className="text-base md:text-2xl font-bold text-[#228b44]">Rs. {product.price.toFixed(2)}</span>
+                        <span className="text-base md:text-2xl font-bold text-[#228b44]">{formatPrice(product.price)}</span>
                         {product.originalPrice && product.originalPrice > product.price && (
-                          <span className="text-xs md:text-sm font-medium text-slate-400 line-through">Rs. {product.originalPrice.toFixed(2)}</span>
+                          <span className="text-xs md:text-sm font-medium text-slate-400 line-through">{formatPrice(product.originalPrice)}</span>
                         )}
                       </div>
 
                       <button
-                        onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAddToCart(product);
+                          analytics.trackAddToCart(product);
+                        }}
                         disabled={product.stock <= 0}
                         className="w-full btn-greenboard py-2 md:py-4 rounded-md font-bold text-[10px] md:text-xs uppercase tracking-widest active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-2 relative overflow-hidden"
                       >

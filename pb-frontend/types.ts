@@ -309,3 +309,4 @@ export interface Customer {
     birth_date: string;
   };
 }
+

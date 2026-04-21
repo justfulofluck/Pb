@@ -11,6 +11,8 @@ import { useSnaxxoAnimations } from '../hooks/useSnaxxoAnimations';
 import { gsap } from 'gsap';
 import PrecisionComparison from './PrecisionComparison';
 import UsageIdeas from './UsageIdeas';
+import { formatPrice } from '../utils/formatters';
+import { analytics } from '../utils/analytics';
 
 interface ProductPageProps {
   product: Product;
@@ -64,7 +66,6 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
         }
       `}</style>
       <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-        {/* @ts-ignore */}
         <model-viewer
           src={modelSrc}
           alt={product.name}
@@ -146,7 +147,12 @@ const ProductPage: React.FC<ProductPageProps> = ({
       tl.to(imageRef.current, { scale: 1, opacity: 1, duration: 0.8, ease: 'back.out(1.5)' }, 0.3);
     }
 
+    if (product) {
+      analytics.trackProductView(product);
+    }
+
     return () => {
+      tl.kill();
     };
   }, [product?.id]); // Only re-animate and reset if the actual product ID changes
 
@@ -176,15 +182,16 @@ const ProductPage: React.FC<ProductPageProps> = ({
     return 'hsla(259.4594594594595, 100.00%, 61.83%, 1.00)';
   };
 
-  const bgColor = (product.themeColor && product.themeColor.trim() !== '')
+  if (!product) return null;
 
+  const bgColor = (product?.themeColor && product.themeColor.trim() !== '')
     ? product.themeColor
-    : getProductColor(product.name);
+    : getProductColor(product?.name || '');
 
   // Create a very subtle version of the theme color for sections that are usually white
-  const tintColor = bgColor.startsWith('#')
+  const tintColor = bgColor?.startsWith('#')
     ? `${bgColor}0D` // ~5% opacity for hex
-    : bgColor.replace(/1\.00\)$/, '0.05)'); // ~5% opacity for hsla
+    : (bgColor ? bgColor.replace(/1\.00\)$/, '0.05)') : 'rgba(255, 255, 255, 0.05)'); // ~5% opacity for hsla
 
 
   const handleAddToCart = (e: React.FormEvent) => {
@@ -193,6 +200,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
     for (let i = 0; i < quantity; i++) {
       onAddToCart(product);
     }
+    analytics.trackAddToCart(product, quantity);
   };
 
   return (
@@ -246,11 +254,11 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 <div className="pdp-hero-right-block-content mb-6 flex flex-col items-center lg:items-end w-full mx-auto lg:mx-0">
                   <div className="flex items-baseline justify-center lg:justify-end gap-4 overflow-visible">
                     <span style={{ color: '#FFF' }} className="text-7xl font-black tracking-tighter">
-                      ₹{product.price.toFixed(0)}
+                      {formatPrice(product.price)}
                     </span>
                     {product.originalPrice && product.originalPrice > product.price && (
                       <span style={{ color: 'rgba(255, 255, 255, 0.5)' }} className="text-4xl font-bold line-through">
-                        ₹{product.originalPrice.toFixed(0)}
+                        {formatPrice(product.originalPrice)}
                       </span>
                     )}
                   </div>
@@ -439,7 +447,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 </div>
               </div>
               <div className="w-layout-grid heading-grid center-two-rows tablet-flex-center max-w-full overflow-hidden">
-                <div sa="1" id="w-node-_1456048c-5ed6-222f-c30e-3b71073b440b-98e0d5d3" className="grid-block w-full">
+                <div id="w-node-_1456048c-5ed6-222f-c30e-3b71073b440b-98e0d5d3" className="grid-block w-full">
                   <div className="text-box w-full flex justify-center">
                     <h2 style={{
                       backgroundColor: bgColor,
@@ -476,6 +484,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
         }
         products={products}
         onProductClick={onProductClick}
+        onAddToCart={onAddToCart}
       />
 
       <div className="snaxxo-wrapper relative w-full overflow-hidden py-0" style={{ backgroundColor: '#f2f2ec' }}>

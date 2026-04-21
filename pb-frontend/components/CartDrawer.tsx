@@ -1,6 +1,7 @@
-
 import React from 'react';
 import { CartItem } from '../types';
+import { formatPrice } from '../utils/formatters';
+import { analytics } from '../utils/analytics';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -25,7 +26,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
           <h2 className="text-2xl font-black uppercase flex items-center gap-2">
             Your Cart <span className="font-handdrawn text-textured-green text-3xl tracking-normal translate-y-0.5 ml-1">({items.length} items)</span>
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+          <button onClick={onClose} aria-label="Close Cart" className="p-2 hover:bg-slate-100 rounded-full transition-colors">
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
@@ -45,14 +46,22 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-sm uppercase leading-tight mb-1">{item.name}</h3>
-                  <p className="text-primary font-black mb-2">Rs. {item.price}</p>
+                  <p className="text-primary font-black mb-2">{formatPrice(item.price)}</p>
                   <div className="flex items-center gap-3">
                     <div className="flex items-center border rounded-full overflow-hidden">
                       <button onClick={() => onUpdateQty(item.id, -1)} className="px-2 hover:bg-slate-50 border-r text-xs">－</button>
                       <span className="px-3 font-bold text-xs">{item.quantity}</span>
                       <button onClick={() => onUpdateQty(item.id, 1)} className="px-2 hover:bg-slate-50 border-l text-xs">＋</button>
                     </div>
-                    <button onClick={() => onRemove(item.id)} className="text-xs text-slate-400 hover:text-red-500 font-bold uppercase tracking-widest">Remove</button>
+                    <button
+                      onClick={() => {
+                        onRemove(item.id);
+                        analytics.trackRemoveFromCart(item);
+                      }}
+                      className="text-xs text-slate-400 hover:text-red-500 font-bold uppercase tracking-widest"
+                    >
+                      Remove
+                    </button>
                   </div>
                 </div>
               </div>
@@ -64,11 +73,14 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, onRemov
           <div className="p-6 border-t bg-slate-50 space-y-4">
             <div className="flex justify-between items-center text-lg">
               <span className="font-bold">Total</span>
-              <span className="font-black text-primary">Rs. {total.toFixed(2)}</span>
+              <span className="font-black text-primary">{formatPrice(total)}</span>
             </div>
             <p className="text-xs text-slate-500 text-center italic">Shipping & taxes calculated at checkout</p>
             <button
-              onClick={onCheckout}
+              onClick={() => {
+                onCheckout();
+                analytics.trackEvent('checkout_begin', { total_items: items.length, total_value: total });
+              }}
               className="w-full btn-greenboard py-4 rounded-xl font-black text-lg active:scale-95 relative overflow-hidden"
             >
               <span className="relative z-10">CHECKOUT NOW</span>

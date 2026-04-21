@@ -36,9 +36,9 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, events }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
-      
+
       <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden relative doodle-border animate-in zoom-in duration-300 shadow-2xl">
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors">
+        <button onClick={onClose} aria-label="Close" className="absolute top-4 right-4 z-10 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors">
           <span className="material-symbols-outlined">close</span>
         </button>
 
@@ -60,35 +60,35 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, events }) => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Full Name</label>
-                <input 
+                <input
                   required
-                  type="text" 
+                  type="text"
                   value={formData.name}
-                  onChange={e => setFormData({...formData, name: e.target.value})}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold"
                   placeholder="Your Name"
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Email</label>
-                  <input 
+                  <input
                     required
-                    type="email" 
+                    type="email"
                     value={formData.email}
-                    onChange={e => setFormData({...formData, email: e.target.value})}
+                    onChange={e => setFormData({ ...formData, email: e.target.value })}
                     className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold"
                     placeholder="email@example.com"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Phone</label>
-                  <input 
+                  <input
                     required
-                    type="tel" 
+                    type="tel"
                     value={formData.phone}
-                    onChange={e => setFormData({...formData, phone: e.target.value})}
+                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
                     className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold"
                     placeholder="+91 98..."
                   />
@@ -98,10 +98,10 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, events }) => {
               <div>
                 <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Select Event</label>
                 <div className="relative">
-                  <select 
+                  <select
                     required
                     value={formData.eventId}
-                    onChange={e => setFormData({...formData, eventId: e.target.value})}
+                    onChange={e => setFormData({ ...formData, eventId: e.target.value })}
                     className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold appearance-none bg-white"
                   >
                     <option value="">Choose an event...</option>
@@ -115,7 +115,7 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, events }) => {
                 </div>
               </div>
 
-              <button 
+              <button
                 disabled={isSubmitting}
                 className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-lg hover:bg-primary transition-colors hover:shadow-xl mt-4 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >

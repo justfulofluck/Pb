@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-
-const ModelViewerTag = 'model-viewer' as any;
+import { throttle } from '../utils/performance';
 
 const LatestProductShowcase: React.FC = () => {
   const jarContainerRef = useRef<HTMLDivElement>(null);
@@ -10,31 +9,38 @@ const LatestProductShowcase: React.FC = () => {
     const container = jarContainerRef.current;
     if (!container) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const xTo = gsap.quickTo(container, "x", { duration: 1, ease: 'power2.out' });
+    const yTo = gsap.quickTo(container, "y", { duration: 1, ease: 'power2.out' });
+    const rotateXTo = gsap.quickTo(container, "rotateX", { duration: 1, ease: 'power2.out' });
+    const rotateYTo = gsap.quickTo(container, "rotateY", { duration: 1, ease: 'power2.out' });
+
+    const handleMouseMove = throttle((e: MouseEvent) => {
       const { clientX, clientY } = e;
       const { left, top, width, height } = container.getBoundingClientRect();
 
       const x = (clientX - (left + width / 2)) / 25;
       const y = (clientY - (top + height / 2)) / 25;
 
-      gsap.to(container, {
-        rotateY: x,
-        rotateX: -y,
-        x: x * 0.5,
-        y: y * 0.5,
-        duration: 1,
-        ease: 'power2.out'
-      });
-    };
+      xTo(x * 0.5);
+      yTo(y * 0.5);
+      rotateXTo(-y);
+      rotateYTo(x);
+    }, 16);
 
     const handleMouseLeave = () => {
+      xTo(0);
+      yTo(0);
+      rotateXTo(0);
+      rotateYTo(0);
+      // For the bounce-back, we can use a traditional tween for the elastic effect
       gsap.to(container, {
         rotateY: 0,
         rotateX: 0,
         x: 0,
         y: 0,
         duration: 1.5,
-        ease: 'elastic.out(1, 0.3)'
+        ease: 'elastic.out(1, 0.3)',
+        overwrite: true
       });
     };
 
@@ -130,7 +136,7 @@ const LatestProductShowcase: React.FC = () => {
                 zIndex: 2
               }}
             >
-              <ModelViewerTag
+              <model-viewer
                 src="/3D-assets/AmericanNuts-v1.glb"
                 alt="3D Interactive Jar"
                 shadow-intensity="0"
@@ -150,7 +156,7 @@ const LatestProductShowcase: React.FC = () => {
                 <div slot="poster" className="flex flex-col items-center justify-center h-full">
                   <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 </div>
-              </ModelViewerTag>
+              </model-viewer>
 
               {/* Dynamic Light Sweep Overlay */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-full opacity-30 mix-blend-overlay">
