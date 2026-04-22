@@ -5403,7 +5403,7 @@ figcaption {
 }
 
 .hero-background-image-wrapper {
-  background-image: url("../images/69594d4d1c895bd85ad48f23_asf.png");
+  /* background-image: url("../images/69594d4d1c895bd85ad48f23_asf.png"); */
   background-position: 50%;
   background-size: cover;
   width: 100%;

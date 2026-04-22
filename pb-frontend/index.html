@@ -17,80 +17,11 @@
   <link href="https://fonts.cdnfonts.com/css/garet" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="icon" type="image/png" href="/logos/Favicon.png">
-  <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
-  <script type="importmap">
-  {
-    "imports": {
-      "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-      "react/": "https://esm.sh/react@^19.2.4/",
-      "react": "https://esm.sh/react@^19.2.4"
-    }
-  }
-  </script>
+
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <!-- Google Model Viewer for 3D Elements -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
-  <script>
-    tailwind.config = {
-      darkMode: "class",
-      theme: {
-        extend: {
-          colors: {
-            primary: "#008a45",
-            secondary: "#f9bc15",
-            "background-light": "#f2f2ec",
-            "background-dark": "#0f172a",
-            "accent-brown": "#5d4037",
-          },
-          fontFamily: {
-            display: ["'Plus Jakarta Sans'", "sans-serif"],
-            handdrawn: ["'Gochi Hand'", "cursive"],
-            bombi: ["'Bombi Din'", "Arial", "sans-serif"],
-            oswald: ["'Bombi Din'", "Arial", "sans-serif"],
-            manrope: ["'Manrope'", "sans-serif"],
-            garet: ["'Garet'", "sans-serif"],
-            bebas: ["'Bebas Neue'", "sans-serif"],
-            satoshi: ["'Satoshi'", "sans-serif"],
-            anton: ["'Anton'", "'Anton Placeholder'", "sans-serif"],
-          },
-          borderRadius: {
-            DEFAULT: "12px",
-            "2xl": "24px",
-            "3xl": "32px",
-          },
-          animation: {
-            marquee: 'marquee 30s linear infinite',
-            float: 'float 6s ease-in-out infinite',
-          },
-          keyframes: {
-            marquee: {
-              '0%': { transform: 'translateX(0%)' },
-              '100%': { transform: 'translateX(-50%)' },
-            },
-            float: {
-              '0%, 100%': { transform: 'translateY(0)' },
-              '50%': { transform: 'translateY(-20px)' },
-            },
-            tilt: {
-              '0%, 100%': { transform: 'rotate(0deg)' },
-              '25%': { transform: 'rotate(3deg)' },
-              '75%': { transform: 'rotate(-3deg)' },
-            },
-            'pulse-glow': {
-              '0%, 100%': { opacity: '0.1', transform: 'translate(-50%, -50%) scale(1)' },
-              '50%': { opacity: '0.2', transform: 'translate(-50%, -50%) scale(1.1)' },
-            },
-            'light-sweep': {
-              '0%': { left: '-100%', top: '100%', opacity: 0 },
-              '20%': { opacity: 0.5 },
-              '50%': { left: '100%', top: '-100%', opacity: 0.5 },
-              '100%': { left: '100%', top: '-100%', opacity: 0 }
-            }
-          }
-        },
-      },
-    };
-  </script>
+
   <style>
     .doodle-border {
       border: 2px solid #1a1a1a;
@@ -131,8 +62,6 @@
       --poster-color: transparent;
     }
   </style>
-
-  <link rel="stylesheet" href="/index.css">
 </head>
 
 <body class="bg-background-light text-slate-900 font-display">

@@ -9,20 +9,25 @@ interface StoryModalProps {
     onAddToCart: (product: Product) => void;
 }
 
+const getDriveId = (url: string) => {
+    if (!url) return null;
+    return url.match(/(?:id=|file\/d\/)([\w-]+)/)?.[1] || null;
+};
+
 const getDriveStreamUrl = (url: string) => {
     if (!url) return '';
     if (url.startsWith('/media/')) {
         return `${API_BASE_URL}${url}`;
     }
-    const fileIdMatch = url.match(/(?:id=|file\/d\/)([\w-]+)/);
-    if (fileIdMatch && fileIdMatch[1]) {
-        return `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`;
+    const fileId = getDriveId(url);
+    if (fileId) {
+        return `https://drive.google.com/uc?export=download&id=${fileId}`;
     }
     return url;
 };
 
 const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddToCart }) => {
-    const [isMuted, setIsMuted] = useState(false); // Try to start unmuted
+    const [isMuted, setIsMuted] = useState(true); // Start muted to comply with autoplay policies
     const videoRef = useRef<HTMLVideoElement>(null);
 
     // Fail-safe: Always prioritize local files (full or loop) over Drive links to avoid ORB blocking
@@ -43,7 +48,8 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
         // Handle autoplay logic
         if (videoRef.current) {
             videoRef.current.play().catch(error => {
-                console.warn("Autoplay with sound blocked, muting and trying again:", error);
+                console.warn("Autoplay blocked:", error);
+                // Ensure we are muted if play fails
                 setIsMuted(true);
             });
         }
@@ -81,6 +87,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
             <button
                 onClick={onClose}
                 className="absolute top-6 right-6 text-white hover:text-orange-400 transition-colors z-[10]"
+                aria-label="Close story modal"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
@@ -97,17 +104,25 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
                         <video
                             ref={videoRef}
                             src={getDriveStreamUrl(videoUrl)}
+                            poster={story.posterUrl ? (story.posterUrl.startsWith('/media/') ? `${API_BASE_URL}${story.posterUrl}` : story.posterUrl) :
+                                (driveId ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w800` : undefined)}
                             className="w-full h-full object-cover"
                             autoPlay
                             loop
                             muted={isMuted}
                             playsInline
+                            aria-label="Social story video"
+                            onError={(e) => console.error("Modal video error:", e)}
                         />
                     ) : (
                         <img
                             src={getDriveStreamUrl(story.mediaUrl)}
                             className="w-full h-full object-cover"
                             alt="Story fallback"
+                            onError={(e) => {
+                                console.error("Modal image error:", e);
+                                e.currentTarget.src = "/placeholder-story.png";
+                            }}
                         />
                     )}
 
@@ -128,6 +143,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
                                 setIsMuted(!isMuted);
                             }}
                             className="w-12 h-12 bg-black/40 backdrop-blur-md text-white rounded-full flex items-center justify-center hover:bg-black/60 transition-all hover:scale-110 z-20 pointer-events-auto"
+                            aria-label={isMuted ? "Unmute video" : "Mute video"}
                         >
                             {isMuted ? (
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>

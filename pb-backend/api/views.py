@@ -1152,6 +1152,7 @@ class ProcessDriveVideoView(APIView):
                 {
                     "mediaUrl": video_data["loop_url"],
                     "fullVideoUrl": video_data["full_url"],
+                    "posterUrl": video_data["poster_url"],
                     "mediaType": "video",
                 }
             )

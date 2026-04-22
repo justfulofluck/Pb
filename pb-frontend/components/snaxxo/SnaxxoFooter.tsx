@@ -74,8 +74,10 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
                         <i className="fa-solid fa-chevron-down text-white/50 text-xs"></i>
                     </span>
                 </button>
-                <div className={`overflow-hidden transition-all duration-300 lg:h-auto lg:opacity-100 lg:-mt-2 ${isOpen ? 'max-h-[500px] opacity-100 pb-3' : 'max-h-0 opacity-0 lg:max-h-none'}`}>
-                    {children}
+                <div className={`overflow-hidden transition-all duration-300 lg:h-auto lg:opacity-100 ${isOpen ? 'max-h-[500px] opacity-100 pb-3' : 'max-h-0 opacity-0 lg:max-h-none'}`}>
+                    <div className="pt-3 lg:pt-4">
+                        {children}
+                    </div>
                 </div>
             </div>
         );
@@ -122,7 +124,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
                         <div className="lg:contents">
                             <div className="lg:col-span-2">
                                 <AccordionSection title="Collections" id="collections">
-                                    <ul className="space-y-3 text-sm text-white/80 font-medium uppercase tracking-tight pl-0 list-none">
+                                    <ul className="flex flex-col gap-2.5 text-sm text-white/80 font-medium tracking-tight pl-0 list-none">
                                         <li><button onClick={() => onShopClick()} className="hover:text-white transition-colors cursor-pointer text-left">Shop All</button></li>
                                         <li><button onClick={() => onShopClick('Peanut Butter')} className="hover:text-white transition-colors cursor-pointer text-left">Peanut Butter</button></li>
                                         <li><button onClick={() => onShopClick('Muesli')} className="hover:text-white transition-colors cursor-pointer text-left">Healthy Muesli</button></li>
@@ -133,7 +135,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
 
                             <div className="lg:col-span-2">
                                 <AccordionSection title="Resources" id="resources">
-                                    <ul className="space-y-3 text-sm text-white/80 font-medium uppercase tracking-tight pl-0 list-none">
+                                    <ul className="flex flex-col gap-2.5 text-sm text-white/80 font-medium tracking-tight pl-0 list-none">
                                         <li><button onClick={onFAQClick} className="hover:text-white transition-colors cursor-pointer text-left">FAQ's</button></li>
                                         <li><button onClick={onShippingClick} className="hover:text-white transition-colors cursor-pointer text-left">Shipping Info</button></li>
                                         <li><button onClick={onRefundClick} className="hover:text-white transition-colors cursor-pointer text-left">Refund Policy</button></li>
@@ -143,7 +145,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
 
                             <div className="lg:col-span-2">
                                 <AccordionSection title="Partners" id="partners">
-                                    <ul className="space-y-3 text-sm text-white/80 font-medium uppercase tracking-tight pl-0 list-none">
+                                    <ul className="flex flex-col gap-2.5 text-sm text-white/80 font-medium tracking-tight pl-0 list-none">
                                         <li><button onClick={onDistributorClick} className="hover:text-white transition-colors cursor-pointer text-left">Become a Distributor</button></li>
                                         <li><button onClick={onAdminClick} className="hover:text-white transition-colors cursor-pointer text-left">Pinobite Login</button></li>
                                     </ul>
@@ -152,7 +154,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
 
                             <div className="lg:col-span-2">
                                 <AccordionSection title="Company" id="company">
-                                    <ul className="space-y-3 text-sm text-white/80 font-medium uppercase tracking-tight pl-0 list-none">
+                                    <ul className="flex flex-col gap-2.5 text-sm text-white/80 font-medium tracking-tight pl-0 list-none">
                                         <li><button onClick={onJourneyClick} className="hover:text-white transition-colors cursor-pointer text-left">About Us</button></li>
                                         <li><button onClick={onJourneyClick} className="hover:text-white transition-colors cursor-pointer text-left">Our Story</button></li>
                                         <li><button onClick={onBlogsClick} className="hover:text-white transition-colors cursor-pointer text-left">Healthy Blog</button></li>

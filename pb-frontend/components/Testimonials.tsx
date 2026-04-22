@@ -42,10 +42,10 @@ const Testimonials: React.FC<TestimonialsProps> = ({ reviews, showHeading = true
       <div className="max-w-7xl mx-auto px-4">
         {showHeading && (
           <div className="text-center mb-0 relative">
-            <span className="font-handdrawn text-2xl md:text-3xl text-primary transform -rotate-2 inline-block absolute -top-4 left-1/2 -translate-x-1/2 z-10 whitespace-nowrap">
+            <span className="font-handdrawn text-xl md:text-3xl text-primary transform -rotate-2 inline-block absolute -top-4 left-1/2 -translate-x-1/2 z-10 whitespace-nowrap">
               Customer Spotlight
             </span>
-            <h2 className="text-6xl md:text-7xl lg:text-8xl font-anton text-center mb-28 text-textured-green !normal-case leading-normal [word-spacing:0.39rem]">
+            <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-anton text-center mb-16 md:mb-28 text-textured-green !normal-case leading-tight md:leading-normal [word-spacing:0.39rem]">
               What Our Community Says
             </h2>
           </div>

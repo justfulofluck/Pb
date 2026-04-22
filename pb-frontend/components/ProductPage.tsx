@@ -210,18 +210,18 @@ const ProductPage: React.FC<ProductPageProps> = ({
         <div className="w-layout-blockcontainer container product-page-hero w-container !pt-2 md:!pt-8 !mt-0">
           <div className="content-wrapper product-page-hero">
             <div className="heading-text-box pdp-h1 mt-0 pt-0">
-              <h1 ref={titleRef} style={{ color: 'rgb(255, 255, 255)' }} className="h1-heading pdp-hero font-anton font-normal uppercase text-5xl md:text-[8rem] leading-[0.95] tracking-[-0.01em] md:[word-spacing:0.25em]">
+              <h1 ref={titleRef} style={{ color: 'rgb(255, 255, 255)' }} className="h1-heading pdp-hero font-anton font-normal uppercase text-4xl sm:text-5xl md:text-[8rem] leading-[0.95] tracking-tight md:tracking-[-0.01em] md:[word-spacing:0.25em]">
                 {product.name}
               </h1>
             </div>
-            <div className="product-page-hero-bottom-content flex flex-col lg:flex-row items-center lg:items-end justify-between relative px-6 md:px-0 lg:min-h-[50vh] mt-2 lg:mt-[-2rem]">
+            <div className="product-page-hero-bottom-content flex flex-col lg:flex-row items-center lg:items-end justify-between relative px-4 md:px-0 lg:min-h-[50vh] mt-2 lg:mt-[-2rem]">
               <div className="content-block pdp-01 w-full lg:w-1/4 order-2 lg:order-1 mt-6 lg:mt-0 flex flex-col items-center lg:items-start">
-                <div className="text-box pdp-description text-center lg:text-left mx-auto lg:mx-0" data-snaxxo-animate>
-                  <p style={{ color: 'rgb(255, 255, 255)' }} className="text-sm md:text-base mb-6 opacity-80 leading-relaxed">{product.description}</p>
+                <div className="text-box pdp-description text-center lg:text-left mx-auto lg:mx-0 px-2 sm:px-4 md:px-0" data-snaxxo-animate>
+                  <p style={{ color: 'rgb(255, 255, 255)' }} className="text-sm md:text-base mb-4 sm:mb-6 opacity-90 leading-relaxed max-w-md mx-auto lg:mx-0">{product.description}</p>
 
                   {product.benefits && product.benefits.length > 0 && (
-                    <div className="mb-8 text-left max-w-sm mx-auto lg:mx-0">
-                      <ul className="space-y-3 text-white/90 text-sm list-none p-0">
+                    <div className="mb-6 sm:mb-8 text-left w-full max-w-sm mx-auto lg:mx-0">
+                      <ul className="space-y-2 sm:space-y-3 text-white/90 text-[13px] md:text-sm list-none p-0">
                         {product.benefits.map((benefit, idx) => (
                           <li key={idx} className="flex items-start gap-3">
                             <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />
@@ -232,10 +232,10 @@ const ProductPage: React.FC<ProductPageProps> = ({
                     </div>
                   )}
 
-                  <div className="pdp-ingredients-popup-container">
-                    <a onClick={(e) => { e.preventDefault(); setShowIngredients(true); onPopupToggle?.(true); }} style={{ borderColor: '#FFF', cursor: 'pointer' }} className="pdp-nutrition-popup-toggle w-inline-block">
-                      <p style={{ color: '#FFF' }} className="paragraph no-margin">Nutrition &amp; Ingredients</p>
-                      <div className="pdp-plus w-embed">
+                  <div className="pdp-ingredients-popup-container flex justify-center lg:justify-start">
+                    <a onClick={(e) => { e.preventDefault(); setShowIngredients(true); onPopupToggle?.(true); }} style={{ borderColor: 'rgba(255,255,255,0.4)', cursor: 'pointer' }} className="pdp-nutrition-popup-toggle w-inline-block hover:bg-white/10 transition-colors py-2 px-4 border rounded-full">
+                      <p style={{ color: '#FFF' }} className="paragraph no-margin !text-[10px] sm:!text-xs uppercase tracking-widest font-bold">Nutrition &amp; Ingredients</p>
+                      <div className="pdp-plus w-embed ml-2 w-3 h-3 sm:w-4 sm:h-4">
                         <svg xmlns="http://www.w3.org/2000/svg" style={{ width: 'inherit', height: 'inherit' }} fill="#FFF" viewBox="0 0 256 256">
                           <path d="M228,128a12,12,0,0,1-12,12H140v76a12,12,0,0,1-24,0V140H40a12,12,0,0,1,0-24h76V40a12,12,0,0,1,24,0v76h76A12,12,0,0,1,228,128Z" />
                         </svg>
@@ -245,29 +245,29 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 </div>
               </div>
               {/* position of 3D object */}
-              <div className="content-block pdp-02 w-full lg:flex-1 order-1 lg:order-2 relative flex justify-center items-center">
+              <div className="content-block pdp-02 w-full lg:flex-1 order-1 lg:order-2 relative flex justify-center items-center py-4 sm:py-8 lg:py-0">
                 <div ref={imageRef} className="image-wrapper main-product-image w-full" style={{ pointerEvents: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto' }}>
                   <StableModelViewer product={product} />
                 </div>
               </div>
-              <div className="content-block pdp-03 w-full lg:w-1/4 order-3 lg:order-3 mt-6 lg:mt-0 flex flex-col items-center lg:items-end justify-center lg:justify-end mx-auto lg:mx-0" data-snaxxo-animate>
-                <div className="pdp-hero-right-block-content mb-6 flex flex-col items-center lg:items-end w-full mx-auto lg:mx-0">
-                  <div className="flex items-baseline justify-center lg:justify-end gap-4 overflow-visible">
-                    <span style={{ color: '#FFF' }} className="text-7xl font-black tracking-tighter">
+              <div className="content-block pdp-03 w-full lg:w-1/4 order-3 lg:order-3 mt-10 lg:mt-0 flex flex-col items-center lg:items-end justify-center lg:justify-end mx-auto lg:mx-0" data-snaxxo-animate>
+                <div className="pdp-hero-right-block-content mb-8 flex flex-col items-center lg:items-end w-full mx-auto lg:mx-0">
+                  <div className="flex items-baseline justify-center lg:justify-end gap-3 overflow-visible">
+                    <span style={{ color: '#FFF' }} className="text-5xl sm:text-6xl lg:text-7xl font-black tracking-tighter">
                       {formatPrice(product.price)}
                     </span>
                     {product.originalPrice && product.originalPrice > product.price && (
-                      <span style={{ color: 'rgba(255, 255, 255, 0.5)' }} className="text-4xl font-bold line-through">
+                      <span style={{ color: 'rgba(255, 255, 255, 0.4)' }} className="text-2xl sm:text-3xl lg:text-4xl font-bold line-through">
                         {formatPrice(product.originalPrice)}
                       </span>
                     )}
                   </div>
-                  <p style={{ color: 'rgba(255, 255, 255, 0.7)' }} className="text-[12px] font-black uppercase tracking-[0.2em] mt-1 text-center lg:text-right">MRP (Inclusive of all taxes)</p>
+                  <p style={{ color: 'rgba(255, 255, 255, 0.6)' }} className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.25em] mt-2 text-center lg:text-right">MRP (Inclusive of all taxes)</p>
                 </div>
-                <div className="add-to-cart-block-wrapper _02">
+                <div className="add-to-cart-block-wrapper _02 w-full max-w-sm mx-auto lg:mx-0">
                   <form onSubmit={handleAddToCart} className="w-commerce-commerceaddtocartform default-state w-full">
-                    <div className="product-page-info-cta-contain flex flex-wrap gap-4 items-center justify-center lg:justify-end">
-                      <div style={{ borderColor: '#FFF' }} className="quantity-wrapper flex items-center border rounded-lg h-[64px] w-[160px] overflow-hidden">
+                    <div className="product-page-info-cta-contain flex flex-col sm:flex-row gap-4 items-center justify-center lg:justify-end">
+                      <div style={{ borderColor: 'rgba(255,255,255,0.3)' }} className="quantity-wrapper flex items-center border rounded-lg h-[56px] md:h-[64px] w-full sm:w-[160px] overflow-hidden">
                         <button
                           type="button"
                           onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
@@ -292,8 +292,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
                         </button>
                       </div>
                       <input
-                        className="w-commerce-commerceaddtocartbutton add-to-cart-button-main product-page cursor-pointer transition-transform hover:scale-105"
-                        style={{ backgroundColor: '#FFF', color: bgColor, minWidth: '220px', height: '64px', borderRadius: '8px', fontSize: '1.1rem' }}
+                        className="w-commerce-commerceaddtocartbutton add-to-cart-button-main product-page cursor-pointer transition-transform hover:scale-105 w-full sm:w-auto"
+                        style={{ backgroundColor: '#FFF', color: bgColor, minWidth: '200px', height: '56px', borderRadius: '8px', fontSize: '1.1rem', fontWeight: '900', textTransform: 'uppercase' }}
                         type="submit"
                         value="Add to cart"
                       />

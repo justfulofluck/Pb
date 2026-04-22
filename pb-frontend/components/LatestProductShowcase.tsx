@@ -14,6 +14,16 @@ const LatestProductShowcase: React.FC = () => {
     const rotateXTo = gsap.quickTo(container, "rotateX", { duration: 1, ease: 'power2.out' });
     const rotateYTo = gsap.quickTo(container, "rotateY", { duration: 1, ease: 'power2.out' });
 
+    // Floating Animation in GSAP to avoid conflict with Mouse interaction
+    const floatTl = gsap.to(container, {
+      y: "-=35",
+      rotateX: "+=2",
+      duration: 3,
+      ease: "sine.inOut",
+      yoyo: true,
+      repeat: -1
+    });
+
     const handleMouseMove = throttle((e: MouseEvent) => {
       const { clientX, clientY } = e;
       const { left, top, width, height } = container.getBoundingClientRect();
@@ -32,7 +42,7 @@ const LatestProductShowcase: React.FC = () => {
       yTo(0);
       rotateXTo(0);
       rotateYTo(0);
-      // For the bounce-back, we can use a traditional tween for the elastic effect
+
       gsap.to(container, {
         rotateY: 0,
         rotateX: 0,
@@ -48,6 +58,7 @@ const LatestProductShowcase: React.FC = () => {
     container.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
+      floatTl.kill();
       window.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mouseleave', handleMouseLeave);
     };
@@ -88,11 +99,6 @@ const LatestProductShowcase: React.FC = () => {
       {/* Background Glow Removed to maintain board texture */}
 
       <style>{`
-        @keyframes floatJarLarge {
-          0% { transform: translateY(0px) rotateX(0deg); }
-          50% { transform: translateY(-35px) rotateX(2deg); }
-          100% { transform: translateY(0px) rotateX(0deg); }
-        }
         @keyframes floatShadowLarge {
           0% { transform: scale(1); opacity: 0.3; }
           50% { transform: scale(0.7); opacity: 0.1; }
@@ -102,12 +108,12 @@ const LatestProductShowcase: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-0 relative">
-          <span className="font-handdrawn text-3xl md:text-4xl lg:text-2xl text-secondary/80 transform -rotate-3 inline-block absolute -top-8 md:-top-12 lg:-top-10 left-1/2 -translate-x-1/2 md:-translate-x-[130px] lg:-translate-x-[110px] z-10 whitespace-nowrap">
+        <div className="text-center mb-8 relative">
+          <span className="font-handdrawn text-2xl md:text-3xl lg:text-2xl text-secondary/80 transform -rotate-3 inline-block absolute -top-6 md:-top-12 lg:-top-10 left-1/2 -translate-x-1/2 md:-translate-x-[130px] lg:-translate-x-[110px] z-10 whitespace-nowrap">
             Our New Flavor
           </span>
           <div className="relative inline-block">
-            <h2 className="text-6xl md:text-7xl lg:text-8xl font-normal text-textured-green tracking-tight leading-[0.9] font-anton !normal-case">Latest product</h2>
+            <h2 className="text-5xl md:text-7xl lg:text-8xl font-normal text-textured-green tracking-tight leading-[0.9] font-anton !normal-case">Latest product</h2>
           </div>
         </div>
 
@@ -131,7 +137,6 @@ const LatestProductShowcase: React.FC = () => {
               className="w-full max-w-[650px]"
               style={{
                 transformStyle: 'preserve-3d',
-                animation: 'floatJarLarge 6s ease-in-out infinite',
                 position: 'relative',
                 zIndex: 2
               }}

@@ -24,13 +24,15 @@ services:
       - .env
     ports:
       - "8003:8000"
+    volumes:
+      - media_data:/app/media
     networks:
       - pb-network
     depends_on:
       - db
       - redis
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/products/"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/products/" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -54,6 +56,8 @@ services:
     restart: unless-stopped
     ports:
       - "3000:80"
+    volumes:
+      - media_data:/usr/share/nginx/html/media:ro
     networks:
       - pb-network
     depends_on:
@@ -66,3 +70,4 @@ networks:
 volumes:
   mysql_data:
   redis_data:
+  media_data:

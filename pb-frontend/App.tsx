@@ -172,9 +172,10 @@ const fetchStories = async () => {
     ...s,
     id: String(s.id),
     mediaUrl: s.media_url || s.mediaUrl,
+    posterUrl: s.poster_url || s.posterUrl,
     mediaType: s.media_type || s.mediaType,
-    fullVideoUrl: s.full_video_url,
-    originalDriveUrl: s.original_drive_url,
+    fullVideoUrl: s.full_video_url || s.fullVideoUrl,
+    originalDriveUrl: s.original_drive_url || s.originalDriveUrl,
     productId: s.product_id ? String(s.product_id) : undefined
   }));
 };
@@ -1105,6 +1106,7 @@ const AppContent: React.FC = () => {
         },
         body: JSON.stringify({
           media_url: newStory.mediaUrl,
+          poster_url: newStory.posterUrl,
           media_type: newStory.mediaType,
           original_drive_url: newStory.originalDriveUrl,
           full_video_url: newStory.fullVideoUrl,

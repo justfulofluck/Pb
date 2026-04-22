@@ -119,6 +119,7 @@ class Story(models.Model):
         ("video", "video"),
     ]
     media_url = models.TextField()
+    poster_url = models.TextField(blank=True, null=True)
     original_drive_url = models.TextField(blank=True, null=True)
     full_video_url = models.TextField(blank=True, null=True)
     media_type = models.CharField(

@@ -448,6 +448,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const newStory: Story = {
         id: `s-${Date.now()}`,
         mediaUrl: data.mediaUrl,
+        posterUrl: data.posterUrl,
         fullVideoUrl: data.fullVideoUrl,
         originalDriveUrl: newStoryForm.mediaUrl,
         mediaType: data.mediaType || 'video', // Dynamically set from backend response (now returns 'video')
@@ -1524,11 +1525,13 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                     {/* Story Preview Area */}
                     {newStoryForm.mediaUrl && (() => {
                       const driveFileId = (() => {
-                        const match = newStoryForm.mediaUrl?.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                        // Improved regex to handle /file/d/ID/view, id=ID, and other common formats
+                        const match = newStoryForm.mediaUrl?.match(/(?:\/d\/|id=)([a-zA-Z0-9_-]{10,})/);
                         return match ? match[1] : null;
                       })();
+
                       const previewSrc = driveFileId
-                        ? `https://drive.google.com/thumbnail?id=${driveFileId}&sz=w400`
+                        ? `https://lh3.googleusercontent.com/u/0/d/${driveFileId}=w400-h800-p` // More reliable preview URL
                         : newStoryForm.mediaUrl;
 
                       return (

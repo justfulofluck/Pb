@@ -10,11 +10,16 @@ interface StoryCarouselProps {
   onAddToCart: (p: Product) => void;
 }
 
+const getDriveId = (url: string) => {
+  if (!url) return null;
+  return url.match(/(?:id=|file\/d\/)([\w-]+)/)?.[1] || null;
+};
+
 const getDriveStreamUrl = (url: string) => {
   if (!url) return '';
-  const fileIdMatch = url.match(/(?:id=|file\/d\/)([\w-]+)/);
-  if (fileIdMatch && fileIdMatch[1]) {
-    return `https://drive.google.com/uc?export=download&id=${fileIdMatch[1]}`;
+  const fileId = getDriveId(url);
+  if (fileId) {
+    return `https://drive.google.com/uc?export=download&id=${fileId}`;
   }
   // If it's a relative media URL, prepend API_BASE_URL
   if (url.startsWith('/media/')) {
@@ -47,7 +52,7 @@ const StoryCard: React.FC<{
       ([entry]) => {
         setIsInView(entry.isIntersecting);
       },
-      { threshold: 0.25, rootMargin: '0px' }
+      { threshold: 0.1, rootMargin: '0px' }
     );
 
     if (storyRef.current) {
@@ -60,11 +65,13 @@ const StoryCard: React.FC<{
   // Always prefer the local optimized mediaUrl (MP4) over the originalDriveUrl to avoid ORB blocking
   const videoUrl = story.mediaUrl || story.originalDriveUrl || '';
   const isVideo = story.mediaType === 'video' ||
-    (story.mediaUrl || '').toLowerCase().includes('.mp4');
+    (videoUrl || '').toLowerCase().includes('.mp4') ||
+    (videoUrl || '').includes('drive.google.com');
 
   const videoSrc = getDriveStreamUrl(videoUrl);
-  const driveId = videoUrl.match(/(?:id=|file\/d\/)([\w-]+)/)?.[1];
-  const posterUrl = driveId ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w600` : undefined;
+  const driveId = getDriveId(videoUrl);
+  const posterUrl = story.posterUrl ? (story.posterUrl.startsWith('/media/') ? `${API_BASE_URL}${story.posterUrl}` : story.posterUrl) :
+    (driveId ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w600` : undefined);
 
   const discount = product?.originalPrice && product.originalPrice > product.price
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -86,14 +93,22 @@ const StoryCard: React.FC<{
           loop
           playsInline
           poster={posterUrl}
-          preload="auto"
-          onLoadedData={() => setIsInView(true)}
+          preload="metadata"
+          aria-label="Social story video preview"
+          onError={(e) => {
+            console.error("Video load error:", e);
+            // Fallback could be handled here if needed
+          }}
         />
       ) : (
         <img
           src={getDriveStreamUrl(story.mediaUrl)}
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           alt="Social Story"
+          onError={(e) => {
+            console.error("Image load error:", e);
+            e.currentTarget.src = "/placeholder-story.png"; // Example fallback
+          }}
         />
       )}
 
@@ -147,11 +162,11 @@ const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProd
       <div className="max-w-7xl mx-auto px-4 relative flex flex-col items-center">
         {/* Centered Header */}
         <div className="text-center mb-8 md:mb-16 relative w-full flex flex-col items-center">
-          <span className="font-handdrawn text-3xl md:text-4xl text-secondary/80 transform -rotate-3 inline-block z-10 whitespace-nowrap mb-[-0rem] md:mb-[-0.5rem] ml-[-10rem] md:ml-[-14rem]">
+          <span className="font-handdrawn text-2xl md:text-4xl text-secondary/80 transform -rotate-3 inline-block z-10 whitespace-nowrap mb-0 md:mb-[-0.5rem] md:ml-[-14rem]">
             @pinobitehealth
           </span>
           <div className="relative inline-block">
-            <h2 className="text-6xl md:text-7xl lg:text-8xl font-normal tracking-tight leading-[0.9] font-anton !normal-case text-textured-green">Social stories</h2>
+            <h2 className="text-5xl md:text-7xl lg:text-8xl font-normal tracking-tight leading-[0.9] font-anton !normal-case text-textured-green">Social stories</h2>
           </div>
         </div>
 
