@@ -113,16 +113,16 @@ const LatestProductShowcase: React.FC = () => {
             Our New Flavor
           </span>
           <div className="relative inline-block">
-            <h2 className="text-5xl md:text-7xl lg:text-8xl font-normal text-textured-green tracking-tight leading-[0.9] font-anton !normal-case">Latest product</h2>
+            <h2 className="text-5xl md:text-7xl lg:text-8xl font-normal text-textured-green tracking-tight leading-[1] font-anton !normal-case">Latest product</h2>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 md:gap-12 lg:gap-32 items-center mt-[-1rem] md:mt-[-2rem]">
+        <div className="grid lg:grid-cols-3 gap-8 md:gap-12 lg:gap-20 items-center mt-[-1rem] md:mt-[-2rem]">
           {/* Left Column */}
           <div className="space-y-8 md:space-y-16 text-center lg:text-right order-2 lg:order-1">
             {benefitsLeft.map((item, idx) => (
               <div key={idx} className="group px-4 md:px-0">
-                <h3 className="text-xl md:text-2xl font-normal text-slate-900 mb-1 md:mb-2 font-anton !normal-case tracking-tight">{item.title}</h3>
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-normal text-slate-900 mb-1 md:mb-2 font-anton !normal-case tracking-tight whitespace-nowrap">{item.title}</h3>
                 <p className="text-[11px] md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:ml-auto font-satoshi">
                   {item.desc}
                 </p>
@@ -189,7 +189,7 @@ const LatestProductShowcase: React.FC = () => {
           <div className="space-y-8 md:space-y-16 text-center lg:text-left order-3">
             {benefitsRight.map((item, idx) => (
               <div key={idx} className="group px-4 md:px-0">
-                <h3 className="text-xl md:text-2xl font-normal text-slate-900 mb-1 md:mb-2 font-anton !normal-case tracking-tight">{item.title}</h3>
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-normal text-slate-900 mb-1 md:mb-2 font-anton !normal-case tracking-tight whitespace-nowrap">{item.title}</h3>
                 <p className="text-[11px] md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:mr-auto font-satoshi">
                   {item.desc}
                 </p>

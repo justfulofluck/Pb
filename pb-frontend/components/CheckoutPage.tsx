@@ -215,15 +215,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
       if (response.ok) {
         const data = await response.json();
 
-        if (data.razorpay_order_id.startsWith('order_mock_')) {
-          // Mock Payment Flow
-          handlePaymentSuccess({
-            razorpay_payment_id: 'pay_mock_123456',
-            razorpay_order_id: data.razorpay_order_id,
-            razorpay_signature: 'mock_signature'
-          }, data.order_id);
-          return;
-        }
+
 
         const options = {
           key: data.key_id,

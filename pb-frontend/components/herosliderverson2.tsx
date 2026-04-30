@@ -84,15 +84,17 @@ const SimpleHeroSlider: React.FC<HeroSliderProps> = ({ slides = [] }) => {
                 <>
                     <button
                         onClick={(e) => { e.stopPropagation(); prevSlide(); }}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/20 hover:bg-black/40 text-white flex items-center justify-center transition-all backdrop-blur-sm"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center transition-all backdrop-blur-sm"
+                        style={{ color: '#008a45' }}
                     >
-                        <span className="material-symbols-outlined">chevron_left</span>
+                        <span className="material-symbols-outlined" style={{ color: '#008a45' }}>chevron_left</span>
                     </button>
                     <button
                         onClick={(e) => { e.stopPropagation(); nextSlide(); }}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/20 hover:bg-black/40 text-white flex items-center justify-center transition-all backdrop-blur-sm"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center transition-all backdrop-blur-sm"
+                        style={{ color: '#008a45' }}
                     >
-                        <span className="material-symbols-outlined">chevron_right</span>
+                        <span className="material-symbols-outlined" style={{ color: '#008a45' }}>chevron_right</span>
                     </button>
 
                     {/* Dots */}

@@ -201,7 +201,6 @@ const AppContent: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>(() => {
     return window.history.state?.view || 'home';
   });
-  const [cart, setCart] = useState<CartItem[]>([]);
   const [visitorForms, setVisitorForms] = useState<VisitorForm[]>([]);
   const [pressUpdates, setPressUpdates] = useState<PressUpdate[]>(() => {
     try {
@@ -240,6 +239,17 @@ const AppContent: React.FC = () => {
   const eventsQuery = useQuery({ queryKey: ['events'], queryFn: fetchEvents });
   const blogPostsQuery = useQuery({ queryKey: ['blog-posts'], queryFn: fetchBlogs });
   const storiesQuery = useQuery({ queryKey: ['stories'], queryFn: fetchStories });
+
+  // Derived values
+  const products = productsQuery.data || INITIAL_PRODUCTS;
+  const reviews = reviewsQuery.data || INITIAL_REVIEWS;
+  const categories = categoriesQuery.data || INITIAL_CATEGORIES;
+  const announcements = announcementsQuery.data || [];
+  const slides = heroSlidesQuery.data || INITIAL_SLIDES;
+  const events = eventsQuery.data || INITIAL_EVENTS;
+  const blogPosts = blogPostsQuery.data || [];
+  const stories = storiesQuery.data || INITIAL_STORIES;
+
   const customersQuery = useQuery({
     queryKey: ['customers'],
     queryFn: async () => {
@@ -253,15 +263,47 @@ const AppContent: React.FC = () => {
     enabled: isAdminLoggedIn
   });
 
-  // Derived values (to maintain compatibility with existing props)
-  const products = productsQuery.data || INITIAL_PRODUCTS;
-  const reviews = reviewsQuery.data || INITIAL_REVIEWS;
-  const categories = categoriesQuery.data || INITIAL_CATEGORIES;
-  const announcements = announcementsQuery.data || [];
-  const slides = heroSlidesQuery.data || INITIAL_SLIDES;
-  const events = eventsQuery.data || INITIAL_EVENTS;
-  const blogPosts = blogPostsQuery.data || [];
-  const stories = storiesQuery.data || INITIAL_STORIES;
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const isHydrated = React.useRef(false);
+
+  // Initial load from localStorage
+  useEffect(() => {
+    if (isHydrated.current) return;
+
+    try {
+      const saved = localStorage.getItem('pinobite_cart');
+      if (saved && products.length > 0) {
+        const minimizedCart = JSON.parse(saved);
+        const hydratedCart = minimizedCart.map((item: any) => {
+          const product = products.find(p => String(p.id) === String(item.id));
+          return product ? { ...product, ...item } : null;
+        }).filter(Boolean) as CartItem[];
+
+        if (hydratedCart.length > 0) {
+          setCart(hydratedCart);
+          isHydrated.current = true;
+        }
+      }
+    } catch (e) {
+      console.error('Initial hydration failed:', e);
+    }
+  }, [products]);
+
+  // Persist only ID and Quantity to save space
+  useEffect(() => {
+    if (cart.length === 0 && !isHydrated.current) return;
+    try {
+      const minimized = cart.map(item => ({
+        id: item.id,
+        quantity: item.quantity,
+        selectedSize: item.selectedSize,
+        selectedFlavour: item.selectedFlavour
+      }));
+      localStorage.setItem('pinobite_cart', JSON.stringify(minimized));
+    } catch (e) {
+      console.error('Failed to save cart:', e);
+    }
+  }, [cart]);
 
   // Filter scheduled posts for public view
   const visibleBlogs = blogPosts.filter(post => {
@@ -1681,9 +1723,12 @@ const AppContent: React.FC = () => {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cart}
+        products={productsQuery.data || []}
         onRemove={removeFromCart}
         onUpdateQty={updateQuantity}
+        onAddToCart={addToCart}
         onCheckout={navigateToCheckout}
+        onShopClick={navigateToShop}
       />
 
       <AuthModal

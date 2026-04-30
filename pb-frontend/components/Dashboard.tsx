@@ -212,7 +212,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                 {(userData.name || ' ')[0]}
               </div>
               <div className="min-w-0">
-                <h3 className="font-black text-sm uppercase truncate leading-tight">{userData.name}</h3>
+                <h3 className="font-black text-sm uppercase truncate leading-tight !text-[#008a45]">{userData.name}</h3>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{userData.tier}</p>
               </div>
             </div>
@@ -223,8 +223,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   key={item.id}
                   onClick={() => setActiveTab(item.id as TabType)}
                   className={`flex-shrink-0 flex items-center justify-center lg:justify-start gap-2 lg:gap-3 px-5 py-3 rounded-xl font-bold text-[10px] lg:text-xs uppercase tracking-widest transition-all ${activeTab === item.id
-                    ? 'bg-slate-900 text-white shadow-lg lg:scale-[1.02]'
-                    : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600 border border-slate-100 lg:border-transparent'
+                    ? 'bg-[#008a45] !text-white shadow-lg lg:scale-[1.02]'
+                    : '!text-[#008a45] hover:bg-green-50 border border-green-100 lg:border-transparent'
                     }`}
                 >
                   <span className="material-symbols-outlined text-sm lg:text-sm">{item.icon}</span>
@@ -235,7 +235,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
               {/* Sign out inline for mobile */}
               <button
                 onClick={onLogout}
-                className="lg:hidden flex-shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all border border-red-100"
+                className="lg:hidden flex-shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest !text-[#008a45] hover:bg-green-50 transition-all border border-green-100"
               >
                 <span className="material-symbols-outlined text-sm">logout</span>
                 Sign Out
@@ -245,7 +245,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
             {/* Sign out for desktop */}
             <button
               onClick={onLogout}
-              className="hidden lg:flex w-full items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all mt-12 lg:mt-12"
+              className="hidden lg:flex w-full items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest !text-[#008a45] hover:text-[#008a45] hover:bg-green-50 transition-all mt-12 lg:mt-12"
             >
               <span className="material-symbols-outlined text-sm">logout</span>
               Sign Out
@@ -299,7 +299,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   <div className="grid lg:grid-cols-2 gap-8">
                     {/* Point Activity */}
                     <div className="bg-white rounded-[40px] p-8 border border-slate-100 shadow-sm">
-                      <h3 className="text-xl font-black uppercase tracking-tight mb-6 flex justify-between items-center">
+                      <h3 className="text-xl font-black uppercase tracking-tight mb-6 flex justify-between items-center text-[#008a45]">
                         Point Activity
                         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Recent 10</span>
                       </h3>
@@ -325,9 +325,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
 
                     {/* Recent Orders Overview */}
                     <div className="bg-white rounded-[40px] p-8 border border-slate-100 shadow-sm">
-                      <h3 className="text-xl font-black uppercase tracking-tight mb-6 flex justify-between items-center">
+                      <h3 className="text-xl font-black uppercase tracking-tight mb-6 flex justify-between items-center text-[#008a45]">
                         Last Order
-                        <button onClick={() => setActiveTab('orders')} className="text-[10px] text-primary font-black uppercase tracking-widest hover:underline">View All</button>
+                        <button onClick={() => setActiveTab('orders')} className="text-[10px] text-[#008a45] font-black uppercase tracking-widest hover:underline">View All</button>
                       </h3>
                       {orders.length > 0 ? (
                         <div
@@ -368,7 +368,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   {/* Frequently Ordered / Purchased Products */}
                   {orders.length > 0 && (
                     <div className="bg-white rounded-[40px] p-8 border border-slate-100 shadow-sm">
-                      <h3 className="text-xl font-black uppercase tracking-tight mb-8">Your Health Collection</h3>
+                      <h3 className="text-xl font-black uppercase tracking-tight mb-8 text-[#008a45]">Your Health Collection</h3>
                       <div className="flex gap-6 overflow-x-auto pb-4 custom-scroll">
                         {Array.from(new Set((orders || []).flatMap(o => o.items || []).map(item => JSON.stringify({ id: item.product, name: item.product_name, img: item.product_image }))))
                           .map((pStr: any) => {
@@ -398,7 +398,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   className="space-y-6"
                 >
                   <div className="flex justify-between items-center bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
-                    <h2 className="text-3xl font-black uppercase tracking-tighter">My Order History</h2>
+                    <h2 className="text-3xl font-black uppercase tracking-tighter text-[#008a45]">My Order History</h2>
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{orders.length} total orders</span>
                   </div>
 
@@ -420,7 +420,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-3 mb-1">
-                              <h3 className="font-black text-lg uppercase tracking-tight">Order #{order.id}</h3>
+                              <h3 className="font-black text-lg uppercase tracking-tight text-[#008a45]">Order #{order.id}</h3>
                               <div className="flex -space-x-3">
                                 {order.items.slice(0, 4).map((item, i) => (
                                   <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-white overflow-hidden shadow-sm">
@@ -461,7 +461,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   className="bg-white rounded-[40px] p-8 md:p-12 border border-slate-100 shadow-xl"
                 >
                   <div className="mb-12 border-b border-slate-100 pb-8">
-                    <h2 className="text-4xl font-black uppercase tracking-tighter">Profile Settings</h2>
+                    <h2 className="text-4xl font-black uppercase tracking-tighter text-[#008a45]">Profile Settings</h2>
                     <p className="font-satoshi text-2xl text-slate-400 mt-2">Personalize your Pinobite experience</p>
                   </div>
 
@@ -480,7 +480,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                 type="text"
                                 value={profileForm.firstName}
                                 onChange={e => setProfileForm(p => ({ ...p, firstName: e.target.value }))}
-                                className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all"
+                                className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all !text-[#008a45]"
                               />
                             </div>
                             <div className="space-y-1.5">
@@ -489,7 +489,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                 type="text"
                                 value={profileForm.lastName}
                                 onChange={e => setProfileForm(p => ({ ...p, lastName: e.target.value }))}
-                                className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all"
+                                className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all !text-[#008a45]"
                               />
                             </div>
                           </div>
@@ -499,7 +499,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                               type="tel"
                               value={profileForm.phone}
                               onChange={e => setProfileForm(p => ({ ...p, phone: e.target.value }))}
-                              className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all"
+                              className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all !text-[#008a45]"
                             />
                           </div>
                           <div className="space-y-1.5">
@@ -508,7 +508,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                               type="date"
                               value={profileForm.birthDate}
                               onChange={e => setProfileForm(p => ({ ...p, birthDate: e.target.value }))}
-                              className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all text-slate-500"
+                              className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all !text-[#008a45]"
                             />
                           </div>
                           <div className="space-y-1.5">
@@ -517,7 +517,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                               type="email"
                               value={userData.email}
                               disabled
-                              className="w-full px-5 py-4 bg-slate-100 border-2 border-transparent rounded-2xl cursor-not-allowed font-bold text-slate-400"
+                              className="w-full px-5 py-4 bg-slate-100 border-2 border-transparent rounded-2xl cursor-not-allowed font-bold !text-[#008a45]/60"
                             />
                           </div>
                         </div>
@@ -535,7 +535,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                               type="text"
                               value={profileForm.address}
                               onChange={e => setProfileForm(p => ({ ...p, address: e.target.value }))}
-                              className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all"
+                              className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all !text-[#008a45]"
                             />
                           </div>
                           <div className="grid grid-cols-2 gap-4">
@@ -545,7 +545,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                 type="text"
                                 value={profileForm.city}
                                 onChange={e => setProfileForm(p => ({ ...p, city: e.target.value }))}
-                                className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all"
+                                className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all !text-[#008a45]"
                               />
                             </div>
                             <div className="space-y-1.5">
@@ -554,7 +554,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                 type="text"
                                 value={profileForm.pin_code}
                                 onChange={e => setProfileForm(p => ({ ...p, pin_code: e.target.value }))}
-                                className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all"
+                                className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all !text-[#008a45]"
                               />
                             </div>
                           </div>
@@ -564,7 +564,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                               type="text"
                               value={profileForm.state}
                               onChange={e => setProfileForm(p => ({ ...p, state: e.target.value }))}
-                              className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all"
+                              className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent focus:border-primary/20 focus:bg-white rounded-2xl outline-none font-bold transition-all !text-[#008a45]"
                             />
                           </div>
                         </div>
@@ -580,7 +580,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                       <button
                         type="submit"
                         disabled={isSavingProfile}
-                        className="bg-slate-900 text-white px-12 py-5 rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-primary hover:scale-[1.02] active:scale-95 transition-all shadow-xl disabled:opacity-50"
+                        className="bg-slate-900 text-white px-12 py-5 rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-primary hover:scale-[1.02] active:scale-95 transition-all shadow-xl disabled:opacity-50 !text-white"
                       >
                         {isSavingProfile ? 'Saving Changes...' : 'Save Profile'}
                       </button>
@@ -597,7 +597,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                 >
                   <div className="bg-white p-8 md:p-12 rounded-[40px] border border-slate-100 shadow-sm overflow-hidden relative">
                     <div className="relative z-10 max-w-xl">
-                      <h2 className="text-4xl font-black uppercase tracking-tighter">Pinopoints Loyalty</h2>
+                      <h2 className="text-4xl font-black uppercase tracking-tighter text-[#008a45]">Pinopoints Loyalty</h2>
                       <p className="font-satoshi text-2xl text-primary mt-2">The more you fuel, the more you save!</p>
 
                       <div className="mt-12 space-y-8">
@@ -628,7 +628,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
 
                   <div className="grid md:grid-cols-2 gap-8">
                     <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
-                      <h3 className="text-xl font-black uppercase tracking-tight mb-8">How to earn</h3>
+                      <h3 className="text-xl font-black uppercase tracking-tight mb-8 text-[#008a45]">How to earn</h3>
                       <div className="space-y-4">
                         {rewardRules.length > 0 ? rewardRules.map((rule, i) => (
                           <div key={i} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl group hover:bg-primary/5 transition-colors">
@@ -640,7 +640,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                               </span>
                             </div>
                             <div className="flex-1">
-                              <p className="text-xs font-black uppercase">{rule.event_name.replace('_', ' ')}</p>
+                              <p className="text-xs font-black uppercase text-[#008a45]">{rule.event_name.replace('_', ' ')}</p>
                               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-tight">{rule.description}</p>
                             </div>
                             <div className="text-right">
@@ -657,7 +657,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                     </div>
 
                     <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
-                      <h3 className="text-xl font-black uppercase tracking-tight mb-8">Tier Benefits</h3>
+                      <h3 className="text-xl font-black uppercase tracking-tight mb-8 text-[#008a45]">Tier Benefits</h3>
                       <div className="flex flex-col items-center justify-center py-12 text-center">
                         <span className="material-symbols-outlined text-5xl text-slate-300 mb-4">lock</span>
                         <p className="text-lg font-black uppercase tracking-tight text-slate-400">Coming Soon</p>
@@ -669,7 +669,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   {/* REDEMPTION SECTION */}
                   <div className="bg-slate-900 p-8 md:p-12 rounded-[40px] text-white overflow-hidden relative shadow-2xl">
                     <div className="relative z-10">
-                      <h3 className="text-2xl font-black uppercase tracking-tight mb-2">Redeem your Pinopoints</h3>
+                      <h3 className="text-2xl font-black uppercase tracking-tight mb-2 text-[#008a45]">Redeem your Pinopoints</h3>
                       <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-8">Convert your hard-earned points into instant discounts</p>
 
                       <div className="flex flex-col md:flex-row gap-8 items-center">
@@ -711,7 +711,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                 >
                   <div className="bg-white p-6 sm:p-8 md:p-12 rounded-[32px] sm:rounded-[40px] border border-slate-100 shadow-sm overflow-hidden relative">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8 sm:mb-12">
-                      <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter">My Wishlist</h2>
+                      <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-[#008a45]">My Wishlist</h2>
                       {wishlistItems.length > 0 && (
                         <div className="flex w-full sm:w-auto gap-3">
                           <button
@@ -746,8 +746,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                             }}
                             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-full text-xs sm:text-sm font-black uppercase tracking-widest hover:bg-green-700 transition-all shadow-lg shadow-green-100 active:scale-95"
                           >
-                            <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
-                            Add All to Cart
+                            <span className="material-symbols-outlined text-[18px] text-white">shopping_cart</span>
+                            <span className="text-white">Add All to Cart</span>
                           </button>
                         </div>
                       )}
@@ -941,8 +941,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary">shopping_bag</span>
+                  <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-2 text-[#008a45]">
+                    <span className="material-symbols-outlined text-[#008a45]">shopping_bag</span>
                     Purchased Products
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -962,7 +962,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                           )}
                         </div>
                         <div className="overflow-hidden min-w-0">
-                          <h4 className="font-black text-xs md:text-sm uppercase leading-tight truncate">{item.product_name}</h4>
+                          <h4 className="font-black text-xs md:text-sm uppercase leading-tight truncate text-[#008a45]">{item.product_name}</h4>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-full">QTY: {item.quantity}</span>
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">₹{item.price}</p>
@@ -977,7 +977,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   <p className="text-center text-slate-400 font-satoshi text-2xl">
                     Fueling your ambition, one bite at a time! 🚀
                   </p>
-                  <button onClick={() => setSelectedOrder(null)} className="mt-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 hover:text-slate-900 transition-colors">Close Details</button>
+                  <button onClick={() => setSelectedOrder(null)} className="mt-6 text-[10px] font-black uppercase tracking-[0.3em] text-[#008a45] hover:text-green-700 transition-colors">Close Details</button>
                 </div>
               </div>
             </motion.div>

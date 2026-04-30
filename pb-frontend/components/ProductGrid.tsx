@@ -130,18 +130,18 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
                   <div className="relative aspect-[4/5] w-full mb-8 transition-transform duration-500 group-hover:-translate-y-2">
                     {/* Discount Badge */}
                     {discount && (
-                      <div className="absolute top-0 left-0 z-20 w-14 h-14 bg-[#d32f2f] rounded-full flex flex-col items-center justify-center text-white leading-none shadow-lg">
-                        <span className="text-[14px] font-black">{discount}%</span>
-                        <span className="text-[8px] font-black uppercase">OFF</span>
+                      <div className="absolute top-0 left-0 z-20 w-10 h-10 md:w-14 md:h-14 bg-[#d32f2f] rounded-full flex flex-col items-center justify-center text-white leading-none shadow-lg">
+                        <span className="text-[10px] md:text-[14px] font-black">{discount}%</span>
+                        <span className="text-[6px] md:text-[8px] font-black uppercase">OFF</span>
                       </div>
                     )}
 
                     {/* Heart Icon */}
                     <button
                       onClick={(e) => toggleWishlist(e, String(product.id))}
-                      className={`absolute top-2 right-2 z-20 p-2 transition-colors ${isWishlisted ? 'text-red-500' : 'text-white/30 hover:text-red-500'}`}
+                      className="absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-all duration-300 shadow-sm active:scale-90"
                     >
-                      <span className={`material-symbols-outlined text-2xl ${isWishlisted ? 'fill-1' : ''}`}>favorite</span>
+                      <span className={`material-symbols-outlined text-[18px] transition-colors ${isWishlisted ? '!text-red-500 fill-1' : '!text-slate-300'}`}>favorite</span>
                     </button>
 
                     <div className="w-full h-full flex items-center justify-center relative">
@@ -155,8 +155,8 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
                       {/* Sold Out Overlay */}
                       {product.stock <= 0 && (
                         <div className="absolute inset-0 flex items-center justify-center z-10">
-                          <div className="w-20 h-20 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center border border-slate-100 shadow-xl">
-                            <span className="text-[10px] font-black uppercase tracking-tighter text-slate-800 text-center leading-tight">
+                          <div className="w-14 h-14 md:w-20 md:h-20 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center border border-slate-100 shadow-xl">
+                            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-tighter text-slate-800 text-center leading-tight">
                               SOLD<br />OUT
                             </span>
                           </div>
@@ -177,16 +177,16 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
                       <span className="text-[10px] md:text-xs font-bold text-slate-400 ml-1">({product.reviewCount || 0} reviews)</span>
                     </div>
 
-                    <h3 className="text-sm md:text-xl font-bold uppercase tracking-tight text-[#228b44] mb-2 px-2 leading-tight group-hover:opacity-80 transition-all text-center min-h-[2.5rem] md:min-h-[3.5rem] flex items-center justify-center">
+                    <h3 className="!text-[16px] md:!text-xl font-bold uppercase tracking-tight text-[#228b44] mb-1 px-1 !leading-[1.1] group-hover:opacity-80 transition-all text-center min-h-[3rem] md:min-h-[3.5rem] flex items-center justify-center">
                       {product.name}
                     </h3>
 
                     {/* Bottom Section - Pushed to bottom for alignment */}
                     <div className="mt-auto w-full">
-                      <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-                        <span className="text-base md:text-2xl font-bold text-[#228b44]">{formatPrice(product.price)}</span>
+                      <div className="flex flex-wrap items-center justify-center gap-1.5 mb-3">
+                        <span className="text-lg md:text-2xl font-bold text-[#228b44]">{formatPrice(product.price)}</span>
                         {product.originalPrice && product.originalPrice > product.price && (
-                          <span className="text-xs md:text-sm font-medium text-slate-400 line-through">{formatPrice(product.originalPrice)}</span>
+                          <span className="text-[10px] md:text-sm font-medium text-slate-400 line-through">{formatPrice(product.originalPrice)}</span>
                         )}
                       </div>
 
@@ -197,16 +197,9 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
                           analytics.trackAddToCart(product);
                         }}
                         disabled={product.stock <= 0}
-                        className="w-full btn-greenboard py-2 md:py-4 rounded-md font-bold text-[10px] md:text-xs uppercase tracking-widest active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-2 relative overflow-hidden"
+                        className="w-[95%] mx-auto btn-greenboard py-1.5 md:py-4 rounded-lg font-bold !text-[9px] md:!text-sm uppercase tracking-[0.2em] active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center relative overflow-hidden"
                       >
-                        {product.stock <= 0 ? 'Out of Stock' : (
-                          <>
-                            <span className="relative z-10 flex items-center gap-2">
-                              ADD TO CART
-                              <i className="fa-solid fa-cart-shopping text-[10px] md:text-sm"></i>
-                            </span>
-                          </>
-                        )}
+                        {product.stock <= 0 ? 'Out of Stock' : 'ADD TO CART'}
                       </button>
                     </div>
                   </div>

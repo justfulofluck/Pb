@@ -37,8 +37,8 @@ const Footer: React.FC<FooterProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 mb-16">
 
           {/* Brand Column */}
-          <div className="lg:col-span-4 max-w-sm">
-            <button onClick={onHomeClick} className="block mb-6 h-12">
+          <div className="lg:col-span-4 max-w-sm flex flex-col items-center lg:items-start text-center lg:text-left mx-auto lg:mx-0">
+            <button onClick={onHomeClick} className="block mb-6 h-12 mx-auto lg:mx-0">
               <img
                 src="/logos/Pinobite-logo.png"
                 alt="Pinobite Logo"
@@ -48,7 +48,7 @@ const Footer: React.FC<FooterProps> = ({
             <p className="text-slate-400 text-sm leading-relaxed mb-8 font-satoshi">
               Pinobite is a group of modern healthy snack specialists transforming your daily energy intake with handcrafted, nutritious muesli and peanut butter. Founded with a passion for goodness.
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-4 justify-center lg:justify-start">
               <a href="https://www.facebook.com/profile.php?id=61574254086582" target="_blank" rel="noopener noreferrer" className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:border-white transition-all">
                 <i className="fa-brands fa-facebook-f text-sm"></i>
               </a>
@@ -59,8 +59,8 @@ const Footer: React.FC<FooterProps> = ({
           </div>
 
           {/* Collections Column */}
-          <div className="lg:col-span-2">
-            <h4 className="font-normal text-xl mb-6 font-anton !normal-case tracking-tight leading-none">Collections</h4>
+          <div className="lg:col-span-2 text-left flex flex-col items-start">
+            <h4 className="font-normal text-xl mb-6 font-anton !normal-case tracking-tight leading-none text-left">Collections</h4>
             <ul className="space-y-4 text-sm text-slate-400">
               <li><button onClick={onShopClick} className="hover:text-white transition-colors">Shop All</button></li>
               <li><button onClick={() => onDistributorClick?.()} className="hover:text-white transition-colors">Peanut Butter</button></li>
@@ -70,8 +70,8 @@ const Footer: React.FC<FooterProps> = ({
           </div>
 
           {/* Resources Column */}
-          <div className="lg:col-span-2">
-            <h4 className="font-normal text-xl mb-6 font-anton !normal-case tracking-tight leading-none">Resources</h4>
+          <div className="lg:col-span-2 text-left flex flex-col items-start">
+            <h4 className="font-normal text-xl mb-6 font-anton !normal-case tracking-tight leading-none text-left">Resources</h4>
             <ul className="space-y-4 text-sm text-slate-400">
               <li><button onClick={onBlogsClick} className="hover:text-white transition-colors">Healthy Blog</button></li>
               <li><button onClick={onEventBlogsClick} className="hover:text-white transition-colors">Events & News</button></li>
@@ -82,8 +82,8 @@ const Footer: React.FC<FooterProps> = ({
           </div>
 
           {/* Partners Column */}
-          <div className="lg:col-span-2">
-            <h4 className="font-normal text-xl mb-6 font-anton !normal-case tracking-tight leading-none">Partners</h4>
+          <div className="lg:col-span-2 text-left flex flex-col items-start">
+            <h4 className="font-normal text-xl mb-6 font-anton !normal-case tracking-tight leading-none text-left">Partners</h4>
             <ul className="space-y-4 text-sm text-slate-400">
               <li><button onClick={onDistributorClick} className="hover:text-white transition-colors">Become a Distributor</button></li>
               <li><button onClick={onAdminClick} className="hover:text-white transition-colors">Global Partners</button></li>
@@ -92,13 +92,13 @@ const Footer: React.FC<FooterProps> = ({
           </div>
 
           {/* Company Column */}
-          <div className="lg:col-span-2">
-            <h4 className="font-normal text-xl mb-6 font-anton !normal-case tracking-tight leading-none">Company</h4>
+          <div className="lg:col-span-2 text-left flex flex-col items-start">
+            <h4 className="font-normal text-xl mb-6 font-anton !normal-case tracking-tight leading-none text-left">Company</h4>
             <ul className="space-y-4 text-sm text-slate-400">
               <li><button onClick={onJourneyClick} className="hover:text-white transition-colors">About Us</button></li>
               <li><button onClick={onJourneyClick} className="hover:text-white transition-colors">Our Values</button></li>
               <li><button onClick={onJourneyClick} className="hover:text-white transition-colors">Our Story</button></li>
-              <li><button href="mailto:pinobites@gmail.com" className="hover:text-white transition-colors">Contact Us</button></li>
+              <li><a href="mailto:pinobites@gmail.com" className="hover:text-white transition-colors">Contact Us</a></li>
             </ul>
           </div>
         </div>

@@ -121,7 +121,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
           aria-label="Close"
           className="absolute top-4 right-4 z-10 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors"
         >
-          <span className="material-symbols-outlined">close</span>
+          <span className="material-symbols-outlined !text-slate-800">close</span>
         </button>
 
         {/* View: LOGIN */}
@@ -165,7 +165,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                 <button
                   type="button"
                   onClick={() => setView('reset')}
-                  className="text-xs font-bold text-slate-400 hover:text-primary transition-colors font-handdrawn text-lg"
+                  className="text-xs font-bold !text-slate-400 hover:!text-primary transition-colors font-handdrawn text-lg"
                 >
                   FORGOT PASSWORD?
                 </button>

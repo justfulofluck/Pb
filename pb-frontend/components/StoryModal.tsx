@@ -162,15 +162,15 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
                                 <img src={product.image} className="w-48 h-48 object-contain transform hover:scale-105 transition-transform duration-500" alt={product.name} />
                             </div>
 
-                            <h2 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight mb-3">
+                            <h2 className="text-xl md:text-2xl font-black text-[#0b3d2e] leading-tight mb-3">
                                 {product.name}
                             </h2>
 
                             <div className="flex items-center gap-3 mb-6">
-                                <span className="text-2xl font-black text-slate-900">₹{product.price.toLocaleString()}</span>
+                                <span className="text-xl font-black text-slate-900">₹{product.price.toLocaleString()}</span>
                                 {product.originalPrice && (
                                     <>
-                                        <span className="text-lg text-slate-400 line-through decoration-slate-300">₹{product.originalPrice.toLocaleString()}</span>
+                                        <span className="text-base text-slate-400 line-through decoration-slate-300">₹{product.originalPrice.toLocaleString()}</span>
                                         <span className="bg-[#cdf0e1] text-[#00a862] text-xs font-bold px-2.5 py-1 rounded-md">
                                             {discountPercent}% off
                                         </span>

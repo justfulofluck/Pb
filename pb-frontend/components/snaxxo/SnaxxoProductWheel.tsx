@@ -412,7 +412,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                     <div className="product-wheel-viewport relative w-full min-h-[400px] sm:min-h-[500px] lg:min-h-[700px] overflow-visible">
                         {/* Navigation Arrows (Anchored to Viewport) */}
                         <button
-                            className="btn-greenboard z-[300] !absolute left-4 sm:left-8 text-white rounded-full w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95 pointer-events-auto"
+                            className="btn-greenboard z-[300] !absolute left-4 sm:left-8 text-[#008a45] rounded-full w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95 pointer-events-auto"
                             style={{ top: '45%', transform: 'translateY(-50%)' }}
                             onClick={() => goPrevRef.current?.()}
                             aria-label="Previous product"
@@ -420,7 +420,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                             <span className="material-symbols-outlined text-xl sm:text-2xl">chevron_left</span>
                         </button>
                         <button
-                            className="btn-greenboard z-[300] !absolute right-4 sm:right-8 text-white rounded-full w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95 pointer-events-auto"
+                            className="btn-greenboard z-[300] !absolute right-4 sm:right-8 text-[#008a45] rounded-full w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95 pointer-events-auto"
                             style={{ top: '45%', transform: 'translateY(-50%)' }}
                             onClick={() => goNextRef.current?.()}
                             aria-label="Next product"
@@ -433,7 +433,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                                 <div
                                     key={product.displayId}
                                     className="product-slide absolute top-[35%] md:top-[40%] left-1/2 z-[100] w-[250px] sm:w-[320px] md:w-[400px] lg:w-[450px]"
-                                    ref={el => slidesRef.current[i] = el}
+                                    ref={el => { slidesRef.current[i] = el; }}
                                     data-display-id={product.displayId}
                                 >
                                     <div className="product-slide-inner group">
@@ -456,7 +456,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                                             )}
                                         </div>
                                         <div className="product-bottom-info-box mt-2 sm:mt-4 flex flex-col items-center text-center px-4 pointer-events-none">
-                                            <h3 className="text-textured-green-big !text-[1.8rem] sm:!text-[2.2rem] md:!text-[2.8rem] mb-4 sm:mb-6 cursor-default uppercase tracking-normal leading-[1] pointer-events-auto !inline-block">
+                                            <h3 className="text-[#0b3d2e] !text-[1.2rem] sm:!text-[1.8rem] md:!text-[2.2rem] mb-2 sm:mb-4 cursor-default uppercase tracking-normal leading-[1] pointer-events-auto !inline-block">
                                                 {product.name}
                                             </h3>
                                             <div className="flex items-baseline gap-2 mb-4 sm:mb-6 pointer-events-auto">

@@ -128,13 +128,16 @@ const StoryCard: React.FC<{
             <div className="w-16 h-16 rounded-xl flex-shrink-0 flex items-center justify-center relative">
               <img src={product.image} className="w-14 h-14 object-contain" alt="Product" />
               {discount && (
-                <div className="absolute -top-2 -left-2 bg-[#ef4444] text-white text-[8px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wider rotate-[-5deg] shadow-sm z-10">
+                <div className="absolute -top-2 -left-2 bg-[#008a45] text-white text-[7px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-wider rotate-[-5deg] shadow-sm z-10">
                   {discount}% OFF
                 </div>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="text-[13px] font-bold text-slate-900 leading-[1.2] line-clamp-2">
+              <h4
+                className="text-[10px] font-black leading-[1.1] line-clamp-2 uppercase tracking-tight"
+                style={{ color: '#008a45' }}
+              >
                 {product.name.split('(')[0] || product.name}
               </h4>
               <div className="flex items-center gap-2 mt-0">
@@ -162,11 +165,11 @@ const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProd
       <div className="max-w-7xl mx-auto px-4 relative flex flex-col items-center">
         {/* Centered Header */}
         <div className="text-center mb-8 md:mb-16 relative w-full flex flex-col items-center">
-          <span className="font-handdrawn text-2xl md:text-4xl text-secondary/80 transform -rotate-3 inline-block z-10 whitespace-nowrap mb-0 md:mb-[-0.5rem] md:ml-[-14rem]">
+          <span className="font-handdrawn text-2xl md:text-5xl text-secondary transform -rotate-3 inline-block z-10 whitespace-nowrap mb-0 md:mb-[-1rem] md:ml-[-18rem]">
             @pinobitehealth
           </span>
           <div className="relative inline-block">
-            <h2 className="text-5xl md:text-7xl lg:text-8xl font-normal tracking-tight leading-[0.9] font-anton !normal-case text-textured-green">Social stories</h2>
+            <h2 className="text-6xl md:text-8xl lg:text-9xl font-normal tracking-tight leading-[0.8] font-anton uppercase text-textured-green">Social stories</h2>
           </div>
         </div>
 

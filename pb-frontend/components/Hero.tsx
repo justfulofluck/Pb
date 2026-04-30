@@ -74,12 +74,12 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
   // EARLY RETURN AFTER ALL HOOKS - This is the key fix!
   if (activeSlides.length === 0) {
     return (
-      <div ref={heroRef} className="h-screen flex items-center justify-center bg-whiteboard texture-overlay texture-speckles">
+      <section ref={heroRef} className="h-screen flex items-center justify-center bg-whiteboard texture-overlay texture-speckles">
         <div className="text-center">
           <h1 className="text-4xl font-black text-slate-300">NO ACTIVE SLIDES</h1>
           <button onClick={onShopClick} className="mt-4 text-primary font-bold">Go to Shop</button>
         </div>
-      </div>
+      </section>
     );
   }
 
@@ -161,7 +161,7 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
                   {slide.category}
                 </span>
 
-                <h1 className="text-3xl md:text-8xl font-normal text-slate-900 leading-[0.9] mb-4 md:mb-8 tracking-tight font-anton !normal-case">
+                <h1 className="text-3xl md:text-8xl font-normal text-slate-900 leading-[1] mb-4 md:mb-8 tracking-tight font-anton !normal-case">
                   {slide.headline}
                 </h1>
 

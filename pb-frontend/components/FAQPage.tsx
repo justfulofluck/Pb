@@ -55,7 +55,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onHomeClick }) => {
       <div className="max-w-6xl mx-auto px-4 relative z-10">
         <div className="text-center mb-16 relative">
           <div className="relative inline-block">
-            <h1 className="text-4xl md:text-6xl font-normal !normal-case text-slate-900 tracking-tight leading-[0.9] font-anton">
+            <h1 className="text-4xl md:text-6xl font-normal !normal-case text-slate-900 tracking-tight leading-[1] font-anton">
               Nuts & bolts: <span className="text-accent-brown">Your questions</span>
             </h1>
             <div className="absolute -top-8 -right-8 md:-right-24 transform rotate-6 border-2 border-slate-900 px-3 py-1 rounded bg-white shadow-sm hidden sm:block">
@@ -97,7 +97,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onHomeClick }) => {
                     aria-expanded={openIndex === index}
                   >
                     <span className="font-bold text-lg text-slate-800 font-satoshi">{faq.question}</span>
-                    <span className={`material-symbols-outlined transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`}>
+                    <span className={`material-symbols-outlined transition-transform duration-300 text-[#008a45] ${openIndex === index ? 'rotate-180' : ''}`}>
                       expand_more
                     </span>
                   </button>
@@ -124,7 +124,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onHomeClick }) => {
                 <span className="material-symbols-outlined text-slate-900">lightbulb</span>
               </div>
               <div>
-                <h4 className="font-bold text-lg text-slate-900 font-satoshi">Pro-Tip from the Roastery</h4>
+                <h4 className="font-bold text-lg text-[#008a45] font-satoshi">Pro-Tip from the Roastery</h4>
                 <p className="font-satoshi text-slate-600 text-lg mt-1">
                   Try crushing them over your morning porridge for an extra artisanal texture!
                 </p>

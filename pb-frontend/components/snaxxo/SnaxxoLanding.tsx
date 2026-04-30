@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import '../../styles/snaxxo.css'; // Global styles
+// Legacy styles are now managed globally in index.tsx
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useSnaxxoAnimations } from '../../hooks/useSnaxxoAnimations';

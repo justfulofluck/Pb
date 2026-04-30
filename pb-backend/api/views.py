@@ -367,14 +367,14 @@ class OrderViewSet(viewsets.ModelViewSet):
                 }
             )
             order.razorpay_order_id = razorpay_order["id"]
+            order.save()
         except Exception as e:
-            print(f"Razorpay Order Creation Failed (Using Mock): {e}")
-            # Fallback to Mock ID if keys are invalid or API fails
-            order.razorpay_order_id = f"order_mock_{order.id}"
-            razorpay_order = {"id": order.razorpay_order_id}
-
-        order.razorpay_order_id = razorpay_order["id"]
-        order.save()
+            # If Razorpay fails, we shouldn't just crash. 
+            # We can return an error to the frontend so it knows why.
+            return Response(
+                {"error": f"Razorpay order creation failed: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         return Response(
             {
@@ -395,53 +395,6 @@ class OrderViewSet(viewsets.ModelViewSet):
         razorpay_payment_id = request.data.get("razorpay_payment_id", "")
         razorpay_signature = request.data.get("razorpay_signature", "")
         order_id = request.data.get("order_id")
-
-        # Check for Mock Order
-        if razorpay_order_id.startswith("order_mock_"):
-            try:
-                order = Order.objects.get(id=order_id)
-                if order.razorpay_order_id == razorpay_order_id:
-                    order.status = "Processing"
-                    order.razorpay_payment_id = razorpay_payment_id
-                    order.save()
-
-                    total_awarded = 0
-                    from .utils import award_points
-
-                    spend_points = int(order.total_amount / 100) * 10
-                    if spend_points > 0:
-                        total_awarded += award_points(
-                            request.user,
-                            "purchase",
-                            custom_points=spend_points,
-                            reason_override=f"Points earned on Order #{order.id}",
-                        )
-
-                    order_count = Order.objects.filter(
-                        user=request.user,
-                        status__in=["Processing", "Paid", "Shipped", "Delivered"],
-                    ).count()
-                    if order_count == 1:
-                        total_awarded += award_points(request.user, "first_order")
-
-                    # Send Confirmation Emails (Internal + Customer)
-                    send_order_confirmation_emails(order, razorpay_payment_id)
-
-                    return Response(
-                        {
-                            "status": "Payment verified successfully (Mock)",
-                            "points_earned": total_awarded,
-                        }
-                    )
-                else:
-                    return Response(
-                        {"error": "Invalid mock order details"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-            except Order.DoesNotExist:
-                return Response(
-                    {"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND
-                )
 
         client = get_razorpay_client()
 

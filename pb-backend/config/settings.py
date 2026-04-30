@@ -12,12 +12,23 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
+try:
+    from dotenv import load_dotenv
+    # Load .env from the project root (one level up from BASE_DIR)
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    load_dotenv(BASE_DIR.parent / '.env')
+except ImportError:
+    pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
+try:
+    from dotenv import load_dotenv
+    # Load .env from the project root (one level up from BASE_DIR)
+    load_dotenv(BASE_DIR.parent / '.env')
+except ImportError:
+    pass
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -206,8 +217,8 @@ YAGMAIL_PASSWORD = EMAIL_HOST_PASSWORD
 ADMIN_EMAIL = "thakarkushagra@gmail.com"    
 
 # Razorpay Configuration
-RAZORPAY_KEY_ID = "rzp_test_z4U8U86g666666"  # Replace with env or real key if available
-RAZORPAY_KEY_SECRET = "888888888888888888888888"  # Replace with env or real secret
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "rzp_test_z4U8U86g666666")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "888888888888888888888888")
 
 AUTHENTICATION_BACKENDS = [
     "api.backends.EmailBackend",

@@ -9,11 +9,7 @@ interface MultiLayerWaveProps {
 
 const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#0b3d2e", className, flipped = false }) => {
     const layer1Ref = useRef<SVGGElement>(null);
-    const layer2Ref = useRef<SVGGElement>(null);
-    const layer3Ref = useRef<SVGGElement>(null);
     const bob1Ref = useRef<SVGGElement>(null);
-    const bob2Ref = useRef<SVGGElement>(null);
-    const bob3Ref = useRef<SVGGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [isInView, setIsInView] = useState(true);
 
@@ -44,20 +40,6 @@ const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#0b3d2e", class
             ease: "none"
         });
 
-        const tl2 = gsap.to(layer2Ref.current, {
-            x: "-50%",
-            duration: 24,
-            repeat: -1,
-            ease: "none"
-        });
-
-        const tl3 = gsap.to(layer3Ref.current, {
-            x: "-50%",
-            duration: 30,
-            repeat: -1,
-            ease: "none"
-        });
-
         // Bobbing / scaling animations for dynamic wave feel
         const bob1 = gsap.to(bob1Ref.current, {
             y: -8,
@@ -70,33 +52,9 @@ const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#0b3d2e", class
             transformOrigin: "center bottom"
         });
 
-        const bob2 = gsap.to(bob2Ref.current, {
-            y: 6,
-            scaleY: 1.05,
-            duration: 5,
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut",
-            transformOrigin: "center bottom"
-        });
-
-        const bob3 = gsap.to(bob3Ref.current, {
-            y: -5,
-            scaleY: 1.03,
-            duration: 6,
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut",
-            transformOrigin: "center bottom"
-        });
-
         return () => {
             tl1.kill();
-            tl2.kill();
-            tl3.kill();
             bob1.kill();
-            bob2.kill();
-            bob3.kill();
         };
     }, [isInView]);
 
@@ -108,23 +66,7 @@ const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#0b3d2e", class
                 className="absolute top-0 left-0 w-[200%] h-full pointer-events-none overflow-visible"
                 xmlns="http://www.w3.org/2000/svg"
             >
-                {/* Layer 3 - back, lightest */}
-                <g ref={bob3Ref}>
-                    <g ref={layer3Ref}>
-                        <path d={pathData} fill={fill} opacity="0.3" />
-                        <path d={pathData} fill={fill} opacity="0.3" transform="translate(799, 0)" />
-                    </g>
-                </g>
-
-                {/* Layer 2 - middle */}
-                <g ref={bob2Ref}>
-                    <g ref={layer2Ref}>
-                        <path d={pathData} fill={fill} opacity="0.5" />
-                        <path d={pathData} fill={fill} opacity="0.5" transform="translate(799, 0)" />
-                    </g>
-                </g>
-
-                {/* Layer 1 - front, full opacity */}
+                {/* Single Layer - sharp and clean */}
                 <g ref={bob1Ref}>
                     <g ref={layer1Ref}>
                         <path d={pathData} fill={fill} />

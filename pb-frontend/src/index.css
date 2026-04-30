@@ -8,6 +8,12 @@
   --font-jakarta: "Plus Jakarta Sans", sans-serif;
   --font-handdrawn: "Gochi Hand", cursive;
 
+  --color-primary: #008a45;
+  --color-secondary: #f9bc15;
+  --color-background-light: #f2f2ec;
+  --color-background-dark: #0f172a;
+  --color-accent-brown: #5d4037;
+
   --color-alpino-primary: var(--alpino-primary);
   --color-alpino-tertiary: var(--alpino-tertiary);
   --color-alpino-tertiary-container: var(--alpino-tertiary-container);
@@ -53,8 +59,15 @@
     font-family: var(--font-anton);
   }
 
+  input::placeholder,
+  textarea::placeholder {
+    color: #008a45 !important;
+    opacity: 0.5;
+  }
+
   h4 {
     font-family: var(--font-satoshi);
+    color: #0b3d2e;
     font-weight: 700;
     line-height: 25px;
     letter-spacing: -0.36px;

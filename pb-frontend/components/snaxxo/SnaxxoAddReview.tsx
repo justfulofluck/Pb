@@ -96,7 +96,7 @@ const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddRevie
 
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                         <div>
-                            <h2 className="text-4xl md:text-5xl font-black text-slate-900 uppercase leading-[0.9] mb-2 font-anton">
+                            <h2 className="text-4xl md:text-5xl font-black text-slate-900 uppercase leading-[1] mb-2 font-anton">
                                 Share Your <br /> Experience
                             </h2>
                             <p className="text-slate-500 font-bold">We'd love to hear what you think of our snacks!</p>
@@ -117,7 +117,7 @@ const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddRevie
                             <p className="text-slate-500 font-bold mb-6 max-w-xs">Only verified customers can submit their experience with this product.</p>
                             <button
                                 onClick={onLoginClick}
-                                className="px-10 py-4 bg-slate-950 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-colors shadow-lg"
+                                className="px-10 py-4 bg-slate-950 !text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-colors shadow-lg"
                             >
                                 Login / Register
                             </button>

@@ -71,7 +71,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="text-center mb-8 md:mb-24 relative">
           <span className="font-handdrawn text-2xl md:text-3xl text-primary transform rotate-6 inline-block mb-2 absolute -top-10 left-1/2 translate-x-[20px] md:translate-x-[90px] lg:translate-x-[120px] drop-shadow-sm">Pick your fav!</span>
-          <h2 className="text-5xl md:text-8xl font-normal text-textured-green !normal-case tracking-tight leading-[0.9] font-anton">
+          <h2 className="text-5xl md:text-8xl font-normal text-textured-green !normal-case tracking-tight leading-[1] font-anton">
             Explore What You Love
           </h2>
           <div className="w-16 md:w-24 h-1.5 md:h-2 bg-[#0b3d2e] mx-auto mt-4 md:mt-6 rounded-full"></div>
@@ -96,7 +96,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
               </div>
 
               <div className="relative z-20 mt-8">
-                <h3 className={`text-6xl uppercase leading-none tracking-wider ${item.textClass} !font-anton drop-shadow-[0_2px_8px_rgba(255,255,255,0.8)]`}>
+                <h3 className={`text-6xl uppercase leading-[1.1] tracking-wider ${item.textClass} !font-anton drop-shadow-[0_2px_8px_rgba(255,255,255,0.8)]`}>
                   {item.display.split(' ').map((word, w) => <span key={w} className="block">{word}</span>)}
                 </h3>
               </div>
@@ -113,7 +113,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
               </div>
 
               <div className="absolute bottom-8 left-0 w-full flex justify-center z-30 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500">
-                <button className={`px-10 py-4 rounded-full text-white font-black uppercase text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-transform ${item.accentClass}`}>
+                <button className={`px-10 py-4 rounded-full !text-white font-black uppercase text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-transform ${item.accentClass}`}>
                   Shop Collection
                 </button>
               </div>
@@ -151,7 +151,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
                       <div className={`absolute inset-0 rounded-full border-2 border-transparent group-hover:border-primary/20 transition-colors duration-500`}></div>
                     </div>
                     <div className={`mt-4 text-center transition-all duration-300`}>
-                      <span className="block text-[11px] md:text-base font-normal uppercase tracking-widest text-slate-800 leading-none font-anton">
+                      <span className="block text-[11px] md:text-base font-normal uppercase tracking-widest text-slate-800 leading-tight font-anton">
                         {item.display.replace('Super ', '')}
                       </span>
                       <div className={`w-6 h-1 bg-primary mx-auto mt-2 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300`}></div>

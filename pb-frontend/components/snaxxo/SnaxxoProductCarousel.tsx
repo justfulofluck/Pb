@@ -42,7 +42,7 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    const ids = new Set(data.map((item: any) => String(item.product)));
+                    const ids = new Set<string>(data.map((item: any) => String(item.product)));
                     setWishlistIds(ids);
                 }
             } catch (error) {
@@ -134,20 +134,20 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
         <section className="bg-whiteboard texture-overlay texture-speckles relative overflow-hidden pb-4 w-full lg:hidden">
             <div className="pt-6 pb-6 relative">
                 <div className="flex flex-col items-center justify-center relative z-10 px-4">
-                    <h2 className="text-textured-green text-6xl md:text-8xl font-normal !normal-case tracking-tight leading-[0.9] font-anton text-center">
+                    <h2 className="text-textured-green text-6xl md:text-8xl font-normal !normal-case tracking-tight leading-[1] font-anton text-center">
                         Customer's<br />Favorite
                     </h2>
                     <div className="w-16 md:w-24 h-1.5 md:h-2 bg-[#0b3d2e] mt-2 rounded-full mb-2"></div>
                     <p className="font-handdrawn text-2xl md:text-3xl text-[#0b3d2e]/70 mt-3 text-center mb-2">
                         Join 100k+ happy healthy eaters! 🥳
                     </p>
-                    <div className="mt-8">
+                    <div className="mt-6 mb-12">
                         <button
                             onClick={() => {
                                 if (onShopClick) onShopClick();
                                 else window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
-                            className="btn-greenboard text-white px-10 py-5 rounded-full font-black text-xs uppercase tracking-widest transition-all shadow-md active:scale-95"
+                            className="btn-greenboard text-white px-6 py-2.5 rounded-full font-bold text-xs uppercase tracking-widest transition-all shadow-md active:scale-95"
                         >
                             SHOP ALL
                         </button>
@@ -177,7 +177,7 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                         >
                             <div className="absolute top-0 left-0 right-0 flex justify-between items-start z-10">
                                 {discount ? (
-                                    <div className="bg-[#ef4444] text-white text-[10px] font-black px-2.5 py-1 rounded-sm uppercase tracking-wider -rotate-2">
+                                    <div className="bg-[#008a45] text-white text-[8px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wider -rotate-2">
                                         {discount}% OFF
                                     </div>
                                 ) : <div />}
@@ -211,16 +211,14 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                                 <span className="text-[10px] text-slate-500 font-bold ml-1 self-center">({product.reviewCount || 0} reviews)</span>
                             </div>
 
-                            <h3
-                                className="text-textured-green-big !text-[1.9rem] text-center mb-3 px-1 line-clamp-3 h-[6.5rem] uppercase tracking-normal leading-[1.1] cursor-default !inline-block w-full overflow-hidden flex-shrink-0"
-                            >
+                            <h3 className="text-[#0b3d2e] !text-[1rem] text-center mb-1.5 px-2 line-clamp-2 h-[2.8rem] uppercase tracking-normal leading-[1.2] cursor-default !inline-block w-full overflow-hidden flex-shrink-0 font-anton">
                                 {product.name}
                             </h3>
 
-                            <div className="flex items-center gap-1 mb-4">
-                                <span className="font-black text-xl text-[#0b3d2e]">₹{product.price}</span>
+                            <div className="flex items-center gap-1 mb-3">
+                                <span className="font-black text-lg text-[#0b3d2e]">₹{product.price}</span>
                                 {product.originalPrice && product.originalPrice > product.price && (
-                                    <span className="text-slate-400 line-through text-[11px] font-bold">₹{product.originalPrice}</span>
+                                    <span className="text-slate-400 line-through text-[9px] font-bold">₹{product.originalPrice}</span>
                                 )}
                             </div>
 

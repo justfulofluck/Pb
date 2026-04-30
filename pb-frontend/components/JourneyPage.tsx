@@ -35,7 +35,7 @@ const JourneyPage: React.FC<JourneyPageProps> = ({ onShopClick, onHomeClick }) =
         <div className="relative z-10 flex-1 flex items-center justify-center text-center text-white px-4 max-w-4xl mx-auto">
           <div className="space-y-4">
             <span className="font-handdrawn text-3xl text-secondary transform -rotate-2 inline-block">From our kitchen to yours</span>
-            <h1 className="text-6xl md:text-8xl font-normal !normal-case tracking-tight leading-[0.9] font-anton">
+            <h1 className="text-6xl md:text-8xl font-normal !normal-case tracking-tight leading-[1] font-anton">
               The Pinobite story
             </h1>
             <p className="text-xl md:text-2xl font-medium text-slate-200 max-w-2xl mx-auto">
@@ -56,7 +56,7 @@ const JourneyPage: React.FC<JourneyPageProps> = ({ onShopClick, onHomeClick }) =
             </div>
           </div>
           <div className="order-1 md:order-2 space-y-8">
-            <h2 className="text-4xl md:text-5xl font-normal !normal-case text-slate-900 leading-[0.9] font-anton tracking-tight">It started with a label reading obsession.</h2>
+            <h2 className="text-4xl md:text-5xl font-normal !normal-case text-slate-900 leading-[1] font-anton tracking-tight">It started with a label reading obsession.</h2>
             <div className="prose prose-lg text-slate-600 font-medium">
               <p>
                 Back in 2021, walking down the supermarket aisle was frustrating. Every "healthy" granola bar or peanut butter jar we picked up had sugar as the second ingredient. Or palm oil. Or preservatives with numbers we couldn't memorize.

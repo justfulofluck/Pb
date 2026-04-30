@@ -35,14 +35,14 @@ const MobileBottomNav: React.FC<MobileBottomNavProps & { isHidden?: boolean }> =
     const getButtonClass = (isActive: boolean) => `
         flex items-center justify-center h-12 rounded-full transition-all duration-500 relative overflow-hidden
         ${isActive
-            ? 'bg-[#0b3d2e] texture-overlay texture-speckles text-white px-5 shadow-lg'
-            : 'text-slate-500 hover:text-slate-800 w-12 hover:bg-black/5'
+            ? 'bg-[#0b3d2e] texture-overlay texture-speckles !text-white px-5 shadow-lg'
+            : '!text-[#0b3d2e] hover:bg-black/5 w-12'
         }
     `;
 
     const getLabelClass = (isActive: boolean) => `
         font-black text-[11px] tracking-widest uppercase transition-all duration-500 font-satoshi overflow-hidden whitespace-nowrap
-        ${isActive ? 'max-w-[100px] ml-2 opacity-100' : 'max-w-0 opacity-0'}
+        ${isActive ? 'max-w-[100px] ml-2 opacity-100 !text-white' : 'max-w-0 opacity-0'}
     `;
 
     return (
@@ -53,7 +53,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps & { isHidden?: boolean }> =
                     onClick={onHomeClick}
                     className={getButtonClass(isHomeActive)}
                 >
-                    <span className="material-symbols-outlined text-[24px]">home</span>
+                    <span className={`material-symbols-outlined text-[24px] ${isHomeActive ? '!text-white' : '!text-[#0b3d2e]'}`}>home</span>
                     <span className={getLabelClass(isHomeActive)}>Home</span>
                 </button>
 
@@ -62,7 +62,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps & { isHidden?: boolean }> =
                     onClick={onShopClick}
                     className={getButtonClass(isShopActive)}
                 >
-                    <span className="material-symbols-outlined text-[24px]">shopping_bag</span>
+                    <span className={`material-symbols-outlined text-[24px] ${isShopActive ? '!text-white' : '!text-[#0b3d2e]'}`}>shopping_bag</span>
                     <span className={getLabelClass(isShopActive)}>Shop</span>
                 </button>
 
@@ -72,7 +72,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps & { isHidden?: boolean }> =
                         onClick={onCartClick}
                         className={getButtonClass(isCartActive)}
                     >
-                        <span className="material-symbols-outlined text-[24px]">shopping_cart</span>
+                        <span className={`material-symbols-outlined text-[24px] ${isCartActive ? '!text-white' : '!text-[#0b3d2e]'}`}>shopping_cart</span>
                         <span className={getLabelClass(isCartActive)}>Cart</span>
                     </button>
                     {!isCartActive && cartCount > 0 && (
@@ -87,7 +87,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps & { isHidden?: boolean }> =
                     onClick={onAccountClick}
                     className={getButtonClass(isProfileActive)}
                 >
-                    <span className="material-symbols-outlined text-[24px]">person</span>
+                    <span className={`material-symbols-outlined text-[24px] ${isProfileActive ? '!text-white' : '!text-[#0b3d2e]'}`}>person</span>
                     <span className={getLabelClass(isProfileActive)}>Profile</span>
                 </button>
             </div>

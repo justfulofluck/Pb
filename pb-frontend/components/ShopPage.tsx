@@ -153,7 +153,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
       <div className="pt-6 md:pt-10 pb-6 px-4 relative overflow-hidden">
 
         <div className="max-w-4xl mx-auto relative z-10 text-center flex flex-col items-center">
-          <h1 className="text-6xl md:text-8xl font-normal !normal-case tracking-tight mb-2 font-anton text-textured-any bg-[#0b3d2e] leading-[0.9] inline-block pb-[0.1em]">
+          <h1 className="text-6xl md:text-8xl font-normal !normal-case tracking-tight mb-2 font-anton text-textured-any bg-[#0b3d2e] leading-[1] inline-block pb-[0.1em]">
             {searchQuery ? `Results for "${searchQuery}"` : (filter === 'All' ? 'All products' : filter.charAt(0).toUpperCase() + filter.slice(1).toLowerCase())}
           </h1>
           <div className="w-32 h-1.5 bg-[#0b3d2e] mb-2 texture-chalkboard-strong"></div>
@@ -168,8 +168,8 @@ const ShopPage: React.FC<ShopPageProps> = ({
               key={cat}
               onClick={() => setFilter(cat)}
               className={`px-10 py-3 rounded-full font-normal text-base tracking-widest transition-all !normal-case shadow-md font-anton ${filter === cat
-                ? 'bg-[#0b3d2e] text-white'
-                : 'bg-white text-slate-400 hover:text-[#0b3d2e]'
+                ? 'bg-[#0b3d2e] !text-white'
+                : 'bg-white !text-[#0b3d2e] hover:opacity-80'
                 }`}
             >
               {cat}
@@ -204,15 +204,15 @@ const ShopPage: React.FC<ShopPageProps> = ({
 
                     {/* Discount Badge - Top Left Circle */}
                     {discount && (
-                      <div className="absolute top-0 left-0 z-20 w-14 h-14 bg-[#d32f2f] rounded-full flex flex-col items-center justify-center text-white leading-none shadow-lg">
-                        <span className="text-[14px] font-black">{discount}%</span>
-                        <span className="text-[8px] font-black uppercase">OFF</span>
+                      <div className="absolute top-0 left-0 z-20 w-10 h-10 md:w-14 md:h-14 bg-[#d32f2f] rounded-full flex flex-col items-center justify-center text-white leading-none shadow-lg">
+                        <span className="text-[10px] md:text-[14px] font-black">{discount}%</span>
+                        <span className="text-[6px] md:text-[8px] font-black uppercase">OFF</span>
                       </div>
                     )}
 
                     {/* Wishlist Heart - Top Right */}
                     <button
-                      className={`absolute top-2 right-2 z-20 p-2 transition-colors ${wishlistIds.has(product.id as any) ? 'text-red-500' : 'text-white/30 hover:text-red-500'}`}
+                      className="absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-all duration-300 shadow-sm active:scale-90"
                       onClick={async (e) => {
                         e.stopPropagation();
                         if (!user) {
@@ -244,7 +244,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
                         }
                       }}
                     >
-                      <span className="material-symbols-outlined fill-1 text-2xl">favorite</span>
+                      <span className={`material-symbols-outlined text-[18px] transition-colors ${wishlistIds.has(product.id as any) ? '!text-red-500 fill-1' : '!text-slate-300'}`}>favorite</span>
                     </button>
 
                     {/* Image */}
@@ -259,8 +259,8 @@ const ShopPage: React.FC<ShopPageProps> = ({
                       {/* Sold Out Badge - Center Circle */}
                       {product.stock <= 0 && (
                         <div className="absolute inset-0 flex items-center justify-center z-10">
-                          <div className="w-20 h-20 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center border border-slate-100 shadow-xl">
-                            <span className="text-[10px] font-black uppercase tracking-tighter text-slate-800 text-center leading-tight">
+                          <div className="w-14 h-14 md:w-20 md:h-20 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center border border-slate-100 shadow-xl">
+                            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-tighter text-slate-800 text-center leading-tight">
                               SOLD<br />OUT
                             </span>
                           </div>
@@ -282,34 +282,29 @@ const ShopPage: React.FC<ShopPageProps> = ({
                     </div>
 
                     {/* Title - Fixed min height for alignment */}
-                    <h3 className="text-xl md:text-2xl font-normal capitalize tracking-normal text-textured-any bg-[#0b3d2e] mb-2 px-2 leading-tight group-hover:opacity-80 transition-all text-center min-h-[3rem] md:min-h-[4rem] flex items-center justify-center font-anton pb-1">
+                    <h3 className="!text-[16px] md:!text-xl font-normal capitalize tracking-tight text-textured-any bg-[#0b3d2e] mb-1 px-1 !leading-[1.1] group-hover:opacity-80 transition-all text-center min-h-[3rem] md:!min-h-[3.5rem] flex items-center justify-center font-anton">
                       {product.name}
                     </h3>
 
                     {/* Bottom Section - Pushed to bottom for alignment */}
                     <div className="mt-auto w-full">
                       {/* Price */}
-                      <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-                        <span className="text-xl md:text-2xl font-bold text-[#228b44]">Rs. {product.price.toFixed(2)}</span>
+                      <div className="flex flex-wrap items-center justify-center gap-1.5 mb-3">
+                        <span className="text-lg md:text-2xl font-bold text-[#228b44]">Rs. {product.price.toFixed(2)}</span>
                         {product.originalPrice && product.originalPrice > product.price && (
-                          <span className="text-sm md:text-base font-medium text-slate-400 line-through">Rs. {product.originalPrice.toFixed(2)}</span>
+                          <span className="text-[10px] md:text-sm font-medium text-slate-400 line-through">Rs. {product.originalPrice.toFixed(2)}</span>
                         )}
                       </div>
 
                       <button
-                        className="w-5/6 mx-auto btn-greenboard py-3 md:py-4 rounded-xl font-bold text-xs md:text-sm uppercase tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+                        className="w-[95%] mx-auto btn-greenboard py-1.5 md:py-4 rounded-lg font-bold !text-[9px] md:!text-sm uppercase tracking-[0.2em] shadow-lg transition-all active:scale-95 flex items-center justify-center"
                         onClick={(e) => {
                           e.stopPropagation();
                           onAddToCart(product);
                         }}
                         disabled={product.stock <= 0}
                       >
-                        {product.stock <= 0 ? 'Out of Stock' : (
-                          <>
-                            ADD TO CART
-                            <i className="fa-solid fa-cart-shopping text-[10px] md:text-sm"></i>
-                          </>
-                        )}
+                        {product.stock <= 0 ? 'Out of Stock' : 'ADD TO CART'}
                       </button>
                     </div>
                   </div>
