@@ -65,7 +65,7 @@ class Review(models.Model):
     user_role = models.CharField(max_length=255)
     rating = models.IntegerField(default=5)
     comment = models.TextField()
-    date = models.CharField(max_length=50)  # Matching frontend string date
+    date = models.DateField()  # Matching frontend string date
     avatar = models.URLField(max_length=1000)
 
     def __str__(self):
@@ -80,7 +80,7 @@ class Event(models.Model):
     full_story = models.JSONField(default=list)  # List of {heading, content}
     gallery = models.JSONField(default=list)
     featured_products = models.JSONField(default=list)  # List of product IDs
-    date = models.CharField(max_length=50)
+    date = models.DateField()
     impact_participants = models.CharField(max_length=100, blank=True, null=True)
     fuel_bars_shared = models.CharField(max_length=100, blank=True, null=True)
     vibe_energy = models.CharField(max_length=100, blank=True, null=True)
@@ -98,16 +98,32 @@ class BlogPost(models.Model):
         ("News", "News"),
     ]
     post_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True)
     excerpt = models.TextField()
     image = models.TextField()
-    date = models.CharField(max_length=50)
+    date = models.DateField()
     read_time = models.CharField(max_length=20)
     author = models.CharField(max_length=100)
     content = models.JSONField(default=list)  # List of paragraphs
     tags = models.JSONField(default=list, blank=True)
     scheduled_date = models.DateField(blank=True, null=True)
     is_active = models.BooleanField(default=True, db_index=True)
+
+    # New Editorial Fields
+    subtitle = models.CharField(max_length=500, blank=True, null=True)
+    intro_heading = models.CharField(max_length=500, blank=True, null=True)
+    featured_quote = models.TextField(blank=True, null=True)
+    author_image = models.TextField(blank=True, null=True)
+    author_role = models.CharField(max_length=100, blank=True, null=True)
+    secondary_image = models.TextField(blank=True, null=True)
+    tertiary_image = models.TextField(blank=True, null=True)
+    facts_list = models.JSONField(default=list, blank=True)
+    key_points = models.JSONField(default=list, blank=True)
+    health_benefits = models.JSONField(default=list, blank=True)
+    usage_recipes = models.JSONField(default=list, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title

@@ -112,6 +112,41 @@ class BlogPostSerializer(serializers.ModelSerializer):
         model = BlogPost
         fields = "__all__"
 
+    def to_internal_value(self, data):
+        """Normalize content and tags before validation."""
+        # Normalize content: string -> list of strings
+        if "content" in data:
+            content = data["content"]
+            if isinstance(content, str):
+                data["content"] = [p.strip() for p in content.split("\n\n") if p.strip()]
+            elif not isinstance(content, list):
+                data["content"] = []
+
+        # Normalize/Validate tags
+        if "tags" in data:
+            tags = data["tags"]
+            if isinstance(tags, str):
+                # Handle comma-separated string if provided
+                tags = [t.strip() for t in tags.split(",") if t.strip()]
+                data["tags"] = tags
+            
+            if not isinstance(data.get("tags"), list):
+                # Only raise if it's explicitly provided but wrong type
+                if "tags" in data:
+                     raise serializers.ValidationError({"tags": "Tags must be a list or comma-separated string"})
+
+        return super().to_internal_value(data)
+
+    def to_representation(self, instance):
+        """Convert list content to string for frontend editing."""
+        data = super().to_representation(instance)
+        if isinstance(data.get("content"), list):
+            data["content"] = "\n\n".join(str(p) for p in data["content"])
+        return data
+
+
+
+
 
 class StorySerializer(serializers.ModelSerializer):
     class Meta:

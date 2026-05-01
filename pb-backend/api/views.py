@@ -192,9 +192,20 @@ class EventViewSet(viewsets.ModelViewSet):
 class BlogPostViewSet(viewsets.ModelViewSet):
     queryset = BlogPost.objects.all()
     serializer_class = BlogPostSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = PageNumberPagination
+
+    def get_permissions(self):
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            return [permissions.IsAdminUser()]
+        return [permissions.IsAuthenticatedOrReadOnly()]
 
     def get_queryset(self):
-        return BlogPost.objects.filter(is_active=True).order_by("-id")
+        # List view: only show active posts
+        # Detail view: check is_active separately (returns 404 for inactive if not staff)
+        if self.action == 'list':
+            return BlogPost.objects.filter(is_active=True).order_by("-id")
+        return BlogPost.objects.all().order_by("-id")
 
 
 class StoryViewSet(viewsets.ModelViewSet):
@@ -213,6 +224,136 @@ class HeroSlideViewSet(viewsets.ModelViewSet):
 
 from .utils import get_razorpay_client, send_email, send_order_confirmation_emails
 from django.conf import settings
+import hmac
+import hashlib
+import json
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class RazorpayWebhookView(APIView):
+    """
+    Razorpay Webhook Endpoint — Server-to-server payment confirmation.
+
+    Razorpay sends a POST request here whenever a payment event occurs.
+    This ensures orders are marked as paid even if the user's browser
+    closes before the frontend /verify/ call completes.
+    """
+
+    permission_classes = [AllowAny]
+    authentication_classes = []  # No auth — Razorpay can't send JWT tokens
+
+    def post(self, request):
+        # 1. Get the raw body and Razorpay signature from headers
+        webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET
+        if not webhook_secret:
+            print("[Webhook] ERROR: RAZORPAY_WEBHOOK_SECRET is not configured")
+            return Response(
+                {"error": "Webhook secret not configured"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        webhook_signature = request.META.get("HTTP_X_RAZORPAY_SIGNATURE", "")
+        webhook_body = request.body.decode("utf-8")
+
+        # 2. Verify the signature (HMAC SHA256 handshake)
+        expected_signature = hmac.new(
+            key=webhook_secret.encode("utf-8"),
+            msg=webhook_body.encode("utf-8"),
+            digestmod=hashlib.sha256,
+        ).hexdigest()
+
+        if not hmac.compare_digest(expected_signature, webhook_signature):
+            print("[Webhook] ERROR: Signature mismatch — rejecting request")
+            return Response(
+                {"error": "Invalid signature"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # 3. Parse the event
+        try:
+            payload = json.loads(webhook_body)
+        except json.JSONDecodeError:
+            return Response(
+                {"error": "Invalid JSON"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        event = payload.get("event", "")
+        print(f"[Webhook] Received event: {event}")
+
+        # 4. Handle payment.captured event
+        if event == "payment.captured":
+            payment_entity = (
+                payload.get("payload", {}).get("payment", {}).get("entity", {})
+            )
+            razorpay_order_id = payment_entity.get("order_id", "")
+            razorpay_payment_id = payment_entity.get("id", "")
+
+            if not razorpay_order_id:
+                print("[Webhook] WARNING: No order_id in payment entity")
+                return Response({"status": "ok"})
+
+            try:
+                order = Order.objects.get(razorpay_order_id=razorpay_order_id)
+
+                # Only process if the order hasn't already been marked as paid
+                if order.status in ("Pending", "Created"):
+                    order.status = "Processing"
+                    order.razorpay_payment_id = razorpay_payment_id
+                    order.save()
+
+                    # Award points
+                    from .utils import award_points
+
+                    spend_points = int(order.total_amount / 100) * 10
+                    if spend_points > 0 and order.user:
+                        award_points(
+                            order.user,
+                            "purchase",
+                            custom_points=spend_points,
+                            reason_override=f"Points earned on Order #{order.id}",
+                        )
+
+                    # First order bonus
+                    if order.user:
+                        order_count = Order.objects.filter(
+                            user=order.user,
+                            status__in=["Processing", "Paid", "Shipped", "Delivered"],
+                        ).count()
+                        if order_count == 1:
+                            award_points(order.user, "first_order")
+
+                    # Send confirmation emails
+                    send_order_confirmation_emails(order, razorpay_payment_id)
+
+                    print(
+                        f"[Webhook] ✅ Order #{order.id} marked as Processing via webhook"
+                    )
+                else:
+                    print(
+                        f"[Webhook] Order #{order.id} already in status '{order.status}' — skipping"
+                    )
+
+            except Order.DoesNotExist:
+                print(
+                    f"[Webhook] WARNING: No order found for razorpay_order_id={razorpay_order_id}"
+                )
+
+        elif event == "payment.failed":
+            payment_entity = (
+                payload.get("payload", {}).get("payment", {}).get("entity", {})
+            )
+            razorpay_order_id = payment_entity.get("order_id", "")
+            print(
+                f"[Webhook] ⚠️ Payment failed for razorpay_order_id={razorpay_order_id}"
+            )
+
+        # Always return 200 so Razorpay doesn't keep retrying
+        return Response({"status": "ok"})
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -369,11 +510,11 @@ class OrderViewSet(viewsets.ModelViewSet):
             order.razorpay_order_id = razorpay_order["id"]
             order.save()
         except Exception as e:
-            # If Razorpay fails, we shouldn't just crash. 
+            # If Razorpay fails, we shouldn't just crash.
             # We can return an error to the frontend so it knows why.
             return Response(
                 {"error": f"Razorpay order creation failed: {str(e)}"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         return Response(

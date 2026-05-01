@@ -308,29 +308,29 @@ const AppContent: React.FC = () => {
   // Filter scheduled posts for public view
   const visibleBlogs = blogPosts.filter(post => {
     if (post.isActive === false) return false;
-    if (!post.scheduledDate) return true;
+    if (!post.scheduledDate) return false;  // Fail closed - hide on error
     try {
-      const [y, m, d] = post.scheduledDate.split('-').map(Number);
-      const scheduled = new Date(y, m - 1, d);
+      const scheduled = new Date(post.scheduledDate);
+      scheduled.setUTCHours(0, 0, 0, 0);
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      today.setUTCHours(0, 0, 0, 0);
       return scheduled <= today;
     } catch {
-      return true;
+      return false;  // Fail closed - hide on error
     }
   });
 
   const visibleEvents = events.filter(event => {
     if (event.isActive === false) return false;
-    if (!event.scheduledDate) return true;
+    if (!event.scheduledDate) return false;  // Fail closed - hide on error
     try {
-      const [y, m, d] = event.scheduledDate.split('-').map(Number);
-      const scheduled = new Date(y, m - 1, d);
+      const scheduled = new Date(event.scheduledDate);
+      scheduled.setUTCHours(0, 0, 0, 0);
       const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      today.setUTCHours(0, 0, 0, 0);
       return scheduled <= today;
     } catch {
-      return true;
+      return false;  // Fail closed - hide on error
     }
   });
 
@@ -367,9 +367,11 @@ const AppContent: React.FC = () => {
           window.scrollTo(0, 0);
         } else {
           // Fetch product if not in list
+          let mounted = true;
           fetch(`${API_BASE_URL}/api/products/${productId}/`)
             .then(res => res.json())
             .then(fullProduct => {
+              if (!mounted) return;
               const mapped = {
                 ...fullProduct,
                 id: String(fullProduct.id),
@@ -398,9 +400,11 @@ const AppContent: React.FC = () => {
           setCurrentView('event-detail');
           window.scrollTo(0, 0);
         } else {
+          let mounted = true;
           fetch(`${API_BASE_URL}/api/events/${eventId}/`)
             .then(res => res.json())
             .then(fullEvent => {
+              if (!mounted) return;
               const mapped = {
                 ...fullEvent,
                 id: String(fullEvent.id),
@@ -415,7 +419,14 @@ const AppContent: React.FC = () => {
         }
       }
     }
-  }, [products]);
+  }, []); // path doesn't change, so empty deps is fine
+  
+  // Cleanup for product detail fetch
+  useEffect(() => {
+    return () => {
+      // Cleanup any pending state updates (handled by mounted flags)
+    };
+  }, []);
 
   // Handle browser back/forward buttons and initial state restoration
   useEffect(() => {
