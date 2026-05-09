@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HeroSlide } from '../types';
+import { getMediaUrl } from '../utils/mediaHelper';
 
 interface HeroSliderProps {
     slides?: HeroSlide[];
@@ -72,7 +73,7 @@ const SimpleHeroSlider: React.FC<HeroSliderProps> = ({ slides = [] }) => {
                     className="absolute inset-0 w-full h-full"
                 >
                     <img
-                        src={(isMobile && activeSlides[current].mobileImage) ? activeSlides[current].mobileImage : activeSlides[current].image}
+                        src={getMediaUrl((isMobile && activeSlides[current].mobileImage) ? activeSlides[current].mobileImage : activeSlides[current].image)}
                         alt={`Slide ${current + 1}`}
                         className="w-full h-full object-cover"
                     />

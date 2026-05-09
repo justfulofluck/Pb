@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { EventBlog } from '../types';
+import { getMediaUrl } from '../utils/mediaHelper';
 
 interface EventsSectionProps {
   events: EventBlog[];
@@ -48,7 +49,7 @@ const EventsSection: React.FC<EventsSectionProps> = ({ events, onParticipateClic
             <div key={event.id} className="group rounded-3xl overflow-hidden border-2 border-slate-100 hover:border-slate-900 transition-all hover:shadow-2xl bg-white relative cursor-pointer" onClick={onViewRecapsClick}>
               <div className="aspect-[4/3] overflow-hidden">
                 <img
-                  src={event.image}
+                  src={getMediaUrl(event.image)}
                   alt={event.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
@@ -58,7 +59,7 @@ const EventsSection: React.FC<EventsSectionProps> = ({ events, onParticipateClic
                   <span className="material-symbols-outlined text-sm">calendar_today</span>
                   {event.date}
                 </div>
-                <h3 className="text-2xl font-black uppercase text-slate-900 leading-tight mb-2 group-hover:text-primary transition-colors">{event.title}</h3>
+                <h3 className="font-black uppercase text-slate-900 leading-tight mb-2 group-hover:text-primary transition-colors">{event.title}</h3>
                 <div className="flex items-center gap-2 text-slate-500 font-medium text-sm">
                   <span className="material-symbols-outlined text-lg">location_on</span>
                   {event.location}

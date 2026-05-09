@@ -1,5 +1,7 @@
 import React from 'react';
 import { CATEGORY_DISPLAY_DATA, Product } from '../types';
+import { API_BASE_URL } from '../config';
+import { getMediaUrl } from '../utils/mediaHelper';
 
 interface CategoryListProps {
   onCategoryClick: (category: string) => void;
@@ -71,7 +73,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="text-center mb-8 md:mb-24 relative">
           <span className="font-handdrawn text-2xl md:text-3xl text-primary transform rotate-6 inline-block mb-2 absolute -top-10 left-1/2 translate-x-[20px] md:translate-x-[90px] lg:translate-x-[120px] drop-shadow-sm">Pick your fav!</span>
-          <h2 className="text-5xl md:text-8xl font-normal text-textured-green !normal-case tracking-tight leading-[1] font-anton">
+          <h2 className="font-normal text-textured-green uppercase tracking-wide [word-spacing:0.05em] !font-anton">
             Explore What You Love
           </h2>
           <div className="w-16 md:w-24 h-1.5 md:h-2 bg-[#0b3d2e] mx-auto mt-4 md:mt-6 rounded-full"></div>
@@ -104,7 +106,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
               <div className="absolute bottom-0 left-0 w-full h-[75%] z-10 transition-transform duration-700 group-hover:scale-105 group-hover:rotate-1 origin-bottom">
                 <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-[140%] h-[120%] bg-white rounded-t-full opacity-40 blur-xl`}></div>
                 <img
-                  src={item.image}
+                  src={getMediaUrl(item.image)}
                   alt={item.display}
                   className={`w-full h-full object-cover ${item.imagePosition || 'object-center'} drop-shadow-2xl`}
                   style={{ maskImage: 'linear-gradient(to top, black 70%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to top, black 70%, transparent 100%)' }}
@@ -142,7 +144,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
                     <div className={`relative w-24 h-24 md:w-36 md:h-36 rounded-full bg-white shadow-[0_20px_45px_rgba(0,0,0,0.12)] p-1 flex items-center justify-center border-4 border-white transition-all duration-500 group-active:scale-95`}>
                       <div className="w-full h-full rounded-full overflow-hidden">
                         <img
-                          src={item.image}
+                          src={getMediaUrl(item.image)}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                           alt={item.display}
                           draggable={false}

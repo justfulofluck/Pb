@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { Product } from '../../types';
+import { getMediaUrl } from '../../utils/mediaHelper';
 import SnaxxoProductCarousel from './SnaxxoProductCarousel';
 
 interface SnaxxoProductWheelProps {
@@ -389,7 +390,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                 <div className="bg-[#0b3d2e] texture-overlay texture-speckles text-white font-black text-[10px] sm:text-xs md:text-sm uppercase tracking-widest px-3 py-1 md:px-4 md:py-1.5 rounded-sm -rotate-3 mb-1 inline-block shadow-sm z-10" style={{ transformOrigin: 'center' }}>
                     Flavors you Love
                 </div>
-                <h2 className="text-5xl sm:text-6xl md:text-8xl lg:text-[100px] text-textured-green tracking-tight leading-[0.85] mb-1 relative z-0 font-anton font-normal !normal-case">
+                <h2 className="text-5xl sm:text-6xl md:text-8xl lg:text-[100px] text-textured-green tracking-wide [word-spacing:0.05em] leading-[0.85] mb-1 relative z-0 !font-anton font-normal uppercase">
                     Customer's<br />favorite
                 </h2>
                 <div className="w-24 md:w-32 h-2 md:h-2.5 bg-[#0b3d2e] mb-4 rounded-full"></div>
@@ -441,7 +442,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                                             <div className="aspect-[4/5] cursor-pointer relative">
                                                 <img
                                                     loading="lazy"
-                                                    src={product.image}
+                                                    src={getMediaUrl(product.image)}
                                                     alt={product.name}
                                                     className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-700 group-hover:scale-105"
                                                     style={{ mixBlendMode: 'multiply' }}

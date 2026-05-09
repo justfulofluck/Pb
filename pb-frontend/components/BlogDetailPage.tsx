@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import DOMPurify from 'dompurify';
 import { BlogPost } from '../types';
+import { getMediaUrl } from '../utils/mediaHelper';
 import { useToast } from './Toast';
 
 
@@ -102,7 +103,7 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeCli
         <div className="mb-24 -mx-4 md:-mx-20 relative group">
           <img 
             className="w-full h-[400px] md:h-[600px] object-cover rounded-3xl shadow-2xl transition-transform duration-700 group-hover:scale-[1.01]" 
-            src={post.image} 
+            src={getMediaUrl(post.image)} 
             alt={post.title}
           />
           <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-black/10"></div>
@@ -134,7 +135,7 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeCli
         {post.secondary_image && (
           <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
             <div className="order-2 md:order-1">
-              <img src={post.secondary_image} alt="Process" className="w-full rounded-3xl shadow-xl aspect-[4/5] object-cover" />
+              <img src={getMediaUrl(post.secondary_image)} alt="Process" className="w-full rounded-3xl shadow-xl aspect-[4/5] object-cover" />
             </div>
             <div className="order-1 md:order-2 space-y-6">
               <span className="text-xs font-black uppercase tracking-[0.3em] text-primary">The Heritage</span>
@@ -187,7 +188,7 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeCli
             </div>
             {post.tertiary_image && (
               <div className="relative group">
-                <img src={post.tertiary_image} alt="Benefits" className="w-full rounded-[2.5rem] shadow-2xl grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700" />
+                <img src={getMediaUrl(post.tertiary_image)} alt="Benefits" className="w-full rounded-[2.5rem] shadow-2xl grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700" />
                 <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-primary rounded-full flex items-center justify-center text-white p-6 text-center text-[10px] font-black uppercase tracking-widest shadow-xl rotate-12 group-hover:rotate-0 transition-transform">
                   Power Packed
                 </div>
@@ -222,7 +223,7 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeCli
               {post.usage_recipes.map((recipe, idx) => (
                 <div key={idx} className="flex flex-col items-center text-center group cursor-pointer">
                   <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-surface-container shadow-xl mb-6 group-hover:border-primary transition-colors duration-500 ring-8 ring-transparent group-hover:ring-primary/10">
-                    <img src={recipe.image} alt={recipe.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <img src={getMediaUrl(recipe.image)} alt={recipe.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                   </div>
                   <h4 className="text-sm font-black uppercase tracking-tight mb-2 group-hover:text-primary transition-colors">{recipe.title}</h4>
                   <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-60 leading-relaxed px-4">

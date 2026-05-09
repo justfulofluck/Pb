@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Product } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from './Toast';
 import { API_BASE_URL } from '../config';
 import { formatPrice } from '../utils/formatters';
 import { analytics } from '../utils/analytics';
+import { getMediaUrl } from '../utils/mediaHelper';
 
 interface ProductGridProps {
   products: Product[];
@@ -42,7 +43,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
     fetchWishlist();
   }, [user]);
 
-  const toggleWishlist = async (e: React.MouseEvent, productId: string) => {
+  const toggleWishlist = useCallback(async (e: React.MouseEvent, productId: string) => {
     e.stopPropagation();
     if (!user) {
       showToast('Please log in to save to your wishlist.', 'warning');
@@ -60,36 +61,41 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
       });
       if (response.ok) {
         const data = await response.json();
-        const newIds = new Set<string>(wishlistIds);
+        
+        setWishlistIds(prev => {
+          const next = new Set(prev);
+          if (data.status === 'added') {
+            next.add(productId);
+          } else {
+            next.delete(productId);
+          }
+          return next;
+        });
+
         if (data.status === 'added') {
-          newIds.add(productId);
           showToast('Added to wishlist!', 'success');
           const p = products.find(prod => String(prod.id) === productId);
           if (p) analytics.trackWishlistAction(p, 'add');
         } else {
-          newIds.delete(productId);
           showToast('Removed from wishlist', 'info');
           const p = products.find(prod => String(prod.id) === productId);
           if (p) analytics.trackWishlistAction(p, 'remove');
         }
-        setWishlistIds(newIds);
       }
     } catch (error) {
       console.error("Failed to toggle wishlist", error);
       showToast('Failed to update wishlist', 'error');
     }
-  };
+  }, [user, products, showToast]);
 
   // Skeleton loader component matching the new style
-  const LoadingSkeleton = () => (
-    <div className="flex flex-col animate-pulse">
-      <div className="w-full aspect-square bg-slate-200 rounded-xl mb-4"></div>
-      <div className="w-3/4 h-5 bg-slate-200 rounded mb-2 mx-auto"></div>
-      <div className="w-1/2 h-4 bg-slate-200 rounded mb-2 mx-auto"></div>
-      <div className="w-full h-4 bg-slate-200 rounded mb-4 mx-auto"></div>
-      <div className="w-full h-12 bg-slate-200 rounded-lg"></div>
+  const LoadingSkeleton = React.memo(() => (
+    <div className="animate-pulse">
+      <div className="w-full aspect-[4/5] bg-white/50 rounded-2xl mb-4"></div>
+      <div className="w-3/4 h-5 bg-white/50 rounded mb-2 mx-auto"></div>
+      <div className="w-1/2 h-4 bg-white/50 rounded mx-auto"></div>
     </div>
-  );
+  ));
 
   return (
     <section id="products" className="py-24 bg-whiteboard texture-overlay texture-speckles">
@@ -106,13 +112,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 md:gap-x-10 gap-y-12 md:gap-y-20">
           {isLoading ? (
-            [1, 2, 3, 4].map((n) => (
-              <div key={`skeleton-${n}`} className="animate-pulse">
-                <div className="w-full aspect-[4/5] bg-white/50 rounded-2xl mb-4"></div>
-                <div className="w-3/4 h-5 bg-white/50 rounded mb-2 mx-auto"></div>
-                <div className="w-1/2 h-4 bg-white/50 rounded mx-auto"></div>
-              </div>
-            ))
+            [1, 2, 3, 4].map((n) => <LoadingSkeleton key={`skeleton-${n}`} />)
           ) : (
             products.map((product) => {
               const discount = product.originalPrice && product.originalPrice > product.price
@@ -147,7 +147,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
                     <div className="w-full h-full flex items-center justify-center relative">
                       <img
                         alt={product.name}
-                        src={product.image}
+                        src={getMediaUrl(product.image)}
                         className="w-full h-full object-contain drop-shadow-2xl transition-transform duration-700 group-hover:scale-105"
                         style={{ mixBlendMode: 'multiply' }}
                       />

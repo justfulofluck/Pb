@@ -35,12 +35,26 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({
   const [data, setData] = React.useState<any>(animationData);
 
   React.useEffect(() => {
+    const abortController = new AbortController();
+
     if (path && !animationData) {
-      fetch(path)
+      fetch(path, { signal: abortController.signal })
         .then(res => res.json())
-        .then(json => setData(json))
-        .catch(err => console.error('Error loading Lottie animation from path:', err));
+        .then(json => {
+          if (!abortController.signal.aborted) {
+            setData(json);
+          }
+        })
+        .catch(err => {
+          if (err.name !== 'AbortError') {
+            console.error('Error loading Lottie animation from path:', err);
+          }
+        });
     }
+
+    return () => {
+      abortController.abort();
+    };
   }, [path, animationData]);
 
   if (!data) return <div className={className} style={style} />;

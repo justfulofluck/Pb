@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
 import { API_BASE_URL } from '../config';
+import { getMediaUrl } from '../utils/mediaHelper';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from './Toast';
 
@@ -153,8 +154,8 @@ const ShopPage: React.FC<ShopPageProps> = ({
       <div className="pt-6 md:pt-10 pb-6 px-4 relative overflow-hidden">
 
         <div className="max-w-4xl mx-auto relative z-10 text-center flex flex-col items-center">
-          <h1 className="text-6xl md:text-8xl font-normal !normal-case tracking-tight mb-2 font-anton text-textured-any bg-[#0b3d2e] leading-[1] inline-block pb-[0.1em]">
-            {searchQuery ? `Results for "${searchQuery}"` : (filter === 'All' ? 'All products' : filter.charAt(0).toUpperCase() + filter.slice(1).toLowerCase())}
+          <h1 className="font-normal uppercase tracking-wider [word-spacing:0.05em] mb-2 !font-anton text-textured-any bg-[#0b3d2e] inline-block pb-[0.1em]">
+            {searchQuery ? `Results for "${searchQuery}"`.toUpperCase() : (filter === 'All' ? 'All products' : filter).toUpperCase()}
           </h1>
           <div className="w-32 h-1.5 bg-[#0b3d2e] mb-2 texture-chalkboard-strong"></div>
         </div>
@@ -167,7 +168,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-10 py-3 rounded-full font-normal text-base tracking-widest transition-all !normal-case shadow-md font-anton ${filter === cat
+              className={`px-10 py-3 rounded-full font-normal text-base tracking-wide [word-spacing:0.02em] uppercase transition-all shadow-md !font-anton ${filter === cat
                 ? 'bg-[#0b3d2e] !text-white'
                 : 'bg-white !text-[#0b3d2e] hover:opacity-80'
                 }`}
@@ -250,7 +251,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
                     {/* Image */}
                     <div className="w-full h-full flex items-center justify-center relative">
                       <img
-                        src={product.image}
+                        src={getMediaUrl(product.image)}
                         className="max-w-full max-h-full object-contain drop-shadow-2xl transition-transform duration-700 ease-out group-hover:scale-105"
                         style={{ mixBlendMode: 'multiply' }}
                         alt={product.name}
@@ -282,12 +283,12 @@ const ShopPage: React.FC<ShopPageProps> = ({
                     </div>
 
                     {/* Title - Fixed min height for alignment */}
-                    <h3 className="!text-[16px] md:!text-xl font-normal capitalize tracking-tight text-textured-any bg-[#0b3d2e] mb-1 px-1 !leading-[1.1] group-hover:opacity-80 transition-all text-center min-h-[3rem] md:!min-h-[3.5rem] flex items-center justify-center font-anton">
-                      {product.name}
+                    <h3 className="!text-[16px] md:!text-2xl font-normal uppercase tracking-wide [word-spacing:0.02em] text-textured-any bg-[#0b3d2e] mb-1 !px-4 md:!px-8 !leading-[1.1] group-hover:opacity-80 transition-all text-center min-h-[2.5rem] md:!min-h-[3.5rem] flex items-center justify-center !font-anton w-fit mx-auto">
+                      {product.name.toUpperCase()}
                     </h3>
 
                     {/* Bottom Section - Pushed to bottom for alignment */}
-                    <div className="mt-auto w-full">
+                    <div className="mt-auto w-full flex flex-col items-center">
                       {/* Price */}
                       <div className="flex flex-wrap items-center justify-center gap-1.5 mb-3">
                         <span className="text-lg md:text-2xl font-bold text-[#228b44]">Rs. {product.price.toFixed(2)}</span>
@@ -297,7 +298,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
                       </div>
 
                       <button
-                        className="w-[95%] mx-auto btn-greenboard py-1.5 md:py-4 rounded-lg font-bold !text-[9px] md:!text-sm uppercase tracking-[0.2em] shadow-lg transition-all active:scale-95 flex items-center justify-center"
+                        className="w-[95%] md:w-fit mx-auto btn-greenboard py-2 md:py-3 px-2 md:px-[50px] rounded-lg font-bold !text-[10px] md:!text-base uppercase tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center font-anton"
                         onClick={(e) => {
                           e.stopPropagation();
                           onAddToCart(product);

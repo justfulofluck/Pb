@@ -37,3 +37,4 @@ ffmpeg-python==0.2.0
 gdown==5.2.0
 hiredis>=2.0.0
 redis>=4.5.0
+django-redis==6.0.0

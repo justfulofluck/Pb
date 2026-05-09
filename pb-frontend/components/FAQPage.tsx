@@ -55,7 +55,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onHomeClick }) => {
       <div className="max-w-6xl mx-auto px-4 relative z-10">
         <div className="text-center mb-16 relative">
           <div className="relative inline-block">
-            <h1 className="text-4xl md:text-6xl font-normal !normal-case text-slate-900 tracking-tight leading-[1] font-anton">
+            <h1 className="text-4xl md:text-6xl font-normal uppercase text-slate-900 tracking-wide [word-spacing:0.05em] leading-[1] !font-anton">
               Nuts & bolts: <span className="text-accent-brown">Your questions</span>
             </h1>
             <div className="absolute -top-8 -right-8 md:-right-24 transform rotate-6 border-2 border-slate-900 px-3 py-1 rounded bg-white shadow-sm hidden sm:block">
@@ -84,7 +84,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onHomeClick }) => {
 
         <div className="grid lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-8 relative">
-            <h3 className="font-normal text-2xl !normal-case text-slate-700 mb-6 pl-2 border-l-4 border-slate-900 font-anton tracking-tight">General munchies</h3>
+            <h3 className="font-normal text-2xl uppercase text-slate-700 mb-6 pl-2 border-l-4 border-slate-900 !font-anton tracking-wide [word-spacing:0.02em]">General munchies</h3>
             <div className="space-y-4">
               {filteredFAQs.map((faq, index) => (
                 <div

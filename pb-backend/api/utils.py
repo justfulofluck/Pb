@@ -154,3 +154,49 @@ def deduct_points(user, points, reason):
     except Exception as e:
         print(f"Error deducting points: {e}")
         return False, str(e)
+
+
+def cache_get_or_set_fallback(key, default_func, timeout=300, local_timeout=60):
+    """
+    Get from cache or compute and set with fallback to local memory if Redis fails.
+
+    Args:
+        key: Cache key
+        default_func: Callable that returns the value if not in cache
+        timeout: Redis cache timeout (seconds)
+        local_timeout: Local memory cache timeout (seconds)
+
+    Returns:
+        Cached or computed value
+    """
+    from django.core.cache import caches
+
+    # Try Redis cache first
+    redis_cache = caches["default"]
+    try:
+        value = redis_cache.get(key)
+        if value is not None:
+            return value
+
+        # Compute and store in Redis
+        value = default_func()
+        redis_cache.set(key, value, timeout=timeout)
+        # Also store in local memory as backup
+        caches["local_memory"].set(key, value, timeout=local_timeout)
+        return value
+    except Exception:
+        # Redis failed, fallback to local memory
+        try:
+            value = caches["local_memory"].get(key)
+            if value is not None:
+                return value
+        except Exception:
+            pass
+
+        # Compute and store locally only
+        value = default_func()
+        try:
+            caches["local_memory"].set(key, value, timeout=local_timeout)
+        except Exception:
+            pass
+        return value

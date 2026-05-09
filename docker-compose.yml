@@ -12,6 +12,11 @@ services:
       MYSQL_ROOT_PASSWORD: root_password
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "pinoadmino", "--password=pinopazz_intra" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - pb-network
 
@@ -23,34 +28,20 @@ services:
     env_file:
       - .env
     ports:
-      - "8003:8000"
+      - "8000:8000"
     volumes:
       - media_data:/app/media
     networks:
       - pb-network
     depends_on:
-      - db
-      - redis
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/api/products/" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  redis:
-    image: redis:7-alpine
-    container_name: pb_redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    networks:
-      - pb-network
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
+      db:
+        condition: service_healthy
 
   frontend:
-    build: ./pb-frontend
+    build:
+      context: ./pb-frontend
+      args:
+        VITE_API_URL: https://pinobite.com
     image: bgtuser/pb-front:latest
     container_name: pb-frontend
     restart: unless-stopped
@@ -69,5 +60,4 @@ networks:
 
 volumes:
   mysql_data:
-  redis_data:
   media_data:

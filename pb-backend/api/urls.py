@@ -30,6 +30,7 @@ from .views import (
     RewardTransactionViewSet,
     ProcessDriveVideoView,
     WishlistViewSet,
+    RazorpayWebhookView,
 )
 
 router = DefaultRouter()
@@ -90,6 +91,11 @@ urlpatterns = [
         "wishlist/shared/",
         WishlistViewSet.as_view({"get": "get_shared"}),
         name="wishlist_shared",
+    ),
+    path(
+        "razorpay/webhook/",
+        RazorpayWebhookView.as_view(),
+        name="razorpay_webhook",
     ),
 ]
 

@@ -152,13 +152,20 @@ const Navbar: React.FC<NavbarProps> = ({
           <div className="hidden lg:grid grid-cols-[1fr_auto_1fr] items-center h-24">
             {/* Left side: Navigation Links */}
             <div className="flex items-center gap-10 font-black text-[13px] tracking-widest text-slate-800 transition-all duration-300">
-              <button onClick={onJourneyClick} className="hover:text-primary transition-colors uppercase font-anton text-lg tracking-widest">OUR JOURNEY</button>
+              <button 
+                onClick={onJourneyClick} 
+                className="hover:text-primary transition-colors uppercase force-anton tracking-wide [word-spacing:0.02em]"
+                style={{ fontSize: '22px' }}
+              >
+                OUR JOURNEY
+              </button>
               <div className="relative group/menu" ref={dropdownRef}>
                 <button
                   onClick={() => setIsProductsDropdownOpen(!isProductsDropdownOpen)}
-                  className={`hover:text-primary transition-colors uppercase font-anton text-lg tracking-widest flex items-center gap-1 ${isProductsDropdownOpen ? 'text-primary' : ''}`}
+                  className={`hover:text-primary transition-colors uppercase force-anton tracking-wide [word-spacing:0.02em] flex items-center gap-1 ${isProductsDropdownOpen ? 'text-primary' : ''}`}
+                  style={{ fontSize: '22px' }}
                 >
-                  PRODUCTS <span className="material-symbols-outlined text-[14px] font-bold">expand_more</span>
+                  PRODUCTS <span className="material-symbols-outlined text-[18px] font-bold">expand_more</span>
                 </button>
 
                 {/* Products Dropdown */}
@@ -222,7 +229,7 @@ const Navbar: React.FC<NavbarProps> = ({
               </button>
               <button
                 onClick={onCartClick}
-                className="flex items-center gap-2 bg-primary !text-white border-2 border-black px-6 py-2.5 rounded-[4px] font-black font-satoshi text-xl tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all uppercase"
+                className="bg-[#c5f82a] text-[#0b3d2e] px-5 py-2.5 rounded-lg force-anton text-[22px] leading-none tracking-wide hover:brightness-95 transition-all uppercase flex items-center justify-center min-w-[120px]"
               >
                 CART ({cartCount})
               </button>
@@ -256,8 +263,8 @@ const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
 
-            {/* Right: Menu */}
-            <div className="flex items-center justify-end">
+            {/* Right: Actions */}
+            <div className="flex items-center justify-end gap-3">
               {/* Hamburger Button (Colored Square) */}
               <button
                 onClick={() => setIsMenuOpen(true)}
@@ -288,7 +295,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search for healthy snacks..."
-                      className="w-full pl-16 pr-24 py-5 bg-white border-2 border-slate-200 focus:border-primary rounded-[28px] text-slate-900 placeholder:text-slate-400 outline-none transition-all font-bold text-xl shadow-lg"
+                      className="w-full pl-16 pr-24 py-5 bg-white border-2 border-slate-200 focus:border-primary rounded-[28px] text-slate-900 placeholder:text-slate-400 placeholder:font-anton outline-none transition-all font-anton text-xl shadow-lg"
                     />
                     <div className="absolute right-4 flex items-center gap-2">
                       {searchQuery && (
@@ -318,7 +325,7 @@ const Navbar: React.FC<NavbarProps> = ({
                     {/* Products Section */}
                     {filteredProducts.length > 0 && (
                       <div className="space-y-4">
-                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] !text-slate-400 flex items-center gap-2 px-2">
+                        <h4 className="text-[12px] font-anton uppercase tracking-[0.2em] !text-slate-400 flex items-center gap-2 px-2">
                           <span className="w-8 h-px bg-slate-100"></span>
                           Products
                         </h4>
@@ -347,7 +354,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       {/* Blogs Section */}
                       {filteredBlogs.length > 0 && (
                         <div className="space-y-4">
-                          <h4 className="text-[10px] font-black uppercase tracking-[0.2em] !text-slate-400 flex items-center gap-2 px-2">
+                          <h4 className="text-[12px] font-anton uppercase tracking-[0.2em] !text-slate-400 flex items-center gap-2 px-2">
                             <span className="w-8 h-px bg-slate-100"></span>
                             Insights
                           </h4>
@@ -374,7 +381,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       {/* Events Section */}
                       {filteredEvents.length > 0 && (
                         <div className="space-y-4">
-                          <h4 className="text-[10px] font-black uppercase tracking-[0.2em] !text-slate-400 flex items-center gap-2 px-2">
+                          <h4 className="text-[12px] font-anton uppercase tracking-[0.2em] !text-slate-400 flex items-center gap-2 px-2">
                             <span className="w-8 h-px bg-slate-100"></span>
                             Community
                           </h4>
@@ -477,12 +484,6 @@ const Navbar: React.FC<NavbarProps> = ({
                   className="block font-bold text-base text-white/80 hover:text-white transition-colors pt-4"
                 >
                   {isLoggedIn ? 'ACCOUNT SETTINGS' : 'LOG IN / SIGN UP'}
-                </button>
-                <button
-                  onClick={() => { onCartClick(); closeMenu(); }}
-                  className="block font-anton text-base text-white/80 hover:text-white transition-colors"
-                >
-                  VIEW CART ({cartCount})
                 </button>
               </div>
             </div>

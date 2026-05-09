@@ -12,11 +12,13 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
+
 try:
     from dotenv import load_dotenv
+
     # Load .env from the project root (one level up from BASE_DIR)
     BASE_DIR = Path(__file__).resolve().parent.parent
-    load_dotenv(BASE_DIR.parent / '.env')
+    load_dotenv(BASE_DIR.parent / ".env")
 except ImportError:
     pass
 
@@ -25,8 +27,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 try:
     from dotenv import load_dotenv
+
     # Load .env from the project root (one level up from BASE_DIR)
-    load_dotenv(BASE_DIR.parent / '.env')
+    load_dotenv(BASE_DIR.parent / ".env")
 except ImportError:
     pass
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -60,13 +63,6 @@ INSTALLED_APPS = [
     "api",
 ]
 
-REST_FRAMEWORK = {
-    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -114,6 +110,13 @@ DATABASES = {
         "PASSWORD": os.environ.get("DB_PASSWORD", "pinopazz_intra"),
         "HOST": os.environ.get("DB_HOST", "localhost"),
         "PORT": os.environ.get("DB_PORT", "3306"),
+        # Connection pooling - keep connections open for 10 minutes
+        # This avoids connection churn and reduces DB CPU load
+        "CONN_MAX_AGE": 600,
+        "OPTIONS": {
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES', innodb_lock_wait_timeout=50",
+            "connect_timeout": 10,
+        },
     }
 }
 
@@ -214,11 +217,12 @@ YAGMAIL_USER = EMAIL_HOST_USER
 YAGMAIL_PASSWORD = EMAIL_HOST_PASSWORD
 
 # Admin Email for Order Notifications
-ADMIN_EMAIL = "thakarkushagra@gmail.com"    
+ADMIN_EMAIL = "thakarkushagra@gmail.com"
 
 # Razorpay Configuration
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "rzp_test_z4U8U86g666666")
 RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "888888888888888888888888")
+RAZORPAY_WEBHOOK_SECRET = os.environ.get("RAZORPAY_WEBHOOK_SECRET", "")
 
 AUTHENTICATION_BACKENDS = [
     "api.backends.EmailBackend",
@@ -234,9 +238,8 @@ REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/1",
-        "KEY_PREFIX": "pinobite",
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
         "TIMEOUT": 300,
     }
 }
@@ -245,3 +248,4 @@ CACHE_VIEW_TIMEOUT = 60
 CACHE_PRODUCT_TIMEOUT = 300
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://pinobite.com")

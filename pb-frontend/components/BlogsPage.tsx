@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { BlogPost } from '../types';
+import { getMediaUrl } from '../utils/mediaHelper';
 
 interface BlogsPageProps {
   posts: BlogPost[];
@@ -27,7 +28,7 @@ const BlogsPage: React.FC<BlogsPageProps> = ({ posts, onBlogClick, onHomeClick }
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <span className="font-handdrawn text-3xl text-primary transform -rotate-2 inline-block mb-4">Read, Cook, Eat, Repeat</span>
-          <h1 className="text-5xl md:text-8xl font-normal !normal-case tracking-tight mb-6 font-anton leading-[1]">
+          <h1 className="text-5xl md:text-8xl font-normal uppercase tracking-wide [word-spacing:0.05em] mb-6 !font-anton leading-[1]">
             The Wellness Journal
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto font-medium">
@@ -87,7 +88,7 @@ const BlogsPage: React.FC<BlogsPageProps> = ({ posts, onBlogClick, onHomeClick }
                   </div>
                 </div>
 
-                <h3 className="text-xl font-normal text-primary leading-snug mb-5 transition-colors min-h-[3.5rem] font-anton !normal-case tracking-tight">
+                <h3 className="text-xl font-normal text-primary leading-snug mb-5 transition-colors min-h-[3.5rem] !font-anton uppercase tracking-wide [word-spacing:0.02em]">
                   {post.title}
                 </h3>
 
@@ -101,7 +102,7 @@ const BlogsPage: React.FC<BlogsPageProps> = ({ posts, onBlogClick, onHomeClick }
 
                 <div className="mt-auto aspect-[16/9] rounded-xl overflow-hidden">
                   <img
-                    src={post.image}
+                    src={getMediaUrl(post.image)}
                     alt={post.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                   />

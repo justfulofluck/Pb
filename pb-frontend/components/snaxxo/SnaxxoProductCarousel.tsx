@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Product } from '../../types';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../Toast';
+import { getMediaUrl } from '../../utils/mediaHelper';
 import { API_BASE_URL } from '../../config';
 
 interface SnaxxoProductCarouselProps {
@@ -134,7 +135,7 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
         <section className="bg-whiteboard texture-overlay texture-speckles relative overflow-hidden pb-4 w-full lg:hidden">
             <div className="pt-6 pb-6 relative">
                 <div className="flex flex-col items-center justify-center relative z-10 px-4">
-                    <h2 className="text-textured-green text-6xl md:text-8xl font-normal !normal-case tracking-tight leading-[1] font-anton text-center">
+                    <h2 className="text-textured-green font-normal uppercase tracking-wide [word-spacing:0.05em] !font-anton text-center">
                         Customer's<br />Favorite
                     </h2>
                     <div className="w-16 md:w-24 h-1.5 md:h-2 bg-[#0b3d2e] mt-2 rounded-full mb-2"></div>
@@ -194,7 +195,7 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                                 onClick={(e) => handleProductClick(e, product)}
                             >
                                 <img
-                                    src={product.image}
+                                    src={getMediaUrl(product.image)}
                                     alt={product.name}
                                     className="w-full h-full object-contain pointer-events-none transition-transform duration-500 group-hover:scale-105"
                                     style={{ mixBlendMode: 'multiply' }}
@@ -204,14 +205,14 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
 
                             <div className="flex gap-0.5 mb-2 text-[#f9bc15]">
                                 {[...Array(5)].map((_, i) => (
-                                    <span key={i} className={`material-symbols-outlined text-[16px] ${i < Math.floor(product.rating || 5) ? 'fill-1' : ''}`}>
+                                    <span key={i} className={`material-symbols-outlined text-[22px] ${i < Math.floor(product.rating || 5) ? 'fill-1' : ''}`}>
                                         {i < Math.floor(product.rating || 5) ? 'star' : 'star_outline'}
                                     </span>
                                 ))}
-                                <span className="text-[10px] text-slate-500 font-bold ml-1 self-center">({product.reviewCount || 0} reviews)</span>
+                                <span className="text-[12px] text-slate-500 font-bold ml-1 self-center">({product.reviewCount || 0} reviews)</span>
                             </div>
 
-                            <h3 className="text-[#0b3d2e] !text-[1rem] text-center mb-1.5 px-2 line-clamp-2 h-[2.8rem] uppercase tracking-normal leading-[1.2] cursor-default !inline-block w-full overflow-hidden flex-shrink-0 font-anton">
+                            <h3 className="text-[#0b3d2e] !text-[1.4rem] text-center mb-1.5 px-2 line-clamp-2 h-[2.8rem] uppercase tracking-normal leading-[1.2] cursor-default !inline-block w-full overflow-hidden flex-shrink-0 font-anton">
                                 {product.name}
                             </h3>
 

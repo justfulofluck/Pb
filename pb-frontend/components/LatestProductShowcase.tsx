@@ -1,8 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { throttle } from '../utils/performance';
+import { Product } from '../types';
+import { getMediaUrl } from '../utils/mediaHelper';
 
-const LatestProductShowcase: React.FC = () => {
+interface LatestProductShowcaseProps {
+  product?: Product;
+}
+
+const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }) => {
   const jarContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -64,6 +70,9 @@ const LatestProductShowcase: React.FC = () => {
     };
   }, []);
 
+  // Use the provided product's 3D model, or fallback to the hardcoded one
+  const modelSrc = product?.model3d ? getMediaUrl(product.model3d) : "/3D-assets/AmericanNuts-v1.glb";
+
   const benefitsLeft = [
     {
       title: "Naturally Sweetened",
@@ -108,12 +117,16 @@ const LatestProductShowcase: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-8 relative">
-          <span className="font-handdrawn text-2xl md:text-3xl lg:text-2xl text-secondary/80 transform -rotate-3 inline-block absolute -top-6 md:-top-12 lg:-top-10 left-1/2 -translate-x-1/2 md:-translate-x-[130px] lg:-translate-x-[110px] z-10 whitespace-nowrap">
+        <div className="text-center mb-16 md:mb-30 relative">
+          <span className="font-handdrawn text-2xl md:text-3xl lg:text-2xl text-secondary/80 transform -rotate-3 inline-block absolute -top-8 md:-top-12 lg:-top-10 left-1/2 -translate-x-1/2 md:-translate-x-[130px] lg:-translate-x-[110px] z-10 whitespace-nowrap">
             Our New Flavor
           </span>
-          <div className="relative inline-block">
-            <h2 className="text-5xl md:text-7xl lg:text-8xl font-normal text-textured-green tracking-tight leading-[1] font-anton !normal-case">Latest product</h2>
+          <div className="relative inline-block px-10">
+            <h2
+              className="font-normal text-textured-green tracking-wide [word-spacing:0.05em] !font-anton uppercase"
+            >
+              Latest product
+            </h2>
           </div>
         </div>
 
@@ -121,9 +134,9 @@ const LatestProductShowcase: React.FC = () => {
           {/* Left Column */}
           <div className="space-y-8 md:space-y-16 text-center lg:text-right order-2 lg:order-1">
             {benefitsLeft.map((item, idx) => (
-              <div key={idx} className="group px-4 md:px-0">
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-normal text-slate-900 mb-1 md:mb-2 font-anton !normal-case tracking-tight whitespace-nowrap">{item.title}</h3>
-                <p className="text-[11px] md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:ml-auto font-satoshi">
+              <div key={idx} className="group px-4 md:px-0 flex flex-col items-center lg:items-end">
+                <h3 className="text-[15px] md:text-lg lg:text-xl force-anton text-[#0b3d2e] mb-1 md:mb-2 uppercase leading-tight md:leading-none md:whitespace-nowrap text-center lg:text-right">{item.title}</h3>
+                <p className="text-[13px] md:text-sm text-slate-500 font-medium leading-relaxed font-satoshi text-center lg:text-right max-w-[320px]">
                   {item.desc}
                 </p>
               </div>
@@ -142,7 +155,7 @@ const LatestProductShowcase: React.FC = () => {
               }}
             >
               <model-viewer
-                src="/3D-assets/AmericanNuts-v1.glb"
+                src={modelSrc}
                 alt="3D Interactive Jar"
                 shadow-intensity="0"
                 camera-controls
@@ -188,9 +201,9 @@ const LatestProductShowcase: React.FC = () => {
           {/* Right Column */}
           <div className="space-y-8 md:space-y-16 text-center lg:text-left order-3">
             {benefitsRight.map((item, idx) => (
-              <div key={idx} className="group px-4 md:px-0">
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-normal text-slate-900 mb-1 md:mb-2 font-anton !normal-case tracking-tight whitespace-nowrap">{item.title}</h3>
-                <p className="text-[11px] md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:mr-auto font-satoshi">
+              <div key={idx} className="group px-4 md:px-0 flex flex-col items-center lg:items-start">
+                <h3 className="text-[15px] md:text-lg lg:text-xl force-anton text-[#0b3d2e] mb-1 md:mb-2 uppercase leading-tight md:leading-none md:whitespace-nowrap text-center lg:text-left">{item.title}</h3>
+                <p className="text-[13px] md:text-sm text-slate-500 font-medium leading-relaxed font-satoshi text-center lg:text-left max-w-[320px]">
                   {item.desc}
                 </p>
               </div>

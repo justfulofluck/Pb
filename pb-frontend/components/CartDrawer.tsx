@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CartItem, Product } from '../types';
 import { formatPrice } from '../utils/formatters';
@@ -18,14 +18,25 @@ interface CartDrawerProps {
 
 const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, products, onRemove, onUpdateQty, onAddToCart, onCheckout, onShopClick }) => {
   const [isSummaryExpanded, setIsSummaryExpanded] = React.useState(false);
-  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const originalSubtotal = items.reduce((sum, item) => sum + ((item.originalPrice || item.price) * item.quantity), 0);
-  const savings = originalSubtotal - subtotal;
+  const subtotal = useMemo(() => 
+    items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+    [items]
+  );
+  
+  const originalSubtotal = useMemo(() => 
+    items.reduce((sum, item) => sum + ((item.originalPrice || item.price) * item.quantity), 0),
+    [items]
+  );
+  
+  const savings = useMemo(() => originalSubtotal - subtotal, [originalSubtotal, subtotal]);
 
   // Real products for "Frequently Bought Together"
-  const upsellItems = (products || [])
-    .filter(p => !items.some(item => item.id === p.id))
-    .slice(0, 3);
+  const upsellItems = useMemo(() => 
+    (products || [])
+      .filter(p => !items.some(item => item.id === p.id))
+      .slice(0, 3),
+    [products, items]
+  );
 
   return (
     <>
@@ -66,7 +77,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, product
                       <span className="material-symbols-outlined text-5xl text-gray-300">shopping_basket</span>
                     </div>
                     <p className="text-base font-bold text-gray-400">Your cart is empty</p>
-                    <button onClick={onShopClick} className="px-6 py-2 bg-[#0b3d2e] !text-white rounded-lg font-bold hover:opacity-90 transition-opacity">Start Shopping</button>
+                    <button onClick={onShopClick} className="px-8 py-3 bg-[#c5f82a] text-black rounded-xl font-anton text-lg uppercase tracking-tight hover:brightness-95 transition-all">Start Shopping</button>
                   </div>
                 ) : (
                   <>
@@ -229,9 +240,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, product
                           onCheckout();
                           onClose();
                         }}
-                        className="flex-1 bg-[#0b3d2e] !text-white h-14 rounded-xl flex items-center justify-center gap-2 group transition-all hover:bg-[#082d22] active:scale-[0.98] shadow-lg shadow-green-900/10"
+                        className="flex-1 bg-[#c5f82a] text-black h-14 rounded-xl flex items-center justify-center gap-2 group transition-all hover:brightness-95 active:scale-[0.98] shadow-lg shadow-black/5"
                       >
-                        <span className="text-lg font-bold uppercase tracking-widest !text-white">
+                        <span className="text-xl font-anton uppercase tracking-tight text-black">
                           Place Order
                         </span>
                       </button>
@@ -247,5 +258,5 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose, items, product
   );
 };
 
-export default CartDrawer;
+export default React.memo(CartDrawer);
 

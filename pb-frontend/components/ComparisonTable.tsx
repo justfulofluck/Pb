@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ComparisonRow } from '../types';
 
@@ -14,70 +13,77 @@ const COMPARISON_DATA: ComparisonRow[] = [
 const ComparisonTable: React.FC = () => {
   return (
     <section className="py-24 md:py-32 bg-whiteboard texture-overlay texture-speckles overflow-hidden font-satoshi">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-16 md:mb-24">
           <div className="inline-block relative">
             <div className="absolute inset-0 bg-[#c7e9d9] transform -rotate-1 scale-110 rounded-lg"></div>
-            <h2 className="relative text-5xl md:text-7xl lg:text-[7rem] font-anton italic tracking-tight leading-[1] text-slate-900 !normal-case px-12 py-4">
+            <h2 className="relative text-5xl md:text-7xl lg:text-[7rem] !font-anton italic tracking-wide [word-spacing:0.05em] leading-[1] text-slate-900 uppercase px-12 py-4">
               Pinobite <span className="text-primary italic">vs.</span> Others
             </h2>
           </div>
         </div>
 
-        {/* Desktop View - Unified Column Cards */}
-        <div className="hidden md:block">
-          <div className="grid grid-cols-4 gap-x-8">
-            {/* --- Headers Row --- */}
-            <div className="p-8 flex items-end">
-              <h3 className="font-anton text-7xl text-slate-800 uppercase tracking-tighter">FEATURES</h3>
+        {/* Desktop View - Refined Column Cards */}
+        <div className="hidden md:grid grid-cols-4 gap-0 items-start mt-12 mx-auto max-w-[1050px]">
+          {/* Column 1: Features */}
+          <div className="flex flex-col mt-6 pr-2 lg:pr-8">
+            <div className="h-[100px] lg:h-[120px] flex items-center justify-start pb-4">
+              <h3 className="font-anton text-3xl lg:text-[32px] text-slate-800 uppercase tracking-tight">FEATURES</h3>
             </div>
-            
-            {/* Traditional Header */}
-            <div className="bg-white/60 backdrop-blur-sm rounded-t-[2.5rem] p-10 text-center flex flex-col justify-end relative z-10">
-              <span className="font-bold text-sm text-slate-400 uppercase tracking-[0.2em] mb-3">Traditional</span>
-              <span className="font-black text-2xl text-slate-700 uppercase tracking-widest leading-none">Home Food</span>
-            </div>
-
-            {/* Pinobite Header */}
-            <div className="relative z-30">
-              <div className="absolute top-[-25px] left-1/2 -translate-x-1/2 z-40 bg-secondary text-slate-900 px-10 py-2.5 rounded-full text-[12px] font-black shadow-xl whitespace-nowrap transform -rotate-1 ring-4 ring-whiteboard">
-                THE BEST
-              </div>
-              <div className="bg-primary text-white rounded-t-[3.5rem] p-12 text-center flex items-center justify-center">
-                <span className="font-black text-3xl tracking-[0.2em]">PINOBITE</span>
-              </div>
-            </div>
-
-            {/* Junk Food Header */}
-            <div className="bg-white/60 backdrop-blur-sm rounded-t-[2.5rem] p-10 text-center flex flex-col justify-end relative z-10">
-              <span className="font-black text-2xl text-slate-700 uppercase tracking-widest leading-none">Junk Food</span>
-            </div>
-
-            {/* --- Data Rows --- */}
-            {COMPARISON_DATA.map((row, i) => (
-              <React.Fragment key={i}>
-                {/* Feature Name */}
-                <div className={`py-10 px-8 flex items-center font-black text-slate-800 text-2xl border-b border-transparent uppercase tracking-tight ${i === 0 ? '-mt-1' : ''}`}>
+            <div className="flex flex-col">
+              {COMPARISON_DATA.map((row, i) => (
+                <div key={i} className="h-[64px] lg:h-[72px] flex items-center font-bold text-slate-800 text-sm lg:text-[15px]">
                   {row.feature}
                 </div>
+              ))}
+            </div>
+          </div>
 
-                {/* Traditional Value */}
-                <div className={`py-10 px-8 text-center bg-white/60 backdrop-blur-sm flex items-center justify-center text-slate-500 text-xl font-bold ${i === 0 ? '-mt-1 border-none' : 'border-t border-slate-100/50'} ${i === COMPARISON_DATA.length - 1 ? 'rounded-b-[2.5rem]' : ''}`}>
+          {/* Column 2: Traditional */}
+          <div className="flex flex-col bg-white rounded-l-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-y border-l border-slate-100 mt-6 z-0">
+            <div className="h-[100px] lg:h-[120px] p-4 lg:p-6 text-center flex flex-col justify-center items-center">
+              <span className="font-bold text-[10px] lg:text-[11px] text-slate-400 uppercase tracking-[0.15em] mb-1.5">Traditional</span>
+              <span className="font-black text-sm lg:text-[15px] text-slate-800 uppercase tracking-widest leading-tight">Home Food</span>
+            </div>
+            <div className="flex flex-col">
+              {COMPARISON_DATA.map((row, i) => (
+                <div key={i} className={`h-[64px] lg:h-[72px] px-4 flex items-center justify-center text-center text-slate-500 text-[13px] lg:text-[15px] font-medium border-t border-slate-100/80`}>
                   {row.ghar}
                 </div>
+              ))}
+            </div>
+          </div>
 
-                {/* Pinobite Value */}
-                <div className={`py-10 px-8 text-center bg-[#f0fdf4] border-x-4 border-primary font-black text-primary text-3xl flex items-center justify-center relative z-20 ${i === 0 ? '-mt-1 border-none' : 'border-t border-primary/20'} ${i === COMPARISON_DATA.length - 1 ? 'rounded-b-[3.5rem] border-b-4 shadow-[0_40px_80px_-15px_rgba(0,138,69,0.25)]' : ''}`}>
-                  <span className="relative z-10">{row.pino}</span>
+          {/* Column 3: Pinobite */}
+          <div className="flex flex-col bg-[#f4fcf7] rounded-[2rem] lg:rounded-[2.5rem] shadow-[0_20px_40px_rgb(0,138,69,0.15)] border border-primary/20 mt-0 relative z-10 pb-4 lg:pb-6">
+            <div className="absolute top-[-12px] left-1/2 -translate-x-1/2 z-40 bg-secondary text-slate-900 px-6 py-1.5 rounded-full text-[10px] lg:text-[11px] font-black shadow-md whitespace-nowrap">
+              THE BEST
+            </div>
+            <div className="h-[124px] lg:h-[144px] bg-primary text-white rounded-t-[2rem] lg:rounded-t-[2.5rem] p-6 text-center flex items-center justify-center">
+              <span className="font-black text-xl lg:text-[22px] tracking-[0.15em] uppercase">PINOBITE</span>
+            </div>
+            <div className="flex flex-col">
+              {COMPARISON_DATA.map((row, i) => (
+                <div key={i} className={`h-[64px] lg:h-[72px] px-4 flex items-center justify-center text-center font-bold text-primary text-[13px] lg:text-[15px] border-t border-primary/10`}>
+                  {row.pino}
                 </div>
+              ))}
+            </div>
+          </div>
 
-                {/* Junk Food Value */}
-                <div className={`py-10 px-8 text-center bg-white/60 backdrop-blur-sm flex items-center justify-center text-slate-500 text-xl font-bold ${i === 0 ? '-mt-1 border-none' : 'border-t border-slate-100/50'} ${i === COMPARISON_DATA.length - 1 ? 'rounded-b-[2.5rem]' : ''}`}>
+          {/* Column 4: Junk Food */}
+          <div className="flex flex-col bg-white rounded-r-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-y border-r border-slate-100 mt-6 z-0">
+            <div className="h-[100px] lg:h-[120px] p-4 lg:p-6 text-center flex flex-col justify-center items-center">
+              <span className="font-black text-sm lg:text-[15px] text-slate-800 uppercase tracking-widest leading-tight">Junk Food</span>
+            </div>
+            <div className="flex flex-col">
+              {COMPARISON_DATA.map((row, i) => (
+                <div key={i} className={`h-[64px] lg:h-[72px] px-4 flex items-center justify-center text-center text-slate-500 text-[13px] lg:text-[15px] font-medium border-t border-slate-100/80`}>
                   {row.junk}
                 </div>
-              </React.Fragment>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
@@ -112,12 +118,12 @@ const ComparisonTable: React.FC = () => {
         </div>
 
         {/* Footer Annotation */}
-        <div className="mt-24 md:mt-32 text-center">
-          <p className="font-handdrawn text-4xl md:text-5xl text-slate-400 opacity-60">made on trusted nutrition standards for family use 💚</p>
+        <div className="mt-16 md:mt-20 text-center">
+          <p className="font-handdrawn text-2xl md:text-3xl text-slate-800" style={{ fontFamily: '"Gochi Hand", cursive' }}>made on trusted nutrition standards for family use 💚</p>
         </div>
       </div>
     </section>
   );
 };
 
-export default ComparisonTable;
+export default React.memo(ComparisonTable);

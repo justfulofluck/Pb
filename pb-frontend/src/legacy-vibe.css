@@ -257,6 +257,8 @@ th {
   box-sizing: border-box;
 }
 
+https: //www.launchuicomponents.com/templates#
+
 html {
   height: 100%;
 }
@@ -11639,7 +11641,9 @@ figcaption {
   .product-slider-02 .product-slide-02 {
     box-sizing: border-box !important;
   }
-}html {
+}
+
+html {
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
   font-family: sans-serif;

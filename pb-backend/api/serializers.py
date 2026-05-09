@@ -1,6 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
+from django.core.files.base import ContentFile
+import base64
+import uuid
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import (
     Category,
@@ -51,6 +54,84 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         return super().validate(attrs)
 
 
+class FlexibleFileField(serializers.FileField):
+    """
+    Custom field that handles both file uploads and existing paths on the server,
+    as well as Base64 encoded files.
+    """
+    def to_internal_value(self, data):
+        if isinstance(data, str):
+            # Handle Base64
+            if data.startswith('data:'):
+                try:
+                    format_part, filestr = data.split(';base64,')
+                    mime_type = format_part.split(':')[-1]
+                    ext = mime_type.split('/')[-1]
+                    # Map common mime types to standard extensions
+                    ext_map = {
+                        'gltf-binary': 'glb',
+                        'gltf+json': 'gltf',
+                        'octet-stream': 'glb' # Common for binary files
+                    }
+                    ext = ext_map.get(ext, ext)
+                    file_name = f"{uuid.uuid4()}.{ext}"
+                    data = ContentFile(base64.b64decode(filestr), name=file_name)
+                    return super().to_internal_value(data)
+                except Exception:
+                    pass
+
+            # If it's a full URL or absolute path starting with MEDIA_URL, strip it
+            from django.conf import settings
+            media_url = settings.MEDIA_URL
+            if data.startswith(media_url):
+                return data[len(media_url):]
+            if '://' in data: # It's a full URL
+                from urllib.parse import urlparse
+                path = urlparse(data).path
+                if path.startswith(media_url):
+                    return path[len(media_url):]
+            return data
+        return super().to_internal_value(data)
+
+
+class FlexibleImageField(serializers.ImageField):
+    """
+    Custom field that handles both image uploads and existing paths on the server,
+    as well as Base64 encoded images.
+    """
+    def to_internal_value(self, data):
+        if isinstance(data, str):
+            # Handle Base64
+            if data.startswith('data:'):
+                try:
+                    format_part, imgstr = data.split(';base64,')
+                    mime_type = format_part.split(':')[-1]
+                    ext = mime_type.split('/')[-1]
+                    # Map common mime types to standard extensions
+                    ext_map = {
+                        'jpeg': 'jpg',
+                        'svg+xml': 'svg'
+                    }
+                    ext = ext_map.get(ext, ext)
+                    file_name = f"{uuid.uuid4()}.{ext}"
+                    data = ContentFile(base64.b64decode(imgstr), name=file_name)
+                    return super().to_internal_value(data)
+                except Exception:
+                    pass
+
+            from django.conf import settings
+            media_url = settings.MEDIA_URL
+            if data.startswith(media_url):
+                return data[len(media_url):]
+            if '://' in data:
+                from urllib.parse import urlparse
+                path = urlparse(data).path
+                if path.startswith(media_url):
+                    return path[len(media_url):]
+            return data
+        return super().to_internal_value(data)
+
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
@@ -58,12 +139,16 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class UsageIdeaSerializer(serializers.ModelSerializer):
+    image = FlexibleImageField(required=False, allow_null=True)
+
     class Meta:
         model = UsageIdea
         fields = "__all__"
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    image = FlexibleImageField(required=False, allow_null=True)
+    model_3d = FlexibleFileField(required=False, allow_null=True)
     usage_ideas = UsageIdeaSerializer(many=True, read_only=True)
 
     class Meta:
@@ -88,8 +173,6 @@ class ProductListSerializer(serializers.ModelSerializer):
             "theme_color",
             "description",
             "benefits",
-            "nutrients",
-            "gallery",
             "model_3d",
             "orientation",
         ]
@@ -102,12 +185,19 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
+    image = FlexibleImageField(required=False, allow_null=True)
+
     class Meta:
         model = Event
         fields = "__all__"
 
 
 class BlogPostSerializer(serializers.ModelSerializer):
+    image = FlexibleImageField(required=False, allow_null=True)
+    author_image = FlexibleImageField(required=False, allow_null=True)
+    secondary_image = FlexibleImageField(required=False, allow_null=True)
+    tertiary_image = FlexibleImageField(required=False, allow_null=True)
+
     class Meta:
         model = BlogPost
         fields = "__all__"
@@ -148,13 +238,25 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
 
 
+
 class StorySerializer(serializers.ModelSerializer):
+    media_url = FlexibleFileField(use_url=True)
+    poster_url = FlexibleImageField(use_url=True, required=False, allow_null=True)
+    full_video_url = FlexibleFileField(use_url=True, required=False, allow_null=True)
+    original_drive_url = serializers.URLField(required=False, allow_null=True)
+    product_id = serializers.CharField()
+    media_type = serializers.CharField(required=False)
+
     class Meta:
         model = Story
-        fields = "__all__"
+        fields = ["id", "media_url", "poster_url", "full_video_url", "original_drive_url", "product_id", "media_type"]
 
 
 class HeroSlideSerializer(serializers.ModelSerializer):
+    image = FlexibleImageField(required=False, allow_null=True)
+    background_image = FlexibleImageField(required=False, allow_null=True)
+    mobile_image = FlexibleImageField(required=False, allow_null=True)
+
     class Meta:
         model = HeroSlide
         fields = "__all__"
@@ -168,8 +270,11 @@ class OrderItemSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_product_image(self, obj):
-        if obj.product:
-            return obj.product.image
+        if obj.product and obj.product.image:
+            try:
+                return obj.product.image.url
+            except ValueError:
+                return None
         return None
 
 

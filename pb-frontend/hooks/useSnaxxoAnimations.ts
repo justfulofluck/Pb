@@ -6,9 +6,9 @@ export const useSnaxxoAnimations = () => {
     useEffect(() => {
         gsap.registerPlugin(ScrollTrigger);
 
-        // Replicate Snaxxo's "words-slide-up" logic simplistically
-        // We assume the elements have standard classes/attributes
-        const initAnimations = () => {
+        const ctx = gsap.context(() => {
+            // Replicate Snaxxo's "words-slide-up" logic simplistically
+            // We assume the elements have standard classes/attributes
             const animatedElements = document.querySelectorAll('[data-snaxxo-animate]');
 
             animatedElements.forEach((el) => {
@@ -26,12 +26,10 @@ export const useSnaxxoAnimations = () => {
                     }
                 );
             });
-        };
-
-        initAnimations();
+        });
 
         return () => {
-            ScrollTrigger.getAll().forEach(t => t.kill());
+            ctx.revert();
         };
     }, []);
 };

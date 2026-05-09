@@ -75,6 +75,16 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
+    def list(self, request, *args, **kwargs):
+        cache_key = "category_list"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return Response(cached_data)
+
+        response = super().list(request, *args, **kwargs)
+        cache.set(cache_key, response.data, 86400)  # Cache for 24 hours
+        return response
+
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
@@ -92,7 +102,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ["category", "is_top_rated"]
     search_fields = ["name", "description"]
-    pagination_class = ProductPagination
+    pagination_class = None
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -100,9 +110,34 @@ class ProductViewSet(viewsets.ModelViewSet):
         return ProductSerializer
 
     def list(self, request, *args, **kwargs):
+        # Generate a cache key based on query parameters
+        query_params = request.query_params.urlencode()
+        cache_key = f"product_list_{query_params}"
+        
+        try:
+            cached_data = cache.get(cache_key)
+            if cached_data is not None:
+                return Response(cached_data)
+        except Exception as e:
+            print(f"Cache get failed: {e}")
+
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        data = serializer.data
+
+        try:
+            # Cache for 5 minutes (300 seconds)
+            cache.set(cache_key, data, 300)
+            
+            # Keep track of list cache keys for invalidation
+            list_keys = cache.get("product_list_keys", set())
+            if isinstance(list_keys, set):
+                list_keys.add(cache_key)
+                cache.set("product_list_keys", list_keys, 86400) # 24h
+        except Exception as e:
+            print(f"Cache set failed: {e}")
+            
+        return Response(data)
 
     def retrieve(self, request, *args, **kwargs):
         pk = kwargs.get("pk")
@@ -122,21 +157,41 @@ class ProductViewSet(viewsets.ModelViewSet):
             print(f"Cache set failed: {e}")
         return Response(serializer.data)
 
+    def _invalidate_product_caches(self, pk):
+        try:
+            # Invalidate detail cache
+            cache.delete(f"product_detail_{pk}")
+            
+            # Invalidate all list caches
+            list_keys = cache.get("product_list_keys", set())
+            if isinstance(list_keys, set):
+                for key in list_keys:
+                    cache.delete(key)
+                cache.delete("product_list_keys")
+            
+            # Also clear category-related caches if any
+            cache.delete("category_list")
+        except Exception as e:
+            print(f"Cache invalidation failed: {e}")
+
     def perform_update(self, serializer):
         try:
             super().perform_update(serializer)
-            cache.delete(f"product_detail_{serializer.instance.pk}")
+            self._invalidate_product_caches(serializer.instance.pk)
         except Exception as e:
             print(f"ERROR in perform_update: {e}")
             import traceback
-
             traceback.print_exc()
             raise
 
     def perform_destroy(self, instance):
         pk = instance.pk
         super().perform_destroy(instance)
-        cache.delete(f"product_detail_{pk}")
+        self._invalidate_product_caches(pk)
+
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        self._invalidate_product_caches(serializer.instance.pk)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -193,7 +248,7 @@ class BlogPostViewSet(viewsets.ModelViewSet):
     queryset = BlogPost.objects.all()
     serializer_class = BlogPostSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    pagination_class = PageNumberPagination
+    # pagination_class = PageNumberPagination
 
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update", "destroy"]:

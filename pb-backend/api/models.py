@@ -6,7 +6,7 @@ from django.dispatch import receiver
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
-    image = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='categories/', blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -20,7 +20,7 @@ class Product(models.Model):
     )
     rating = models.FloatField(default=0.0)
     review_count = models.IntegerField(default=0)
-    image = models.TextField()
+    image = models.ImageField(upload_to='products/', null=True, blank=True)
     gallery = models.JSONField(default=list, blank=True)
     description = models.TextField()
     benefits = models.JSONField(default=list, blank=True)
@@ -30,7 +30,7 @@ class Product(models.Model):
         max_length=100, db_index=True
     )  # Or foreign key to Category
     stock = models.IntegerField(default=0)
-    model_3d = models.TextField(blank=True, null=True)
+    model_3d = models.FileField(upload_to='models_3d/', blank=True, null=True)
     theme_color = models.CharField(max_length=50, blank=True, null=True)
     orientation = models.CharField(max_length=100, blank=True, null=True)
 
@@ -44,7 +44,7 @@ class UsageIdea(models.Model):
     )
     title = models.CharField(max_length=255)
     description = models.TextField()
-    image = models.TextField()  # Assuming base64 or URL like other models
+    image = models.ImageField(upload_to='usage_ideas/', null=True, blank=True)
     order = models.IntegerField(default=0)
 
     def __str__(self):
@@ -75,7 +75,7 @@ class Review(models.Model):
 class Event(models.Model):
     title = models.CharField(max_length=255)
     location = models.CharField(max_length=255)
-    image = models.TextField()
+    image = models.ImageField(upload_to='events/', null=True, blank=True)
     summary = models.TextField()
     full_story = models.JSONField(default=list)  # List of {heading, content}
     gallery = models.JSONField(default=list)
@@ -100,7 +100,7 @@ class BlogPost(models.Model):
     post_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     title = models.CharField(max_length=255, unique=True)
     excerpt = models.TextField()
-    image = models.TextField()
+    image = models.ImageField(upload_to='blog/', null=True, blank=True)
     date = models.DateField()
     read_time = models.CharField(max_length=20)
     author = models.CharField(max_length=100)
@@ -113,17 +113,17 @@ class BlogPost(models.Model):
     subtitle = models.CharField(max_length=500, blank=True, null=True)
     intro_heading = models.CharField(max_length=500, blank=True, null=True)
     featured_quote = models.TextField(blank=True, null=True)
-    author_image = models.TextField(blank=True, null=True)
+    author_image = models.ImageField(upload_to='blog/authors/', blank=True, null=True)
     author_role = models.CharField(max_length=100, blank=True, null=True)
-    secondary_image = models.TextField(blank=True, null=True)
-    tertiary_image = models.TextField(blank=True, null=True)
+    secondary_image = models.ImageField(upload_to='blog/extra/', blank=True, null=True)
+    tertiary_image = models.ImageField(upload_to='blog/extra/', blank=True, null=True)
     facts_list = models.JSONField(default=list, blank=True)
     key_points = models.JSONField(default=list, blank=True)
     health_benefits = models.JSONField(default=list, blank=True)
     usage_recipes = models.JSONField(default=list, blank=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -134,10 +134,10 @@ class Story(models.Model):
         ("image", "image"),
         ("video", "video"),
     ]
-    media_url = models.TextField()
-    poster_url = models.TextField(blank=True, null=True)
-    original_drive_url = models.TextField(blank=True, null=True)
-    full_video_url = models.TextField(blank=True, null=True)
+    media_url = models.FileField(upload_to='stories/', blank=True, null=True)
+    poster_url = models.ImageField(upload_to='stories/posters/', blank=True, null=True)
+    original_drive_url = models.URLField(max_length=1000, blank=True, null=True)
+    full_video_url = models.FileField(upload_to='stories/full/', blank=True, null=True)
     media_type = models.CharField(
         max_length=10, choices=MEDIA_TYPE_CHOICES, db_index=True
     )
@@ -150,7 +150,7 @@ class Story(models.Model):
 class HeroSlide(models.Model):
     category = models.CharField(max_length=100)
     headline = models.CharField(max_length=255)
-    image = models.TextField()
+    image = models.ImageField(upload_to='hero/', null=True, blank=True)
     cta = models.CharField(max_length=50)  # Primary button text
     cta_link = models.CharField(max_length=255, blank=True, null=True)
     secondary_cta = models.CharField(max_length=50, blank=True, null=True)
@@ -165,8 +165,8 @@ class HeroSlide(models.Model):
         max_length=50, default="fade"
     )  # fade, slide, scale, etc.
     order = models.IntegerField(default=0)
-    background_image = models.TextField(blank=True, null=True)
-    mobile_image = models.TextField(blank=True, null=True)
+    background_image = models.ImageField(upload_to='hero/bg/', blank=True, null=True)
+    mobile_image = models.ImageField(upload_to='hero/mobile/', blank=True, null=True)
     display_duration = models.IntegerField(default=5)  # Duration in seconds
     is_active = models.BooleanField(default=True, db_index=True)
 

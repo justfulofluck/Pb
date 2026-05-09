@@ -69,8 +69,8 @@ const fetchProducts = async () => {
   const res = await fetch(`${API_BASE_URL}/api/products/`);
   if (!res.ok) throw new Error('Failed to fetch products');
   const productsData = await res.json();
-  if (!Array.isArray(productsData)) return [];
-  return productsData.map((p: any) => ({
+  const productsArray = Array.isArray(productsData) ? productsData : (productsData.results || []);
+  return productsArray.map((p: any) => ({
     ...p,
     id: String(p.id),
     price: parseFloat(p.price),
@@ -92,8 +92,8 @@ const fetchCategories = async () => {
   const res = await fetch(`${API_BASE_URL}/api/categories/`);
   if (!res.ok) throw new Error('Failed to fetch categories');
   const data = await res.json();
-  if (!Array.isArray(data)) return [];
-  return data.map((c: any) => ({ ...c, id: String(c.id) }));
+  const dataArray = Array.isArray(data) ? data : (data.results || []);
+  return dataArray.map((c: any) => ({ ...c, id: String(c.id) }));
 };
 
 const fetchAnnouncements = async () => {
@@ -107,8 +107,8 @@ const fetchHeroSlides = async () => {
   const res = await fetch(`${API_BASE_URL}/api/hero-slides/`);
   if (!res.ok) throw new Error('Failed to fetch hero slides');
   const data = await res.json();
-  if (!Array.isArray(data)) return [];
-  return data.map((s: any) => ({
+  const dataArray = Array.isArray(data) ? data : (data.results || []);
+  return dataArray.map((s: any) => ({
     ...s,
     id: String(s.id),
     ctaLink: s.cta_link,
@@ -131,8 +131,8 @@ const fetchEvents = async () => {
   const res = await fetch(`${API_BASE_URL}/api/events/`);
   if (!res.ok) throw new Error('Failed to fetch events');
   const data = await res.json();
-  if (!Array.isArray(data)) return [];
-  return data.map((e: any) => ({
+  const dataArray = Array.isArray(data) ? data : (data.results || []);
+  return dataArray.map((e: any) => ({
     ...e,
     id: String(e.id),
     fullStory: e.full_story || [],
@@ -150,8 +150,8 @@ const fetchBlogs = async () => {
   const res = await fetch(`${API_BASE_URL}/api/blog-posts/`);
   if (!res.ok) throw new Error('Failed to fetch blogs');
   const data = await res.json();
-  if (!Array.isArray(data)) return [];
-  return data.map((b: any) => ({
+  const dataArray = Array.isArray(data) ? data : (data.results || []);
+  return dataArray.map((b: any) => ({
     ...b,
     id: String(b.id),
     type: b.post_type,
@@ -167,8 +167,8 @@ const fetchStories = async () => {
   const res = await fetch(`${API_BASE_URL}/api/stories/`);
   if (!res.ok) throw new Error('Failed to fetch stories');
   const data = await res.json();
-  if (!Array.isArray(data)) return [];
-  return data.map((s: any) => ({
+  const dataArray = Array.isArray(data) ? data : (data.results || []);
+  return dataArray.map((s: any) => ({
     ...s,
     id: String(s.id),
     mediaUrl: s.media_url || s.mediaUrl,
@@ -184,8 +184,8 @@ const fetchReviews = async () => {
   const res = await fetch(`${API_BASE_URL}/api/reviews/`);
   if (!res.ok) throw new Error('Failed to fetch reviews');
   const data = await res.json();
-  if (!Array.isArray(data)) return [];
-  return data.map((r: any) => ({
+  const dataArray = Array.isArray(data) ? data : (data.results || []);
+  return dataArray.map((r: any) => ({
     ...r,
     id: String(r.id),
     productId: String(r.product_id_str || r.product),
@@ -1562,7 +1562,7 @@ const AppContent: React.FC = () => {
                   />
                 </div>
               )}
-              <LatestProductShowcase />
+              <LatestProductShowcase product={products[0]} />
 
               <ComparisonTable />
 

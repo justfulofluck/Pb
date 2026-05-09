@@ -128,6 +128,17 @@ export interface BlogPost {
   readTime: string;
   author: string;
   content: string; // HTML content from editor
+  subtitle?: string;
+  intro_heading?: string;
+  featured_quote?: string;
+  author_image?: string;
+  author_role?: string;
+  secondary_image?: string;
+  tertiary_image?: string;
+  facts_list?: string[];
+  key_points?: { title: string; desc: string }[];
+  health_benefits?: { title: string; desc: string }[];
+  usage_recipes?: { title: string; desc: string; image: string }[];
   tags?: string[];
   scheduledDate?: string;
   isActive?: boolean;

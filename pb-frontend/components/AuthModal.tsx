@@ -115,173 +115,170 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
         onClick={onClose}
       />
 
-      <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden relative doodle-border animate-in zoom-in duration-300 shadow-2xl p-8 md:p-10">
+      <div className="bg-white w-full max-w-[480px] rounded-[20px] overflow-hidden relative animate-in zoom-in-95 duration-300 shadow-[0_20px_50px_rgba(0,0,0,0.2)] p-6 md:p-12 border-4 border-[#0b3d2e]">
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-4 right-4 z-10 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors"
+          className="absolute top-6 right-6 z-10 w-10 h-10 bg-slate-50/50 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors group"
         >
-          <span className="material-symbols-outlined !text-slate-800">close</span>
+          <span className="material-symbols-outlined !text-slate-400 group-hover:!text-slate-800 transition-colors">close</span>
         </button>
 
         {/* View: LOGIN */}
         {view === 'login' && (
           <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Welcome Back!</h2>
-              <p className="font-handdrawn text-3xl text-textured-green mt-1">Ready for your health fix? ✨</p>
+            <div className="text-center space-y-1">
+              <h2 className="text-3xl md:text-[42px] force-anton text-[#0b3d2e] uppercase tracking-normal leading-none whitespace-nowrap">Welcome!</h2>
+              <p className="font-handdrawn text-4xl md:text-[64px] text-[#0b3d2e] leading-tight" style={{ fontFamily: '"Gochi Hand", cursive' }}>NEW Ready for your health fix?</p>
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm font-bold text-center">
+              <div className="bg-red-50 text-red-500 p-3 rounded-xl text-sm font-bold text-center border border-red-100 animate-shake">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Email Address</label>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <label className="block text-[11px] font-black uppercase tracking-[0.15em] text-[#94a3b8]">Email Address</label>
                 <input
                   required
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-semibold placeholder:text-slate-300 placeholder:font-normal"
+                  className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:border-[#0b3d2e] focus:ring-4 focus:ring-[#0b3d2e]/5 outline-none transition-all font-semibold text-[#0b3d2e] placeholder:text-slate-300 placeholder:force-anton"
                   placeholder="Enter your email"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Password</label>
+              <div className="space-y-2">
+                <label className="block text-[11px] font-black uppercase tracking-[0.15em] text-[#94a3b8]">Password</label>
                 <input
                   required
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-semibold placeholder:text-slate-300 placeholder:font-normal"
+                  className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:border-[#0b3d2e] focus:ring-4 focus:ring-[#0b3d2e]/5 outline-none transition-all font-semibold text-[#0b3d2e] placeholder:text-slate-300 placeholder:force-anton"
                   placeholder="Enter your password"
                 />
               </div>
+
               <div className="flex justify-end">
                 <button
                   type="button"
                   onClick={() => setView('reset')}
-                  className="text-xs font-bold !text-slate-400 hover:!text-primary transition-colors font-handdrawn text-lg"
+                  className="text-[40px] font-medium text-[#94a3b8] hover:text-[#0b3d2e] transition-colors font-handdrawn"
+                  style={{ fontFamily: '"Gochi Hand", cursive' }}
                 >
-                  FORGOT PASSWORD?
+                  Forgot Password?
                 </button>
               </div>
+
               <button
                 disabled={isLoading}
-                className="w-full btn-greenboard py-4 rounded-2xl font-black text-lg active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full bg-[#0b3d2e] !text-white py-5 rounded-[20px] force-anton text-2xl tracking-wider active:scale-[0.98] transition-all shadow-lg shadow-[#0b3d2e]/20 disabled:opacity-70 disabled:cursor-not-allowed uppercase"
               >
-                {isLoading ? 'LOGGING IN...' : "LET'S GO!"}
+                {isLoading ? 'Wait a sec...' : "Let's Go!"}
               </button>
             </form>
 
-            <div className="flex items-center justify-center gap-2 text-sm font-bold text-slate-500">
-              NEW TO PINOBITE?
-              <button
-                onClick={() => setView('signup')}
-                className="text-textured-green hover:underline font-handdrawn text-2xl -translate-y-0.5"
-              >
-                JOIN THE CLUB
-              </button>
+            <div className="flex flex-col items-center gap-3 pt-2">
+              <div className="flex items-center gap-2 text-[20px] font-medium text-[#94a3b8] font-handdrawn" style={{ fontFamily: '"Gochi Hand", cursive' }}>
+                <span>New to Pinobite?</span>
+                <button
+                  onClick={() => setView('signup')}
+                  className="text-[#0b3d2e] hover:underline underline-offset-4 decoration-2"
+                >
+                  Join the club
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {/* View: SIGNUP */}
         {view === 'signup' && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Join The Club</h2>
+          <div className="space-y-8">
+            <div className="text-center space-y-2">
+              <h2 className="text-3xl md:text-[40px] force-anton text-[#0b3d2e] uppercase tracking-normal leading-none">Join The Club</h2>
+              <p className="font-handdrawn text-xl md:text-[28px] text-[#0b3d2e] leading-tight" style={{ fontFamily: '"Gochi Hand", cursive' }}>Your journey starts here ✨</p>
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm font-bold text-center">
+              <div className="bg-red-50 text-red-500 p-3 rounded-xl text-sm font-bold text-center border border-red-100 animate-shake">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5 pt-2">
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">First Name</label>
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">First Name</label>
                   <input
                     required
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold placeholder:text-slate-300 placeholder:font-normal"
-                    placeholder="First name"
+                    className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:border-[#0b3d2e] focus:ring-4 focus:ring-[#0b3d2e]/5 outline-none font-semibold text-[#0b3d2e]"
+                    placeholder="First"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Last Name</label>
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Last Name</label>
                   <input
                     required
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold placeholder:text-slate-300 placeholder:font-normal"
-                    placeholder="Last name"
+                    className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:border-[#0b3d2e] focus:ring-4 focus:ring-[#0b3d2e]/5 outline-none font-semibold text-[#0b3d2e]"
+                    placeholder="Last"
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Email</label>
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Email</label>
                 <input
                   required
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold placeholder:text-slate-300 placeholder:font-normal"
-                  placeholder="Enter your email"
+                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:border-[#0b3d2e] focus:ring-4 focus:ring-[#0b3d2e]/5 outline-none font-semibold text-[#0b3d2e]"
+                  placeholder="name@email.com"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Phone Number</label>
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Phone</label>
                 <input
                   required
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold placeholder:text-slate-300 placeholder:font-normal"
-                  placeholder="Enter your phone"
+                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:border-[#0b3d2e] focus:ring-4 focus:ring-[#0b3d2e]/5 outline-none font-semibold text-[#0b3d2e]"
+                  placeholder="+91 00000 00000"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Birth Date</label>
-                <input
-                  type="date"
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
-                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold text-slate-400"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Password</label>
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Password</label>
                 <input
                   required
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none font-semibold placeholder:text-slate-300 placeholder:font-normal"
-                  placeholder="Create a password"
+                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:border-[#0b3d2e] focus:ring-4 focus:ring-[#0b3d2e]/5 outline-none font-semibold text-[#0b3d2e]"
+                  placeholder="Create password"
                 />
               </div>
               <button
                 disabled={isLoading}
-                className="w-full bg-secondary text-slate-900 py-4 rounded-2xl font-black text-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:scale-95 mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full bg-[#0b3d2e] !text-white py-4 rounded-[18px] force-anton text-2xl tracking-wider active:scale-[0.98] transition-all mt-4 uppercase"
               >
-                {isLoading ? 'CREATING ACCOUNT...' : 'CREATE ACCOUNT'}
+                {isLoading ? 'Creating...' : 'Join Now'}
               </button>
             </form>
 
-            <div className="flex items-center justify-center gap-2 text-sm font-bold text-slate-500">
-              ALREADY A MEMBER?
-              <button onClick={() => setView('login')} className="text-textured-green hover:underline font-handdrawn text-2xl -translate-y-0.5">
-                LOG IN
+            <div className="flex items-center justify-center gap-2 text-[11px] font-black text-[#94a3b8] tracking-widest uppercase">
+              <span>Already a member?</span>
+              <button onClick={() => setView('login')} className="text-[#0b3d2e] hover:underline underline-offset-4 decoration-2">
+                Log In
               </button>
             </div>
           </div>
@@ -289,40 +286,40 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
 
         {/* View: RESET PASSWORD (REQUEST) */}
         {view === 'reset' && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Forgot it?</h2>
-              <p className="font-handdrawn text-3xl text-textured-green mt-1">Don't worry, we got you! 🔑</p>
+          <div className="space-y-8">
+            <div className="text-center space-y-2">
+              <h2 className="text-3xl md:text-[40px] force-anton text-[#0b3d2e] uppercase tracking-normal leading-none">Forgot it?</h2>
+              <p className="font-handdrawn text-xl md:text-[28px] text-[#0b3d2e] leading-tight">Don't worry, we got you! 🔑</p>
             </div>
 
-            <p className="text-slate-500 text-sm text-center font-medium leading-relaxed">
+            <p className="text-slate-500 text-sm text-center font-medium leading-relaxed px-4">
               Enter your email and we'll send you a magic code to reset your account.
             </p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Email Address</label>
+            <form onSubmit={handleSubmit} className="space-y-6 pt-2">
+              <div className="space-y-2">
+                <label className="block text-[11px] font-black uppercase tracking-widest text-[#94a3b8]">Email Address</label>
                 <input
                   required
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-semibold text-center placeholder:text-slate-300 placeholder:font-normal"
+                  className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:border-[#0b3d2e] focus:ring-4 focus:ring-[#0b3d2e]/5 outline-none transition-all font-semibold text-[#0b3d2e] text-center placeholder:force-anton"
                   placeholder="Enter your email"
                 />
               </div>
-              <button className="w-full btn-greenboard py-4 rounded-2xl font-black text-lg active:scale-95">
-                {isLoading ? 'SENDING CODE...' : 'SEND RESET CODE'}
+              <button className="w-full bg-[#0b3d2e] !text-white py-5 rounded-[20px] force-anton text-2xl tracking-wider active:scale-[0.98] transition-all uppercase">
+                {isLoading ? 'Sending...' : 'Send Reset Code'}
               </button>
             </form>
 
             <div className="text-center">
               <button
                 onClick={() => setView('login')}
-                className="text-xs font-black text-slate-400 hover:text-primary transition-colors flex items-center justify-center gap-1 mx-auto font-handdrawn text-lg"
+                className="text-[11px] font-black text-[#94a3b8] hover:text-[#0b3d2e] transition-colors flex items-center justify-center gap-2 mx-auto tracking-widest uppercase"
               >
                 <span className="material-symbols-outlined text-sm">arrow_back</span>
-                BACK TO LOGIN
+                Back to Login
               </button>
             </div>
           </div>
@@ -330,56 +327,56 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
 
         {/* View: OTP & NEW PASSWORD */}
         {view === 'otp' && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight">Verify Code</h2>
-              <p className="font-handdrawn text-3xl text-textured-green mt-1">Check your inbox! 📧</p>
+          <div className="space-y-8">
+            <div className="text-center space-y-2">
+              <h2 className="text-3xl md:text-[40px] force-anton text-[#0b3d2e] uppercase tracking-normal leading-none">Verify Code</h2>
+              <p className="font-handdrawn text-xl md:text-[28px] text-[#0b3d2e] leading-tight">Check your inbox! 📧</p>
             </div>
 
             {error && (
-              <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm font-bold text-center">
+              <div className="bg-red-50 text-red-500 p-3 rounded-xl text-sm font-bold text-center border border-red-100 animate-shake">
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Enter 6-Digit Code</label>
+            <form onSubmit={handleSubmit} className="space-y-6 pt-2">
+              <div className="space-y-2">
+                <label className="block text-[11px] font-black uppercase tracking-widest text-[#94a3b8]">Enter 6-Digit Code</label>
                 <input
                   required
                   type="text"
                   maxLength={6}
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-bold text-center text-2xl tracking-[10px] placeholder:tracking-normal placeholder:text-slate-300 placeholder:font-normal"
+                  className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:border-[#0b3d2e] focus:ring-4 focus:ring-[#0b3d2e]/5 outline-none transition-all font-black text-center text-xl md:text-3xl tracking-[0.2em] md:tracking-[0.4em] text-[#0b3d2e] placeholder:tracking-normal"
                   placeholder="000000"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">New Password</label>
+              <div className="space-y-2">
+                <label className="block text-[11px] font-black uppercase tracking-widest text-[#94a3b8]">New Password</label>
                 <input
                   required
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-5 py-3 rounded-xl border-2 border-slate-100 focus:border-primary focus:ring-0 outline-none transition-all font-semibold placeholder:text-slate-300 placeholder:font-normal"
+                  className="w-full px-5 py-4 rounded-2xl border border-slate-200 focus:border-[#0b3d2e] focus:ring-4 focus:ring-[#0b3d2e]/5 outline-none transition-all font-semibold text-[#0b3d2e]"
                   placeholder="Enter new password"
                 />
               </div>
               <button
                 disabled={isLoading}
-                className="w-full btn-greenboard py-4 rounded-2xl font-black text-lg active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full bg-[#0b3d2e] !text-white py-5 rounded-[20px] force-anton text-2xl tracking-wider active:scale-[0.98] transition-all uppercase"
               >
-                {isLoading ? 'RESETTING...' : 'RESET PASSWORD'}
+                {isLoading ? 'Resetting...' : 'Reset Password'}
               </button>
             </form>
 
             <div className="text-center">
               <button
                 onClick={() => setView('reset')}
-                className="text-xs font-black text-slate-400 hover:text-primary transition-colors font-handdrawn text-lg"
+                className="text-[11px] font-black text-[#94a3b8] hover:text-[#0b3d2e] transition-colors tracking-widest uppercase"
               >
-                DIDN'T GET CODE? TRY AGAIN
+                Didn't get code? Try again
               </button>
             </div>
           </div>

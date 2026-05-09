@@ -1,6 +1,9 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { HeroSlide } from '../types';
+import { getMediaUrl } from '../utils/mediaHelper';
+import { API_BASE_URL } from '../config';
+import { getMediaUrl } from '../utils/mediaHelper';
 
 
 interface HeroProps {
@@ -161,7 +164,7 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
                   {slide.category}
                 </span>
 
-                <h1 className="text-3xl md:text-8xl font-normal text-slate-900 leading-[1] mb-4 md:mb-8 tracking-tight font-anton !normal-case">
+                <h1 className="font-normal text-slate-900 mb-4 md:mb-8 tracking-wide [word-spacing:0.05em] !font-anton uppercase">
                   {slide.headline}
                 </h1>
 
@@ -206,7 +209,7 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
                   <img
                     alt={slide.headline}
                     className="relative w-full h-auto object-contain drop-shadow-[0_50px_80px_rgba(0,0,0,0.25)] hover:scale-105 transition-transform duration-700"
-                    src={(isMobile && slide.mobileImage) ? slide.mobileImage : slide.image}
+                    src={getMediaUrl((isMobile && slide.mobileImage) ? slide.mobileImage : slide.image)}
                   />
 
                   {/* Secondary small floating asset if needed, or just a ring */}

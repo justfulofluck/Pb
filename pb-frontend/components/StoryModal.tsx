@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Story, Product } from '../types';
+import { getMediaUrl } from '../utils/mediaHelper';
 import { API_BASE_URL } from '../config';
 
 interface StoryModalProps {
@@ -11,19 +12,27 @@ interface StoryModalProps {
 
 const getDriveId = (url: string) => {
     if (!url) return null;
-    return url.match(/(?:id=|file\/d\/)([\w-]+)/)?.[1] || null;
+    // Handle various Google Drive URL formats (d/ID, id=ID, open?id=ID)
+    const match = url.match(/(?:id=|file\/d\/|open\?id=|\/d\/)([\w-]+)/);
+    return match ? match[1] : null;
 };
 
 const getDriveStreamUrl = (url: string) => {
     if (!url) return '';
-    if (url.startsWith('/media/')) {
-        return `${API_BASE_URL}${url}`;
+    
+    // 1. If it's already a clean backend media path (starts with /media or media/)
+    if (url.startsWith('/media/') || url.startsWith('media/')) {
+        return getMediaUrl(url);
     }
+    
+    // 2. If it's a Google Drive URL, extract ID and return stream URL
     const fileId = getDriveId(url);
     if (fileId) {
         return `https://drive.google.com/uc?export=download&id=${fileId}`;
     }
-    return url;
+    
+    // 3. Fallback to general media resolver (handles absolute URLs, data URLs, etc.)
+    return getMediaUrl(url);
 };
 
 const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddToCart }) => {
@@ -32,7 +41,13 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
 
     // Fail-safe: Always prioritize local files (full or loop) over Drive links to avoid ORB blocking
     const videoUrl = story.fullVideoUrl || story.mediaUrl || story.originalDriveUrl || '';
-    const isVideo = story.mediaType === 'video' || (videoUrl && (videoUrl.toLowerCase().includes('.mp4') || videoUrl.includes('drive.google.com')));
+    const isVideo = story.mediaType === 'video' || 
+        (typeof videoUrl === 'string' && (
+            videoUrl.toLowerCase().includes('.mp4') || 
+            videoUrl.toLowerCase().includes('drive.google.com') ||
+            videoUrl.includes('stories/')
+        ));
+    const driveId = getDriveId(videoUrl);
 
     // Prevent background scrolling while modal is active
     useEffect(() => {
@@ -45,9 +60,12 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
         };
         window.addEventListener('keydown', handleKeyDown);
 
+        // Capture video ref for cleanup
+        const videoElement = videoRef.current;
+
         // Handle autoplay logic
-        if (videoRef.current) {
-            videoRef.current.play().catch(error => {
+        if (videoElement) {
+            videoElement.play().catch(error => {
                 console.warn("Autoplay blocked:", error);
                 // Ensure we are muted if play fails
                 setIsMuted(true);
@@ -57,13 +75,21 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
         return () => {
             document.body.style.overflow = '';
             window.removeEventListener('keydown', handleKeyDown);
+            
+            // Clean up video memory
+            if (videoElement) {
+                videoElement.pause();
+                videoElement.removeAttribute('src');
+                videoElement.load();
+            }
         };
     }, [onClose]);
 
     // Sync muted state explicitly to the DOM element
     useEffect(() => {
-        if (videoRef.current) {
-            videoRef.current.muted = isMuted;
+        const video = videoRef.current;
+        if (video && !video.paused) {
+            video.muted = isMuted;
         }
     }, [isMuted]);
 
@@ -104,7 +130,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
                         <video
                             ref={videoRef}
                             src={getDriveStreamUrl(videoUrl)}
-                            poster={story.posterUrl ? (story.posterUrl.startsWith('/media/') ? `${API_BASE_URL}${story.posterUrl}` : story.posterUrl) :
+                            poster={story.posterUrl ? getMediaUrl(story.posterUrl) :
                                 (driveId ? `https://drive.google.com/thumbnail?id=${driveId}&sz=w800` : undefined)}
                             className="w-full h-full object-cover"
                             autoPlay
@@ -159,7 +185,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
                     <div className="w-full md:w-1/2 h-1/2 md:h-full flex flex-col bg-white">
                         <div className="flex-1 overflow-y-auto hide-scrollbar p-6 md:p-8">
                             <div className="bg-[#fff9f5] rounded-2xl p-6 flex justify-center items-center mb-6">
-                                <img src={product.image} className="w-48 h-48 object-contain transform hover:scale-105 transition-transform duration-500" alt={product.name} />
+                                <img src={getMediaUrl(product.image)} className="w-48 h-48 object-contain transform hover:scale-105 transition-transform duration-500" alt={product.name} />
                             </div>
 
                             <h2 className="text-xl md:text-2xl font-black text-[#0b3d2e] leading-tight mb-3">
@@ -218,4 +244,4 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
     );
 };
 
-export default StoryModal;
+export default React.memo(StoryModal);

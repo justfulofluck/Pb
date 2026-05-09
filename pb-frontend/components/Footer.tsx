@@ -60,7 +60,7 @@ const Footer: React.FC<FooterProps> = ({
 
           {/* Collections Column */}
           <div className="lg:col-span-2 text-left flex flex-col items-start">
-            <h4 className="font-normal text-xl mb-6 font-anton !normal-case tracking-tight leading-none text-left">Collections</h4>
+            <h4 className="font-normal text-xl mb-6 !font-anton uppercase tracking-wide [word-spacing:0.02em] leading-none text-left text-slate-800">Collections</h4>
             <ul className="space-y-4 text-sm text-slate-400">
               <li><button onClick={onShopClick} className="hover:text-white transition-colors">Shop All</button></li>
               <li><button onClick={() => onDistributorClick?.()} className="hover:text-white transition-colors">Peanut Butter</button></li>
@@ -71,7 +71,7 @@ const Footer: React.FC<FooterProps> = ({
 
           {/* Resources Column */}
           <div className="lg:col-span-2 text-left flex flex-col items-start">
-            <h4 className="font-normal text-xl mb-6 font-anton !normal-case tracking-tight leading-none text-left">Resources</h4>
+            <h4 className="font-normal text-xl mb-6 !font-anton uppercase tracking-wide [word-spacing:0.02em] leading-none text-left text-slate-800">Resources</h4>
             <ul className="space-y-4 text-sm text-slate-400">
               <li><button onClick={onBlogsClick} className="hover:text-white transition-colors">Healthy Blog</button></li>
               <li><button onClick={onEventBlogsClick} className="hover:text-white transition-colors">Events & News</button></li>
@@ -83,7 +83,7 @@ const Footer: React.FC<FooterProps> = ({
 
           {/* Partners Column */}
           <div className="lg:col-span-2 text-left flex flex-col items-start">
-            <h4 className="font-normal text-xl mb-6 font-anton !normal-case tracking-tight leading-none text-left">Partners</h4>
+            <h4 className="font-normal text-xl mb-6 !font-anton uppercase tracking-wide [word-spacing:0.02em] leading-none text-left text-slate-800">Partners</h4>
             <ul className="space-y-4 text-sm text-slate-400">
               <li><button onClick={onDistributorClick} className="hover:text-white transition-colors">Become a Distributor</button></li>
               <li><button onClick={onAdminClick} className="hover:text-white transition-colors">Global Partners</button></li>
@@ -93,7 +93,7 @@ const Footer: React.FC<FooterProps> = ({
 
           {/* Company Column */}
           <div className="lg:col-span-2 text-left flex flex-col items-start">
-            <h4 className="font-normal text-xl mb-6 font-anton !normal-case tracking-tight leading-none text-left">Company</h4>
+            <h4 className="font-normal text-xl mb-6 !font-anton uppercase tracking-wide [word-spacing:0.02em] leading-none text-left text-slate-800">Company</h4>
             <ul className="space-y-4 text-sm text-slate-400">
               <li><button onClick={onJourneyClick} className="hover:text-white transition-colors">About Us</button></li>
               <li><button onClick={onJourneyClick} className="hover:text-white transition-colors">Our Values</button></li>

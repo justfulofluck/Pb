@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { BlogPost } from '../types';
+import { getMediaUrl } from '../utils/mediaHelper';
 
 interface BlogSectionProps {
   posts: BlogPost[];
@@ -80,7 +81,7 @@ const BlogSection: React.FC<BlogSectionProps> = ({ posts, onPostClick, onViewAll
               {/* Image at the Bottom */}
               <div className="mt-auto aspect-[16/9] rounded-xl overflow-hidden">
                 <img
-                  src={post.image}
+                  src={getMediaUrl(post.image)}
                   alt={post.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />

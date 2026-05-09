@@ -101,6 +101,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onToggleCustomerActive,
   onDeleteCustomer
 }) => {
+  const getMediaUrl = (url: string | undefined) => {
+    if (!url) return '';
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    return `${API_BASE_URL}${url}`;
+  };
+
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   const [productView, setProductView] = useState<'list' | 'add' | 'categories'>('list');
@@ -352,6 +358,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     readTime: '',
     author: '',
     content: '',
+    subtitle: '',
+    intro_heading: '',
+    featured_quote: '',
+    author_image: '',
+    author_role: '',
+    secondary_image: '',
+    tertiary_image: '',
+    facts_list: [],
+    key_points: [],
+    health_benefits: [],
+    usage_recipes: [],
     scheduledDate: '',
     isActive: true
   });
@@ -634,6 +651,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       readTime: '',
       author: '',
       content: '',
+      subtitle: '',
+      intro_heading: '',
+      featured_quote: '',
+      author_image: '',
+      author_role: '',
+      secondary_image: '',
+      tertiary_image: '',
+      facts_list: [],
+      key_points: [],
+      health_benefits: [],
+      usage_recipes: [],
       scheduledDate: '',
       isActive: true
     });
@@ -646,7 +674,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setBlogForm({
       ...post,
       content,
-      scheduledDate: post.scheduledDate || ''
+      scheduledDate: post.scheduledDate || '',
+      subtitle: post.subtitle || '',
+      intro_heading: post.intro_heading || '',
+      featured_quote: post.featured_quote || '',
+      author_image: post.author_image || '',
+      author_role: post.author_role || '',
+      secondary_image: post.secondary_image || '',
+      tertiary_image: post.tertiary_image || '',
+      facts_list: post.facts_list || [],
+      key_points: post.key_points || [],
+      health_benefits: post.health_benefits || [],
+      usage_recipes: post.usage_recipes || []
     });
     setBlogView('form');
   };
@@ -669,6 +708,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       readTime: blogForm.readTime || '5 min read',
       author: blogForm.author || 'Admin',
       content: blogForm.content || '',
+      subtitle: blogForm.subtitle || '',
+      intro_heading: blogForm.intro_heading || '',
+      featured_quote: blogForm.featured_quote || '',
+      author_image: blogForm.author_image || '',
+      author_role: blogForm.author_role || '',
+      secondary_image: blogForm.secondary_image || '',
+      tertiary_image: blogForm.tertiary_image || '',
+      facts_list: blogForm.facts_list || [],
+      key_points: blogForm.key_points || [],
+      health_benefits: blogForm.health_benefits || [],
+      usage_recipes: blogForm.usage_recipes || [],
       scheduledDate: blogForm.scheduledDate || '',
       isActive: blogForm.isActive !== false
     };
@@ -1240,7 +1290,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex font-satoshi">
+    <div className="fixed inset-0 bg-slate-100 flex font-satoshi overflow-hidden">
       {/* Sidebar */}
       <aside className="w-20 lg:w-64 bg-slate-900 text-white flex flex-col flex-shrink-0 transition-all duration-300">
         <div className="p-4 border-b border-slate-800 h-20 flex items-center justify-center">
@@ -1313,7 +1363,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col h-full overflow-hidden min-h-0">
         {/* Top Header */}
         <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 flex-shrink-0 relative z-30">
           <h2 className="text-2xl font-black uppercase text-slate-800">
@@ -1413,7 +1463,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
         </header>
 
         {/* Scrollable Area */}
-        <div className="flex-1 overflow-y-auto p-8 custom-scroll" onClick={() => { setShowNotifications(false); setShowSettings(false); }}>
+        <div className="flex-1 overflow-y-auto p-8 relative" style={{ height: 'calc(100vh - 5rem)' }} onClick={() => { setShowNotifications(false); setShowSettings(false); }}>
 
           {/* ----- SITE UI SETTINGS TAB ----- */}
           {activeTab === 'ui-settings' && (
@@ -1458,7 +1508,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                       <div key={slide.id} className="bg-white rounded-3xl border border-slate-200 overflow-hidden flex shadow-sm hover:shadow-md transition-shadow group">
                         <div className={`w-48 ${slide.bgColor} flex items-center justify-center p-4 relative overflow-hidden`}>
                           <div className={`absolute -bottom-4 -right-4 w-20 h-20 rounded-full blur-2xl opacity-40 ${slide.blobColor}`}></div>
-                          <img src={slide.image} className="w-full h-auto object-contain drop-shadow-lg z-10" alt="Preview" />
+                          <img src={getMediaUrl(slide.image)} className="w-full h-auto object-contain drop-shadow-lg z-10" alt="Preview" />
                         </div>
                         <div className="flex-1 p-8 flex flex-col">
                           <div className="flex justify-between items-start mb-4">
@@ -1538,7 +1588,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                         <div className="mt-8 border-t border-slate-100 pt-6">
                           <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Live Preview</h4>
                           <div className="w-[160px] h-[280px] rounded-[18px] overflow-hidden relative shadow-lg">
-                            <img src={previewSrc} className="w-full h-full object-cover" alt="Preview" />
+                            <img src={getMediaUrl(previewSrc)} className="w-full h-full object-cover" alt="Preview" />
                             <div className="absolute inset-0 flex items-center justify-center">
                               <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
                                 <span className="material-symbols-outlined text-white text-lg">play_arrow</span>
@@ -1557,7 +1607,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                               return (
                                 <div className="absolute bottom-4 left-2 right-2 bg-white rounded-xl p-2.5 shadow-lg flex items-center gap-3 border border-slate-100">
                                   <div className="w-16 h-16 rounded-lg flex-shrink-0 flex items-center justify-center">
-                                    <img src={p.image} className="w-14 h-14 object-contain" alt="P" />
+                                    <img src={getMediaUrl(p.image)} className="w-14 h-14 object-contain" alt="P" />
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <h4 className="text-[11px] font-bold text-slate-900 leading-[1.2] line-clamp-2">
@@ -1585,15 +1635,15 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                       return (
                         <div key={story.id} className="relative aspect-[9/16] bg-slate-200 rounded-2xl overflow-hidden group border-2 border-transparent hover:border-primary transition-all">
                           {story.mediaType === 'video' ? (
-                            <video src={story.mediaUrl} className="w-full h-full object-cover" muted loop />
+                            <video src={getMediaUrl(story.mediaUrl)} className="w-full h-full object-cover" muted loop />
                           ) : (
-                            <img src={story.mediaUrl} className="w-full h-full object-cover" alt="Story" />
+                            <img src={getMediaUrl(story.mediaUrl)} className="w-full h-full object-cover" alt="Story" />
                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                           {p && (
                             <div className="absolute bottom-2 left-2 right-2 bg-white rounded-xl p-1.5 shadow-lg flex items-center gap-2 border border-slate-50">
                               <div className="w-9 h-9 rounded-lg bg-white flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-50">
-                                <img src={p.image} className="w-8 h-8 object-contain" alt="P" />
+                                <img src={getMediaUrl(p.image)} className="w-8 h-8 object-contain" alt="P" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <h4 className="text-[8px] font-bold text-slate-900 leading-[1.1] line-clamp-2">
@@ -1654,7 +1704,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                             </button>
                             {pressForm.logo && (
                               <div className="w-12 h-12 rounded-xl border border-slate-200 overflow-hidden flex-shrink-0">
-                                <img src={pressForm.logo} className="w-full h-full object-contain" alt="Logo preview" />
+                                <img src={getMediaUrl(pressForm.logo)} className="w-full h-full object-contain" alt="Logo preview" />
                               </div>
                             )}
                           </div>
@@ -1716,7 +1766,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                         </button>
                         <div className="flex items-start gap-4">
                           <div className="w-14 h-14 rounded-xl border border-slate-100 overflow-hidden flex-shrink-0 flex items-center justify-center bg-white shadow-sm">
-                            <img src={item.logo} className="w-12 h-12 object-contain" alt={item.mediaHouse} />
+                            <img src={getMediaUrl(item.logo)} className="w-12 h-12 object-contain" alt={item.mediaHouse} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <span className="text-[10px] font-black uppercase tracking-[0.15em] text-primary">{item.mediaHouse}</span>
@@ -2101,7 +2151,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                   {[...blogPosts].reverse().map(post => (
                     <div key={post.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col group">
                       <div className="h-48 overflow-hidden relative">
-                        <img src={post.image} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={post.title} />
+                        <img src={getMediaUrl(post.image)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={post.title} />
                         <div className="absolute top-4 left-4 flex flex-col gap-1.5">
                           <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-900 w-fit">
                             {post.type}
@@ -2226,13 +2276,208 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                         <label className="text-xs font-black uppercase tracking-widest text-slate-500">Excerpt</label>
                         <textarea required value={blogForm.excerpt} onChange={e => setBlogForm({ ...blogForm, excerpt: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={2} placeholder="Short summary for the card..." />
                       </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Subtitle (Secondary Headline)</label>
+                        <input type="text" value={blogForm.subtitle} onChange={e => setBlogForm({ ...blogForm, subtitle: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Exploring the humble grain that has sustained civilizations..." />
+                      </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Intro Heading (Article Start)</label>
+                        <input type="text" value={blogForm.intro_heading} onChange={e => setBlogForm({ ...blogForm, intro_heading: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. What is Oats? Health Benefits and Easy Recipes" />
+                      </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Featured Quote (Boxed Content)</label>
+                        <textarea value={blogForm.featured_quote} onChange={e => setBlogForm({ ...blogForm, featured_quote: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={3} placeholder="Quote to highlight in the article..." />
+                      </div>
                     </section>
 
-                    {/* Cover Image */}
-                    <section className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-500">Cover Image</label>
-                      <input type="file" accept="image/*" onChange={handleBlogImageUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                      {blogForm.image && <img src={blogForm.image} alt="Cover" className="h-48 rounded-xl object-cover mt-2 w-full" />}
+                    {/* Author Profile */}
+                    <section className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+                      <h4 className="text-sm font-black uppercase text-slate-800 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-lg">person_edit</span>
+                        Author Branding
+                      </h4>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Author Role/Title</label>
+                          <input type="text" value={blogForm.author_role} onChange={e => setBlogForm({ ...blogForm, author_role: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 font-bold text-sm" placeholder="e.g. Chief Nutritionist" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Author Photo</label>
+                          <input type="file" accept="image/*" onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => setBlogForm(prev => ({ ...prev, author_image: reader.result as string }));
+                              reader.readAsDataURL(e.target.files[0]);
+                            }
+                          }} className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-primary/10 file:text-primary" />
+                        </div>
+                      </div>
+                    </section>
+
+                    {/* Dynamic Lists Section */}
+                    <section className="space-y-8">
+                      {/* Facts List */}
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Fun & Fascinating Facts</label>
+                          <button type="button" onClick={() => setBlogForm(prev => ({ ...prev, facts_list: [...(prev.facts_list || []), ''] }))} className="text-primary text-xs font-bold uppercase flex items-center gap-1 hover:underline">
+                            <span className="material-symbols-outlined text-sm">add</span> Add Fact
+                          </button>
+                        </div>
+                        <div className="space-y-3">
+                          {(blogForm.facts_list || []).map((fact, idx) => (
+                            <div key={idx} className="flex gap-2">
+                              <input type="text" value={fact} onChange={e => {
+                                const newList = [...(blogForm.facts_list || [])];
+                                newList[idx] = e.target.value;
+                                setBlogForm({ ...blogForm, facts_list: newList });
+                              }} className="flex-1 px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium" placeholder="Fact description..." />
+                              <button type="button" onClick={() => {
+                                const newList = (blogForm.facts_list || []).filter((_, i) => i !== idx);
+                                setBlogForm({ ...blogForm, facts_list: newList });
+                              }} className="text-slate-300 hover:text-red-500"><span className="material-symbols-outlined">delete</span></button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Key Points / Types Grid */}
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Key Points / Product Types</label>
+                          <button type="button" onClick={() => setBlogForm(prev => ({ ...prev, key_points: [...(prev.key_points || []), { title: '', desc: '' }] }))} className="text-primary text-xs font-bold uppercase flex items-center gap-1 hover:underline">
+                            <span className="material-symbols-outlined text-sm">add</span> Add Point
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {(blogForm.key_points || []).map((point, idx) => (
+                            <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 relative group">
+                              <button type="button" onClick={() => {
+                                const newList = (blogForm.key_points || []).filter((_, i) => i !== idx);
+                                setBlogForm({ ...blogForm, key_points: newList });
+                              }} className="absolute top-2 right-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><span className="material-symbols-outlined text-sm">delete</span></button>
+                              <div className="space-y-2">
+                                <input type="text" value={point.title} onChange={e => {
+                                  const newList = [...(blogForm.key_points || [])];
+                                  newList[idx] = { ...newList[idx], title: e.target.value };
+                                  setBlogForm({ ...blogForm, key_points: newList });
+                                }} className="w-full px-3 py-1.5 rounded-lg border border-slate-200 font-bold text-xs" placeholder="Point Title (e.g. Steel-cut)" />
+                                <textarea value={point.desc} onChange={e => {
+                                  const newList = [...(blogForm.key_points || [])];
+                                  newList[idx] = { ...newList[idx], desc: e.target.value };
+                                  setBlogForm({ ...blogForm, key_points: newList });
+                                }} className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-medium" rows={2} placeholder="Description..." />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Health Benefits Section */}
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Health Benefits (Numbered)</label>
+                          <button type="button" onClick={() => setBlogForm(prev => ({ ...prev, health_benefits: [...(prev.health_benefits || []), { title: '', desc: '' }] }))} className="text-primary text-xs font-bold uppercase flex items-center gap-1 hover:underline">
+                            <span className="material-symbols-outlined text-sm">add</span> Add Benefit
+                          </button>
+                        </div>
+                        <div className="space-y-3">
+                          {(blogForm.health_benefits || []).map((benefit, idx) => (
+                            <div key={idx} className="flex gap-3 items-start p-3 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                              <span className="text-xl font-black text-slate-200 pt-1">{(idx + 1).toString().padStart(2, '0')}</span>
+                              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <input type="text" value={benefit.title} onChange={e => {
+                                  const newList = [...(blogForm.health_benefits || [])];
+                                  newList[idx] = { ...newList[idx], title: e.target.value };
+                                  setBlogForm({ ...blogForm, health_benefits: newList });
+                                }} className="px-3 py-1.5 rounded-lg border border-slate-200 font-bold text-xs" placeholder="Benefit Title" />
+                                <input type="text" value={benefit.desc} onChange={e => {
+                                  const newList = [...(blogForm.health_benefits || [])];
+                                  newList[idx] = { ...newList[idx], desc: e.target.value };
+                                  setBlogForm({ ...blogForm, health_benefits: newList });
+                                }} className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium" placeholder="Short explanation..." />
+                              </div>
+                              <button type="button" onClick={() => {
+                                const newList = (blogForm.health_benefits || []).filter((_, i) => i !== idx);
+                                setBlogForm({ ...blogForm, health_benefits: newList });
+                              }} className="text-slate-300 hover:text-red-500 pt-1"><span className="material-symbols-outlined">delete</span></button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </section>
+
+                    {/* Media Assets */}
+                    <section className="space-y-6 pt-6 border-t border-slate-100">
+                      <h4 className="text-sm font-black uppercase text-slate-800">Section Media (Secondary Images)</h4>
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">History Section Image</label>
+                          <input type="file" accept="image/*" onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => setBlogForm(prev => ({ ...prev, secondary_image: reader.result as string }));
+                              reader.readAsDataURL(e.target.files[0]);
+                            }
+                          }} className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-primary/10 file:text-primary" />
+                          {blogForm.secondary_image && <img src={getMediaUrl(blogForm.secondary_image)} alt="History" className="h-32 w-full object-cover rounded-xl mt-2" />}
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Benefits Section Image</label>
+                          <input type="file" accept="image/*" onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => setBlogForm(prev => ({ ...prev, tertiary_image: reader.result as string }));
+                              reader.readAsDataURL(e.target.files[0]);
+                            }
+                          }} className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-primary/10 file:text-primary" />
+                          {blogForm.tertiary_image && <img src={getMediaUrl(blogForm.tertiary_image)} alt="Benefits" className="h-32 w-full object-cover rounded-xl mt-2" />}
+                        </div>
+                      </div>
+                    </section>
+
+                    {/* Delicious Ways / Usage Ideas */}
+                    <section className="space-y-4 pt-6 border-t border-slate-100">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Delicious Ways to Enjoy (Bottom Section)</label>
+                        <button type="button" onClick={() => setBlogForm(prev => ({ ...prev, usage_recipes: [...(prev.usage_recipes || []), { title: '', desc: '', image: '' }] }))} className="text-primary text-xs font-bold uppercase flex items-center gap-1 hover:underline">
+                          <span className="material-symbols-outlined text-sm">add</span> Add Idea
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {(blogForm.usage_recipes || []).map((recipe, idx) => (
+                          <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 relative group">
+                            <button type="button" onClick={() => {
+                              const newList = (blogForm.usage_recipes || []).filter((_, i) => i !== idx);
+                              setBlogForm({ ...blogForm, usage_recipes: newList });
+                            }} className="absolute top-2 right-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><span className="material-symbols-outlined text-sm">delete</span></button>
+                            <div className="w-20 h-20 mx-auto rounded-full bg-white border border-slate-200 overflow-hidden relative">
+                              {recipe.image ? <img src={getMediaUrl(recipe.image)} className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-slate-200 absolute inset-0 flex items-center justify-center">image</span>}
+                              <input type="file" accept="image/*" onChange={(e) => {
+                                if (e.target.files?.[0]) {
+                                  const reader = new FileReader();
+                                  reader.onloadend = () => {
+                                    const newList = [...(blogForm.usage_recipes || [])];
+                                    newList[idx] = { ...newList[idx], image: reader.result as string };
+                                    setBlogForm({ ...blogForm, usage_recipes: newList });
+                                  };
+                                  reader.readAsDataURL(e.target.files[0]);
+                                }
+                              }} className="absolute inset-0 opacity-0 cursor-pointer" title="Upload Recipe Image" />
+                            </div>
+                            <input type="text" value={recipe.title} onChange={e => {
+                              const newList = [...(blogForm.usage_recipes || [])];
+                              newList[idx] = { ...newList[idx], title: e.target.value };
+                              setBlogForm({ ...blogForm, usage_recipes: newList });
+                            }} className="w-full px-2 py-1 rounded border border-slate-200 font-bold text-[10px] text-center" placeholder="Way to Enjoy Title" />
+                            <textarea value={recipe.desc} onChange={e => {
+                              const newList = [...(blogForm.usage_recipes || [])];
+                              newList[idx] = { ...newList[idx], desc: e.target.value };
+                              setBlogForm({ ...blogForm, usage_recipes: newList });
+                            }} className="w-full px-2 py-1 rounded border border-slate-200 text-[9px] text-center" rows={2} placeholder="Brief description..." />
+                          </div>
+                        ))}
+                      </div>
                     </section>
 
                     {/* Content Editor */}
@@ -2286,7 +2531,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                     {[...events].reverse().map(event => (
                       <div key={event.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
                         <div className="h-48 overflow-hidden relative">
-                          <img src={event.image} className="w-full h-full object-cover" alt={event.title} />
+                          <img src={getMediaUrl(event.image)} className="w-full h-full object-cover" alt={event.title} />
                           <div className="absolute top-4 left-4 flex flex-col gap-1.5">
                             {event.scheduledDate && (() => {
                               try {
@@ -2466,7 +2711,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                           <div className="space-y-2">
                             <label className="text-xs font-black uppercase tracking-widest text-slate-500">Cover Image</label>
                             <input type="file" accept="image/*" onChange={(e) => handleEventImageUpload(e, 'cover')} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                            {eventForm.image && <img src={eventForm.image} alt="Cover" className="h-32 rounded-lg object-cover mt-2" />}
+                            {eventForm.image && <img src={getMediaUrl(eventForm.image)} alt="Cover" className="h-32 rounded-lg object-cover mt-2" />}
                           </div>
                           <div className="space-y-2">
                             <label className="text-xs font-black uppercase tracking-widest text-slate-500">Gallery Images</label>
@@ -2474,7 +2719,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                             <div className="flex flex-wrap gap-2 mt-2">
                               {eventForm.gallery?.map((img, i) => (
                                 <div key={i} className="w-16 h-16 relative">
-                                  <img src={img} className="w-full h-full object-cover rounded-lg" />
+                                  <img src={getMediaUrl(img)} className="w-full h-full object-cover rounded-lg" />
                                 </div>
                               ))}
                             </div>
@@ -2493,7 +2738,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                               onClick={() => toggleFeaturedProduct(p.id)}
                               className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex items-center gap-3 ${eventForm.featuredProducts?.includes(p.id) ? 'border-primary bg-primary/5' : 'border-slate-100 hover:border-slate-300'}`}
                             >
-                              <div className="w-8 h-8 rounded bg-white overflow-hidden flex-shrink-0"><img src={p.image} className="w-full h-full object-cover" /></div>
+                              <div className="w-8 h-8 rounded bg-white overflow-hidden flex-shrink-0"><img src={getMediaUrl(p.image)} className="w-full h-full object-cover" /></div>
                               <span className="text-xs font-bold line-clamp-1">{p.name}</span>
                               {eventForm.featuredProducts?.includes(p.id) && <span className="ml-auto material-symbols-outlined text-primary text-sm">check_circle</span>}
                             </div>
@@ -2576,7 +2821,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                             <td className="p-4">
                               <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0">
-                                  <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
+                                  <img src={getMediaUrl(product.image)} className="w-full h-full object-cover" alt={product.name} />
                                 </div>
                                 <div>
                                   <p className="font-bold text-slate-900 text-sm">{product.name}</p>
@@ -2753,7 +2998,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                             <div className="flex gap-4">
                               <div className="w-24 h-24 rounded-xl overflow-hidden bg-white border border-slate-200 flex-shrink-0 relative">
                                 {idea.image ? (
-                                  <img src={idea.image} alt="Idea" className="w-full h-full object-cover" />
+                                  <img src={getMediaUrl(idea.image)} alt="Idea" className="w-full h-full object-cover" />
                                 ) : (
                                   <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
                                     <span className="material-symbols-outlined text-2xl">image</span>
@@ -2803,7 +3048,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                           </label>
                           {productForm.image && (
                             <div className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm relative group">
-                              <img src={productForm.image} alt="Preview" className="w-full h-full object-cover" />
+                              <img src={getMediaUrl(productForm.image)} alt="Preview" className="w-full h-full object-cover" />
                               <button
                                 type="button"
                                 onClick={() => setProductForm({ ...productForm, image: '' })}
@@ -2828,7 +3073,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                           </label>
                           {productForm.gallery && productForm.gallery.map((img, idx) => (
                             <div key={idx} className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm relative group">
-                              <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                              <img src={getMediaUrl(img)} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
                               <button
                                 type="button"
                                 onClick={() => setProductForm(prev => ({ ...prev, gallery: prev.gallery?.filter((_, i) => i !== idx) }))}
@@ -3440,7 +3685,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                     </div>
                     {slideForm.image && (
                       <div className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 group">
-                        <img src={slideForm.image} alt="Preview" className="w-full h-full object-cover" />
+                        <img src={getMediaUrl(slideForm.image)} alt="Preview" className="w-full h-full object-cover" />
                         <button
                           type="button"
                           onClick={() => setSlideForm(prev => ({ ...prev, image: '' }))}
@@ -3471,7 +3716,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                     </div>
                     {slideForm.mobileImage && (
                       <div className="relative aspect-[9/16] w-32 mx-auto rounded-xl overflow-hidden border border-slate-200 group">
-                        <img src={slideForm.mobileImage} alt="Mobile Preview" className="w-full h-full object-cover" />
+                        <img src={getMediaUrl(slideForm.mobileImage)} alt="Mobile Preview" className="w-full h-full object-cover" />
                         <button
                           type="button"
                           onClick={() => setSlideForm(prev => ({ ...prev, mobileImage: '' }))}
@@ -3554,7 +3799,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                   {previewMode === 'pc' ? (
                     <div className="w-full h-full relative flex items-center justify-center">
                       {slideForm.image ? (
-                        <img src={slideForm.image} alt="PC Preview" className="w-full h-full object-cover" />
+                        <img src={getMediaUrl(slideForm.image)} alt="PC Preview" className="w-full h-full object-cover" />
                       ) : (
                         <div className="flex flex-col items-center justify-center text-slate-300">
                           <span className="material-symbols-outlined text-6xl mb-4">image</span>
@@ -3565,10 +3810,10 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                   ) : (
                     <div className="w-[300px] h-[533px] relative rounded-[40px] border-[8px] border-slate-900 shadow-2xl overflow-hidden bg-slate-50">
                       {slideForm.mobileImage ? (
-                        <img src={slideForm.mobileImage} alt="Mobile Preview" className="w-full h-full object-cover" />
+                        <img src={getMediaUrl(slideForm.mobileImage)} alt="Mobile Preview" className="w-full h-full object-cover" />
                       ) : slideForm.image ? (
                         <div className="relative w-full h-full">
-                          <img src={slideForm.image} alt="PC Fallback" className="w-full h-full object-cover blur-[2px] opacity-50" />
+                          <img src={getMediaUrl(slideForm.image)} alt="PC Fallback" className="w-full h-full object-cover blur-[2px] opacity-50" />
                           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
                             <span className="material-symbols-outlined text-4xl text-slate-400 mb-2">smartphone</span>
                             <p className="text-[10px] font-black text-slate-900 uppercase leading-tight">No specific mobile asset. Desktop image will be used.</p>
@@ -3689,7 +3934,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                     <div key={i} className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-slate-100 rounded-lg flex-shrink-0 flex items-center justify-center text-slate-300 overflow-hidden">
                         {item.product_image ? (
-                          <img src={item.product_image} alt={item.product_name} className="w-full h-full object-cover" />
+                          <img src={getMediaUrl(item.product_image)} alt={item.product_name} className="w-full h-full object-cover" />
                         ) : (
                           <span className="material-symbols-outlined">image</span>
                         )}
