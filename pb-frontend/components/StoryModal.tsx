@@ -76,11 +76,8 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
             document.body.style.overflow = '';
             window.removeEventListener('keydown', handleKeyDown);
             
-            // Clean up video memory
             if (videoElement) {
                 videoElement.pause();
-                videoElement.removeAttribute('src');
-                videoElement.load();
             }
         };
     }, [onClose]);

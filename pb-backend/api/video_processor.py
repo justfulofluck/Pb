@@ -4,8 +4,7 @@ import gdown
 import uuid
 import re
 import subprocess
-import signal
-from contextlib import contextmanager
+import threading
 from django.conf import settings
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -15,20 +14,31 @@ class TimeoutException(Exception):
     pass
 
 
-@contextmanager
-def timeout_handler(seconds: int):
-    """Context manager to timeout operations."""
+def _download_with_timeout(file_id: str, output_path: str, timeout_seconds: int = 300) -> str:
+    """Download a file from Google Drive with a timeout using threads instead of signals.
+    This works in non-main threads (Django request handlers)."""
+    result = [None]
+    error = [None]
 
-    def handler(signum, frame):
-        raise TimeoutException(f"Operation timed out after {seconds} seconds")
+    def _do_download():
+        try:
+            result[0] = gdown.download(id=file_id, output=output_path, quiet=False)
+        except Exception as e:
+            error[0] = e
 
-    old_handler = signal.signal(signal.SIGALRM, handler)
-    try:
-        signal.alarm(seconds)
-        yield
-    finally:
-        signal.alarm(0)
-        signal.signal(signal.SIGALRM, old_handler)
+    thread = threading.Thread(target=_do_download)
+    thread.start()
+    thread.join(timeout=timeout_seconds)
+
+    if thread.is_alive():
+        # Download is still running after timeout — we can't force-kill the thread,
+        # but we raise so the caller knows it timed out.
+        raise TimeoutException(f"Download timed out after {timeout_seconds} seconds")
+
+    if error[0]:
+        raise error[0]
+
+    return result[0]
 
 
 def extract_file_id_from_url(url: str) -> str:
@@ -102,14 +112,9 @@ def process_google_drive_video_to_mp4(drive_url: str) -> dict:
         # Download with size limit and timeout
         print(f"DEBUG: Downloading File ID: {file_id}...")
         try:
-            # Try download with timeout using signal
-            with timeout_handler(300):
-                result_path = gdown.download(id=file_id, output=temp_in, quiet=False)
+            result_path = _download_with_timeout(file_id, temp_in, timeout_seconds=300)
         except TimeoutException:
             raise ValueError("Download timed out (max 5 minutes)")
-        except TypeError:
-            # Fallback for older gdown versions without timeout param
-            result_path = gdown.download(id=file_id, output=temp_in, quiet=False)
 
         if not result_path or not os.path.exists(temp_in):
             raise ValueError(
@@ -139,6 +144,8 @@ def process_google_drive_video_to_mp4(drive_url: str) -> dict:
                 "libx264",
                 "-preset",
                 "ultrafast",
+                "-movflags",
+                "+faststart",  # Move moov atom to start for instant web playback
                 "-threads",
                 "2",  # Limit threads
                 "-max_muxing_queue_size",
@@ -172,6 +179,8 @@ def process_google_drive_video_to_mp4(drive_url: str) -> dict:
                 "128k",
                 "-preset",
                 "ultrafast",
+                "-movflags",
+                "+faststart",  # Move moov atom to start for instant web playback
                 "-threads",
                 "2",  # Limit threads
                 "-max_muxing_queue_size",

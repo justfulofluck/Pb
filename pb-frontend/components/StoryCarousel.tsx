@@ -47,23 +47,26 @@ const StoryCard = React.memo(({ story, product, onClick, onProductClick }: {
   const [isInView, setIsInView] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Play/pause based on visibility
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     if (isInView) {
-      video.play().catch(() => { });
+      // Small delay to avoid rapid play/pause race (AbortError)
+      const playTimer = setTimeout(() => {
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => { /* Browser blocked autoplay, poster will show */ });
+        }
+      }, 100);
+      return () => clearTimeout(playTimer);
     } else {
       video.pause();
     }
-
-    // Unmount cleanup to free memory
-    return () => {
-      video.pause();
-      video.removeAttribute('src');
-      video.load();
-    };
   }, [isInView]);
+
+  // Memory is automatically cleaned up when the component unmounts and the video element is removed from DOM.
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -112,12 +115,19 @@ const StoryCard = React.memo(({ story, product, onClick, onProductClick }: {
           playsInline
           autoPlay={isInView}
           poster={posterUrl}
-          preload="metadata"
+          preload="auto"
           aria-label="Social story video preview"
+          onCanPlay={(e) => {
+            // Restore visibility if it was hidden by a transient error
+            e.currentTarget.style.opacity = '1';
+          }}
           onError={(e) => {
-            console.warn("Story video failed to load, falling back to poster");
+            // Only hide if the video truly has no valid source
             const video = e.currentTarget;
-            video.style.opacity = '0';
+            if (video.networkState === video.NETWORK_NO_SOURCE) {
+              console.warn("Story video source not found");
+              video.style.opacity = '0';
+            }
           }}
         />
       ) : (
