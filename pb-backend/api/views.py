@@ -74,6 +74,7 @@ class CustomerViewSet(viewsets.ModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def list(self, request, *args, **kwargs):
         cache_key = "category_list"
@@ -99,6 +100,7 @@ class ProductPagination(PageNumberPagination):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ["category", "is_top_rated"]
     search_fields = ["name", "description"]
@@ -197,6 +199,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         user = self.request.user if self.request.user.is_authenticated else None
@@ -227,6 +230,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         from django.utils import timezone
@@ -266,6 +270,7 @@ class BlogPostViewSet(viewsets.ModelViewSet):
 class StoryViewSet(viewsets.ModelViewSet):
     queryset = Story.objects.all()
     serializer_class = StorySerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
         print("DEBUG: Story Post Data:", request.data)
@@ -275,6 +280,7 @@ class StoryViewSet(viewsets.ModelViewSet):
 class HeroSlideViewSet(viewsets.ModelViewSet):
     queryset = HeroSlide.objects.all()
     serializer_class = HeroSlideSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 from .utils import get_razorpay_client, send_email, send_order_confirmation_emails

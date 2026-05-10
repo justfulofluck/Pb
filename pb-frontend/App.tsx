@@ -10,10 +10,10 @@ import ComparisonTable from './components/ComparisonTable';
 import Testimonials from './components/Testimonials';
 import Newsletter from './components/Newsletter';
 import SnaxxoFooter from './components/snaxxo/SnaxxoFooter';
-import CartDrawer from './components/CartDrawer';
+const CartDrawer = React.lazy(() => import('./components/CartDrawer'));
 import ProductModal from './components/ProductModal';
-import AuthModal from './components/AuthModal';
-import ProductPage from './components/ProductPage';
+const AuthModal = React.lazy(() => import('./components/AuthModal'));
+const ProductPage = React.lazy(() => import('./components/ProductPage'));
 const ShopPage = React.lazy(() => import('./components/ShopPage'));
 const CheckoutPage = React.lazy(() => import('./components/CheckoutPage'));
 const Dashboard = React.lazy(() => import('./components/Dashboard'));
@@ -37,11 +37,11 @@ import RewardNotification from './components/RewardNotification';
 import { ToastProvider, useToast } from './components/Toast';
 import BlogSection from './components/BlogSection';
 import EventsSection from './components/EventsSection';
-import EventModal from './components/EventModal';
+const EventModal = React.lazy(() => import('./components/EventModal'));
 import StoryCarousel from './components/StoryCarousel';
 import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category, Announcement, PressUpdate, Customer } from './types';
 import SnaxxoLanding from './components/snaxxo/SnaxxoLanding';
-import SnaxxoProductWheel from './components/snaxxo/SnaxxoProductWheel';
+const SnaxxoProductWheel = React.lazy(() => import('./components/snaxxo/SnaxxoProductWheel'));
 import PressUpdates from './components/PressUpdates';
 import MobileBottomNav from './components/MobileBottomNav';
 
@@ -231,14 +231,14 @@ const AppContent: React.FC = () => {
   const queryClient = useQueryClient();
 
   // --- TanStack Queries ---
-  const productsQuery = useQuery({ queryKey: ['products'], queryFn: fetchProducts });
-  const reviewsQuery = useQuery({ queryKey: ['reviews'], queryFn: fetchReviews });
-  const categoriesQuery = useQuery({ queryKey: ['categories'], queryFn: fetchCategories });
-  const announcementsQuery = useQuery({ queryKey: ['announcements'], queryFn: fetchAnnouncements });
-  const heroSlidesQuery = useQuery({ queryKey: ['hero-slides'], queryFn: fetchHeroSlides });
-  const eventsQuery = useQuery({ queryKey: ['events'], queryFn: fetchEvents });
-  const blogPostsQuery = useQuery({ queryKey: ['blog-posts'], queryFn: fetchBlogs });
-  const storiesQuery = useQuery({ queryKey: ['stories'], queryFn: fetchStories });
+  const productsQuery = useQuery({ queryKey: ['products'], queryFn: fetchProducts, staleTime: 2 * 60 * 1000 });
+  const reviewsQuery = useQuery({ queryKey: ['reviews'], queryFn: fetchReviews, staleTime: 5 * 60 * 1000 });
+  const categoriesQuery = useQuery({ queryKey: ['categories'], queryFn: fetchCategories, staleTime: 2 * 60 * 1000 });
+  const announcementsQuery = useQuery({ queryKey: ['announcements'], queryFn: fetchAnnouncements, staleTime: 5 * 60 * 1000 });
+  const heroSlidesQuery = useQuery({ queryKey: ['hero-slides'], queryFn: fetchHeroSlides, staleTime: 5 * 60 * 1000 });
+  const eventsQuery = useQuery({ queryKey: ['events'], queryFn: fetchEvents, staleTime: 5 * 60 * 1000 });
+  const blogPostsQuery = useQuery({ queryKey: ['blog-posts'], queryFn: fetchBlogs, staleTime: 5 * 60 * 1000 });
+  const storiesQuery = useQuery({ queryKey: ['stories'], queryFn: fetchStories, staleTime: 5 * 60 * 1000 });
 
   // Derived values
   const products = productsQuery.data || INITIAL_PRODUCTS;

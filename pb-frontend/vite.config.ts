@@ -32,6 +32,15 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules/framer-motion')) return 'vendor-framer';
+            if (id.includes('node_modules/gsap')) return 'vendor-gsap';
+            if (id.includes('node_modules/@tiptap')) return 'vendor-tiptap';
+          }
+        }
+      }
     }
   };
 });

@@ -203,7 +203,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   useEffect(() => {
     const fetchAdminData = async () => {
       try {
-        const token = localStorage.getItem('access_token') || localStorage.getItem('admin_access_token');
+        const token = localStorage.getItem('admin_access_token') || localStorage.getItem('access_token');
         if (!token) return;
 
         // Fetch Orders
@@ -1232,7 +1232,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
   const handleStatusUpdate = async (newStatus: string) => {
     if (!viewingOrder) return;
     try {
-      const token = localStorage.getItem('access_token') || localStorage.getItem('admin_access_token');
+      const token = localStorage.getItem('admin_access_token') || localStorage.getItem('access_token');
       if (!token) return;
       const response = await fetch(`${API_BASE_URL}/api/orders/${viewingOrder.id}/`, {
         method: 'PATCH',
