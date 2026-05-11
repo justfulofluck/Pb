@@ -283,7 +283,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
                     </div>
 
                     {/* Title - Fixed min height for alignment */}
-                    <h3 className="!text-[16px] md:!text-2xl font-normal uppercase tracking-wide [word-spacing:0.02em] text-textured-any bg-[#0b3d2e] mb-1 !px-4 md:!px-8 !leading-[1.1] group-hover:opacity-80 transition-all text-center min-h-[2.5rem] md:!min-h-[3.5rem] flex items-center justify-center !font-anton w-fit mx-auto">
+                    <h3 className="!text-[16px] md:!text-2xl font-normal uppercase tracking-wide [word-spacing:0.02em] text-textured-any bg-[#0b3d2e] mb-1 !px-4 md:!px-8 !leading-[1.25] group-hover:opacity-80 transition-all text-center min-h-[3rem] md:!min-h-[4rem] flex items-center justify-center !font-anton w-fit mx-auto">
                       {product.name.toUpperCase()}
                     </h3>
 

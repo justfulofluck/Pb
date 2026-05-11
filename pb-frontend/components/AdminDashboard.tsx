@@ -1514,7 +1514,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                           <div className="flex justify-between items-start mb-4">
                             <div>
                               <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 block mb-1">{slide.category || 'Slide Label'}</span>
-                              <h4 className="font-anton uppercase text-3xl leading-tight text-slate-900 tracking-tight">{slide.headline || 'Asset Preview'}</h4>
+                              <h4 className="font-anton uppercase text-3xl leading-[1.25] text-slate-900 tracking-tight">{slide.headline || 'Asset Preview'}</h4>
                             </div>
                             <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button onClick={() => moveSlide(index, 'up')} disabled={index === 0} className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 flex items-center justify-center disabled:opacity-30 transition-all shadow-sm"><span className="material-symbols-outlined text-lg">keyboard_arrow_up</span></button>

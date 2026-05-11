@@ -48,12 +48,12 @@ const ProductComparison: React.FC<ProductComparisonProps> = ({ product }) => {
                     initial={{ opacity: 0, y: -50 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="text-6xl md:text-8xl lg:text-[10rem] font-black uppercase italic font-anton leading-[0.8] tracking-tighter text-center w-full"
+                    className="text-6xl md:text-8xl lg:text-[10rem] font-black uppercase italic font-anton leading-[1] tracking-tighter text-center w-full"
                     style={{ color: '#0b3d2e' }}
                 >
                     Pinobite <br />
                     Vs <br />
-                    Otheres
+                    Others
                 </motion.h2>
             </div>
 

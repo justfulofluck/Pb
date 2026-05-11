@@ -390,7 +390,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                 <div className="bg-[#0b3d2e] texture-overlay texture-speckles text-white font-black text-[10px] sm:text-xs md:text-sm uppercase tracking-widest px-3 py-1 md:px-4 md:py-1.5 rounded-sm -rotate-3 mb-1 inline-block shadow-sm z-10" style={{ transformOrigin: 'center' }}>
                     Flavors you Love
                 </div>
-                <h2 className="text-5xl sm:text-6xl md:text-8xl lg:text-[100px] text-textured-green tracking-wide [word-spacing:0.05em] leading-[0.85] mb-1 relative z-0 !font-anton font-normal uppercase">
+                <h2 className="text-5xl sm:text-6xl md:text-8xl lg:text-[100px] text-textured-green tracking-wide [word-spacing:0.05em] leading-[1.1] mb-1 relative z-0 !font-anton font-normal uppercase">
                     Customer's<br />favorite
                 </h2>
                 <div className="w-24 md:w-32 h-2 md:h-2.5 bg-[#0b3d2e] mb-4 rounded-full"></div>
@@ -457,7 +457,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                                             )}
                                         </div>
                                         <div className="product-bottom-info-box mt-2 sm:mt-4 flex flex-col items-center text-center px-4 pointer-events-none">
-                                            <h3 className="text-[#0b3d2e] !text-[1.2rem] sm:!text-[1.8rem] md:!text-[2.2rem] mb-2 sm:mb-4 cursor-default uppercase tracking-normal leading-[1] pointer-events-auto !inline-block">
+                                            <h3 className="text-[#0b3d2e] !text-[1.2rem] sm:!text-[1.8rem] md:!text-[2.2rem] mb-2 sm:mb-4 cursor-default uppercase tracking-normal leading-[1.2] pointer-events-auto !inline-block">
                                                 {product.name}
                                             </h3>
                                             <div className="flex items-baseline gap-2 mb-4 sm:mb-6 pointer-events-auto">

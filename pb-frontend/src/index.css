@@ -103,13 +103,13 @@
   h1 {
     font-family: var(--font-anton);
     font-size: clamp(2.5rem, 12vw, 8rem);
-    line-height: 0.9;
+    line-height: 1.1;
   }
 
   h2 {
     font-family: var(--font-anton);
     font-size: clamp(2rem, 8vw, 5rem);
-    line-height: 1;
+    line-height: 1.1;
   }
 
   h3 {
@@ -173,12 +173,12 @@
   background-clip: text;
   color: transparent !important;
   display: inline-block;
-  /* Ensure the textured text is solid */
   background-color: #0b3d2e;
-  /* Fix clipping for descenders like y, g, p */
-  padding-bottom: 0.15em;
-  margin-bottom: -0.15em;
-  vertical-align: top;
+  /* Fix clipping for descenders and ascenders */
+  padding: 0.05em 0.1em 0.15em 0.1em;
+  margin: -0.05em -0.1em -0.15em -0.1em;
+  vertical-align: baseline;
+  line-height: 1.25;
 }
 
 /* Cardboard / Paper Colors */
@@ -228,9 +228,9 @@
   color: transparent !important;
   display: block;
   background-color: #0b3d2e;
-  padding-bottom: 0.15em;
-  margin-bottom: -0.15em;
-  line-height: 1 !important;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+  line-height: 1.1;
 }
 
 .bg-cardboard {

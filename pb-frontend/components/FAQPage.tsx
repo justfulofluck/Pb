@@ -55,7 +55,7 @@ const FAQPage: React.FC<FAQPageProps> = ({ onHomeClick }) => {
       <div className="max-w-6xl mx-auto px-4 relative z-10">
         <div className="text-center mb-16 relative">
           <div className="relative inline-block">
-            <h1 className="text-4xl md:text-6xl font-normal uppercase text-slate-900 tracking-wide [word-spacing:0.05em] leading-[1] !font-anton">
+            <h1 className="text-4xl md:text-6xl font-normal uppercase text-slate-900 tracking-wide [word-spacing:0.05em] leading-[1.15] !font-anton">
               Nuts & bolts: <span className="text-accent-brown">Your questions</span>
             </h1>
             <div className="absolute -top-8 -right-8 md:-right-24 transform rotate-6 border-2 border-slate-900 px-3 py-1 rounded bg-white shadow-sm hidden sm:block">

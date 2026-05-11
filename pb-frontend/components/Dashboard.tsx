@@ -268,7 +268,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                       <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest inline-block">
                         {userData.tier} Status
                       </span>
-                      <h2 className="text-3xl sm:text-4xl md:text-5xl font-anton uppercase tracking-normal leading-[1.1]" style={{ letterSpacing: '0.05em' }}>
+                      <h2 className="text-3xl sm:text-4xl md:text-5xl font-anton uppercase tracking-normal leading-[1.2]" style={{ letterSpacing: '0.05em' }}>
                         Welcome back,<br className="hidden sm:block" /> {authUser.first_name || authUser.username}
                       </h2>
                       <p className="font-satoshi text-lg sm:text-2xl text-white/70 leading-relaxed">Fueling your ambition since {new Date(authUser.date_joined || Date.now()).getFullYear()} ✨</p>

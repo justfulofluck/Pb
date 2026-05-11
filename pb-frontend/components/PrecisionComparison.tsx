@@ -6,8 +6,8 @@ const PrecisionComparison: React.FC = () => {
         <section className="py-24 px-6 max-w-7xl mx-auto bg-transparent relative z-10 font-satoshi">
             {/* Comparison Header */}
             <header className="text-center mb-16 md:mb-24">
-                <h1 className="text-textured-green-big leading-[1.1] tracking-normal [word-spacing:0.2em] mb-4">
-                    The Science Of <br /><span>Superior</span> Fuel
+                <h1 className="text-textured-green-big leading-[1.2] tracking-tight md:tracking-normal [word-spacing:0.1em] mb-4">
+                    The Science Of <br /><span className="text-textured-green">Superior</span> Fuel
                 </h1>
                 <p className="text-lg md:text-xl text-slate-500 max-w-2xl mx-auto font-medium">
                     Comparing the nutritional precision of Pinobite Super Foods against leading generic alternatives.

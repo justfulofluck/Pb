@@ -69,7 +69,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
                     onClick={() => toggleSection(id)}
                     className="w-full flex items-center justify-start py-2 lg:py-0 lg:mb-4 text-left focus:outline-none group px-0 m-0"
                 >
-                    <div className="font-bold !text-secondary text-xl lg:text-2xl uppercase tracking-wider [word-spacing:0.02em] font-anton leading-none text-left p-0 m-0">{title}</div>
+                    <div className="font-bold !text-secondary text-xl lg:text-2xl uppercase tracking-wider [word-spacing:0.02em] font-anton leading-tight text-left p-0 m-0">{title}</div>
                     <span className={`lg:hidden transition-transform duration-300 ml-2 ${isOpen ? 'rotate-180' : ''}`}>
                         <i className="fa-solid fa-chevron-down text-white/50 text-xs"></i>
                     </span>
