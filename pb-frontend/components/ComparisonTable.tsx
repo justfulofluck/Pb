@@ -18,7 +18,7 @@ const ComparisonTable: React.FC = () => {
         <div className="text-center mb-16 md:mb-24">
           <div className="inline-block relative">
             <div className="absolute inset-0 bg-[#c7e9d9] transform -rotate-1 scale-110 rounded-lg"></div>
-            <h2 className="relative text-[2.8rem] sm:text-5xl md:text-7xl lg:text-[7rem] !font-anton italic tracking-tight md:tracking-wide [word-spacing:0.05em] leading-[0.95] md:leading-[1.1] text-slate-900 uppercase px-6 md:px-12 py-4">
+            <h2 className="relative text-[2.8rem] sm:text-5xl md:text-7xl lg:text-[72px] !font-anton italic tracking-tight md:tracking-wide [word-spacing:0.05em] leading-[0.95] md:leading-[1.1] text-slate-900 uppercase px-6 md:px-12 py-4">
               Pinobite <span className="text-primary italic block md:inline">vs.</span> Others
             </h2>
           </div>

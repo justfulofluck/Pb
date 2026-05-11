@@ -390,8 +390,8 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                 <div className="bg-[#0b3d2e] texture-overlay texture-speckles text-white font-black text-[10px] sm:text-xs md:text-sm uppercase tracking-widest px-3 py-1 md:px-4 md:py-1.5 rounded-sm -rotate-3 mb-1 inline-block shadow-sm z-10" style={{ transformOrigin: 'center' }}>
                     Flavors you Love
                 </div>
-                <h2 className="text-5xl sm:text-6xl md:text-8xl lg:text-[100px] text-textured-green tracking-wide [word-spacing:0.05em] leading-[1.1] mb-1 relative z-0 !font-anton font-normal uppercase">
-                    Customer's<br />favorite
+                <h2 className="text-5xl sm:text-6xl md:text-8xl lg:text-[72px] text-textured-green tracking-wide [word-spacing:0.05em] leading-[1.1] mb-1 relative z-0 !font-anton font-normal uppercase">
+                    Customer's favorite
                 </h2>
                 <div className="w-24 md:w-32 h-2 md:h-2.5 bg-[#0b3d2e] mb-4 rounded-full"></div>
                 <div className="relative z-[300] w-full flex justify-center mt-2">

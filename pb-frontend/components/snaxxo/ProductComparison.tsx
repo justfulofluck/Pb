@@ -43,27 +43,13 @@ const ProductComparison: React.FC<ProductComparisonProps> = ({ product }) => {
 
     return (
         <section className="py-24 px-4 md:px-12 bg-[#f2f2ec] font-satoshi flex flex-col items-center overflow-hidden">
-            <div className="w-full max-w-7xl mb-16 flex justify-center mx-auto">
-                <motion.h2
-                    initial={{ opacity: 0, y: -50 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="text-6xl md:text-8xl lg:text-[10rem] font-black uppercase italic font-anton leading-[1] tracking-tighter text-center w-full"
-                    style={{ color: '#0b3d2e' }}
-                >
-                    Pinobite <br />
-                    Vs <br />
-                    Others
-                </motion.h2>
-            </div>
-
-            <div className="w-full max-w-5xl bg-white rounded-[40px] shadow-xl flex flex-col md:flex-row relative mx-auto my-12">
+            <div className="w-full max-w-5xl bg-white rounded-[40px] shadow-xl flex flex-col md:flex-row relative mx-auto mt-0">
                 {/* Left & Center Columns (White part) */}
                 <div className="flex-1 p-6 md:p-12 pb-6 flex flex-col">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-8">
                         <div className="flex flex-col items-start md:items-center w-full md:w-auto gap-4">
-                            <h3 className="text-4xl md:text-6xl font-bold text-[#0b3d2e] uppercase font-satoshi tracking-tight leading-tight">
-                                Pinobite's
+                            <h3 className="text-4xl md:text-5xl font-bold text-[#0b3d2e] uppercase font-satoshi tracking-tight leading-tight">
+                                Pinobite <br /> Vs <br /> Others
                             </h3>
                         </div>
 
@@ -135,10 +121,7 @@ const ProductComparison: React.FC<ProductComparisonProps> = ({ product }) => {
                 </div>
             </div>
 
-            {/* Disclaimer */}
-            <p className="mt-12 text-[10px] text-gray-400 uppercase tracking-[0.3em] font-bold text-center">
-                * Based on internal sensory evaluation and lab testing
-            </p>
+
         </section>
     );
 };

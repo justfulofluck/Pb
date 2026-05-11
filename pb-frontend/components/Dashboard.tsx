@@ -199,61 +199,49 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
   // Hero banner now uses the global chalkboard texture for better contrast
 
   return (
-    <div className="min-h-screen bg-whiteboard texture-overlay texture-speckles relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 py-8 relative z-10">
+    <div className="min-h-screen bg-[#f2f2ec] relative overflow-x-hidden pb-24 lg:pb-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-6 sm:py-8 relative z-10">
 
-
-        <div className="grid lg:grid-cols-[280px_1fr] gap-8 items-start">
-          {/* Sidebar */}
-          <aside className="bg-white doodle-border p-4 lg:p-6 flex flex-col lg:block gap-4 lg:space-y-8 sticky top-4 lg:top-8 shadow-sm z-20 overflow-hidden">
-            {/* User Profile - desktop only */}
-            <div className="hidden lg:flex items-center gap-4 pb-6 border-b border-slate-100">
-              <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center font-black text-xl">
+        <div className="lg:grid lg:grid-cols-[240px_1fr] gap-8 items-start">
+          {/* Desktop Sidebar - hidden on mobile */}
+          <aside className="hidden lg:block bg-white rounded-3xl p-6 shadow-sm border border-slate-100 sticky top-8 space-y-6">
+            <div className="flex items-center gap-3 pb-5 border-b border-slate-100">
+              <div className="w-11 h-11 bg-[#0b3d2e] text-white rounded-xl flex items-center justify-center font-black text-lg">
                 {(userData.name || ' ')[0]}
               </div>
               <div className="min-w-0">
-                <h3 className="font-black text-sm uppercase truncate leading-tight !text-[#008a45]">{userData.name}</h3>
+                <h3 className="font-black text-sm uppercase truncate leading-tight text-slate-900">{userData.name}</h3>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{userData.tier}</p>
               </div>
             </div>
 
-            <nav className="flex overflow-x-auto hide-scrollbar lg:flex-col lg:space-y-1 gap-2 pb-2 lg:pb-0">
+            <nav className="space-y-1">
               {navItems.map(item => (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id as TabType)}
-                  className={`flex-shrink-0 flex items-center justify-center lg:justify-start gap-2 lg:gap-3 px-5 py-3 rounded-xl font-bold text-[10px] lg:text-xs uppercase tracking-widest transition-all ${activeTab === item.id
-                    ? 'bg-[#008a45] !text-white shadow-lg lg:scale-[1.02]'
-                    : '!text-[#008a45] hover:bg-green-50 border border-green-100 lg:border-transparent'
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === item.id
+                    ? 'bg-[#0b3d2e] !text-white shadow-md'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                 >
-                  <span className="material-symbols-outlined text-sm lg:text-sm">{item.icon}</span>
+                  <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
                   {item.label}
                 </button>
               ))}
-
-              {/* Sign out inline for mobile */}
-              <button
-                onClick={onLogout}
-                className="lg:hidden flex-shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest !text-[#008a45] hover:bg-green-50 transition-all border border-green-100"
-              >
-                <span className="material-symbols-outlined text-sm">logout</span>
-                Sign Out
-              </button>
             </nav>
 
-            {/* Sign out for desktop */}
             <button
               onClick={onLogout}
-              className="hidden lg:flex w-full items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest !text-[#008a45] hover:text-[#008a45] hover:bg-green-50 transition-all mt-12 lg:mt-12"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest text-red-400 hover:text-red-600 hover:bg-red-50 transition-all mt-4 border-t border-slate-100 pt-5"
             >
-              <span className="material-symbols-outlined text-sm">logout</span>
+              <span className="material-symbols-outlined text-[18px]">logout</span>
               Sign Out
             </button>
           </aside>
 
           {/* Main Content */}
-          <main className="min-h-[600px]">
+          <main className="min-h-[400px] lg:min-h-[600px] w-full min-w-0 space-y-4 sm:space-y-6">
             <AnimatePresence mode="wait">
               {activeTab === 'overview' && (
                 <motion.div
@@ -262,104 +250,102 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   exit={{ opacity: 0, y: -10 }}
                   className="space-y-8"
                 >
-                  {/* Hero Banner */}
-                  <div className="p-6 sm:p-8 rounded-[32px] sm:rounded-[40px] bg-slate-900 texture-chalkboard-strong text-white relative overflow-hidden shadow-2xl">
-                    <div className="relative z-10 space-y-3 sm:space-y-4">
-                      <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest inline-block">
-                        {userData.tier} Status
-                      </span>
-                      <h2 className="text-3xl sm:text-4xl md:text-5xl font-anton uppercase tracking-normal leading-[1.2]" style={{ letterSpacing: '0.05em' }}>
-                        Welcome back,<br className="hidden sm:block" /> {authUser.first_name || authUser.username}
+                  {/* Compact Hero Card */}
+                  <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#0b3d2e] to-[#145a3e] p-5 sm:p-7 text-white shadow-xl">
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="bg-white/15 backdrop-blur-sm px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">
+                          {userData.tier}
+                        </span>
+                        <span className="text-[10px] text-white/50 font-bold uppercase tracking-widest">since {new Date(authUser.date_joined || Date.now()).getFullYear()}</span>
+                      </div>
+                      <h2 className="text-2xl sm:text-3xl font-anton uppercase tracking-wide leading-tight mb-1">
+                        Welcome back, {authUser.first_name || authUser.username}
                       </h2>
-                      <p className="font-satoshi text-lg sm:text-2xl text-white/70 leading-relaxed">Fueling your ambition since {new Date(authUser.date_joined || Date.now()).getFullYear()} ✨</p>
+                      <p className="text-sm text-white/60 font-medium">Your health journey at a glance</p>
                     </div>
-                    {/* Decorative Elements */}
-                    <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-white/10 rounded-full blur-3xl opacity-50" />
-                    <div className="absolute -left-12 -top-12 w-48 h-48 bg-primary/20 rounded-full blur-2xl opacity-50" />
+                    <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
                   </div>
 
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                  {/* Stats Row - Scrollable on mobile */}
+                  <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 hide-scrollbar">
                     {[
-                      { label: 'PinoPoints', val: userData.points, icon: 'workspace_premium', color: 'text-orange-500' },
-                      { label: 'Total Orders', val: orders.length, icon: 'shopping_bag', color: 'text-primary' },
-                      { label: 'Total Savings', val: `₹${userData.savings}`, icon: 'savings', color: 'text-green-500' },
-                      { label: 'Total Spent', val: `₹${userData.totalSpent}`, icon: 'wallet', color: 'text-slate-900' }
+                      { label: 'PinoPoints', val: userData.points, icon: 'workspace_premium', bg: 'bg-amber-50', iconColor: 'text-amber-500' },
+                      { label: 'Orders', val: orders.length, icon: 'shopping_bag', bg: 'bg-emerald-50', iconColor: 'text-emerald-500' },
+                      { label: 'Savings', val: `₹${userData.savings}`, icon: 'savings', bg: 'bg-sky-50', iconColor: 'text-sky-500' },
+                      { label: 'Spent', val: `₹${userData.totalSpent}`, icon: 'wallet', bg: 'bg-violet-50', iconColor: 'text-violet-500' }
                     ].map((stat, i) => (
-                      <div key={i} className="bg-white p-4 sm:p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
-                        <span className={`material-symbols-outlined text-xl ${stat.color}`}>{stat.icon}</span>
-                        <div className="mt-3 sm:mt-4">
-                          <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{stat.label}</p>
-                          <p className="text-lg sm:text-2xl font-black text-slate-900 tracking-tight">{stat.val}</p>
+                      <div key={i} className={`flex-shrink-0 flex-1 min-w-[120px] ${stat.bg} rounded-2xl p-4 flex items-center gap-3 border border-white`}>
+                        <div className={`w-10 h-10 rounded-xl bg-white flex items-center justify-center ${stat.iconColor} shadow-sm flex-shrink-0`}>
+                          <span className="material-symbols-outlined text-[18px]">{stat.icon}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">{stat.label}</p>
+                          <p className="text-lg font-black text-slate-900 tracking-tight leading-tight truncate">{stat.val}</p>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="grid lg:grid-cols-2 gap-8">
+                  <div className="grid sm:grid-cols-2 gap-4">
                     {/* Point Activity */}
-                    <div className="bg-white rounded-[40px] p-8 border border-slate-100 shadow-sm">
-                      <h3 className="text-xl font-black uppercase tracking-tight mb-6 flex justify-between items-center text-[#008a45]">
-                        Point Activity
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Recent 10</span>
-                      </h3>
-                      <div className="space-y-4 max-h-[300px] overflow-y-auto custom-scroll pr-2">
-                        {rewardTransactions.length > 0 ? rewardTransactions.slice(0, 10).map((tx: any) => (
-                          <div key={tx.id} className="flex items-center justify-between py-4 border-b border-dashed border-slate-100 last:border-0">
-                            <div>
-                              <p className="text-sm font-bold text-slate-900">{tx.reason}</p>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(tx.timestamp).toLocaleDateString()}</p>
+                    <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-base font-black uppercase tracking-tight text-slate-900">Points</h3>
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Recent</span>
+                      </div>
+                      <div className="space-y-0 divide-y divide-slate-50">
+                        {rewardTransactions.length > 0 ? rewardTransactions.slice(0, 5).map((tx: any) => (
+                          <div key={tx.id} className="flex items-center justify-between py-3">
+                            <div className="min-w-0 mr-3">
+                              <p className="text-xs font-bold text-slate-700 truncate">{tx.reason}</p>
+                              <p className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">{new Date(tx.timestamp).toLocaleDateString()}</p>
                             </div>
-                            <div className={`font-black text-lg ${tx.points_change > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                            <span className={`text-sm font-black flex-shrink-0 ${tx.points_change > 0 ? 'text-emerald-500' : 'text-red-400'}`}>
                               {tx.points_change > 0 ? '+' : ''}{tx.points_change}
-                            </div>
+                            </span>
                           </div>
                         )) : (
-                          <div className="text-center py-12 text-slate-300">
-                            <span className="material-symbols-outlined text-4xl block mb-2">history</span>
-                            <p className="text-xs font-bold uppercase tracking-widest">No transactions yet</p>
+                          <div className="text-center py-8 text-slate-300">
+                            <span className="material-symbols-outlined text-3xl block mb-1">history</span>
+                            <p className="text-[10px] font-bold uppercase tracking-widest">No activity</p>
                           </div>
                         )}
                       </div>
                     </div>
 
-                    {/* Recent Orders Overview */}
-                    <div className="bg-white rounded-[40px] p-8 border border-slate-100 shadow-sm">
-                      <h3 className="text-xl font-black uppercase tracking-tight mb-6 flex justify-between items-center text-[#008a45]">
-                        Last Order
-                        <button onClick={() => setActiveTab('orders')} className="text-[10px] text-[#008a45] font-black uppercase tracking-widest hover:underline">View All</button>
-                      </h3>
+                    {/* Last Order */}
+                    <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-base font-black uppercase tracking-tight text-slate-900">Last Order</h3>
+                        <button onClick={() => setActiveTab('orders')} className="text-[9px] text-[#0b3d2e] font-black uppercase tracking-widest hover:underline">All →</button>
+                      </div>
                       {orders.length > 0 ? (
                         <div
                           onClick={() => setSelectedOrder(orders[0])}
-                          className="p-6 bg-slate-50 rounded-3xl border-2 border-transparent hover:border-primary/20 cursor-pointer transition-all group"
+                          className="p-4 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors"
                         >
-                          <div className="flex justify-between items-start mb-4">
+                          <div className="flex justify-between items-start mb-3">
                             <div>
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Order #{orders[0].id}</p>
-                              <p className="font-black text-lg text-slate-900 tracking-tighter">₹{orders[0].total_amount}</p>
+                              <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">#{orders[0].id}</p>
+                              <p className="text-lg font-black text-slate-900">₹{orders[0].total_amount}</p>
                             </div>
-                            <span className="bg-green-100 text-green-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">
+                            <span className="bg-emerald-100 text-emerald-600 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase">
                               {orders[0].status}
                             </span>
                           </div>
-                          <div className="flex gap-2">
-                            {orders[0].items.slice(0, 3).map((item, i) => (
-                              <div key={i} className="w-12 h-12 bg-white rounded-xl overflow-hidden shadow-sm">
+                          <div className="flex gap-1.5">
+                            {orders[0].items.slice(0, 4).map((item, i) => (
+                              <div key={i} className="w-10 h-10 bg-white rounded-lg overflow-hidden shadow-sm border border-slate-100">
                                 <img src={item.product_image?.startsWith('http') ? item.product_image : `${API_BASE_URL}${item.product_image}`} className="w-full h-full object-cover" />
                               </div>
                             ))}
-                            {orders[0].items.length > 3 && (
-                              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-[10px] font-black text-slate-400">
-                                +{orders[0].items.length - 3}
-                              </div>
-                            )}
                           </div>
                         </div>
                       ) : (
-                        <div className="text-center py-12 text-slate-300">
-                          <span className="material-symbols-outlined text-4xl block mb-2">shopping_basket</span>
-                          <p className="text-xs font-bold uppercase tracking-widest">No orders yet</p>
+                        <div className="text-center py-8 text-slate-300">
+                          <span className="material-symbols-outlined text-3xl block mb-1">shopping_basket</span>
+                          <p className="text-[10px] font-bold uppercase tracking-widest">No orders yet</p>
                         </div>
                       )}
                     </div>
@@ -367,20 +353,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
 
                   {/* Frequently Ordered / Purchased Products */}
                   {orders.length > 0 && (
-                    <div className="bg-white rounded-[40px] p-8 border border-slate-100 shadow-sm">
-                      <h3 className="text-xl font-black uppercase tracking-tight mb-8 text-[#008a45]">Your Health Collection</h3>
-                      <div className="flex gap-6 overflow-x-auto pb-4 custom-scroll">
+                    <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
+                      <h3 className="text-base font-black uppercase tracking-tight mb-4 text-slate-900">Your Collection</h3>
+                      <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 hide-scrollbar">
                         {Array.from(new Set((orders || []).flatMap(o => o.items || []).map(item => JSON.stringify({ id: item.product, name: item.product_name, img: item.product_image }))))
                           .map((pStr: any) => {
                             try { return JSON.parse(pStr); } catch { return null; }
                           })
                           .filter(Boolean)
                           .map((product: any, i) => (
-                            <div key={i} className="flex-shrink-0 w-40 space-y-3 group cursor-pointer" onClick={() => setActiveTab('orders')}>
-                              <div className="aspect-square bg-slate-50 rounded-3xl overflow-hidden border-2 border-transparent group-hover:border-primary/20 transition-all p-4">
+                            <div key={i} className="flex-shrink-0 w-28 sm:w-32 md:w-40 space-y-2 sm:space-y-3 group cursor-pointer" onClick={() => setActiveTab('orders')}>
+                              <div className="aspect-square bg-slate-50 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-transparent group-hover:border-primary/20 transition-all p-2 sm:p-4">
                                 <img src={product.img?.startsWith('http') ? product.img : `${API_BASE_URL}${product.img}`} className="w-full h-full object-contain group-hover:scale-110 transition-transform" />
                               </div>
-                              <p className="text-[10px] font-black uppercase text-center leading-tight truncate px-1">{product.name}</p>
+                              <p className="text-[8px] sm:text-[10px] font-black uppercase text-center leading-tight truncate px-1">{product.name}</p>
                             </div>
                           ))
                         }
@@ -397,9 +383,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-6"
                 >
-                  <div className="flex justify-between items-center bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
-                    <h2 className="text-3xl font-black uppercase tracking-tighter text-[#008a45]">My Order History</h2>
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{orders.length} total orders</span>
+                  <div className="flex items-center justify-between bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                    <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-slate-900">Orders</h2>
+                    <span className="bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-[10px] font-black uppercase">{orders.length}</span>
                   </div>
 
                   {isLoadingOrders ? (
@@ -413,7 +399,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                         <div
                           key={order.id}
                           onClick={() => setSelectedOrder(order)}
-                          className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all cursor-pointer group flex flex-col md:flex-row gap-6 items-center"
+                          className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:scale-[1.01] transition-all cursor-pointer group flex items-center gap-4"
                         >
                           <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:text-primary transition-colors">
                             <span className="material-symbols-outlined text-4xl">package_2</span>
@@ -458,11 +444,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-white rounded-[40px] p-8 md:p-12 border border-slate-100 shadow-xl"
+                  className="bg-white rounded-2xl p-5 sm:p-8 border border-slate-100 shadow-sm"
                 >
-                  <div className="mb-12 border-b border-slate-100 pb-8">
-                    <h2 className="text-4xl font-black uppercase tracking-tighter text-[#008a45]">Profile Settings</h2>
-                    <p className="font-satoshi text-2xl text-slate-400 mt-2">Personalize your Pinobite experience</p>
+                  <div className="mb-8 pb-5 border-b border-slate-100">
+                    <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-slate-900">Profile</h2>
+                    <p className="text-sm text-slate-400 mt-1">Manage your personal information</p>
                   </div>
 
                   <form onSubmit={handleUpdateProfile} className="space-y-12">
@@ -595,12 +581,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   animate={{ opacity: 1, y: 0 }}
                   className="space-y-8"
                 >
-                  <div className="bg-white p-8 md:p-12 rounded-[40px] border border-slate-100 shadow-sm overflow-hidden relative">
+                  <div className="bg-white p-5 sm:p-8 rounded-2xl border border-slate-100 shadow-sm overflow-hidden relative">
                     <div className="relative z-10 max-w-xl">
-                      <h2 className="text-4xl font-black uppercase tracking-tighter text-[#008a45]">Pinopoints Loyalty</h2>
-                      <p className="font-satoshi text-2xl text-primary mt-2">The more you fuel, the more you save!</p>
+                      <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-slate-900">Rewards</h2>
+                      <p className="text-sm text-slate-400 mt-1">The more you fuel, the more you save!</p>
 
-                      <div className="mt-12 space-y-8">
+                      <div className="mt-6 sm:mt-8 space-y-6">
                         <div className="space-y-2">
                           <div className="flex justify-between items-end">
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Balance: <span className="text-slate-900">{userData.points} Pts</span></p>
@@ -626,79 +612,75 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                     <span className="absolute -right-20 -bottom-20 material-symbols-outlined text-[300px] text-primary/5 select-none -rotate-12">loyalty</span>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-8">
-                    <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
-                      <h3 className="text-xl font-black uppercase tracking-tight mb-8 text-[#008a45]">How to earn</h3>
-                      <div className="space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                      <h3 className="text-base font-black uppercase tracking-tight mb-4 text-slate-900">How to earn</h3>
+                      <div className="space-y-3">
                         {rewardRules.length > 0 ? rewardRules.map((rule, i) => (
-                          <div key={i} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl group hover:bg-primary/5 transition-colors">
-                            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary shadow-sm group-hover:scale-110 transition-transform">
-                              <span className="material-symbols-outlined text-sm">
+                          <div key={i} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl group hover:bg-emerald-50 transition-colors">
+                            <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center text-[#0b3d2e] shadow-sm flex-shrink-0">
+                              <span className="material-symbols-outlined text-[16px]">
                                 {rule.event_name === 'purchase' ? 'shopping_cart' :
                                   rule.event_name === 'signup' ? 'person_add' :
                                     rule.event_name === 'review' ? 'rate_review' : 'stars'}
                               </span>
                             </div>
-                            <div className="flex-1">
-                              <p className="text-xs font-black uppercase text-[#008a45]">{rule.event_name.replace('_', ' ')}</p>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-tight">{rule.description}</p>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-black uppercase text-slate-700 truncate">{rule.event_name.replace('_', ' ')}</p>
+                              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider truncate">{rule.description}</p>
                             </div>
-                            <div className="text-right">
-                              <p className="font-black text-primary">+{rule.points}</p>
-                              <p className="text-[8px] font-bold text-slate-300 uppercase">Points</p>
-                            </div>
+                            <span className="font-black text-sm text-emerald-500 flex-shrink-0">+{rule.points}</span>
                           </div>
                         )) : (
-                          <div className="text-center py-8 opacity-20">
-                            <p className="text-xs font-bold uppercase">No rules configured</p>
+                          <div className="text-center py-6 text-slate-300">
+                            <p className="text-[10px] font-bold uppercase">No rules configured</p>
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="bg-white p-8 rounded-[40px] border border-slate-100 shadow-sm">
-                      <h3 className="text-xl font-black uppercase tracking-tight mb-8 text-[#008a45]">Tier Benefits</h3>
-                      <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <span className="material-symbols-outlined text-5xl text-slate-300 mb-4">lock</span>
-                        <p className="text-lg font-black uppercase tracking-tight text-slate-400">Coming Soon</p>
-                        <p className="text-xs font-bold uppercase tracking-widest text-slate-300 mt-2">Tier benefits are not yet active</p>
+                    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                      <h3 className="text-base font-black uppercase tracking-tight mb-4 text-slate-900">Tier Benefits</h3>
+                      <div className="flex flex-col items-center justify-center py-10 text-center">
+                        <span className="material-symbols-outlined text-4xl text-slate-200 mb-3">lock</span>
+                        <p className="text-sm font-black uppercase text-slate-400">Coming Soon</p>
+                        <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-1">Tier benefits launching soon</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* REDEMPTION SECTION */}
-                  <div className="bg-slate-900 p-8 md:p-12 rounded-[40px] text-white overflow-hidden relative shadow-2xl">
+                  {/* Redemption */}
+                  <div className="bg-[#0b3d2e] p-5 sm:p-8 rounded-2xl text-white overflow-hidden relative">
                     <div className="relative z-10">
-                      <h3 className="text-2xl font-black uppercase tracking-tight mb-2 text-[#008a45]">Redeem your Pinopoints</h3>
-                      <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-8">Convert your hard-earned points into instant discounts</p>
+                      <h3 className="text-lg sm:text-xl font-black uppercase tracking-tight mb-1">Redeem Points</h3>
+                      <p className="text-white/50 font-bold uppercase tracking-wider text-[10px] mb-5">Convert points into instant discounts</p>
 
-                      <div className="flex flex-col md:flex-row gap-8 items-center">
-                        <div className="flex-1 space-y-6">
-                          <div className="space-y-2">
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Redeemable Value</p>
-                            <div className="flex items-baseline gap-2">
-                              <span className="text-5xl font-black tracking-tighter">₹{(Number(userData.points || 0) / 10).toFixed(2)}</span>
-                              <span className="text-slate-500 font-bold uppercase tracking-widest text-xs">OFF your next order</span>
+                      <div className="flex flex-col md:flex-row gap-5 items-start md:items-center">
+                        <div className="flex-1 space-y-4">
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">Redeemable Value</p>
+                            <div className="flex items-baseline gap-2 mt-1">
+                              <span className="text-4xl sm:text-5xl font-black tracking-tighter">₹{(Number(userData.points || 0) / 10).toFixed(2)}</span>
+                              <span className="text-white/60 font-bold uppercase tracking-widest text-[10px]">OFF next order</span>
                             </div>
                           </div>
-                          <p className="text-sm text-slate-400 flex items-start gap-2">
-                            <span className="material-symbols-outlined text-primary text-sm mt-0.5">info</span>
-                            <span>Points can be redeemed directly on the checkout page for an instant discount on your total. No coupon codes required!</span>
+                          <p className="text-[11px] sm:text-xs text-white/70 flex items-start gap-2 bg-white/5 p-3 rounded-xl border border-white/10">
+                            <span className="material-symbols-outlined text-emerald-400 text-sm">info</span>
+                            <span>Points are redeemed directly on the checkout page for an instant discount. No codes required!</span>
                           </p>
                         </div>
-                        <div className="w-full md:w-auto">
+                        <div className="w-full md:w-auto mt-2 md:mt-0">
                           <button
                             onClick={onHomeClick}
-                            className="w-full bg-white text-slate-900 px-10 py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-xl hover:scale-105"
+                            className="w-full bg-white text-[#0b3d2e] px-6 py-4 rounded-xl font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-xl active:scale-95"
                           >
-                            Start Shopping
+                            Shop Now
                           </button>
                         </div>
                       </div>
                     </div>
                     {/* Abstract Background bits */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[120px] rounded-full" />
-                    <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-500/10 blur-[100px] rounded-full" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 blur-[100px] rounded-full" />
                   </div>
                 </motion.div>
               )}
@@ -709,9 +691,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   animate={{ opacity: 1, y: 0 }}
                   className="space-y-8"
                 >
-                  <div className="bg-white p-6 sm:p-8 md:p-12 rounded-[32px] sm:rounded-[40px] border border-slate-100 shadow-sm overflow-hidden relative">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8 sm:mb-12">
-                      <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-[#008a45]">My Wishlist</h2>
+                  <div className="bg-white p-5 sm:p-8 rounded-2xl border border-slate-100 shadow-sm overflow-hidden relative">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+                      <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-slate-900">Wishlist</h2>
                       {wishlistItems.length > 0 && (
                         <div className="flex w-full sm:w-auto gap-3">
                           <button
@@ -744,10 +726,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                 showToast('Failed to add items to cart', 'error');
                               }
                             }}
-                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-full text-xs sm:text-sm font-black uppercase tracking-widest hover:bg-green-700 transition-all shadow-lg shadow-green-100 active:scale-95"
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0b3d2e] text-white rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-md active:scale-95"
                           >
-                            <span className="material-symbols-outlined text-[18px] text-white">shopping_cart</span>
-                            <span className="text-white">Add All to Cart</span>
+                            <span className="material-symbols-outlined text-[16px]">shopping_cart</span>
+                            <span>Add All to Cart</span>
                           </button>
                         </div>
                       )}
@@ -772,7 +754,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                 });
                               }
                             }}
-                            className="group relative bg-white border-2 border-primary/10 rounded-[32px] sm:rounded-[40px] overflow-hidden hover:shadow-[0_20px_50px_rgba(0,138,69,0.15)] hover:border-primary/40 hover:-translate-y-2 transition-all duration-500 flex flex-col h-[400px] sm:h-[420px] cursor-pointer"
+                            className="group relative bg-white border border-slate-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-emerald-100 transition-all duration-300 flex flex-col h-[320px] sm:h-[360px] cursor-pointer"
                           >
                             {/* Remove Button */}
                             <button
@@ -826,20 +808,20 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                             </div>
 
                             {/* Content Section */}
-                            <div className="p-6 pt-0 flex flex-col flex-1">
+                            <div className="p-4 pt-0 flex flex-col flex-1">
                               <div className="mb-auto">
-                                <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">
+                                <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1 truncate">
                                   {item.product_details?.category_name}
                                 </p>
-                                <h3 className="font-anton text-xl uppercase leading-tight tracking-wide text-slate-900 group-hover:text-primary transition-colors">
+                                <h3 className="font-anton text-lg uppercase leading-tight tracking-wide text-slate-900 line-clamp-2">
                                   {item.product_details?.name}
                                 </h3>
                               </div>
 
-                              <div className="flex items-center justify-between mt-4 gap-4">
+                              <div className="flex items-center justify-between mt-3 gap-3">
                                 <div className="flex flex-col">
-                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Price</span>
-                                  <span className="font-black text-2xl text-slate-900">
+                                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-0.5">Price</span>
+                                  <span className="font-black text-xl text-slate-900">
                                     ₹{item.product_details?.price}
                                   </span>
                                 </div>
@@ -859,9 +841,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                       showToast('Added to cart!', 'success');
                                     }
                                   }}
-                                  className="w-14 h-14 bg-primary text-white rounded-[22px] flex items-center justify-center transition-all active:scale-95 shadow-lg shadow-green-100 hover:bg-green-700 hover:rotate-6 flex-shrink-0"
+                                  className="w-10 h-10 bg-[#0b3d2e] text-white rounded-xl flex items-center justify-center transition-all active:scale-95 shadow-sm hover:bg-emerald-900 flex-shrink-0"
                                 >
-                                  <span className="material-symbols-outlined text-[24px]">shopping_cart</span>
+                                  <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
                                 </button>
                               </div>
                             </div>
@@ -886,6 +868,32 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
         </div>
       </div>
 
+      {/* Mobile Bottom Tab Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-slate-200 safe-area-bottom">
+        <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
+          {navItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id as TabType)}
+              className={`flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all ${activeTab === item.id
+                ? 'text-[#0b3d2e]'
+                : 'text-slate-400'
+                }`}
+            >
+              <span className={`material-symbols-outlined text-[22px] ${activeTab === item.id ? 'fill-1' : ''}`}>{item.icon}</span>
+              <span className="text-[9px] font-bold uppercase tracking-wide">{item.label.split(' ')[0]}</span>
+              {activeTab === item.id && <div className="w-1 h-1 rounded-full bg-[#0b3d2e] mt-0.5" />}
+            </button>
+          ))}
+          <button
+            onClick={onLogout}
+            className="flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl text-slate-400 transition-all"
+          >
+            <span className="material-symbols-outlined text-[22px]">logout</span>
+            <span className="text-[9px] font-bold uppercase tracking-wide">Exit</span>
+          </button>
+        </div>
+      </div>
       {/* Order Details Modal (Existing but updated with product list) */}
       <AnimatePresence>
         {selectedOrder && (
@@ -901,7 +909,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-2xl rounded-[48px] overflow-hidden relative doodle-border shadow-2xl p-8 md:p-12 max-h-[90vh] overflow-y-auto z-10"
+              className="bg-white w-full max-w-xl rounded-3xl overflow-hidden relative shadow-2xl p-6 sm:p-8 md:p-10 max-h-[90vh] overflow-y-auto z-10"
             >
               <button
                 onClick={() => setSelectedOrder(null)}
@@ -910,45 +918,44 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                 <span className="material-symbols-outlined">close</span>
               </button>
 
-              <div className="space-y-8">
+              <div className="space-y-6 sm:space-y-8">
                 <div>
-                  <div className="flex flex-wrap items-center gap-3 mb-3">
-                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                    <span className="bg-[#0b3d2e]/10 text-[#0b3d2e] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
                       Order #{selectedOrder.id}
                     </span>
-                    <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${selectedOrder.status === 'Delivered' ? 'bg-green-100 text-green-600' : 'bg-secondary text-slate-900'
+                    <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${selectedOrder.status === 'Delivered' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-700'
                       }`}>
                       {selectedOrder.status}
                     </span>
                   </div>
-                  <h2 className="text-3xl md:text-5xl font-black text-slate-900 uppercase tracking-tight leading-none">Order Details</h2>
-                  <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mt-2">Placed on {new Date(selectedOrder.created_at).toLocaleDateString()}</p>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tight leading-none">Order Details</h2>
+                  <p className="text-slate-400 font-bold uppercase tracking-wider text-[10px] mt-2">Placed on {new Date(selectedOrder.created_at).toLocaleDateString()}</p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="p-4 bg-slate-50 rounded-3xl border border-slate-100">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-tight">Total Amount</p>
-                    <p className="text-2xl font-black text-slate-900">₹{selectedOrder.total_amount}</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total</p>
+                    <p className="text-xl font-black text-slate-900">₹{selectedOrder.total_amount}</p>
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-3xl border border-slate-100">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-tight">Total Items</p>
-                    <p className="text-2xl font-black text-slate-900">{selectedOrder.items.length}</p>
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Items</p>
+                    <p className="text-xl font-black text-slate-900">{selectedOrder.items.length}</p>
                   </div>
-                  <div className="p-4 bg-slate-50 rounded-3xl border border-slate-100 col-span-2 md:col-span-1">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 leading-tight">Delivery Point</p>
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 col-span-2 md:col-span-1">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Delivery</p>
                     <p className="text-sm font-black text-slate-900 truncate">{selectedOrder.city || 'Standard Delivery'}</p>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <h3 className="text-xl font-black uppercase tracking-tight flex items-center gap-2 text-[#008a45]">
-                    <span className="material-symbols-outlined text-[#008a45]">shopping_bag</span>
-                    Purchased Products
+                <div className="space-y-3">
+                  <h3 className="text-base font-black uppercase tracking-tight text-slate-900 mb-2">
+                    Purchased Items
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {selectedOrder.items.map((item, idx) => (
-                      <div key={idx} className="flex gap-4 p-5 bg-white border-2 border-slate-50 rounded-3xl items-center hover:border-primary/20 transition-colors group/item">
-                        <div className="w-16 h-16 md:w-20 md:h-20 bg-slate-50 rounded-2xl overflow-hidden flex-shrink-0 shadow-sm group-hover/item:scale-105 transition-transform">
+                      <div key={idx} className="flex gap-3 p-3 bg-white border border-slate-100 rounded-2xl items-center shadow-sm">
+                        <div className="w-14 h-14 bg-slate-50 rounded-xl overflow-hidden flex-shrink-0">
                           {item.product_image ? (
                             <img
                               src={item.product_image.startsWith('http') ? item.product_image : `${API_BASE_URL}${item.product_image}`}
@@ -957,14 +964,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-slate-200">
-                              <span className="material-symbols-outlined text-4xl">image</span>
+                              <span className="material-symbols-outlined text-2xl">image</span>
                             </div>
                           )}
                         </div>
                         <div className="overflow-hidden min-w-0">
-                          <h4 className="font-black text-xs md:text-sm uppercase leading-tight truncate text-[#008a45]">{item.product_name}</h4>
+                          <h4 className="font-black text-xs uppercase leading-tight truncate text-slate-900">{item.product_name}</h4>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-full">QTY: {item.quantity}</span>
+                            <span className="text-[9px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">QTY: {item.quantity}</span>
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">₹{item.price}</p>
                           </div>
                         </div>
@@ -973,11 +980,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   </div>
                 </div>
 
-                <div className="pt-8 border-t border-dashed border-slate-100 flex flex-col items-center">
-                  <p className="text-center text-slate-400 font-satoshi text-2xl">
+                <div className="pt-6 mt-6 border-t border-slate-100 flex flex-col items-center">
+                  <p className="text-center text-slate-400 font-satoshi text-sm sm:text-base">
                     Fueling your ambition, one bite at a time! 🚀
                   </p>
-                  <button onClick={() => setSelectedOrder(null)} className="mt-6 text-[10px] font-black uppercase tracking-[0.3em] text-[#008a45] hover:text-green-700 transition-colors">Close Details</button>
+                  <button onClick={() => setSelectedOrder(null)} className="mt-4 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors">Close Details</button>
                 </div>
               </div>
             </motion.div>
