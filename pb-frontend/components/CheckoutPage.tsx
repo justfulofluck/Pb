@@ -324,13 +324,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
         </div>
       </div>
 
-      <div className="flex flex-col-reverse lg:grid lg:grid-cols-12 gap-12 items-start">
+      <div className="flex flex-col lg:grid lg:grid-cols-12 gap-10 lg:gap-12 items-start">
         {/* Checkout Form */}
         <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-10 w-full">
           <section className="space-y-6">
             <div className="flex items-center gap-4">
-              <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm">1</span>
-              <h3 className="text-2xl font-black uppercase tracking-tight">Contact Information</h3>
+              <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm flex-shrink-0">1</span>
+              <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight">Contact Information</h3>
             </div>
             <div className="grid gap-4">
               <input
@@ -355,10 +355,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
           </section>
 
           <section className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 items-start">
               <div className="flex items-center gap-4">
-                <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm">2</span>
-                <h3 className="text-2xl font-black uppercase tracking-tight">Shipping Address</h3>
+                <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm flex-shrink-0">2</span>
+                <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight">Shipping Address</h3>
               </div>
               {savedAddress && (
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -398,8 +398,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
 
           <section className="space-y-6">
             <div className="flex items-center gap-4">
-              <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm">3</span>
-              <h3 className="text-2xl font-black uppercase tracking-tight">Payment Method</h3>
+              <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm flex-shrink-0">3</span>
+              <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight">Payment Method</h3>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <label className={`flex items-center gap-3 p-5 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'online' ? 'border-[#0b3d2e] bg-[#0b3d2e]/5' : 'border-slate-100 hover:border-slate-200'}`}>
