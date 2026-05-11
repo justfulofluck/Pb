@@ -28,8 +28,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 try:
     from dotenv import load_dotenv
 
-    # Load .env from the project root (one level up from BASE_DIR)
+    # Load .env from the project root and backend dir
     load_dotenv(BASE_DIR.parent / ".env")
+    load_dotenv(BASE_DIR / ".env")
 except ImportError:
     pass
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/

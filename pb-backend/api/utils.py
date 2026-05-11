@@ -61,7 +61,10 @@ def send_order_confirmation_emails(order, razorpay_payment_id):
 
     # 2. Admin Email
     admin_email = getattr(settings, "ADMIN_EMAIL", settings.EMAIL_HOST_USER)
-    admin_subject = f"NEW ORDER RECEIVED: #{order.id}"
+    if razorpay_payment_id in ["Cash on Delivery", "COD"]:
+        admin_subject = f"🚨 COD ORDER RECEIVED: #{order.id}"
+    else:
+        admin_subject = f"NEW ORDER RECEIVED: #{order.id}"
     try:
         admin_html = render_to_string("emails/admin_order_notification.html", context)
         send_email(admin_email, admin_subject, admin_html)

@@ -3,6 +3,13 @@
 {% block content %}
 <h1 style="color: #008a45; font-size: 28px; margin-bottom: 20px;">NEW ORDER ALERT! 🚀</h1>
 
+{% if razorpay_payment_id == "Cash on Delivery" %}
+<div style="background-color: #ffedd5; border-left: 4px solid #f97316; padding: 12px; margin-bottom: 20px;">
+    <strong style="color: #c2410c; font-size: 16px; text-transform: uppercase;">⚠️ ACTION REQUIRED: Cash on Delivery Order</strong>
+    <p style="margin: 5px 0 0; color: #9a3412; font-size: 14px;">This order needs to collect cash from the customer upon delivery.</p>
+</div>
+{% endif %}
+
 <p>A new order has been placed on Pinobite. Here are the details:</p>
 
 <div class="highlight-box">

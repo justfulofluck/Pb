@@ -42,6 +42,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
 
   const [savedAddress, setSavedAddress] = useState<any>(null);
   const [useSavedAddress, setUseSavedAddress] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod'>('online');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -208,14 +209,26 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
             state: formData.state
           },
           use_points: usePoints,
-          points_to_redeem: usePoints ? maxRedeemablePoints : 0
+          points_to_redeem: usePoints ? maxRedeemablePoints : 0,
+          payment_method: paymentMethod
         })
       });
 
       if (response.ok) {
         const data = await response.json();
 
-
+        if (data.is_cod) {
+          if (data.points_earned > 0) {
+            triggerRewardNotification(data.points_earned, `Order #${data.order_id} Placed!`);
+          }
+          if (checkAuth) await checkAuth();
+          
+          setIsSuccess(true);
+          setTimeout(() => {
+            onOrderSuccess();
+          }, 3000);
+          return;
+        }
 
         const options = {
           key: data.key_id,
@@ -234,6 +247,19 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
           },
           theme: {
             color: "#0f172a"
+          },
+          config: {
+            display: {
+              hide: [
+                { method: "paylater" },
+                { method: "wallet" },
+                { method: "emi" },
+                { method: "netbanking" }
+              ],
+              preferences: {
+                show_default_blocks: true
+              }
+            }
           }
         };
 
@@ -370,13 +396,36 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
             )}
           </section>
 
+          <section className="space-y-6">
+            <div className="flex items-center gap-4">
+              <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm">3</span>
+              <h3 className="text-2xl font-black uppercase tracking-tight">Payment Method</h3>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              <label className={`flex items-center gap-3 p-5 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'online' ? 'border-[#0b3d2e] bg-[#0b3d2e]/5' : 'border-slate-100 hover:border-slate-200'}`}>
+                <input type="radio" name="paymentMethod" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} className="w-4 h-4 text-[#0b3d2e] focus:ring-[#0b3d2e] accent-[#0b3d2e]" />
+                <div className="flex flex-col">
+                  <span className="font-black uppercase text-slate-900">Pay Online</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">UPI, Cards</span>
+                </div>
+              </label>
+              <label className={`flex items-center gap-3 p-5 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-[#0b3d2e] bg-[#0b3d2e]/5' : 'border-slate-100 hover:border-slate-200'}`}>
+                <input type="radio" name="paymentMethod" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="w-4 h-4 text-[#0b3d2e] focus:ring-[#0b3d2e] accent-[#0b3d2e]" />
+                <div className="flex flex-col">
+                  <span className="font-black uppercase text-slate-900">Cash on Delivery</span>
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pay when you receive</span>
+                </div>
+              </label>
+            </div>
+          </section>
+
           <button
             type="submit"
             disabled={isProcessing}
-            className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+            className="group w-full bg-slate-900 text-white hover:text-white py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-md hover:shadow-lg"
           >
-            {isProcessing ? 'Processing...' : 'Complete Purchase'}
-            {!isProcessing && <span className="material-symbols-outlined">arrow_forward</span>}
+            <span className="text-white group-hover:text-white">{isProcessing ? 'Processing...' : 'Complete Purchase'}</span>
+            {!isProcessing && <span className="material-symbols-outlined text-white group-hover:text-white">arrow_forward</span>}
           </button>
         </form >
 

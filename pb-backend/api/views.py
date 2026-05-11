@@ -459,6 +459,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         shipping_address = request.data.get("shipping_address", {})
         use_points = request.data.get("use_points", False)
         points_to_redeem = request.data.get("points_to_redeem", 0)
+        payment_method = request.data.get("payment_method", "online")
 
         if not items:
             return Response(
@@ -532,6 +533,20 @@ class OrderViewSet(viewsets.ModelViewSet):
             profile.state = shipping_addr.get("state", profile.state)
             profile.pin_code = shipping_addr.get("zip", profile.pin_code)
             profile.save()
+            
+            # Save names to the base User model if they don't exist
+            user_obj = request.user
+            first_name = request.data.get("first_name")
+            last_name = request.data.get("last_name")
+            updated = False
+            if first_name and not user_obj.first_name:
+                user_obj.first_name = first_name
+                updated = True
+            if last_name and not user_obj.last_name:
+                user_obj.last_name = last_name
+                updated = True
+            if updated:
+                user_obj.save(update_fields=["first_name", "last_name"])
 
         # Calculate Shipping (tax is included in product price)
         shipping = 0  # Free shipping requirement
@@ -555,6 +570,40 @@ class OrderViewSet(viewsets.ModelViewSet):
         # Update order total
         order.total_amount = final_total
         order.save()
+
+        if payment_method == "cod":
+            order.status = "Processing"
+            order.save()
+            
+            total_awarded = 0
+            if request.user.is_authenticated:
+                from .utils import award_points
+                spend_points = int(order.total_amount / 100) * 10
+                if spend_points > 0:
+                    total_awarded += award_points(
+                        request.user,
+                        "purchase",
+                        custom_points=spend_points,
+                        reason_override=f"Points earned on Order #{order.id}",
+                    )
+                
+                order_count = Order.objects.filter(
+                    user=request.user,
+                    status__in=["Processing", "Paid", "Shipped", "Delivered"],
+                ).count()
+                if order_count == 1:
+                    total_awarded += award_points(request.user, "first_order")
+
+            send_order_confirmation_emails(order, "Cash on Delivery")
+
+            return Response({
+                "is_cod": True,
+                "order_id": order.id,
+                "points_discount": points_discount,
+                "points_deducted": points_deducted,
+                "new_total": float(total_amount),
+                "points_earned": total_awarded,
+            })
 
         # Create Razorpay Order
         razorpay_amount = int(final_total * 100)  # Amount in paise
