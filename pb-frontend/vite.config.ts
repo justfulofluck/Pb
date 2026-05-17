@@ -5,6 +5,8 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
+  const apiUrl = env.VITE_API_URL || 'http://localhost:8000';
+  
   return {
     server: {
       port: 3000,
@@ -12,11 +14,11 @@ export default defineConfig(({ mode }) => {
       allowedHosts: true,
       proxy: {
         '/api': {
-          target: 'http://localhost:8000',
+          target: apiUrl,
           changeOrigin: true,
         },
         '/media': {
-          target: 'http://localhost:8000',
+          target: apiUrl,
           changeOrigin: true,
         },
       },

@@ -60,7 +60,7 @@ def _get_duration(path: str) -> float:
     try:
         result = subprocess.run(
             [
-                "ffprobe",
+                "/usr/bin/ffprobe",
                 "-v",
                 "error",
                 "-show_entries",
@@ -131,7 +131,7 @@ def process_google_drive_video_to_mp4(drive_url: str) -> dict:
         print("DEBUG: Processing snippet...")
         result = subprocess.run(
             [
-                "ffmpeg",
+                "/usr/bin/ffmpeg",
                 "-y",
                 "-i",
                 temp_in,
@@ -167,7 +167,7 @@ def process_google_drive_video_to_mp4(drive_url: str) -> dict:
         print("DEBUG: Processing full video...")
         result = subprocess.run(
             [
-                "ffmpeg",
+                "/usr/bin/ffmpeg",
                 "-y",
                 "-i",
                 temp_in,
@@ -201,7 +201,7 @@ def process_google_drive_video_to_mp4(drive_url: str) -> dict:
         print("DEBUG: Generating poster...")
         result = subprocess.run(
             [
-                "ffmpeg",
+                "/usr/bin/ffmpeg",
                 "-y",
                 "-i",
                 temp_in,

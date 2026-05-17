@@ -1,13 +1,17 @@
 const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
   
-  // Dynamically use the current host (IP or domain) but always point to backend port 8000
+  // Dynamically use the current host (IP or domain)
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    return `http://${hostname}:8000`;
+    // Use HTTPS if current page is loaded over HTTPS, otherwise use HTTP
+    // Don't assume port 8000 - let the environment or standard ports handle it
+    const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
+    return `${protocol}://${hostname}`;
   }
   
-  return 'http://localhost:8000';
+  // Fallback for SSR or testing
+  return 'http://localhost';
 };
 
 export const API_BASE_URL = getApiBaseUrl();

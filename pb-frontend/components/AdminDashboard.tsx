@@ -1634,11 +1634,20 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                       const p = products.find(prod => prod.id === story.productId);
                       return (
                         <div key={story.id} className="relative aspect-[9/16] bg-slate-200 rounded-2xl overflow-hidden group border-2 border-transparent hover:border-primary transition-all">
-                          {story.mediaType === 'video' ? (
-                            <video src={getMediaUrl(story.mediaUrl)} className="w-full h-full object-cover" muted loop />
-                          ) : (
-                            <img src={getMediaUrl(story.mediaUrl)} className="w-full h-full object-cover" alt="Story" />
-                          )}
+                           {story.mediaType === 'video' ? (
+                             <video
+                               src={getMediaUrl(story.mediaUrl)}
+                               poster={story.posterUrl ? getMediaUrl(story.posterUrl) : undefined}
+                               className="w-full h-full object-cover"
+                               muted
+                               loop
+                               autoPlay
+                               playsInline
+                               preload="auto"
+                             />
+                           ) : (
+                             <img src={getMediaUrl(story.mediaUrl)} className="w-full h-full object-cover" alt="Story" />
+                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                           {p && (
                             <div className="absolute bottom-2 left-2 right-2 bg-white rounded-xl p-1.5 shadow-lg flex items-center gap-2 border border-slate-50">
