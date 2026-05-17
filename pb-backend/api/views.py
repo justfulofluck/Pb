@@ -454,191 +454,200 @@ class OrderViewSet(viewsets.ModelViewSet):
         from django.db import transaction
         from .utils import deduct_points
 
-        user = request.user
-        items = request.data.get("items", [])
-        shipping_address = request.data.get("shipping_address", {})
-        use_points = request.data.get("use_points", False)
-        points_to_redeem = request.data.get("points_to_redeem", 0)
-        payment_method = request.data.get("payment_method", "online")
+        try:
+            user = request.user
+            items = request.data.get("items", [])
+            shipping_address = request.data.get("shipping_address", {})
+            use_points = request.data.get("use_points", False)
+            points_to_redeem = request.data.get("points_to_redeem", 0)
+            payment_method = request.data.get("payment_method", "online")
 
-        if not items:
-            return Response(
-                {"error": "No items provided"}, status=status.HTTP_400_BAD_REQUEST
+            if not items:
+                return Response(
+                    {"error": "No items provided"}, status=status.HTTP_400_BAD_REQUEST
+                )
+
+            total_amount = 0
+            order_items_data = []
+
+            for item in items:
+                try:
+                    product = Product.objects.get(id=item["id"])
+                    quantity = item.get("quantity", 1)
+                    price = product.price
+                    total_amount += price * quantity
+
+                    order_items_data.append(
+                        {
+                            "product": product,
+                            "price": price,
+                            "quantity": quantity,
+                            "product_name": product.name,
+                        }
+                    )
+                except Product.DoesNotExist:
+                    return Response(
+                        {"error": f"Product {item['id']} not found"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+            # Create localized Order record
+            order = Order.objects.create(
+                user=user,
+                total_amount=total_amount,
+                status="Pending",
+                # Map shipping_address to model fields
+                address=f"{shipping_address.get('street', '')}, {shipping_address.get('city', '')}, {shipping_address.get('state', '')}, {shipping_address.get('zip', '')}",
+                city=shipping_address.get("city", ""),
+                state=shipping_address.get("state", ""),
+                pin_code=shipping_address.get("zip", ""),
+                phone=request.data.get("phone", ""),
+                user_email=request.data.get(
+                    "email", user.email if user.is_authenticated else ""
+                ),
+                first_name=request.data.get(
+                    "first_name", user.first_name if user.is_authenticated else ""
+                ),
+                last_name=request.data.get(
+                    "last_name", user.last_name if user.is_authenticated else ""
+                ),
             )
 
-        total_amount = 0
-        order_items_data = []
+            for item_data in order_items_data:
+                OrderItem.objects.create(
+                    order=order,
+                    product=item_data["product"],
+                    product_name=item_data["product_name"],
+                    price=item_data["price"],
+                    quantity=item_data["quantity"],
+                )
 
-        for item in items:
+            # Update User Profile with address details if authenticated
+            if request.user.is_authenticated:
+                profile, _ = UserProfile.objects.get_or_create(user=request.user)
+                profile.phone = request.data.get("phone", profile.phone)
+                # Use the concatenated address or just street? Frontend matches 'address' to street.
+                # Let's use the shipping_address dict parts
+                shipping_addr = request.data.get("shipping_address", {})
+                profile.address = shipping_addr.get("street", profile.address)
+                profile.city = shipping_addr.get("city", profile.city)
+                profile.state = shipping_addr.get("state", profile.state)
+                profile.pin_code = shipping_addr.get("zip", profile.pin_code)
+                profile.save()
+                
+                # Save names to the base User model if they don't exist
+                user_obj = request.user
+                first_name = request.data.get("first_name")
+                last_name = request.data.get("last_name")
+                updated = False
+                if first_name and not user_obj.first_name:
+                    user_obj.first_name = first_name
+                    updated = True
+                if last_name and not user_obj.last_name:
+                    user_obj.last_name = last_name
+                    updated = True
+                if updated:
+                    user_obj.save(update_fields=["first_name", "last_name"])
+
+            # Calculate Shipping (tax is included in product price)
+            shipping = 0  # Free shipping requirement
+
+            # Process points redemption if requested
+            points_discount = 0
+            points_deducted = 0
+            if use_points and points_to_redeem > 0 and request.user.is_authenticated:
+                max_redeemable = min(points_to_redeem, int(total_amount * 10))
+                if max_redeemable > 0:
+                    success, message = deduct_points(
+                        request.user, max_redeemable, f"Redeemed on Order #{order.id}"
+                    )
+                    if success:
+                        points_discount = max_redeemable / 10
+                        points_deducted = max_redeemable
+
+            # New total including shipping, less points discount
+            final_total = total_amount + shipping - points_discount
+
+            # Update order total
+            order.total_amount = final_total
+            order.save()
+
+            if payment_method == "cod":
+                order.status = "Processing"
+                order.save()
+                
+                total_awarded = 0
+                if request.user.is_authenticated:
+                    from .utils import award_points
+                    spend_points = int(order.total_amount / 100) * 10
+                    if spend_points > 0:
+                        total_awarded += award_points(
+                            request.user,
+                            "purchase",
+                            custom_points=spend_points,
+                            reason_override=f"Points earned on Order #{order.id}",
+                        )
+                    
+                    order_count = Order.objects.filter(
+                        user=request.user,
+                        status__in=["Processing", "Paid", "Shipped", "Delivered"],
+                    ).count()
+                    if order_count == 1:
+                        total_awarded += award_points(request.user, "first_order")
+
+                send_order_confirmation_emails(order, "Cash on Delivery")
+
+                return Response({
+                    "is_cod": True,
+                    "order_id": order.id,
+                    "points_discount": points_discount,
+                    "points_deducted": points_deducted,
+                    "new_total": float(total_amount),
+                    "points_earned": total_awarded,
+                })
+
+            # Create Razorpay Order
+            razorpay_amount = int(final_total * 100)  # Amount in paise
             try:
-                product = Product.objects.get(id=item["id"])
-                quantity = item.get("quantity", 1)
-                price = product.price
-                total_amount += price * quantity
-
-                order_items_data.append(
+                client = get_razorpay_client()
+                razorpay_order = client.order.create(
                     {
-                        "product": product,
-                        "price": price,
-                        "quantity": quantity,
-                        "product_name": product.name,
+                        "amount": razorpay_amount,
+                        "currency": "INR",
+                        "receipt": str(order.id),
+                        "payment_capture": 1,
                     }
                 )
-            except Product.DoesNotExist:
+                order.razorpay_order_id = razorpay_order["id"]
+                order.save()
+            except Exception as e:
+                # If Razorpay fails, we shouldn't just crash.
+                # We can return an error to the frontend so it knows why.
                 return Response(
-                    {"error": f"Product {item['id']} not found"},
+                    {"error": f"Razorpay order creation failed: {str(e)}"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        # Create localized Order record
-        order = Order.objects.create(
-            user=user,
-            total_amount=total_amount,
-            status="Pending",
-            # Map shipping_address to model fields
-            address=f"{shipping_address.get('street', '')}, {shipping_address.get('city', '')}, {shipping_address.get('state', '')}, {shipping_address.get('zip', '')}",
-            city=shipping_address.get("city", ""),
-            state=shipping_address.get("state", ""),
-            pin_code=shipping_address.get("zip", ""),
-            phone=request.data.get("phone", ""),
-            user_email=request.data.get(
-                "email", user.email if user.is_authenticated else ""
-            ),
-            first_name=request.data.get(
-                "first_name", user.first_name if user.is_authenticated else ""
-            ),
-            last_name=request.data.get(
-                "last_name", user.last_name if user.is_authenticated else ""
-            ),
-        )
-
-        for item_data in order_items_data:
-            OrderItem.objects.create(
-                order=order,
-                product=item_data["product"],
-                product_name=item_data["product_name"],
-                price=item_data["price"],
-                quantity=item_data["quantity"],
-            )
-
-        # Update User Profile with address details if authenticated
-        if request.user.is_authenticated:
-            profile = request.user.profile
-            profile.phone = request.data.get("phone", profile.phone)
-            # Use the concatenated address or just street? Frontend matches 'address' to street.
-            # Let's use the shipping_address dict parts
-            shipping_addr = request.data.get("shipping_address", {})
-            profile.address = shipping_addr.get("street", profile.address)
-            profile.city = shipping_addr.get("city", profile.city)
-            profile.state = shipping_addr.get("state", profile.state)
-            profile.pin_code = shipping_addr.get("zip", profile.pin_code)
-            profile.save()
-            
-            # Save names to the base User model if they don't exist
-            user_obj = request.user
-            first_name = request.data.get("first_name")
-            last_name = request.data.get("last_name")
-            updated = False
-            if first_name and not user_obj.first_name:
-                user_obj.first_name = first_name
-                updated = True
-            if last_name and not user_obj.last_name:
-                user_obj.last_name = last_name
-                updated = True
-            if updated:
-                user_obj.save(update_fields=["first_name", "last_name"])
-
-        # Calculate Shipping (tax is included in product price)
-        shipping = 0  # Free shipping requirement
-
-        # Process points redemption if requested
-        points_discount = 0
-        points_deducted = 0
-        if use_points and points_to_redeem > 0 and request.user.is_authenticated:
-            max_redeemable = min(points_to_redeem, int(total_amount * 10))
-            if max_redeemable > 0:
-                success, message = deduct_points(
-                    request.user, max_redeemable, f"Redeemed on Order #{order.id}"
-                )
-                if success:
-                    points_discount = max_redeemable / 10
-                    points_deducted = max_redeemable
-
-        # New total including shipping, less points discount
-        final_total = total_amount + shipping - points_discount
-
-        # Update order total
-        order.total_amount = final_total
-        order.save()
-
-        if payment_method == "cod":
-            order.status = "Processing"
-            order.save()
-            
-            total_awarded = 0
-            if request.user.is_authenticated:
-                from .utils import award_points
-                spend_points = int(order.total_amount / 100) * 10
-                if spend_points > 0:
-                    total_awarded += award_points(
-                        request.user,
-                        "purchase",
-                        custom_points=spend_points,
-                        reason_override=f"Points earned on Order #{order.id}",
-                    )
-                
-                order_count = Order.objects.filter(
-                    user=request.user,
-                    status__in=["Processing", "Paid", "Shipped", "Delivered"],
-                ).count()
-                if order_count == 1:
-                    total_awarded += award_points(request.user, "first_order")
-
-            send_order_confirmation_emails(order, "Cash on Delivery")
-
-            return Response({
-                "is_cod": True,
-                "order_id": order.id,
-                "points_discount": points_discount,
-                "points_deducted": points_deducted,
-                "new_total": float(total_amount),
-                "points_earned": total_awarded,
-            })
-
-        # Create Razorpay Order
-        razorpay_amount = int(final_total * 100)  # Amount in paise
-        try:
-            client = get_razorpay_client()
-            razorpay_order = client.order.create(
+            return Response(
                 {
+                    "order_id": order.id,
+                    "razorpay_order_id": razorpay_order["id"],
                     "amount": razorpay_amount,
                     "currency": "INR",
-                    "receipt": str(order.id),
-                    "payment_capture": 1,
+                    "key_id": settings.RAZORPAY_KEY_ID,
+                    "points_discount": points_discount,
+                    "points_deducted": points_deducted,
+                    "new_total": float(total_amount),
                 }
             )
-            order.razorpay_order_id = razorpay_order["id"]
-            order.save()
         except Exception as e:
-            # If Razorpay fails, we shouldn't just crash.
-            # We can return an error to the frontend so it knows why.
+            import traceback
+            print(f"Error in order initiate: {e}")
+            traceback.print_exc()
             return Response(
-                {"error": f"Razorpay order creation failed: {str(e)}"},
+                {"error": f"Order creation failed: {str(e)}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        return Response(
-            {
-                "order_id": order.id,
-                "razorpay_order_id": razorpay_order["id"],
-                "amount": razorpay_amount,
-                "currency": "INR",
-                "key_id": settings.RAZORPAY_KEY_ID,
-                "points_discount": points_discount,
-                "points_deducted": points_deducted,
-                "new_total": float(total_amount),
-            }
-        )
 
     @action(detail=False, methods=["post"])
     def verify(self, request):

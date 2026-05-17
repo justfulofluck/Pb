@@ -146,7 +146,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
       });
 
       if (verifyResponse.ok) {
-        const verifyData = await verifyResponse.json();
+        let verifyData = {};
+        try {
+          const contentType = verifyResponse.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            verifyData = await verifyResponse.json();
+          }
+        } catch (parseErr) {
+          console.error("Failed to parse verify response:", parseErr);
+        }
 
         // Trigger notification using backend data if available, fallback to calculation
         const earnedPoints = verifyData.points_earned !== undefined ? verifyData.points_earned : Math.floor(subtotal / 10);
@@ -270,7 +278,17 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
         });
         rzp.open();
       } else {
-        const errData = await response.json();
+        let errData = {};
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            errData = await response.json();
+          } else {
+            errData = { error: 'Server returned an error. Please try again.' };
+          }
+        } catch (parseErr) {
+          errData = { error: `Server error (${response.status}). Please try again.` };
+        }
         showToast(`Order creation failed: ${errData.error || 'Unknown error'}`, 'error');
         setIsProcessing(false);
       }
