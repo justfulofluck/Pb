@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Product, Review, Story } from '../types';
 import { API_BASE_URL } from '../config';
 import { getMediaUrl } from '../utils/mediaHelper';
-import SnaxxoProductWheel from './snaxxo/SnaxxoProductWheel';
 import MultiLayerWave from './snaxxo/MultiLayerWave';
 
 
@@ -14,6 +13,8 @@ import { gsap } from 'gsap';
 import SnaxxoProductComparison from './snaxxo/ProductComparison';
 import IngredientShowcase from './snaxxo/IngredientShowcase';
 import UsageIdeas from './UsageIdeas';
+import NutritionDetailedSection from './snaxxo/NutritionDetailedSection';
+import YouMightAlsoLike from './snaxxo/YouMightAlsoLike';
 import { formatPrice } from '../utils/formatters';
 import { analytics } from '../utils/analytics';
 
@@ -33,14 +34,67 @@ interface ProductPageProps {
   onHomeClick: () => void;
 }
 
+const dataUrlToObjectUrl = (dataUrl: string): string | null => {
+  try {
+    const commaIdx = dataUrl.indexOf(',');
+    if (commaIdx === -1) return null;
+    let base64 = dataUrl.slice(commaIdx + 1);
+    while (base64.length % 4) base64 += '=';
+    const binary = atob(base64);
+    if (binary.length < 12) return null;
+    // Validate GLB header: check magic bytes (glTF) and declared length
+    if (binary.charCodeAt(0) !== 0x67 || binary.charCodeAt(1) !== 0x6C ||
+        binary.charCodeAt(2) !== 0x54 || binary.charCodeAt(3) !== 0x46) return null;
+    const declaredLen = 
+      (binary.charCodeAt(8)      ) | (binary.charCodeAt(9)  << 8) |
+      (binary.charCodeAt(10) << 16) | (binary.charCodeAt(11) << 24);
+    if (declaredLen > binary.length) return null;
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'model/gltf-binary' });
+    return URL.createObjectURL(blob);
+  } catch { return null; }
+};
+
 const StableModelViewer = React.memo(({ product }: { product: Product }) => {
-  const modelSrc = React.useMemo(() => {
-    if (product.model3d) return getMediaUrl(product.model3d);
-    if (product.name === 'American Nuts Crunchy Peanut Butter') return '/3D-assets/AmericanNuts-v1.glb';
-    if (product.name === 'Strawberry with Chia Peanut Butter') return '/3D-assets/Strawberry-with-Chia.glb';
-    if (product.name === 'Dark Chocolate & Almond Crunchy Peanut Butter') return '/3D-assets/Dark-Chocolate-Almond.glb';
-    return null;
+  const objectUrlRef = React.useRef<string | null>(null);
+  const [modelSrc, setModelSrc] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+    let src: string | null = null;
+    if (product.model3d) {
+      const url = getMediaUrl(product.model3d);
+      if (url && url.startsWith('data:')) {
+        const blobUrl = dataUrlToObjectUrl(url);
+        objectUrlRef.current = blobUrl;
+        src = blobUrl;
+      } else if (url) {
+        src = url;
+      }
+    }
+    if (!src) {
+      if (product.name === 'Dark Chocolate Berries & Almonds Muesli') {
+        src = '/3D-assets/Dark-Chocolate-Berries-Almonds-Muesli.glb';
+      } else if (product.name === 'American Nuts Crunchy Peanut Butter') {
+        src = '/3D-assets/AmericanNuts-v1.glb';
+      } else if (product.name === 'Strawberry with Chia Peanut Butter') {
+        src = '/3D-assets/Strawberry-with-Chia.glb';
+      } else if (product.name === 'Dark Chocolate & Almond Crunchy Peanut Butter') {
+        src = '/3D-assets/Dark-Chocolate-Almond.glb';
+      }
+    }
+    setModelSrc(src);
   }, [product.id, product.model3d, product.name]);
+
+  React.useEffect(() => {
+    return () => {
+      if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    };
+  }, []);
 
   if (!modelSrc) {
     return <img src={getMediaUrl(product.image)} alt={product.name} className="content-image _100-full" />;
@@ -70,6 +124,7 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
       `}</style>
       <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <model-viewer
+          key={`${product.id}-${modelSrc}`}
           src={modelSrc}
           alt={product.name}
           camera-controls
@@ -262,7 +317,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
       <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-[85vh] md:min-h-[95vh] flex flex-col items-center pt-4 md:pt-0 pb-20 md:pb-10 texture-overlay texture-speckles">
         <div className="w-layout-blockcontainer container product-page-hero w-container !pt-2 md:!pt-6 !mt-0">
           <div className="content-wrapper product-page-hero">
-            <div className="heading-text-box pdp-h1 mt-0 pt-0 px-6 md:px-[120px] lg:px-[220px] mb-[-50px] lg:mb-[-4rem]">
+            <div className="heading-text-box pdp-h1 mt-0 pt-0 px-6 md:px-12 lg:px-16 mb-[-50px] lg:mb-[-4rem]">
               <h1 ref={titleRef} style={{ color: '#fff', textShadow: '0 4px 20px rgba(0,0,0,0.2)', lineHeight: '1.1', fontSize: 'clamp(2.2rem, 10vw, 120px)' }} className="!font-anton font-bold uppercase tracking-wide [word-spacing:0.15em] md:[word-spacing:0.05em]">
                 {product.name}
               </h1>
@@ -300,7 +355,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 <div className="add-to-cart-block-wrapper _02 w-full max-w-sm mx-auto lg:mx-0">
                   <form onSubmit={handleAddToCart} className="w-commerce-commerceaddtocartform default-state w-full">
                     <div className="product-page-info-cta-contain flex flex-col sm:flex-row gap-3 items-center justify-center lg:justify-end h-auto md:h-[48px]">
-                      <div style={{ borderColor: 'rgba(255,255,255,0.3)' }} className="quantity-wrapper flex items-center border rounded-lg h-[40px] md:h-[48px] !w-[200px] sm:!w-[140px] overflow-hidden">
+                      <div style={{ borderColor: 'rgba(255,255,255,0.3)' }} className="quantity-wrapper flex items-center border rounded-lg h-[40px] md:h-[48px] !w-[140px] sm:!w-[200px] overflow-hidden">
                         <button
                           type="button"
                           onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
@@ -325,7 +380,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                         </button>
                       </div>
                       <input
-                        className="w-commerce-commerceaddtocartbutton add-to-cart-button-main product-page cursor-pointer transition-transform hover:scale-105 !w-[200px] sm:!w-[160px] force-anton"
+                        className="w-commerce-commerceaddtocartbutton add-to-cart-button-main product-page cursor-pointer transition-transform hover:scale-105 !w-[160px] sm:!w-[200px] force-anton"
                         style={{ backgroundColor: '#FFF', color: bgColor || '#008a45', height: '100%', minHeight: '40px', borderRadius: '8px', fontSize: '1.2rem', fontWeight: '400', textTransform: 'uppercase' }}
                         type="submit"
                         value="Add to cart"
@@ -387,7 +442,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               {/* Conditional Content */}
               <div className="flex-1 overflow-y-auto mb-8 pr-2 custom-scrollbar">
                 {activeTab === 'nutrition' ? (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* Calories Card */}
                     <div className="bg-[#f8fafc] rounded-[24px] p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
                       <div className="flex items-center gap-2 mb-4">
@@ -456,9 +511,100 @@ const ProductPage: React.FC<ProductPageProps> = ({
           <MultiLayerWave fill="#f2f2ec" className="h-full" />
         </div>
       </section >
-      {reviews.length > 0 && (
-        <Testimonials reviews={reviews.filter(r => r.productId === product.id)} showHeading={false} />
-      )}
+
+      {/* Product Dietary Badges Section */}
+      <section className="py-12 md:py-16" style={{ backgroundColor: '#f2f2ec' }}>
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-wrap sm:grid sm:grid-cols-3 md:flex md:flex-row items-center justify-center md:justify-between gap-x-8 gap-y-10 md:gap-x-4">
+            
+            {/* Badge 1: High Fiber */}
+            <div className="flex flex-col items-center justify-center flex-1 min-w-[120px] max-w-[160px] mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-100">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 duration-300" style={{ backgroundColor: bgColor }}>
+                <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C11.5 4 9.5 6 9 8.5C8.5 7.5 7.5 7 6.5 7C5 7 4 8.5 5 10C6 11.5 8 11.5 9.5 10.5C9.5 12.5 8 14 7.5 16C7 15 6 14.5 5 14.5C3.5 14.5 2.5 16 3.5 17.5C4.5 19 6.5 19 8 18C8.5 20.5 7.5 21.5 7 22H9C10.5 20.5 11.5 18 12 15C12.5 18 13.5 20.5 15 22H17C16.5 21.5 15.5 20.5 16 18C17.5 19 19.5 19 20.5 17.5C21.5 16 20.5 14.5 19 14.5C18 14.5 17 15 16.5 16C16 14 14.5 12.5 14.5 10.5C16 11.5 18 11.5 19 10C20 8.5 19 7 17.5 7C16.5 7 15.5 7.5 15 8.5C14.5 6 12.5 4 12 2Z" />
+                </svg>
+              </div>
+              <span className="text-xs md:text-sm font-black uppercase tracking-wider text-center mt-4 transition-colors" style={{ color: bgColor, fontFamily: 'Satoshi, sans-serif' }}>
+                High Fiber
+              </span>
+            </div>
+
+            {/* Badge 2: Zero Sugar */}
+            <div className="flex flex-col items-center justify-center flex-1 min-w-[120px] max-w-[160px] mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-200">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 duration-300" style={{ backgroundColor: bgColor }}>
+                <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 14.5L8 12.5L12 14.5L8 16.5L4 14.5Z" />
+                  <path d="M4 14.5V18.5L8 20.5V16.5L4 14.5Z" opacity="0.8" />
+                  <path d="M8 16.5V20.5L12 18.5V14.5L8 16.5Z" opacity="0.9" />
+                  <path d="M10 8.5L14 6.5L18 8.5L14 10.5L10 8.5Z" />
+                  <path d="M10 8.5V12.5L14 14.5V10.5L10 8.5Z" opacity="0.8" />
+                  <path d="M14 10.5V14.5L18 12.5V8.5L14 10.5Z" opacity="0.9" />
+                  <path d="M16.5 2C14.6 2 13 3.6 13 5.5C13 7.4 14.6 9 16.5 9C18.4 9 20 7.4 20 5.5C20 3.6 18.4 2 16.5 2ZM18 6.5L17.3 7.2L16.5 6.4L15.7 7.2L15 6.5L15.8 5.7L15 5L15.7 4.3L16.5 5.1L17.3 4.3L18 5L17.2 5.7L18 6.5Z" fill="currentColor" />
+                </svg>
+              </div>
+              <span className="text-xs md:text-sm font-black uppercase tracking-wider text-center mt-4 transition-colors" style={{ color: bgColor, fontFamily: 'Satoshi, sans-serif' }}>
+                Zero Sugar
+              </span>
+            </div>
+
+            {/* Badge 3: Non GMO */}
+            <div className="flex flex-col items-center justify-center flex-1 min-w-[120px] max-w-[160px] mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-300">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 duration-300" style={{ backgroundColor: bgColor }}>
+                <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="5" y="10" width="14" height="8" rx="2" fill="currentColor" />
+                  <path d="M12 10C12 10 14 6 17 6C17 6 15 9 12 10Z" fill="currentColor" />
+                  <path d="M12 10C12 10 10 6 7 6C7 6 9 9 12 10Z" fill="currentColor" />
+                  <circle cx="12" cy="18" r="2.5" fill={bgColor} stroke="currentColor" strokeWidth="1" />
+                  <path d="M11 17L13 19M13 17L11 19" stroke="currentColor" strokeWidth="1" />
+                </svg>
+              </div>
+              <span className="text-xs md:text-sm font-black uppercase tracking-wider text-center mt-4 transition-colors" style={{ color: bgColor, fontFamily: 'Satoshi, sans-serif' }}>
+                Non GMO
+              </span>
+            </div>
+
+            {/* Badge 4: All Natural */}
+            <div className="flex flex-col items-center justify-center flex-1 min-w-[120px] max-w-[160px] mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-400">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 duration-300" style={{ backgroundColor: bgColor }}>
+                <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M17 8C14.2 8 12 10.2 12 13C12 15.8 14.2 18 17 18C19.8 18 22 15.8 22 13C22 8 17 8 17 8ZM15.5 14.5C14.7 13.7 14.7 12.3 15.5 11.5C16.3 10.7 17.7 10.7 18.5 11.5L15.5 14.5Z" />
+                  <path d="M7 10C4.2 10 2 12.2 2 15C2 17.8 4.2 20 7 20C9.8 20 12 17.8 12 15C12 10 7 10 7 10ZM5.5 16.5C4.7 15.7 4.7 14.3 5.5 13.5C6.3 12.7 7.7 12.7 8.5 13.5L5.5 16.5Z" opacity="0.9" />
+                </svg>
+              </div>
+              <span className="text-xs md:text-sm font-black uppercase tracking-wider text-center mt-4 transition-colors" style={{ color: bgColor, fontFamily: 'Satoshi, sans-serif' }}>
+                All Natural
+              </span>
+            </div>
+
+            {/* Badge 5: Keto */}
+            <div className="flex flex-col items-center justify-center flex-1 min-w-[120px] max-w-[160px] mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-500">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 duration-300" style={{ backgroundColor: bgColor }}>
+                <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 6C9.5 9 6 12 6 15C6 17.8 8.2 20 11 20C13.8 20 16 17.8 16 15C16 12 14.5 9 12 6ZM11 18C9.3 18 8 16.7 8 15C8 13.8 9.5 11.5 11 9.5V18Z" opacity="0.9" />
+                  <path d="M16 10C14.5 11.8 12.5 13.8 12.5 15.8C12.5 17.7 14 19.2 15.8 19.2C17.7 19.2 19.2 17.7 19.2 15.8C19.2 13.8 18.2 11.8 16 10Z" />
+                </svg>
+              </div>
+              <span className="text-xs md:text-sm font-black uppercase tracking-wider text-center mt-4 transition-colors" style={{ color: bgColor, fontFamily: 'Satoshi, sans-serif' }}>
+                Keto
+              </span>
+            </div>
+
+            {/* Badge 6: Kosher */}
+            <div className="flex flex-col items-center justify-center flex-1 min-w-[120px] max-w-[160px] mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-600">
+              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 duration-300" style={{ backgroundColor: bgColor }}>
+                <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 4C7 4 3 8 3 13H21C21 8 17 4 12 4ZM12 2C12.6 2 13 2.4 13 3C13 3.6 12.6 4 12 4C11.4 4 11 3.6 11 3C11 2.4 11.4 2 12 2ZM2 14C2 14.6 2.4 15 3 15H21C21.6 15 22 14.6 22 14C22 13.4 21.6 13 21 13H3C2.4 13 2 13.4 2 14Z" />
+                  <path d="M12 6.5L13.2 9H16L13.8 10.5L14.6 13L12 11.5L9.4 13L10.2 10.5L8 9H10.8L12 6.5Z" fill={bgColor} stroke="currentColor" strokeWidth="0.5" />
+                </svg>
+              </div>
+              <span className="text-xs md:text-sm font-black uppercase tracking-wider text-center mt-4 transition-colors" style={{ color: bgColor, fontFamily: 'Satoshi, sans-serif' }}>
+                Kosher
+              </span>
+            </div>
+
+          </div>
+        </div>
+      </section>
 
       <section className="section overflow-hidden" style={{ backgroundColor: '#f2f2ec' }}>
         <div className="w-layout-blockcontainer container product-page-intro w-container">
@@ -508,14 +654,54 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 />
               </div>
             </div>
-            <div className="benefit-circles flex flex-wrap md:flex-nowrap justify-center gap-x-4 md:gap-x-8 gap-y-12 mt-4 md:mt-16 mb-8 py-4" data-snaxxo-animate><div className="sub-icon-block benefits" ><div style={{ backgroundColor: bgColor }} className="benefit-icon-wrap"><div className="benefit-icon w-embed"><svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 48 48" fill="currentcolor" xmlns="http://www.w3.org/2000/svg"><g id="Wheat_cultivation" data-name="Wheat cultivation"><path d="m45.3 16.28-2.13 2.1a10.59 10.59 0 0 0 -6.67-2.62 8 8 0 0 0 5.68-8.83c.48-.06.1.2 4.53-4.22a1 1 0 0 0 -1.42-1.42c-4.26 4.26-4.15 4-4.22 4.53a8 8 0 0 0 -8.83 5.68 9.94 9.94 0 0 0 -2.65-6.65c.2-.19-.75.76 2.13-2.15a1 1 0 0 0 -1.44-1.4l-2.09 2.12-.29-.29a9.82 9.82 0 0 0 -2.23 3.42c.87.88.82.82.83.83a11.92 11.92 0 0 1 3.5 9.23l-2.56 2.57c2-5.78-2-10.39-2.34-10.39l-1.44-1.42a10 10 0 0 0 -2.24 3.43c2.88 2.85 4.6 5.77 4.31 10.05l-2.56 2.57a9.92 9.92 0 0 0 -2.33-10.42l-1.43-1.42a9.82 9.82 0 0 0 -2.23 3.42l1.41 1.4a12.14 12.14 0 0 1 2.9 8.66l-2.57 2.56a9.84 9.84 0 0 0 -2.33-10.39l-1.42-1.41a9.82 9.82 0 0 0 -2.23 3.42l.82.83a11.89 11.89 0 0 1 3.48 9.23l-2.53 2.54a10 10 0 0 0 -2.36-10.36l-1.42-1.38a10 10 0 0 0 -2.93 7.07c0 3.43 1.43 5.56 3.64 7.83l-10.35 10.29a1 1 0 0 0 1.42 1.42l10.34-10.35.71.71a10 10 0 0 0 14.14 0c-1.9-1.9-4-4.34-8.48-4.34a10 10 0 0 0 -3.3.56l2.54-2.53c4.31-.27 7.07 1.35 10.06 4.3a9.82 9.82 0 0 0 3.42-2.23c-2.27-2.29-4.22-4.34-8.48-4.34a9.2 9.2 0 0 0 -3.32.59l2.56-2.57a12 12 0 0 1 8.61 2.9c.1 0 0-.1 1.45 1.41a9.82 9.82 0 0 0 3.42-2.23l-1.38-1.43a9.9 9.9 0 0 0 -10.38-2.33l2.57-2.56c4.29-.29 7.17 1.43 10.05 4.31a10 10 0 0 0 3.43-2.24l-1.42-1.41c0-.4-4.6-4.37-10.39-2.34l2.53-2.59a11.9 11.9 0 0 1 9.23 3.47l.83.83a9.82 9.82 0 0 0 3.42-2.23l-.29-.29 2.12-2.09a1 1 0 0 0 -1.4-1.41z" /></g></svg></div></div><div style={{ color: bgColor }} className="benefit-text-box"><div className="benefit-text-box pdp"><div style={{ color: bgColor }} className="benefit-title-pdp">High&#160;Fiber</div></div></div></div><div className="sub-icon-block benefits" ><div style={{ backgroundColor: bgColor }} className="benefit-icon-wrap"><div className="benefit-icon w-embed"><svg id="Capa_1" enableBackground="new 0 0 512 512" style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 512 512" fill="currentcolor" xmlns="http://www.w3.org/2000/svg"><g><path d="m423.72 270.425-120-72c-.87-.52-1.79-.95-2.72-1.28v94.14c0 15.72-8.37 30.51-21.85 38.59l-27.33 16.4 36.46 21.87c2.38 1.43 5.05 2.14 7.72 2.14s5.34-.71 7.72-2.14l120-72c4.52-2.71 7.28-7.59 7.28-12.86s-2.76-10.15-7.28-12.86z" /><path d="m222.67 363.755-61.67 37.01v26.52c0 5.24 2.73 10.09 7.2 12.81l112.8 68.62v-111.01c-2.84-1-5.58-2.28-8.17-3.85z" /><path d="m311 397.705v111.01l112.8-68.62c4.47-2.72 7.2-7.57 7.2-12.81v-100.52l-111.84 67.1c-2.6 1.56-5.33 2.84-8.16 3.84z" /><path d="m271 147.285c0-5.27-2.76-10.15-7.28-12.86l-120-72c-4.74-2.84-10.65-2.85-15.39-.03l-121 72c-4.55 2.7-7.33 7.6-7.33 12.89s2.78 10.19 7.33 12.89l121 72c2.36 1.41 5.02 2.11 7.67 2.11 2.67 0 5.34-.71 7.72-2.14l120-72c4.52-2.71 7.28-7.59 7.28-12.86z" /><path d="m408 3.285c-57.346 0-104 46.654-104 104s46.654 104 104 104 104-46.654 104-104-46.654-104-104-104zm34.606 117.394c5.858 5.858 5.858 15.355 0 21.213-2.929 2.929-6.768 4.394-10.606 4.394s-7.678-1.464-10.606-4.394l-13.394-13.394-13.394 13.394c-2.929 2.929-6.768 4.394-10.606 4.394s-7.678-1.464-10.606-4.394c-5.858-5.858-5.858-15.355 0-21.213l13.394-13.394-13.394-13.394c-5.858-5.858-5.858-15.355 0-21.213 5.857-5.858 15.355-5.858 21.213 0l13.393 13.394 13.394-13.394c5.857-5.858 15.355-5.858 21.213 0s5.858 15.355 0 21.213l-13.394 13.394z" /><path d="m0 190.725v100.56c0 5.29 2.78 10.19 7.33 12.89l113.67 67.64v-110.11c-2.79-.98-5.49-2.25-8.05-3.77z" /><path d="m271 291.285v-100.52l-111.84 67.1c-2.6 1.56-5.33 2.84-8.16 3.84v110.07l112.72-67.63c4.52-2.71 7.28-7.59 7.28-12.86z" /></g></svg></div></div><div style={{ color: bgColor }} className="benefit-text-box"><div className="benefit-text-box pdp"><div style={{ color: bgColor }} className="benefit-title-pdp">Zero Sugar</div></div></div></div><div className="sub-icon-block benefits" ><div style={{ backgroundColor: bgColor }} className="benefit-icon-wrap"><div className="benefit-icon w-embed"><svg id="Capa_1" style={{ height: 'inherit', width: 'inherit' }} enableBackground="new 0 0 512 512" viewBox="0 0 512 512" fill="currentcolor" xmlns="http://www.w3.org/2000/svg"><g><path d="m256 355.521c-43.29 0-78.51 35.099-78.51 78.24s35.22 78.239 78.51 78.239 78.51-35.099 78.51-78.24-35.22-78.239-78.51-78.239zm34.1 91.085c5.86 5.83 5.86 15.297 0 21.137-5.846 5.826-15.348 5.842-21.21 0l-12.89-12.846-12.89 12.846c-5.857 5.837-15.359 5.83-21.21 0-5.86-5.84-5.86-15.307 0-21.137l12.89-12.845-12.89-12.846c-5.86-5.84-5.86-15.297 0-21.137s15.36-5.84 21.21 0l12.89 12.846 12.89-12.846c5.85-5.84 15.35-5.84 21.21 0s5.86 15.297 0 21.137l-12.89 12.846z" /><path d="m359.24 107.509c32.75-32.647 23.94-91.225 23.55-93.706-1.01-6.408-6.06-11.43-12.49-12.437-2.48-.399-61.27-9.178-94.02 23.469-.019.019-.038.038-.057.057-3.398 3.393-5.223 8.046-5.223 12.841v93.932c3.63.339 8.75.668 14.82.668 26.342 0 54.715-6.184 73.42-24.824z" /><path d="m235.777 24.891c-.019-.019-.038-.038-.057-.057-32.75-32.647-91.53-23.867-94.02-23.469-6.43 1.007-11.48 6.029-12.49 12.437-4.174 26.468-.841 69.387 23.55 93.706 21 20.928 52.71 24.824 73.42 24.824 6.07 0 11.19-.329 14.82-.668v-93.931c0-4.795-1.825-9.448-5.223-12.842z" /><path d="m420.78 246.96c0 16.8-13.67 30.47-30.47 30.47-16.81 0-30.48-13.67-30.48-30.47 0-16.81 13.67-30.48 30.48-30.48 16.8 0 30.47 13.67 30.47 30.48z" /><path d="m426.2 162.82h-155.2v-31.16h-30v31.16h-155.2c-25.3 0-45.89 20.52-45.89 45.73v118.03c0 25.21 20.59 45.73 45.89 45.73h80.97c19.59-28.19 52.29-46.69 89.23-46.69 37 0 69.73 18.55 89.32 46.81l80.88-.12c25.3 0 45.89-20.52 45.89-45.73v-118.03c0-25.21-20.59-45.73-45.89-45.73zm-296.28 144.61c-33.35 0-60.48-27.13-60.48-60.47 0-33.35 27.13-60.48 60.48-60.48 12.11 0 23.81 3.58 33.82 10.34 6.86 4.64 8.67 13.96 4.03 20.83-4.64 6.86-13.96 8.67-20.83 4.03-5.03-3.4-10.91-5.2-17.02-5.2-16.81 0-30.48 13.67-30.48 30.48 0 16.8 13.67 30.47 30.48 30.47 11.68 0 18.45-6.71 21.74-15.47h-9.69c-8.29 0-15-6.72-15-15 0-8.29 6.71-15 15-15h27.2c8.29 0 15 6.71 15 15 0 35.6-22.31 60.47-54.25 60.47zm177.83-.97c-8.13 1.55-15.99-3.78-17.54-11.92l-6.7-35.05-10.16 35.64c-.05.17-.1.34-.16.51-2.28 7.02-8.76 11.75-16.13 11.79h-.09c-7.34 0-13.83-4.66-16.17-11.62-.06-.18-.11-.35-.17-.53l-10.52-35.68-6.28 34.79c-1.47 8.15-9.28 13.57-17.43 12.09-8.15-1.47-13.57-9.27-12.1-17.42l15.99-88.57c.01-.06.02-.11.03-.17 1.47-7.61 7.89-13.28 15.61-13.79 7.74-.52 14.84 4.25 17.31 11.59.06.17.11.35.16.52l13.36 45.26 12.85-45.11c.05-.17.11-.34.16-.51 2.39-7.37 9.45-12.2 17.18-11.77 7.73.44 14.21 6.04 15.75 13.62.02.06.03.12.04.18l16.93 88.6c1.56 8.13-3.78 15.99-11.92 17.55zm82.56.97c-33.35 0-60.48-27.13-60.48-60.47 0-33.35 27.13-60.48 60.48-60.48 33.34 0 60.47 27.13 60.47 60.48 0 33.34-27.13 60.47-60.47 60.47z" /></g></svg></div></div><div style={{ color: bgColor }} className="benefit-text-box"><div className="benefit-text-box pdp"><div style={{ color: bgColor }} className="benefit-title-pdp">Non&#160;GMO</div></div></div></div><div className="sub-icon-block benefits" ><div style={{ backgroundColor: bgColor }} className="benefit-icon-wrap"><div className="benefit-icon w-embed"><svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 -1 512.00246 512" fill="currentcolor" xmlns="http://www.w3.org/2000/svg"><path d="m501.890625 107.640625c-12.320313-57.300781-31.421875-97.429687-32.230469-99.109375-3.316406-6.910156-11.300781-10.214844-18.53125-7.675781-1.410156.492187-35.074218 12.429687-77.480468 37.734375-28.855469 17.21875-65.886719 43.304687-97.953126 78.449218 6.398438 8.144532 12.519532 16.664063 18.238282 25.59375.019531.03125.039062.0625.058594.09375 9.617187 15.027344 17.824218 30.695313 24.402343 46.574219 9.300781 22.449219 15.847657 46.3125 19.65625 71.46875l67.191407-162.21875c3.179687-7.671875 11.972656-11.3125 19.644531-8.136719 7.671875 3.179688 11.3125 11.972657 8.136719 19.644532l-91.316407 220.457031c-.757812 19.632813-2.929687 39.882813-6.527343 60.71875-7.285157 42.179687-19 77.800781-27.625 100.433594 13.730468-7 29.589843-15.839844 46.300781-26.636719 29.015625-18.746094 54.582031-39.535156 75.992187-61.785156 27.066406-28.132813 47.546875-58.707032 60.875-90.878906 13.324219-32.167969 20.460938-68.269532 21.214844-107.300782.59375-30.875-2.789062-63.652344-10.046875-97.425781zm0 0" /><path d="m290.613281 200.808594c-5.898437-14.246094-13.285156-28.335938-21.949219-41.878906-.003906-.007813-.011718-.015626-.015624-.023438-36.429688-56.921875-90.960938-96.84375-130.292969-120.316406-42.40625-25.304688-76.066407-37.242188-77.480469-37.738282-1.640625-.578124-3.320312-.851562-4.976562-.851562-5.636719 0-10.988282 3.1875-13.554688 8.527344-.808594 1.679687-19.90625 41.808594-32.230469 99.109375-7.261719 33.773437-10.640625 66.554687-10.0468748 97.429687.7539058 39.027344 7.8906248 75.128906 21.2187498 107.300782 13.324219 32.167968 33.804688 62.746093 60.871094 90.875 21.410156 22.253906 46.980469 43.042968 75.996094 61.789062 38.605468 24.941406 72.6875 39.46875 86.449218 44.871094l-150.304687-362.867188c-3.179687-7.671875.464844-16.46875 8.136719-19.644531s16.464844.464844 19.644531 8.136719l150.300781 362.859375c7.023438-16.144531 23.886719-58.507813 33.171875-112.269531 12.070313-69.890626 7.046875-132.234376-14.9375-185.308594zm0 0" /></svg></div></div><div style={{ color: bgColor }} className="benefit-text-box"><div className="benefit-text-box pdp"><div style={{ color: bgColor }} className="benefit-title-pdp">All&#160;Natural</div></div></div></div><div className="sub-icon-block benefits" ><div style={{ backgroundColor: bgColor }} className="benefit-icon-wrap"><div className="benefit-icon w-embed"><svg id="Layer_1" enableBackground="new 0 0 511.931 511.931" style={{ width: 'inherit', height: 'inherit' }} fill="currentcolor" viewBox="0 0 511.931 511.931" xmlns="http://www.w3.org/2000/svg"><g><path d="m470.132 184.746c-28.72-27.9-65.96-41.8-103.17-41.8-38.56 0-77.09 14.93-106.06 44.66l-.14.13c-37.55 37.56-71.83 96.44-89.46 153.66-18.71 60.71-15.57 109.4 8.61 133.57 13.74 13.74 35.4 20.69 62.68 20.69 20.72 0 44.68-4 70.89-12.08 57.22-17.63 116.1-51.91 153.66-89.46l.13-.14c58.42-56.93 59.68-150.75 2.86-209.23zm-182.59 65.96 21.22 21.21-55.66 55.66-21.21-21.22zm-62.27 200.11-21.21-21.21 89.05-89.06 21.21 21.22zm123.24-27.83-21.21-21.21 55.66-55.66 21.21 21.21zm106.33-127.59c-24.375 22.876-60.257 12.646-84.3-11.059-22.754-21.694-33.889-61.339-11.06-84.311 20.53-20.53 57.56-15.669 84.3 11.07 22.749 21.667 33.908 61.343 11.06 84.3z" /><path d="m433.632 274.186c-18.022 14.88-57.082-15.445-56.76-41.94-.163-8.923 5.048-14.963 14.97-14.84 8.88 0 20.53 4.7 30.73 14.9 7.63 7.63 12.89 17.04 14.43 25.82.7 4.03 1.21 11.48-3.37 16.06z" /><path d="m145.942 16.276c-81.53 1.17-146.98 68.41-145.93 149.97v.19c0 53.11 17.4 118.98 45.4 171.91 25 47.27 54.91 77.56 84.14 85.97-1.78-26.61 2.55-57.56 13.08-91.75 18.97-61.58 56.08-125.17 96.85-165.98 14.51-14.87 31.01-26.65 48.67-35.34-14.89-64.96-72.7-113.97-142.21-114.97zm-52.47 254.45h-30v-78.71h30zm52.47-113.89c-37.7 0-67.23-22.69-67.23-51.65s29.53-51.65 67.23-51.65 67.24 22.69 67.24 51.65-29.54 51.65-67.24 51.65z" /><path d="m145.942 83.536c-21.94 0-37.23 11.41-37.23 21.65s15.29 21.65 37.23 21.65c21.95 0 37.24-11.41 37.24-21.65s-15.29-21.65-37.24-21.65z" /></g><g /><g /><g /><g /><g /><g /><g /><g /><g /><g /><g /><g /><g /><g /><g /></svg></div></div><div style={{ color: bgColor }} className="benefit-text-box"><div className="benefit-text-box pdp"><div style={{ color: bgColor }} className="benefit-title-pdp">Keto</div></div></div></div><div className="sub-icon-block benefits" ><div style={{ backgroundColor: bgColor }} className="benefit-icon-wrap"><div className="benefit-icon w-embed"><svg viewBox="0 0 56 40" style={{ width: 'inherit', height: 'inherit' }} fill="currentcolor" xmlns="http://www.w3.org/2000/svg"><g id="Page-1" fill="currentcolor" fillRule="evenodd"><g id="038---Meal" fill="currentcolor" fillRule="nonzero"><path id="Shape" d="m36.587 16h-3.298l1.649 2.95z" /><path id="Shape" d="m28.002 10.642-1.878 3.358h3.756z" /><path id="Shape" d="m33.289 26h3.3l-1.65-2.951z" /><circle id="Oval" cx="28" cy="2" r="2" /><path id="Shape" d="m25.006 26h5.992l2.795-5.001-2.795-4.999h-5.992l-2.795 5z" /><path id="Shape" d="m28.002 31.36 1.878-3.36h-3.756z" /><path id="Shape" d="m52.963 28.569c.023.473.037.95.037 1.431 0 4.6-12.576 7-25 7s-25-2.4-25-7c0-.481.014-.958.037-1.431-1.937 1.104-3.037 2.315-3.037 3.431 0 3.784 11.5 8 28 8s28-4.216 28-8c0-1.116-1.1-2.327-3.037-3.431z" /><path id="Shape" d="m22.715 16h-3.298l1.649 2.95z" /><path id="Shape" d="m28 35c14.04 0 23-2.961 23-5 0-13.458-10.1-24-23-24s-23 10.542-23 24c0 2.039 8.96 5 23 5zm-10.817-18.9c-.2435699-.4400635-.237109-.9759369.017-1.41.2472317-.428641.705174-.6919579 1.2-.69h5.435l2.956-5.288c.2609465-.41652645.7172817-.67011702 1.2087944-.67174051s.9495132.24894697 1.2132056.66374051l2.96 5.3h5.427c.4949631-.000508.9525186.263349 1.2.692.2527806.4320089.2603726.9649662.02 1.404l-2.736 4.9 2.741 4.9c.2435906.4381871.2375062.9724738-.016 1.405-.2486196.4322998-.7103142.6977074-1.209.695h-5.428l-2.953 5.283c-.2468825.4417501-.7129439.7158813-1.219.717-.5046714-.0014427-.9690923-.2757342-1.214-.717l-2.953-5.283h-5.433c-.4969947.0022442-.9571466-.2617899-1.206-.692-.2532161-.4325161-.2596769-.9664837-.017-1.405l2.743-4.903zm-3.183-2.1c.5522847 0 1 .4477153 1 1s-.4477153 1-1 1-1-.4477153-1-1 .4477153-1 1-1zm-3.185 3.2c.3081749-.4586725.9298275-.5806749 1.3885-.2725s.5806749.9298275.2725 1.3885c-2.1148617 3.1805321-3.31046093 6.8832562-3.455 10.7-.02356388.5350298-.46445178.9565187-1 .956h-.042c-.55171354-.0237889-.97970613-.4902829-.956-1.042.16081501-4.1843937 1.47295426-8.2433054 3.792-11.73z" /><path id="Shape" d="m21.066 23.049-1.65 2.951h3.299z" /></g></g></svg></div></div><div style={{ color: bgColor }} className="benefit-text-box"><div className="benefit-text-box pdp"><div style={{ color: bgColor }} className="benefit-title-pdp">Kosher</div></div></div></div></div></div></div></section>
+            <div className="benefit-circles flex flex-wrap md:flex-nowrap justify-center gap-x-4 md:gap-x-8 gap-y-12 mt-4 md:mt-16 mb-8 py-4" data-snaxxo-animate>
+              {(() => {
+                const filtered = (product.benefits || []).filter(b => b && b.trim() !== "");
+                const displayBenefits = filtered.length > 0 ? filtered : ["100% Roasted Peanuts", "High Protein Power", "Rich In Dietary Fiber", "Zero Trans Fat"];
+                return displayBenefits.map((benefit, idx) => (
+                  <div key={idx} className="sub-icon-block benefits">
+                    <div style={{ backgroundColor: bgColor }} className="benefit-icon-wrap">
+                      <div className="benefit-icon w-embed">
+                        <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 48 48" fill="currentcolor" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm0 36c-8.82 0-16-7.18-16-16S15.18 8 24 8s16 7.18 16 16-7.18 16-16 16zm-2-8h4v-4h-4v4zm0-12h4V12h-4v8z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div style={{ color: bgColor }} className="benefit-text-box">
+                      <div className="benefit-text-box pdp">
+                        <div style={{ color: bgColor }} className="benefit-title-pdp">{benefit}</div>
+                      </div>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          </div>
+        </div>
+      </section>
 
-
-
-      <IngredientShowcase />
+      {product.ingredientsList && product.ingredientsList.length > 0 && (
+        <IngredientShowcase ingredients={product.ingredientsList} />
+      )}
       <SnaxxoProductComparison product={product} />
 
-      <UsageIdeas ideas={product.usageIdeas || []} bgColor={bgColor} />
+      <NutritionDetailedSection product={product} onAddToCart={onAddToCart} bgColor={bgColor} />
+
+      {reviews.length > 0 && (
+        <Testimonials reviews={reviews.filter(r => r.productId === product.id)} showHeading={false} />
+      )}
+
+      {product.usageIdeas && product.usageIdeas.length > 0 && (
+        <UsageIdeas ideas={product.usageIdeas} bgColor={bgColor} />
+      )}
+
+      <YouMightAlsoLike
+        products={products}
+        currentProductId={product.id}
+        onProductClick={onProductClick}
+        onAddToCart={onAddToCart}
+        bgColor={bgColor}
+      />
 
       <StoryCarousel
         stories={[...(stories.filter(s => s.productId === product.id).length > 0
@@ -526,16 +712,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
         onProductClick={onProductClick}
         onAddToCart={onAddToCart}
       />
-
-      <div className="snaxxo-wrapper relative w-full overflow-hidden py-0" style={{ backgroundColor: '#f2f2ec' }}>
-
-        <SnaxxoProductWheel
-          products={products}
-          onProductClick={onProductClick}
-          onAddToCart={(p) => onAddToCart(p)}
-          onShopClick={onShopClick}
-        />
-      </div>
 
       <SnaxxoAddReview
         productId={product.id}

@@ -67,25 +67,37 @@ class FlexibleFileField(serializers.FileField):
                     format_part, filestr = data.split(';base64,')
                     mime_type = format_part.split(':')[-1]
                     ext = mime_type.split('/')[-1]
-                    # Map common mime types to standard extensions
                     ext_map = {
                         'gltf-binary': 'glb',
                         'gltf+json': 'gltf',
-                        'octet-stream': 'glb' # Common for binary files
+                        'octet-stream': 'glb'
                     }
                     ext = ext_map.get(ext, ext)
+                    raw_bytes = base64.b64decode(filestr)
+                    # Validate GLB file header to detect truncated/corrupted uploads
+                    if ext == 'glb' and len(raw_bytes) >= 12:
+                        if raw_bytes[:4] != b'glTF':
+                            raise serializers.ValidationError("Invalid GLB file: missing glTF header")
+                        declared_len = int.from_bytes(raw_bytes[8:12], 'little')
+                        if declared_len > len(raw_bytes):
+                            raise serializers.ValidationError(
+                                f"GLB file truncated: header declares {declared_len} bytes, "
+                                f"received {len(raw_bytes)}"
+                            )
                     file_name = f"{uuid.uuid4()}.{ext}"
-                    data = ContentFile(base64.b64decode(filestr), name=file_name)
+                    data = ContentFile(raw_bytes, name=file_name)
                     return super().to_internal_value(data)
-                except Exception:
-                    pass
+                except serializers.ValidationError:
+                    raise
+                except Exception as e:
+                    raise serializers.ValidationError(f"Failed to decode file: {e}")
 
             # If it's a full URL or absolute path starting with MEDIA_URL, strip it
             from django.conf import settings
             media_url = settings.MEDIA_URL
             if data.startswith(media_url):
                 return data[len(media_url):]
-            if '://' in data: # It's a full URL
+            if '://' in data:
                 from urllib.parse import urlparse
                 path = urlparse(data).path
                 if path.startswith(media_url):
@@ -101,23 +113,24 @@ class FlexibleImageField(serializers.ImageField):
     """
     def to_internal_value(self, data):
         if isinstance(data, str):
-            # Handle Base64
             if data.startswith('data:'):
                 try:
                     format_part, imgstr = data.split(';base64,')
                     mime_type = format_part.split(':')[-1]
                     ext = mime_type.split('/')[-1]
-                    # Map common mime types to standard extensions
                     ext_map = {
                         'jpeg': 'jpg',
                         'svg+xml': 'svg'
                     }
                     ext = ext_map.get(ext, ext)
                     file_name = f"{uuid.uuid4()}.{ext}"
-                    data = ContentFile(base64.b64decode(imgstr), name=file_name)
+                    raw_bytes = base64.b64decode(imgstr)
+                    data = ContentFile(raw_bytes, name=file_name)
                     return super().to_internal_value(data)
-                except Exception:
-                    pass
+                except serializers.ValidationError:
+                    raise
+                except Exception as e:
+                    raise serializers.ValidationError(f"Failed to decode image: {e}")
 
             from django.conf import settings
             media_url = settings.MEDIA_URL
@@ -157,6 +170,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class ProductListSerializer(serializers.ModelSerializer):
+    usage_ideas = UsageIdeaSerializer(many=True, read_only=True)
+
     class Meta:
         model = Product
         fields = [
@@ -173,8 +188,11 @@ class ProductListSerializer(serializers.ModelSerializer):
             "theme_color",
             "description",
             "benefits",
+            "ingredients",
+            "ingredients_list",
             "model_3d",
             "orientation",
+            "usage_ideas",
         ]
 
 

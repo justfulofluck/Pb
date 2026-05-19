@@ -136,7 +136,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   : 'opacity-0 translate-y-2 pointer-events-none'
                   }`}
               >
-                <p className="text-[10px] lg:text-[12px] font-black tracking-[0.25em] uppercase whitespace-nowrap pt-1">
+                <p className="text-[10px] lg:text-[12px] font-black tracking-[0.25em] uppercase whitespace-nowrap overflow-hidden text-ellipsis pt-1">
                   {text}
                 </p>
               </div>

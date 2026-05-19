@@ -2,15 +2,15 @@ export interface Product {
   id: string;
   name: string;
   price: number;
-  originalPrice?: number;
+  description?: string;
+  original_price?: number;
   rating: number;
   reviewCount: number;
   image: string;
-  gallery?: string[];
-  description: string;
   benefits: string[];
   nutrients: { label: string; value: string }[];
   ingredients?: string;
+  ingredientsList?: { name: string; image: string }[];
   nutrition?: {
     calories: string;
     protein: string;

@@ -11,28 +11,76 @@ import { API_BASE_URL } from '../config';
 export const getMediaUrl = (path: string | null | undefined): string => {
   if (!path || typeof path !== 'string') return '';
   
-  const trimmedPath = path.trim();
+  let trimmedPath = path.trim();
 
-  // 1. Handle absolute URLs and already-valid data URLs
-  if (trimmedPath.startsWith('http') || trimmedPath.startsWith('data:')) {
+  // Strip leading slash or /media/ prefix if it was prepended to a base64 string
+  let testPath = trimmedPath;
+  if (testPath.startsWith('/media/')) {
+    testPath = testPath.slice(7);
+  } else if (testPath.startsWith('media/')) {
+    testPath = testPath.slice(6);
+  } else if (testPath.startsWith('/')) {
+    testPath = testPath.slice(1);
+  }
+
+  // Handle data URLs (both raw, URL encoded, or with /media/ prepended)
+  // Try all detection methods: raw prefix, URL-encoded prefix, or full decode check
+  const tryDecodeDataUrl = (str: string): string | null => {
+    if (str.startsWith('data:')) {
+      try { return decodeURIComponent(str); } catch { return str; }
+    }
+    const lower = str.toLowerCase();
+    if (lower.startsWith('data%3a')) {
+      try { return decodeURIComponent(str); } catch { return str; }
+    }
+    // Fallback: fully decode and check
+    try {
+      const decoded = decodeURIComponent(str);
+      if (decoded.startsWith('data:')) return decoded;
+    } catch { /* ignore */ }
+    return null;
+  };
+  const dataResult = tryDecodeDataUrl(testPath);
+  if (dataResult) return dataResult;
+
+  // 1. Handle absolute URLs — detect mistakenly stored data URLs and fix them
+  if (trimmedPath.startsWith('http')) {
+    try {
+      const url = new URL(trimmedPath);
+      // Check if path starts with /media/data%3A (URL-encoded base64 data stored as file)
+      if (url.pathname.toLowerCase().includes('/media/data%3a') || url.pathname.toLowerCase().includes('/media/data:')) {
+        const mediaIndex = url.pathname.indexOf('/media/');
+        if (mediaIndex !== -1) {
+          const encodedPart = url.pathname.slice(mediaIndex + 7);
+          try {
+            return decodeURIComponent(encodedPart);
+          } catch {
+            return encodedPart;
+          }
+        }
+      }
+      if (url.hostname === 'localhost') {
+        const correct = new URL(API_BASE_URL);
+        url.hostname = correct.hostname;
+        url.port = correct.port;
+        return url.toString();
+      }
+    } catch {
+      // invalid URL, fall through
+    }
     return trimmedPath;
   }
 
   // 2. Handle raw SVG or XML (common in some fields)
   if (trimmedPath.startsWith('<svg') || trimmedPath.startsWith('<?xml')) {
-    // If it's a raw SVG, we might want to return it as a data URI if needed, 
-    // but for now, we return as-is if the consumer expects raw SVG.
     return trimmedPath;
   }
 
   // 3. SAFETY CHECK: Prevent 414 Request-URI Too Long
   // If the path is extremely long but isn't an absolute URL or data URI,
   // it's likely raw binary/base64 data accidentally being passed as a path.
-  // We MUST NOT return this as a relative path as it will trigger a 414 error.
   if (trimmedPath.length > 1000) {
     console.warn('getMediaUrl: Received an unusually long path. Potential 414 error prevented.', trimmedPath.substring(0, 50) + '...');
-    // If it looks like base64 but lacks the prefix, we can try to add it, 
-    // but usually, it's safer to return empty or a placeholder if it's unexpected.
     return ''; 
   }
 

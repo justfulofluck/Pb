@@ -43,9 +43,11 @@ const DEFAULT_INGREDIENTS: Ingredient[] = [
 ];
 
 const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
-    ingredients = DEFAULT_INGREDIENTS,
+    ingredients,
     title = "The Powerful Natural Ingredient Blend"
 }) => {
+    const items = (ingredients && ingredients.length > 0) ? ingredients : DEFAULT_INGREDIENTS;
+
     return (
         <section className="py-20 px-4 md:px-12 bg-[#fff1f1] font-satoshi flex flex-col items-center overflow-hidden">
             <motion.h2
@@ -57,9 +59,19 @@ const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
                 {title.replace("The Powerful Natural ", "")}
             </motion.h2>
 
-            <div className="w-full overflow-x-auto no-scrollbar pb-12 px-6 md:px-12 scroll-smooth snap-x snap-mandatory">
+            <style>{`
+                .ingredient-scroll-hide::-webkit-scrollbar { display: none; }
+            `}</style>
+            <div
+                className="ingredient-scroll-hide w-full overflow-x-auto pb-12 px-6 md:px-12 scroll-smooth snap-x snap-mandatory"
+                style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                }}
+            >
                 <div className="flex gap-4 md:gap-10 items-start justify-start md:justify-center min-w-max">
-                    {ingredients.map((item, idx) => (
+                    {items.map((item, idx) => (
                         <motion.div
                             key={idx}
                             initial={{ opacity: 0, scale: 0.9 }}

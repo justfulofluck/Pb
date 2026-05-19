@@ -124,13 +124,11 @@ const ShopPage: React.FC<ShopPageProps> = ({
             ...p,
             id: String(p.id),
             price: parseFloat(p.price),
-            originalPrice: p.original_price ? parseFloat(p.original_price) : undefined,
             themeColor: p.theme_color,
             model3d: p.model_3d,
             orientation: p.orientation ? p.orientation.replace(/[Oo]/g, '0') : '0deg 0deg 0deg',
             benefits: p.benefits || [],
-            nutrients: p.nutrients || [],
-            gallery: p.gallery || []
+            nutrients: p.nutrients || []
           }));
           setProducts(mappedProducts);
         } else {
@@ -190,9 +188,6 @@ const ShopPage: React.FC<ShopPageProps> = ({
             ))
           ) : products.length > 0 ? (
             products.map((product) => {
-              const discount = product.originalPrice
-                ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-                : null;
 
               return (
                 <div
@@ -203,13 +198,6 @@ const ShopPage: React.FC<ShopPageProps> = ({
                   {/* Image Container */}
                   <div className="relative aspect-[4/5] w-full mb-6 transition-transform duration-500 group-hover:-translate-y-2">
 
-                    {/* Discount Badge - Top Left Circle */}
-                    {discount && (
-                      <div className="absolute top-0 left-0 z-20 w-10 h-10 md:w-14 md:h-14 bg-[#d32f2f] rounded-full flex flex-col items-center justify-center text-white leading-none shadow-lg">
-                        <span className="text-[10px] md:text-[14px] font-black">{discount}%</span>
-                        <span className="text-[6px] md:text-[8px] font-black uppercase">OFF</span>
-                      </div>
-                    )}
 
                     {/* Wishlist Heart - Top Right */}
                     <button
@@ -292,9 +280,6 @@ const ShopPage: React.FC<ShopPageProps> = ({
                       {/* Price */}
                       <div className="flex flex-wrap items-center justify-center gap-1.5 mb-3">
                         <span className="text-lg md:text-2xl font-bold text-[#228b44]">Rs. {product.price.toFixed(2)}</span>
-                        {product.originalPrice && product.originalPrice > product.price && (
-                          <span className="text-[10px] md:text-sm font-medium text-slate-400 line-through">Rs. {product.originalPrice.toFixed(2)}</span>
-                        )}
                       </div>
 
                       <button

@@ -130,7 +130,7 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
   return (
     <section
       ref={heroRef}
-      className="relative overflow-hidden h-screen flex items-center bg-whiteboard texture-overlay texture-speckles pt-12 pb-32 md:pt-0 md:pb-0"
+      className="relative overflow-hidden min-h-screen flex items-center bg-whiteboard texture-overlay texture-speckles pt-4 pb-16 md:pt-0 md:pb-0"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >
@@ -151,7 +151,7 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
         <div className="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
 
           {/* Text Content */}
-          <div className="order-2 md:order-1 relative h-[450px] md:h-[500px] flex items-center">
+          <div className="order-2 md:order-1 relative min-h-[450px] md:min-h-[500px] flex items-center">
             {activeSlides.map((slide, index) => (
               <div
                 key={slide.id}
@@ -164,7 +164,7 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
                   {slide.category}
                 </span>
 
-                <h1 className="font-normal text-slate-900 mb-4 md:mb-8 tracking-wide [word-spacing:0.05em] !font-anton uppercase">
+                <h1 className="font-normal text-slate-900 mb-4 md:mb-8 tracking-wide [word-spacing:0.05em] !font-anton uppercase text-5xl md:text-7xl lg:text-8xl">
                   {slide.headline}
                 </h1>
 
@@ -193,7 +193,7 @@ const Hero: React.FC<HeroProps> = ({ onShopClick, slides }) => {
           </div>
 
           {/* Image Content */}
-          <div className="order-1 md:order-2 relative h-[250px] md:h-[650px] flex items-center justify-center pt-4 md:pt-0">
+          <div className="order-1 md:order-2 relative min-h-[250px] md:min-h-[650px] flex items-center justify-center pt-4 md:pt-0">
             {activeSlides.map((slide, index) => (
               <div
                 key={slide.id}

@@ -128,13 +128,13 @@ const CategoryList: React.FC<CategoryListProps> = ({
           <div className="relative pt-4 pb-4 md:pb-20 px-2 overflow-visible">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[300px] bg-gradient-radial from-primary/5 to-transparent rounded-[100%] blur-2xl opacity-60 z-0"></div>
 
-            <div className="relative z-10 flex justify-center items-center gap-1 sm:gap-4 md:gap-8 px-1 py-4 md:py-10 w-full overflow-hidden">
+            <div className="relative z-10 flex justify-center items-center gap-1 sm:gap-4 md:gap-8 px-1 py-4 md:py-10 w-full overflow-x-auto">
               {categories.map((item, i) => {
                 const isCenter = i === Math.floor(categories.length / 2);
                 return (
                   <div
                     key={item.id}
-                    className="flex flex-col items-center group flex-shrink-1 w-1/3 min-w-[100px] xs:min-w-[120px]"
+                    className="flex flex-col items-center group shrink w-1/3 min-w-[100px] xs:min-w-[120px]"
                     onClick={() => handleCategoryClick(item.id)}
                     style={{
                       transform: isCenter ? 'translateY(-20px)' : 'translateY(0)',

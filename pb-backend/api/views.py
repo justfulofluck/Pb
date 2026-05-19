@@ -20,6 +20,7 @@ from .models import (
     RewardRule,
     RewardTransaction,
     WishlistItem,
+    UsageIdea,
 )
 from django.contrib.auth.models import User
 from rest_framework.response import Response
@@ -176,9 +177,74 @@ class ProductViewSet(viewsets.ModelViewSet):
         except Exception as e:
             print(f"Cache invalidation failed: {e}")
 
+    def _handle_usage_ideas(self, product, request):
+        """Sync usage ideas from request data for a product."""
+        usage_ideas_data = request.data.get('usage_ideas', None)
+        if usage_ideas_data is None:
+            return  # Not provided in request, don't touch existing ideas
+
+        # Delete all existing usage ideas and recreate from payload
+        product.usage_ideas.all().delete()
+
+        if not isinstance(usage_ideas_data, list):
+            return
+
+        for idx, idea_data in enumerate(usage_ideas_data):
+            if not isinstance(idea_data, dict):
+                continue
+            title = idea_data.get('title', '').strip()
+            description = idea_data.get('description', '').strip()
+            image_data = idea_data.get('image', '')
+            order = idea_data.get('order', idx)
+
+            if not title:
+                continue  # Skip empty titled ideas
+
+            idea = UsageIdea(
+                product=product,
+                title=title,
+                description=description,
+                order=order,
+            )
+
+            # Handle base64 image
+            if image_data and isinstance(image_data, str) and image_data.startswith('data:'):
+                import base64
+                from django.core.files.base import ContentFile
+                try:
+                    format_part, img_str = image_data.split(';base64,')
+                    ext = format_part.split('/')[-1]
+                    if ext == 'jpeg':
+                        ext = 'jpg'
+                    decoded = base64.b64decode(img_str)
+                    idea.image.save(
+                        f"usage_{product.id}_{idx}.{ext}",
+                        ContentFile(decoded),
+                        save=False
+                    )
+                except Exception as e:
+                    print(f"Error saving usage idea image: {e}")
+            elif image_data and isinstance(image_data, str) and not image_data.startswith('data:'):
+                # It's an existing URL path — just keep reference
+                # Strip /media/ prefix if present for the FileField
+                clean_path = image_data
+                if clean_path.startswith('/media/'):
+                    clean_path = clean_path[7:]
+                elif clean_path.startswith('http'):
+                    # External URL or full URL — store the path part
+                    from urllib.parse import urlparse
+                    parsed = urlparse(clean_path)
+                    clean_path = parsed.path
+                    if clean_path.startswith('/media/'):
+                        clean_path = clean_path[7:]
+                idea.image.name = clean_path
+
+            idea.save()
+
     def perform_update(self, serializer):
         try:
             super().perform_update(serializer)
+            self._handle_usage_ideas(serializer.instance, self.request)
             self._invalidate_product_caches(serializer.instance.pk)
         except Exception as e:
             print(f"ERROR in perform_update: {e}")
@@ -193,6 +259,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         super().perform_create(serializer)
+        self._handle_usage_ideas(serializer.instance, self.request)
         self._invalidate_product_caches(serializer.instance.pk)
 
 

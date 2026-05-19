@@ -20,7 +20,14 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 from api.views import index_view
 
 from django.conf import settings
-from django.conf.urls.static import static
+from django.views.static import serve as static_serve
+
+def cors_static_serve(request, path, document_root=None, show_indexes=False):
+    response = static_serve(request, path, document_root, show_indexes)
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+    response["Access-Control-Allow-Headers"] = "*"
+    return response
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,7 +38,9 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', cors_static_serve, {'document_root': settings.MEDIA_ROOT}),
+    ]
 
 urlpatterns += [
     re_path(r'^.*$', index_view, name='index'),

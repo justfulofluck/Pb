@@ -1,17 +1,14 @@
 const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  
-  // Dynamically use the current host (IP or domain)
+
+  // Fallback: use the current page origin (protocol + hostname + port).
+  // In dev mode, this points to the Vite dev server (port 3000), which
+  // proxies /api and /media to Django on port 8000 — no hardcoded IP needed.
   if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    // Use HTTPS if current page is loaded over HTTPS, otherwise use HTTP
-    // Don't assume port 8000 - let the environment or standard ports handle it
-    const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
-    return `${protocol}://${hostname}`;
+    return window.location.origin;
   }
-  
-  // Fallback for SSR or testing
-  return 'http://localhost';
+
+  return 'http://localhost:8000';
 };
 
 export const API_BASE_URL = getApiBaseUrl();

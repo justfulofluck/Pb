@@ -381,14 +381,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     price: 0,
     category: '',
     stock: 100,
-    description: '',
     image: '',
-    gallery: [],
     rating: 5,
     reviewCount: 0,
     benefits: [],
     nutrients: [],
     ingredients: '',
+    ingredientsList: [],
     nutrition: {
       calories: '',
       protein: '',
@@ -398,7 +397,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     model3d: '',
     themeColor: '#FF6F00', // Default to a brand color if none selected
     orientation: '0deg 0deg 0deg',
-    originalPrice: 0,
     usageIdeas: []
   });
 
@@ -493,14 +491,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       price: 0,
       category: '',
       stock: 100,
-      description: '',
       image: '',
-      gallery: [],
       rating: 5,
       reviewCount: 0,
       benefits: [],
       nutrients: [],
       ingredients: '',
+      ingredientsList: [],
       nutrition: {
         calories: '',
         protein: '',
@@ -510,7 +507,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       model3d: '',
       themeColor: '#FF6F00',
       orientation: '0deg 0deg 0deg',
-      originalPrice: 0,
       usageIdeas: []
     });
     setProductView('add');
@@ -522,7 +518,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       ...product,
       themeColor: product.themeColor || '#FF6F00',
       orientation: product.orientation || '0deg 0deg 0deg',
-      usageIdeas: product.usageIdeas || []
+      usageIdeas: product.usageIdeas || [],
+      ingredientsList: product.ingredientsList || []
     });
     setProductView('add');
   };
@@ -572,6 +569,37 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  const addIngredientItem = () => {
+    setProductForm(prev => ({
+      ...prev,
+      ingredientsList: [...(prev.ingredientsList || []), { name: '', image: '' }]
+    }));
+  };
+
+  const removeIngredientItem = (index: number) => {
+    setProductForm(prev => ({
+      ...prev,
+      ingredientsList: prev.ingredientsList?.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateIngredientItem = (index: number, field: 'name' | 'image', value: string) => {
+    const newList = [...(productForm.ingredientsList || [])];
+    newList[index] = { ...newList[index], [field]: value };
+    setProductForm(prev => ({ ...prev, ingredientsList: newList }));
+  };
+
+  const handleIngredientImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateIngredientItem(index, 'image', reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Handlers for Products
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -580,10 +608,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       return;
     }
 
+    const sanitizedOrientation = (productForm.orientation || '0deg 0deg 0deg')
+      .replace(/[Oo]/g, '0')
+      .trim();
+
     if (editingProduct) {
       const updatedProduct: Product = {
         ...editingProduct,
         ...productForm as Product,
+        orientation: sanitizedOrientation,
         id: editingProduct.id // Keep original ID
       };
       onUpdateProduct(updatedProduct);
@@ -594,14 +627,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         price: Number(productForm.price) || 0,
         category: productForm.category || 'Uncategorized',
         stock: Number(productForm.stock) || 0,
-        description: productForm.description || '',
         image: productForm.image || '',
-        gallery: productForm.gallery || [],
         rating: 5,
         reviewCount: 0,
         benefits: productForm.benefits || [],
-        nutrients: productForm.nutrients || [],
-        ...productForm as Product
+        nutrients: productForm.nutrition ? [
+          { label: 'Calories', value: productForm.nutrition.calories || '' },
+          { label: 'Protein', value: productForm.nutrition.protein || '' },
+          { label: 'Carbs', value: productForm.nutrition.carbs || '' },
+          { label: 'Fat', value: productForm.nutrition.fat || '' }
+        ].filter(n => n.value) : [],
+        ...productForm as Product,
+        orientation: sanitizedOrientation
       };
       onAddProduct(newProduct);
     }
@@ -613,14 +650,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       price: 0,
       category: '',
       stock: 100,
-      description: '',
       image: '',
-      gallery: [],
       rating: 5,
       reviewCount: 0,
       benefits: [],
       nutrients: [],
       ingredients: '',
+      ingredientsList: [],
       nutrition: {
         calories: '',
         protein: '',
@@ -630,7 +666,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       model3d: '',
       themeColor: '#FF6F00',
       orientation: '0deg 0deg 0deg',
-      originalPrice: 0,
       usageIdeas: []
     });
   };
@@ -2896,10 +2931,6 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
 
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Actual Rate (₹) <span className="text-[10px] text-slate-400 font-bold">(M.R.P)</span></label>
-                        <input required type="number" value={productForm.originalPrice} onChange={e => setProductForm({ ...productForm, originalPrice: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="699" />
-                      </div>
-                      <div className="space-y-2">
                         <label className="text-xs font-black uppercase tracking-widest text-slate-500">Discounted Rate (₹) <span className="text-[10px] text-primary font-bold">(Selling Price)</span></label>
                         <input required type="number" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="499" />
                       </div>
@@ -2917,11 +2948,6 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                         <label className="text-xs font-black uppercase tracking-widest text-slate-500">Initial Stock</label>
                         <input required type="number" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="100" />
                       </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-500">Description</label>
-                      <textarea required value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={4} placeholder="Product details..." />
                     </div>
 
                     {/* Product Benefits Section */}
@@ -2984,6 +3010,55 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                         <label className="text-xs font-black uppercase tracking-widest text-slate-500">Full Ingredients</label>
                         <textarea value={productForm.ingredients} onChange={e => setProductForm({ ...productForm, ingredients: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={3} placeholder="Peanuts, Sea Salt, etc..." />
                       </div>
+                    </div>
+
+                    {/* Dynamic Ingredient Blend Section */}
+                    <div className="space-y-4 border-t border-slate-100 pt-6">
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-sm font-black uppercase tracking-widest text-slate-900 border-l-4 border-primary pl-3">Ingredient Blend Items</h4>
+                        <button type="button" onClick={addIngredientItem} className="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-1 hover:underline">
+                          <span className="material-symbols-outlined text-sm">add</span> Add Ingredient
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {productForm.ingredientsList?.map((item, idx) => (
+                          <div key={idx} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 relative group flex gap-4 items-center">
+                            <button
+                              type="button"
+                              onClick={() => removeIngredientItem(idx)}
+                              className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-white shadow-md text-slate-400 hover:text-red-500 flex items-center justify-center transition-all z-10 border border-slate-100"
+                            >
+                              <span className="material-symbols-outlined text-lg">close</span>
+                            </button>
+                            <div className="w-16 h-16 rounded-full overflow-hidden bg-white border border-slate-200 flex-shrink-0 relative group">
+                              {item.image ? (
+                                <img src={getMediaUrl(item.image)} alt="Ingredient" className="w-full h-full object-contain p-2" />
+                              ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
+                                  <span className="material-symbols-outlined text-xl">image</span>
+                                </div>
+                              )}
+                              <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-full">
+                                <span className="material-symbols-outlined text-white text-sm">cloud_upload</span>
+                                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleIngredientImageUpload(e, idx)} />
+                              </label>
+                            </div>
+                            <div className="flex-1 space-y-1">
+                              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Ingredient Name</label>
+                              <input
+                                type="text"
+                                value={item.name}
+                                onChange={(e) => updateIngredientItem(idx, 'name', e.target.value)}
+                                className="w-full px-3 py-1.5 rounded-lg border border-slate-200 font-bold text-xs focus:ring-primary focus:border-primary"
+                                placeholder="e.g. Natural Peanut Butter"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {(productForm.ingredientsList?.length === 0) && (
+                        <p className="text-xs text-slate-400 italic">No custom blend ingredients added. This product will fall back to displaying the default ingredient blend list.</p>
+                      )}
                     </div>
 
                     {/* Usage Ideas Section */}
@@ -3067,31 +3142,6 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                               </button>
                             </div>
                           )}
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Gallery Images</label>
-                        <div className="flex items-center gap-4 flex-wrap">
-                          <label className="cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl px-4 py-3 hover:bg-slate-100 hover:border-primary transition-all">
-                            <span className="text-sm font-bold text-slate-500 flex items-center gap-2">
-                              <span className="material-symbols-outlined">add_photo_alternate</span>
-                              Add More Images
-                            </span>
-                            <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleProductImageUpload(e, 'gallery')} />
-                          </label>
-                          {productForm.gallery && productForm.gallery.map((img, idx) => (
-                            <div key={idx} className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm relative group">
-                              <img src={getMediaUrl(img)} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
-                              <button
-                                type="button"
-                                onClick={() => setProductForm(prev => ({ ...prev, gallery: prev.gallery?.filter((_, i) => i !== idx) }))}
-                                className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <span className="material-symbols-outlined text-white">close</span>
-                              </button>
-                            </div>
-                          ))}
                         </div>
                       </div>
 

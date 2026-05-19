@@ -74,15 +74,26 @@ const fetchProducts = async () => {
     ...p,
     id: String(p.id),
     price: parseFloat(p.price),
-    originalPrice: p.original_price ? parseFloat(p.original_price) : undefined,
     reviewCount: p.review_count || 0,
     isTopRated: p.is_top_rated,
     model3d: p.model_3d || null,
     themeColor: p.theme_color,
     orientation: p.orientation ? p.orientation.replace(/[Oo]/g, '0') : '0deg 0deg 0deg',
-    gallery: p.gallery || [],
     benefits: (p.benefits || []).filter((b: any) => b && String(b).trim() !== ""),
     nutrients: p.nutrients || [],
+    nutrition: p.nutrients?.length ? Object.fromEntries(
+      p.nutrients.map((n: any) => [n.label?.toLowerCase().replace(/\s+/g, ''), n.value])
+    ) : undefined,
+    ingredients: p.ingredients || "",
+    ingredientsList: p.ingredients_list || [],
+    usageIdeas: (p.usage_ideas || []).map((idea: any) => ({
+      id: String(idea.id),
+      productId: String(idea.product),
+      title: idea.title,
+      description: idea.description,
+      image: idea.image || '',
+      order: idea.order || 0,
+    })),
     mainIngredient: p.main_ingredient || (p.name?.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : p.name?.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : p.name?.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : p.name?.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : p.name?.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
     mainIngredientImage: p.main_ingredient_image || (p.name?.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
   }));
@@ -376,13 +387,21 @@ const AppContent: React.FC = () => {
                 ...fullProduct,
                 id: String(fullProduct.id),
                 price: parseFloat(fullProduct.price),
-                originalPrice: fullProduct.original_price ? parseFloat(fullProduct.original_price) : undefined,
                 themeColor: fullProduct.theme_color,
                 model3d: fullProduct.model_3d,
                 orientation: fullProduct.orientation ? fullProduct.orientation.replace(/[Oo]/g, '0') : '0deg 0deg -15deg',
-                benefits: fullProduct.benefits || [],
+                benefits: (fullProduct.benefits || []).filter((b: any) => b && String(b).trim() !== ""),
                 nutrients: fullProduct.nutrients || [],
-                gallery: fullProduct.gallery || [],
+                ingredients: fullProduct.ingredients || "",
+                ingredientsList: fullProduct.ingredients_list || [],
+                usageIdeas: (fullProduct.usage_ideas || []).map((idea: any) => ({
+                  id: String(idea.id),
+                  productId: String(idea.product),
+                  title: idea.title,
+                  description: idea.description,
+                  image: idea.image || '',
+                  order: idea.order || 0,
+                })),
               };
               setSelectedProduct(mapped as Product);
               setCurrentView('product');
@@ -463,13 +482,21 @@ const AppContent: React.FC = () => {
                   ...fullP,
                   id: String(fullP.id),
                   price: parseFloat(fullP.price),
-                  originalPrice: fullP.original_price ? parseFloat(fullP.original_price) : undefined,
                   themeColor: fullP.theme_color,
                   model3d: fullP.model_3d,
                   orientation: fullP.orientation ? fullP.orientation.replace(/[Oo]/g, '0') : '0deg 0deg -15deg',
                   benefits: (fullP.benefits || []).filter((b: any) => b && String(b).trim() !== ""),
                   nutrients: fullP.nutrients || [],
-                  gallery: fullP.gallery || [],
+                  ingredients: fullP.ingredients || "",
+                  ingredientsList: fullP.ingredients_list || [],
+                  usageIdeas: (fullP.usage_ideas || []).map((idea: any) => ({
+                    id: String(idea.id),
+                    productId: String(idea.product),
+                    title: idea.title,
+                    description: idea.description,
+                    image: idea.image || '',
+                    order: idea.order || 0,
+                  })),
                   mainIngredient: fullP.main_ingredient || (fullP.name?.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : fullP.name?.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : fullP.name?.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : fullP.name?.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : fullP.name?.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
                   mainIngredientImage: fullP.main_ingredient_image || (fullP.name?.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : fullP.name?.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : fullP.name?.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : fullP.name?.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : fullP.name?.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
                 });
@@ -579,20 +606,20 @@ const AppContent: React.FC = () => {
         body: JSON.stringify({
           name: newProduct.name,
           price: newProduct.price,
-          original_price: newProduct.originalPrice,
           rating: newProduct.rating,
           review_count: newProduct.reviewCount,
           image: newProduct.image,
-          gallery: newProduct.gallery,
-          description: newProduct.description,
           benefits: newProduct.benefits,
           nutrients: newProduct.nutrients,
+          ingredients: newProduct.ingredients,
+          ingredients_list: newProduct.ingredientsList,
           is_top_rated: newProduct.isTopRated,
           category: newProduct.category,
           stock: newProduct.stock,
           model_3d: newProduct.model3d,
           theme_color: newProduct.themeColor,
-          orientation: newProduct.orientation
+          orientation: newProduct.orientation,
+          usage_ideas: newProduct.usageIdeas
         })
       });
       if (response.status === 401) {
@@ -615,7 +642,7 @@ const AppContent: React.FC = () => {
     try {
       const token = localStorage.getItem('admin_access_token');
       const response = await fetch(`${API_BASE_URL}/api/products/${updatedProduct.id}/`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
@@ -623,20 +650,21 @@ const AppContent: React.FC = () => {
         body: JSON.stringify({
           name: updatedProduct.name,
           price: updatedProduct.price,
-          original_price: updatedProduct.originalPrice,
+          description: updatedProduct.description || '',
           rating: updatedProduct.rating,
           review_count: updatedProduct.reviewCount,
           image: updatedProduct.image,
-          gallery: updatedProduct.gallery,
-          description: updatedProduct.description,
           benefits: updatedProduct.benefits,
           nutrients: updatedProduct.nutrients,
+          ingredients: updatedProduct.ingredients,
+          ingredients_list: updatedProduct.ingredientsList,
           is_top_rated: updatedProduct.isTopRated,
           category: updatedProduct.category,
           stock: updatedProduct.stock,
           model_3d: updatedProduct.model3d,
           theme_color: updatedProduct.themeColor,
-          orientation: updatedProduct.orientation
+          orientation: updatedProduct.orientation,
+          usage_ideas: updatedProduct.usageIdeas
         })
       });
       if (response.status === 401) {
@@ -1228,10 +1256,6 @@ const AppContent: React.FC = () => {
     setCurrentView('product');
     window.history.pushState({ view: 'product', productId: product.id }, '');
     window.scrollTo(0, 0);
-
-    // Skip redundant fetch if we already have full details (prevents double-animation/double-loading)
-    if (product.benefits && product.benefits.length > 0) return;
-
     // Fetch full details since list view is now minimal
     try {
       const response = await fetch(`${API_BASE_URL}/api/products/${product.id}/`);
@@ -1241,13 +1265,21 @@ const AppContent: React.FC = () => {
           ...fullProduct,
           id: String(fullProduct.id),
           price: parseFloat(fullProduct.price),
-          originalPrice: fullProduct.original_price ? parseFloat(fullProduct.original_price) : undefined,
           themeColor: fullProduct.theme_color,
           model3d: fullProduct.model_3d,
           orientation: fullProduct.orientation ? fullProduct.orientation.replace(/[Oo]/g, '0') : '0deg 0deg -15deg',
-          benefits: fullProduct.benefits || [],
+          benefits: (fullProduct.benefits || []).filter((b: any) => b && String(b).trim() !== ""),
           nutrients: fullProduct.nutrients || [],
-          gallery: fullProduct.gallery || [],
+          ingredients: fullProduct.ingredients || "",
+          ingredientsList: fullProduct.ingredients_list || [],
+          usageIdeas: (fullProduct.usage_ideas || []).map((idea: any) => ({
+            id: String(idea.id),
+            productId: String(idea.product),
+            title: idea.title,
+            description: idea.description,
+            image: idea.image || '',
+            order: idea.order || 0,
+          })),
           mainIngredient: fullProduct.main_ingredient || (fullProduct.name.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : fullProduct.name.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : fullProduct.name.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : fullProduct.name.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : fullProduct.name.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
           mainIngredientImage: fullProduct.main_ingredient_image || (fullProduct.name.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : fullProduct.name.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : fullProduct.name.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : fullProduct.name.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : fullProduct.name.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
         };

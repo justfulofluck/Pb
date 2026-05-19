@@ -110,14 +110,12 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
           <div className="w-24 h-1 bg-[#008a45] rounded-full"></div>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-4 md:gap-x-10 gap-y-12 md:gap-y-20">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 md:gap-x-10 gap-y-12 md:gap-y-20">
           {isLoading ? (
             [1, 2, 3, 4].map((n) => <LoadingSkeleton key={`skeleton-${n}`} />)
           ) : (
             products.map((product) => {
-              const discount = product.originalPrice && product.originalPrice > product.price
-                ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-                : null;
+
               const isWishlisted = wishlistIds.has(String(product.id));
 
               return (
@@ -128,14 +126,6 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
                 >
                   {/* Image Area */}
                   <div className="relative aspect-[4/5] w-full mb-8 transition-transform duration-500 group-hover:-translate-y-2">
-                    {/* Discount Badge */}
-                    {discount && (
-                      <div className="absolute top-0 left-0 z-20 w-10 h-10 md:w-14 md:h-14 bg-[#d32f2f] rounded-full flex flex-col items-center justify-center text-white leading-none shadow-lg">
-                        <span className="text-[10px] md:text-[14px] font-black">{discount}%</span>
-                        <span className="text-[6px] md:text-[8px] font-black uppercase">OFF</span>
-                      </div>
-                    )}
-
                     {/* Heart Icon */}
                     <button
                       onClick={(e) => toggleWishlist(e, String(product.id))}
@@ -185,9 +175,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
                     <div className="mt-auto w-full">
                       <div className="flex flex-wrap items-center justify-center gap-1.5 mb-3">
                         <span className="text-lg md:text-2xl font-bold text-[#228b44]">{formatPrice(product.price)}</span>
-                        {product.originalPrice && product.originalPrice > product.price && (
-                          <span className="text-[10px] md:text-sm font-medium text-slate-400 line-through">{formatPrice(product.originalPrice)}</span>
-                        )}
+
                       </div>
 
                       <button
