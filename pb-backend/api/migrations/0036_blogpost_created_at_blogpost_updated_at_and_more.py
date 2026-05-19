@@ -10,16 +10,16 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='blogpost',
-            name='created_at',
-            field=models.DateTimeField(blank=True, null=True),
-        ),
-        migrations.AddField(
-            model_name='blogpost',
-            name='updated_at',
-            field=models.DateTimeField(blank=True, null=True),
-        ),
+        # migrations.AddField(
+        #     model_name='blogpost',
+        #     name='created_at',
+        #     field=models.DateTimeField(blank=True, null=True),
+        # ),
+        # migrations.AddField(
+        #     model_name='blogpost',
+        #     name='updated_at',
+        #     field=models.DateTimeField(blank=True, null=True),
+        # ),
         migrations.AlterField(
             model_name='blogpost',
             name='author_image',

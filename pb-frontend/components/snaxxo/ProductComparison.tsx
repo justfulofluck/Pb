@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Product } from '../../types';
+import { getMediaUrl } from '../../utils/mediaHelper';
 
 interface ProductComparisonProps {
     product: Product;
@@ -63,37 +64,33 @@ const ProductComparison: React.FC<ProductComparisonProps> = ({ product }) => {
                             </div>
                             <span className="text-sm font-black text-gray-500 uppercase tracking-widest">Others</span>
                         </div>
-
-                        <div className="hidden md:block w-32" />
                     </div>
 
                     <div className="space-y-0 w-full mb-8">
                         <div className="flex border-b-2 border-[#9cd92a] pb-2 mb-4 relative">
-                            <div className="w-1/3 text-[10px] font-black text-gray-400 uppercase tracking-widest">Category</div>
-                            <div className="w-1/3 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest invisible md:visible">Others</div>
-                            <div className="w-1/2 md:w-1/3 invisible md:block" />
+                            <div className="w-1/2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Category</div>
+                            <div className="w-1/2 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest invisible md:visible">Others</div>
                         </div>
 
                         {comparisonRows.map((row, idx) => (
                             <div key={idx} className="flex items-center py-4 border-b border-gray-50 last:border-0 group">
-                                <div className="w-1/3 flex items-center gap-3">
+                                <div className="w-1/2 flex items-center gap-3">
                                     <span className="material-symbols-outlined text-gray-400 group-hover:text-[#0b3d2e] transition-colors">{row.icon}</span>
                                     <span className="text-xs md:text-sm font-bold text-gray-700 leading-tight">{row.category}</span>
                                 </div>
-                                <div className="w-1/3 text-center text-xs md:text-sm font-medium text-gray-500">
+                                <div className="w-1/2 text-center text-xs md:text-sm font-medium text-gray-500 pr-4">
                                     {row.others}
                                 </div>
-                                <div className="w-1/3 invisible md:block" />
                             </div>
                         ))}
                     </div>
                 </div>
 
                 {/* Highlighted Right Column (Dark part) */}
-                <div className="w-full md:w-1/3 bg-[#1f3a47] md:absolute md:top-[-40px] md:bottom-[-40px] md:right-0 md:rounded-[40px] shadow-2xl flex flex-col items-center p-8 md:p-10 text-center z-50 border-4 border-white/10 md:border-white">
+                <div className="w-full md:w-1/3 bg-[#1f3a47] md:transform md:scale-y-[1.1] md:rounded-[40px] shadow-2xl flex flex-col items-center p-8 md:p-10 text-center z-50 border-4 border-white/10 md:border-white">
                     <div className="h-32 md:h-40 mb-6 drop-shadow-[0_20px_20px_rgba(0,0,0,0.4)] hover:scale-110 transition-transform cursor-pointer">
                         <img
-                            src={product.image}
+                            src={getMediaUrl(product.image)}
                             alt={product.name}
                             className="h-full w-auto object-contain"
                         />

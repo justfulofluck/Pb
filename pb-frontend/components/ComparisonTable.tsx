@@ -33,7 +33,7 @@ const ComparisonTable: React.FC = () => {
             </div>
             <div className="flex flex-col">
               {COMPARISON_DATA.map((row, i) => (
-                <div key={i} className="h-[64px] lg:h-[72px] flex items-center font-bold text-slate-800 text-sm lg:text-[15px]">
+                <div key={i} className="min-h-[64px] lg:min-h-[72px] py-2 flex items-center font-bold text-slate-800 text-sm lg:text-[15px]">
                   {row.feature}
                 </div>
               ))}
@@ -48,7 +48,7 @@ const ComparisonTable: React.FC = () => {
             </div>
             <div className="flex flex-col">
               {COMPARISON_DATA.map((row, i) => (
-                <div key={i} className={`h-[64px] lg:h-[72px] px-4 flex items-center justify-center text-center text-slate-500 text-[13px] lg:text-[15px] font-medium border-t border-slate-100/80`}>
+                <div key={i} className={`min-h-[64px] lg:min-h-[72px] py-2 px-4 flex items-center justify-center text-center text-slate-500 text-[13px] lg:text-[15px] font-medium border-t border-slate-100/80`}>
                   {row.ghar}
                 </div>
               ))}
@@ -65,7 +65,7 @@ const ComparisonTable: React.FC = () => {
             </div>
             <div className="flex flex-col">
               {COMPARISON_DATA.map((row, i) => (
-                <div key={i} className={`h-[64px] lg:h-[72px] px-4 flex items-center justify-center text-center font-bold text-primary text-[13px] lg:text-[15px] border-t border-primary/10`}>
+                <div key={i} className={`min-h-[64px] lg:min-h-[72px] py-2 px-4 flex items-center justify-center text-center font-bold text-primary text-[13px] lg:text-[15px] border-t border-primary/10`}>
                   {row.pino}
                 </div>
               ))}
@@ -79,7 +79,7 @@ const ComparisonTable: React.FC = () => {
             </div>
             <div className="flex flex-col">
               {COMPARISON_DATA.map((row, i) => (
-                <div key={i} className={`h-[64px] lg:h-[72px] px-4 flex items-center justify-center text-center text-slate-500 text-[13px] lg:text-[15px] font-medium border-t border-slate-100/80`}>
+                <div key={i} className={`min-h-[64px] lg:min-h-[72px] py-2 px-4 flex items-center justify-center text-center text-slate-500 text-[13px] lg:text-[15px] font-medium border-t border-slate-100/80`}>
                   {row.junk}
                 </div>
               ))}

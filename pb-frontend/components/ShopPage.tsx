@@ -152,7 +152,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
       <div className="pt-6 md:pt-10 pb-6 px-4 relative overflow-hidden">
 
         <div className="max-w-4xl mx-auto relative z-10 text-center flex flex-col items-center">
-          <h1 className="font-normal uppercase tracking-wider [word-spacing:0.05em] mb-4 !font-anton text-textured-any bg-[#0b3d2e] inline-block pb-[0.1em] text-[clamp(2.5rem,8vw,72px)] leading-[1.1]">
+          <h1 className="font-normal uppercase tracking-wider [word-spacing:0.05em] mb-4 !font-anton text-textured-any bg-[#0b3d2e] inline-block pb-[0.1em] leading-[1.1]" style={{ fontSize: 'clamp(2.5rem, 8vw, 72px)' }}>
             {searchQuery ? `Results for "${searchQuery}"`.toUpperCase() : (filter === 'All' ? 'All products' : filter).toUpperCase()}
           </h1>
           <div className="w-32 h-1.5 bg-[#0b3d2e] mb-2 texture-chalkboard-strong"></div>

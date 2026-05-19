@@ -2,7 +2,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import './src/legacy-vibe.css';
 import './src/index.css';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
