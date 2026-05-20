@@ -1,5 +1,6 @@
 export interface Product {
   id: string;
+  slug: string;
   name: string;
   price: number;
   description?: string;
@@ -120,6 +121,7 @@ export interface CategoryDisplay {
 
 export interface BlogPost {
   id: string;
+  slug: string;
   type: 'Recipe' | 'Lifestyle' | 'News';
   title: string;
   excerpt: string;

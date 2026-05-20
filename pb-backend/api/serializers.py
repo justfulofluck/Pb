@@ -167,6 +167,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
+        extra_kwargs = {"slug": {"required": False}}  # slug auto-generated on save
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -176,6 +177,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             "id",
+            "slug",
             "name",
             "price",
             "original_price",

@@ -73,6 +73,7 @@ const fetchProducts = async () => {
   return productsArray.map((p: any) => ({
     ...p,
     id: String(p.id),
+    slug: p.slug || '',
     price: parseFloat(p.price),
     reviewCount: p.review_count || 0,
     isTopRated: p.is_top_rated,
@@ -165,6 +166,7 @@ const fetchBlogs = async () => {
   return dataArray.map((b: any) => ({
     ...b,
     id: String(b.id),
+    slug: b.slug || '',
     type: b.post_type,
     readTime: b.read_time,
     content: Array.isArray(b.content) ? b.content.join('\n\n') : (b.content || ''),
@@ -210,6 +212,27 @@ const AppContent: React.FC = () => {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentView, setCurrentView] = useState<View>(() => {
+    const path = window.location.pathname;
+    // Determine initial view from URL path (refresh / direct access)
+    if (path.startsWith('/product/')) return 'product';
+    if (path.startsWith('/blog/')) return 'blog-detail';
+    if (path.startsWith('/blogs')) return 'blogs';
+    if (path.startsWith('/shop')) return 'shop';
+    if (path.startsWith('/dashboard')) return 'dashboard';
+    if (path.startsWith('/faq')) return 'faq';
+    if (path.startsWith('/distributor')) return 'distributor';
+    if (path.startsWith('/journey')) return 'journey';
+    if (path.startsWith('/checkout')) return 'checkout';
+    if (path.startsWith('/events')) return 'event-blogs';
+    if (path.startsWith('/event/')) return 'event-detail';
+    if (path.startsWith('/privacy-policy')) return 'privacy-policy';
+    if (path.startsWith('/terms-and-conditions')) return 'terms-and-conditions';
+    if (path.startsWith('/refund-policy')) return 'refund-policy';
+    if (path.startsWith('/shipping-policy')) return 'shipping-policy';
+    if (path.startsWith('/admin/login')) return 'admin-login';
+    if (path.startsWith('/admin')) return 'admin-dashboard';
+    if (path.startsWith('/forms/')) return 'visitor-form';
+    if (path.startsWith('/wishlist/shared/')) return 'shared-wishlist';
     return window.history.state?.view || 'home';
   });
   const [visitorForms, setVisitorForms] = useState<VisitorForm[]>([]);
@@ -350,95 +373,124 @@ const AppContent: React.FC = () => {
   // App is loading until critical data is fetched
   const isLoading = productsQuery.isLoading || categoriesQuery.isLoading;
 
-  // Handle URL routing for manual links
+  // Handle URL routing for manual links / refresh / direct access
   useEffect(() => {
     const path = window.location.pathname;
-    if (path.startsWith('/forms/')) {
+    const params = new URLSearchParams(window.location.search);
+
+    // Helper: fetch product by slug from API
+    const fetchProductBySlug = (slug: string) => {
+      let mounted = true;
+      fetch(`${API_BASE_URL}/api/products/${slug}/`)
+        .then(res => res.json())
+        .then(fullProduct => {
+          if (!mounted) return;
+          const mapped = {
+            ...fullProduct,
+            id: String(fullProduct.id),
+            slug: fullProduct.slug || slug,
+            price: parseFloat(fullProduct.price),
+            themeColor: fullProduct.theme_color,
+            model3d: fullProduct.model_3d,
+            orientation: fullProduct.orientation ? fullProduct.orientation.replace(/[Oo]/g, '0') : '0deg 0deg -15deg',
+            benefits: (fullProduct.benefits || []).filter((b: any) => b && String(b).trim() !== ""),
+            nutrients: fullProduct.nutrients || [],
+            ingredients: fullProduct.ingredients || "",
+            ingredientsList: fullProduct.ingredients_list || [],
+            usageIdeas: (fullProduct.usage_ideas || []).map((idea: any) => ({
+              id: String(idea.id),
+              productId: String(idea.product),
+              title: idea.title,
+              description: idea.description,
+              image: idea.image || '',
+              order: idea.order || 0,
+            })),
+          };
+          setSelectedProduct(mapped as Product);
+          setCurrentView('product');
+          window.scrollTo(0, 0);
+        });
+      return mounted;
+    };
+
+    if (path === '/' || path === '') {
+      setCurrentView('home');
+    } else if (path.startsWith('/forms/')) {
       const formId = path.split('/forms/')[1];
-      if (formId) {
-        setSelectedFormId(formId);
-        setCurrentView('visitor-form');
-      }
-    }
-    if (path.startsWith('/wishlist/shared/')) {
+      if (formId) { setSelectedFormId(formId); setCurrentView('visitor-form'); }
+    } else if (path.startsWith('/wishlist/shared/')) {
       const token = path.split('/wishlist/shared/')[1];
-      if (token) {
-        setSharedWishlistToken(token);
-        setCurrentView('shared-wishlist');
-      }
-    }
-    if (path.startsWith('/product/')) {
-      const productId = path.split('/product/')[1]?.split('?')[0];
-      if (productId) {
-        // Find product in loaded products
-        const product = products.find(p => String(p.id) === String(productId));
+      if (token) { setSharedWishlistToken(token); setCurrentView('shared-wishlist'); }
+    } else if (path.startsWith('/product/')) {
+      const slug = path.split('/product/')[1]?.split('/')[0]?.split('?')[0];
+      if (slug) {
+        const product = products.find(p => p.slug === slug);
         if (product) {
           setSelectedProduct(product);
           setCurrentView('product');
           window.scrollTo(0, 0);
         } else {
-          // Fetch product if not in list
-          let mounted = true;
-          fetch(`${API_BASE_URL}/api/products/${productId}/`)
-            .then(res => res.json())
-            .then(fullProduct => {
-              if (!mounted) return;
-              const mapped = {
-                ...fullProduct,
-                id: String(fullProduct.id),
-                price: parseFloat(fullProduct.price),
-                themeColor: fullProduct.theme_color,
-                model3d: fullProduct.model_3d,
-                orientation: fullProduct.orientation ? fullProduct.orientation.replace(/[Oo]/g, '0') : '0deg 0deg -15deg',
-                benefits: (fullProduct.benefits || []).filter((b: any) => b && String(b).trim() !== ""),
-                nutrients: fullProduct.nutrients || [],
-                ingredients: fullProduct.ingredients || "",
-                ingredientsList: fullProduct.ingredients_list || [],
-                usageIdeas: (fullProduct.usage_ideas || []).map((idea: any) => ({
-                  id: String(idea.id),
-                  productId: String(idea.product),
-                  title: idea.title,
-                  description: idea.description,
-                  image: idea.image || '',
-                  order: idea.order || 0,
-                })),
-              };
-              setSelectedProduct(mapped as Product);
-              setCurrentView('product');
-              window.scrollTo(0, 0);
-            });
+          fetchProductBySlug(slug);
         }
       }
-    }
-    if (path.startsWith('/event/')) {
-      const eventId = path.split('/event/')[1]?.split('?')[0];
+    } else if (path.startsWith('/blog/')) {
+      const slug = path.split('/blog/')[1]?.split('/')[0]?.split('?')[0];
+      if (slug) {
+        const post = blogPosts.find(p => p.slug === slug);
+        if (post) {
+          setSelectedBlogPost(post);
+          setCurrentView('blog-detail');
+          window.scrollTo(0, 0);
+        }
+      }
+    } else if (path.startsWith('/blogs')) {
+      setCurrentView('blogs');
+    } else if (path.startsWith('/shop/')) {
+      const category = path.split('/shop/')[1]?.split('/')[0]?.split('?')[0];
+      const search = params.get('search');
+      if (search) { setGlobalSearchQuery(search); }
+      if (category) { setShopCategory(decodeURIComponent(category)); }
+      setCurrentView('shop');
+    } else if (path === '/shop') {
+      const search = params.get('search');
+      if (search) { setGlobalSearchQuery(search); }
+      setCurrentView('shop');
+    } else if (path.startsWith('/event/')) {
+      const eventId = path.split('/event/')[1]?.split('/')[0]?.split('?')[0];
       if (eventId) {
         const event = events.find(e => String(e.id) === String(eventId));
         if (event) {
           setSelectedEvent(event);
           setCurrentView('event-detail');
           window.scrollTo(0, 0);
-        } else {
-          let mounted = true;
-          fetch(`${API_BASE_URL}/api/events/${eventId}/`)
-            .then(res => res.json())
-            .then(fullEvent => {
-              if (!mounted) return;
-              const mapped = {
-                ...fullEvent,
-                id: String(fullEvent.id),
-                fullStory: fullEvent.full_story || [],
-                featuredProducts: (fullEvent.featured_products || []).map(String),
-                gallery: fullEvent.gallery || [],
-              };
-              setSelectedEvent(mapped as EventBlog);
-              setCurrentView('event-detail');
-              window.scrollTo(0, 0);
-            });
         }
       }
+    } else if (path === '/events') {
+      setCurrentView('event-blogs');
+    } else if (path === '/dashboard') {
+      setCurrentView('dashboard');
+    } else if (path === '/faq') {
+      setCurrentView('faq');
+    } else if (path === '/distributor') {
+      setCurrentView('distributor');
+    } else if (path === '/journey') {
+      setCurrentView('journey');
+    } else if (path === '/checkout') {
+      setCurrentView('checkout');
+    } else if (path === '/privacy-policy') {
+      setCurrentView('privacy-policy');
+    } else if (path === '/terms-and-conditions') {
+      setCurrentView('terms-and-conditions');
+    } else if (path === '/refund-policy') {
+      setCurrentView('refund-policy');
+    } else if (path === '/shipping-policy') {
+      setCurrentView('shipping-policy');
+    } else if (path === '/admin/login') {
+      setCurrentView('admin-login');
+    } else if (path === '/admin') {
+      setCurrentView('admin-dashboard');
     }
-  }, []); // path doesn't change, so empty deps is fine
+  }, []); // Run once on mount
   
   // Cleanup for product detail fetch
   useEffect(() => {
@@ -464,23 +516,23 @@ const AppContent: React.FC = () => {
       }
 
       // 2. Sync Product (only if needed)
-      if (state.productId) {
-        // Check if we already have the FULL product in state to avoid redundant cycles
+      if (state.slug) {
         const alreadyLoaded = selectedProduct &&
-          String(selectedProduct.id) === String(state.productId) &&
+          selectedProduct.slug === state.slug &&
           (selectedProduct.benefits?.length || 0) > 0;
 
         if (!alreadyLoaded) {
-          const p = products.find(prod => String(prod.id) === String(state.productId));
+          const p = products.find(prod => prod.slug === state.slug);
           if (p) {
             setSelectedProduct(p);
             try {
-              const res = await fetch(`${API_BASE_URL}/api/products/${p.id}/`);
+              const res = await fetch(`${API_BASE_URL}/api/products/${p.slug}/`);
               if (res.ok) {
                 const fullP = await res.json();
                 setSelectedProduct({
                   ...fullP,
                   id: String(fullP.id),
+                  slug: fullP.slug,
                   price: parseFloat(fullP.price),
                   themeColor: fullP.theme_color,
                   model3d: fullP.model_3d,
@@ -511,9 +563,9 @@ const AppContent: React.FC = () => {
         const e = events.find(ev => String(ev.id) === String(state.eventId));
         if (e && (!selectedEvent || selectedEvent.id !== e.id)) setSelectedEvent(e);
       }
-      if (state.blogId) {
-        const b = blogPosts.find(post => String(post.id) === String(state.blogId));
-        if (b && (!selectedBlogPost || selectedBlogPost.id !== b.id)) setSelectedBlogPost(b);
+      if (state.slug && !state.view?.startsWith('product')) {
+        const b = blogPosts.find(post => post.slug === state.slug);
+        if (b && (!selectedBlogPost || selectedBlogPost.slug !== b.slug)) setSelectedBlogPost(b);
       }
     };
 
@@ -524,7 +576,7 @@ const AppContent: React.FC = () => {
     window.addEventListener('popstate', handlePopState);
 
     // Run once on mount if we have a deep linked product or state
-    if (window.history.state && window.history.state.productId && !selectedProduct) {
+    if (window.history.state && window.history.state.slug && !selectedProduct) {
       syncState(window.history.state);
     }
 
@@ -546,7 +598,7 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     if (!user && !isLoading && currentView === 'dashboard') {
       setCurrentView('home');
-      window.history.pushState({ view: 'home' }, '');
+      window.history.pushState({ view: 'home' }, '', '/');
     }
   }, [user, isLoading, currentView]);
 
@@ -593,6 +645,33 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentView, selectedProduct, selectedEvent, selectedBlogPost]);
+
+  // Dynamic page title for SEO
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      home: 'PinoBite - Fuel Your Body Naturally',
+      shop: 'Shop | PinoBite',
+      product: selectedProduct ? `${selectedProduct.name} | PinoBite` : 'Product | PinoBite',
+      blogs: 'Blogs | PinoBite',
+      'blog-detail': selectedBlogPost ? `${selectedBlogPost.title} | PinoBite` : 'Blog | PinoBite',
+      'event-blogs': 'Events | PinoBite',
+      'event-detail': selectedEvent ? `${selectedEvent.title} | PinoBite` : 'Event | PinoBite',
+      dashboard: 'My Dashboard | PinoBite',
+      faq: 'FAQ | PinoBite',
+      distributor: 'Become a Distributor | PinoBite',
+      journey: 'Our Journey | PinoBite',
+      checkout: 'Checkout | PinoBite',
+      'privacy-policy': 'Privacy Policy | PinoBite',
+      'terms-and-conditions': 'Terms & Conditions | PinoBite',
+      'refund-policy': 'Refund Policy | PinoBite',
+      'shipping-policy': 'Shipping Policy | PinoBite',
+      'admin-login': 'Admin Login | PinoBite',
+      'admin-dashboard': 'Admin Dashboard | PinoBite',
+      'visitor-form': 'Visitor Form | PinoBite',
+      'shared-wishlist': 'Shared Wishlist | PinoBite',
+    };
+    document.title = titles[currentView] || 'PinoBite';
+  }, [currentView, selectedProduct, selectedBlogPost, selectedEvent]);
 
   const handleAddProduct = async (newProduct: Product) => {
     try {
@@ -1254,11 +1333,11 @@ const AppContent: React.FC = () => {
   const navigateToProduct = React.useCallback(async (product: Product) => {
     setSelectedProduct(product);
     setCurrentView('product');
-    window.history.pushState({ view: 'product', productId: product.id }, '');
+    window.history.pushState({ view: 'product', slug: product.slug }, '', `/product/${product.slug}`);
     window.scrollTo(0, 0);
     // Fetch full details since list view is now minimal
     try {
-      const response = await fetch(`${API_BASE_URL}/api/products/${product.id}/`);
+      const response = await fetch(`${API_BASE_URL}/api/products/${product.slug}/`);
       if (response.ok) {
         const fullProduct = await response.json();
         const mappedProduct = {
@@ -1297,7 +1376,7 @@ const AppContent: React.FC = () => {
     setGlobalSearchQuery('');
     setIsCartOpen(false);
     setIsAuthOpen(false);
-    window.history.pushState({ view: 'shop', category: 'All', query: '' }, '');
+    window.history.pushState({ view: 'shop', category: 'All', query: '' }, '', '/shop');
   }, []);
 
   const navigateToShopCategory = React.useCallback((category: string) => {
@@ -1305,7 +1384,7 @@ const AppContent: React.FC = () => {
     setCurrentView('shop');
     setGlobalSearchQuery('');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'shop', category, query: '' }, '');
+    window.history.pushState({ view: 'shop', category, query: '' }, '', `/shop/${category}`);
   }, []);
 
   const handleGlobalSearch = React.useCallback((query: string) => {
@@ -1313,66 +1392,66 @@ const AppContent: React.FC = () => {
     setShopCategory('All');
     setCurrentView('shop');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'shop', category: 'All', query }, '');
+    window.history.pushState({ view: 'shop', category: 'All', query }, '', `/shop?search=${encodeURIComponent(query)}`);
   }, []);
 
   const navigateToCheckout = React.useCallback(() => {
     setCurrentView('checkout');
     setIsCartOpen(false);
     setSelectedProduct(null);
-    window.history.pushState({ view: 'checkout' }, '');
+    window.history.pushState({ view: 'checkout' }, '', '/checkout');
   }, []);
 
   const navigateToDashboard = React.useCallback(() => {
     setCurrentView('dashboard');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'dashboard' }, '');
+    window.history.pushState({ view: 'dashboard' }, '', '/dashboard');
   }, []);
 
   const navigateToFAQ = React.useCallback(() => {
     setCurrentView('faq');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'faq' }, '');
+    window.history.pushState({ view: 'faq' }, '', '/faq');
   }, []);
 
   const navigateToDistributor = React.useCallback(() => {
     setCurrentView('distributor');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'distributor' }, '');
+    window.history.pushState({ view: 'distributor' }, '', '/distributor');
   }, []);
 
   const navigateToBlogs = React.useCallback(() => {
     setCurrentView('blogs');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'blogs' }, '');
+    window.history.pushState({ view: 'blogs' }, '', '/blogs');
   }, []);
 
   const navigateToBlogDetail = React.useCallback((post: BlogPost) => {
     setSelectedBlogPost(post);
     setCurrentView('blog-detail');
-    window.history.pushState({ view: 'blog-detail', blogId: post.id }, '');
+    window.history.pushState({ view: 'blog-detail', slug: post.slug }, '', `/blog/${post.slug}`);
   }, []);
 
   const navigateToEventBlogs = React.useCallback(() => {
     setCurrentView('event-blogs');
     setSelectedProduct(null);
     setSelectedEvent(null);
-    window.history.pushState({ view: 'event-blogs' }, '');
+    window.history.pushState({ view: 'event-blogs' }, '', '/events');
   }, []);
 
   const navigateToEventDetail = React.useCallback((event: EventBlog) => {
     setSelectedEvent(event);
     setCurrentView('event-detail');
-    window.history.pushState({ view: 'event-detail', eventId: event.id }, '');
+    window.history.pushState({ view: 'event-detail', eventId: event.id }, '', `/event/${event.id}`);
   }, []);
 
   const navigateToAdmin = React.useCallback(() => {
     if (isAdminLoggedIn) {
       setCurrentView('admin-dashboard');
-      window.history.pushState({ view: 'admin-dashboard' }, '');
+      window.history.pushState({ view: 'admin-dashboard' }, '', '/admin');
     } else {
       setCurrentView('admin-login');
-      window.history.pushState({ view: 'admin-login' }, '');
+      window.history.pushState({ view: 'admin-login' }, '', '/admin/login');
     }
   }, [isAdminLoggedIn]);
 
@@ -1380,31 +1459,31 @@ const AppContent: React.FC = () => {
     setCurrentView('journey');
     setSelectedProduct(null);
     setSelectedEvent(null);
-    window.history.pushState({ view: 'journey' }, '');
+    window.history.pushState({ view: 'journey' }, '', '/journey');
   }, []);
 
   const navigateToPrivacy = React.useCallback(() => {
     setCurrentView('privacy-policy');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'privacy-policy' }, '');
+    window.history.pushState({ view: 'privacy-policy' }, '', '/privacy-policy');
   }, []);
 
   const navigateToTerms = React.useCallback(() => {
     setCurrentView('terms-and-conditions');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'terms-and-conditions' }, '');
+    window.history.pushState({ view: 'terms-and-conditions' }, '', '/terms-and-conditions');
   }, []);
 
   const navigateToRefund = React.useCallback(() => {
     setCurrentView('refund-policy');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'refund-policy' }, '');
+    window.history.pushState({ view: 'refund-policy' }, '', '/refund-policy');
   }, []);
 
   const navigateToShipping = React.useCallback(() => {
     setCurrentView('shipping-policy');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'shipping-policy' }, '');
+    window.history.pushState({ view: 'shipping-policy' }, '', '/shipping-policy');
   }, []);
 
   const goHome = React.useCallback(() => {
@@ -1415,24 +1494,25 @@ const AppContent: React.FC = () => {
     setGlobalSearchQuery('');
     setIsCartOpen(false);
     setIsAuthOpen(false);
-    window.history.pushState({ view: 'home' }, '');
+    window.history.pushState({ view: 'home' }, '', '/');
   }, []);
 
   const handleLogin = () => {
-    // setIsLoggedIn is handled by useEffect
     setIsAuthOpen(false);
     setCurrentView('dashboard');
+    window.history.pushState({ view: 'dashboard' }, '', '/dashboard');
   };
 
   const handleLogout = () => {
     logout();
     setCurrentView('home');
+    window.history.pushState({ view: 'home' }, '', '/');
   };
 
   const handleAdminLogin = () => {
     setIsAdminLoggedIn(true);
     setCurrentView('admin-dashboard');
-    window.history.pushState({ view: 'admin-dashboard' }, '');
+    window.history.pushState({ view: 'admin-dashboard' }, '', '/admin');
   };
 
   const handleAdminLogout = () => {
@@ -1440,7 +1520,7 @@ const AppContent: React.FC = () => {
     localStorage.removeItem('admin_access_token');
     localStorage.removeItem('admin_refresh_token');
     setCurrentView('home');
-    window.history.pushState({ view: 'home' }, '');
+    window.history.pushState({ view: 'home' }, '', '/');
   };
 
   const clearCart = () => {
@@ -1532,8 +1612,8 @@ const AppContent: React.FC = () => {
             onProductsClick={() => navigateToShop()}
             onCategoryClick={navigateToShopCategory}
             onDashboardClick={() => navigateToDashboard()}
-            onStoriesClick={() => setCurrentView('blogs')}
-            onJourneyClick={() => setCurrentView('journey')}
+            onStoriesClick={navigateToBlogs}
+            onJourneyClick={navigateToJourney}
             onSearch={handleGlobalSearch}
             products={products}
             blogPosts={blogPosts}
@@ -1661,10 +1741,10 @@ const AppContent: React.FC = () => {
           {currentView === 'checkout' && (
             <CheckoutPage
               items={cart}
-              onBack={() => setCurrentView('shop')}
+              onBack={navigateToShop}
               onOrderSuccess={() => {
                 setCart([]);
-                setCurrentView('home');
+                goHome();
               }}
               onLoginRequired={() => setIsAuthOpen(true)}
               checkAuth={checkAuth}

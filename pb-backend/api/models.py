@@ -12,8 +12,12 @@ class Category(models.Model):
         return self.name
 
 
+from django.utils.text import slugify
+
+
 class Product(models.Model):
     name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     original_price = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True
@@ -35,6 +39,11 @@ class Product(models.Model):
     model_3d = models.FileField(upload_to='models_3d/', blank=True, null=True)
     theme_color = models.CharField(max_length=50, blank=True, null=True)
     orientation = models.CharField(max_length=100, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -101,6 +110,7 @@ class BlogPost(models.Model):
     ]
     post_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     title = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
     excerpt = models.TextField()
     image = models.ImageField(upload_to='blog/', null=True, blank=True)
     date = models.DateField()
@@ -126,6 +136,11 @@ class BlogPost(models.Model):
 
     created_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title

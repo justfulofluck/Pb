@@ -142,9 +142,19 @@ class ProductViewSet(viewsets.ModelViewSet):
             
         return Response(data)
 
+    def get_object(self):
+        queryset = self.get_queryset()
+        lookup = self.kwargs.get('pk')
+        if lookup is not None:
+            try:
+                return queryset.get(slug=lookup)
+            except (Product.DoesNotExist, ValueError):
+                return queryset.get(pk=lookup)
+        return super().get_object()
+
     def retrieve(self, request, *args, **kwargs):
-        pk = kwargs.get("pk")
-        cache_key = f"product_detail_{pk}"
+        lookup = kwargs.get("pk", "")
+        cache_key = f"product_detail_{lookup}"
         try:
             cached_data = cache.get(cache_key)
             if cached_data is not None:
@@ -325,6 +335,16 @@ class BlogPostViewSet(viewsets.ModelViewSet):
         if self.action in ["create", "update", "partial_update", "destroy"]:
             return [permissions.IsAdminUser()]
         return [permissions.IsAuthenticatedOrReadOnly()]
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        lookup = self.kwargs.get('pk')
+        if lookup is not None:
+            try:
+                return queryset.get(slug=lookup)
+            except (BlogPost.DoesNotExist, ValueError):
+                return queryset.get(pk=lookup)
+        return super().get_object()
 
     def get_queryset(self):
         # List view: only show active posts
