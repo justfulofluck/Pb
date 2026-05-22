@@ -169,6 +169,49 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = "__all__"
         extra_kwargs = {"slug": {"required": False}}  # slug auto-generated on save
 
+    def _process_ingredient_images(self, ingredients_list):
+        """Convert base64 images in ingredient blend items to saved file paths."""
+        if not ingredients_list:
+            return ingredients_list
+        from django.core.files.storage import default_storage
+
+        processed = []
+        for item in ingredients_list:
+            if isinstance(item, dict) and 'image' in item:
+                image_val = item['image']
+                if isinstance(image_val, str) and image_val.startswith('data:'):
+                    try:
+                        format_part, imgstr = image_val.split(';base64,')
+                        mime_type = format_part.split(':')[-1]
+                        ext = mime_type.split('/')[-1]
+                        ext_map = {'jpeg': 'jpg', 'svg+xml': 'svg'}
+                        ext = ext_map.get(ext, ext)
+                        raw_bytes = base64.b64decode(imgstr)
+                        file_name = f"ingredient_{uuid.uuid4()}.{ext}"
+                        saved_path = default_storage.save(
+                            f"ingredients/{file_name}",
+                            ContentFile(raw_bytes)
+                        )
+                        item['image'] = saved_path
+                    except Exception as e:
+                        print(f"Error processing ingredient blend image: {e}")
+            processed.append(item)
+        return processed
+
+    def create(self, validated_data):
+        if 'ingredients_list' in validated_data:
+            validated_data['ingredients_list'] = self._process_ingredient_images(
+                validated_data['ingredients_list']
+            )
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if 'ingredients_list' in validated_data:
+            validated_data['ingredients_list'] = self._process_ingredient_images(
+                validated_data['ingredients_list']
+            )
+        return super().update(instance, validated_data)
+
 
 class ProductListSerializer(serializers.ModelSerializer):
     usage_ideas = UsageIdeaSerializer(many=True, read_only=True)
