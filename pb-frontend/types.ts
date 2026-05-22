@@ -12,6 +12,7 @@ export interface Product {
   nutrients: { label: string; value: string }[];
   ingredients?: string;
   ingredientsList?: { name: string; image: string }[];
+  detailedNutrition?: { n: string; v100: string; v32: string; r: string; b?: boolean; i?: boolean }[];
   nutrition?: {
     calories: string;
     protein: string;
@@ -126,6 +127,7 @@ export interface BlogPost {
   title: string;
   excerpt: string;
   image: string;
+  imageFile?: File;
   date: string;
   readTime: string;
   author: string;

@@ -29,6 +29,7 @@ class Product(models.Model):
     description = models.TextField()
     benefits = models.JSONField(default=list, blank=True)
     nutrients = models.JSONField(default=list, blank=True)  # List of {label, value}
+    detailed_nutrition = models.JSONField(default=list, blank=True)
     ingredients = models.TextField(blank=True, null=True)
     ingredients_list = models.JSONField(default=list, blank=True)  # List of {name, image}
     is_top_rated = models.BooleanField(default=False, db_index=True)

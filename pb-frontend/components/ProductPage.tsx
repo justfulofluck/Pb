@@ -345,8 +345,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
               </div>
               <div className="content-block pdp-03 w-full lg:w-[25%] order-3 lg:order-3 mt-[-2rem] sm:mt-[-2rem] lg:mt-[-40px] flex flex-col items-center lg:items-end justify-center lg:justify-end mx-auto lg:mx-0" data-snaxxo-animate>
                 <div className="pdp-hero-right-block-content mb-0 flex flex-col items-center lg:items-end w-full mx-auto lg:mx-0">
-                  <div className="flex items-baseline justify-center lg:justify-end gap-3 overflow-visible">
-                    <span style={{ color: '#FFF', textShadow: '0 4px 20px rgba(0,0,0,0.2)' }} className="text-6xl sm:text-7xl lg:text-8xl font-black tracking-wide [word-spacing:0.2em] !font-anton">
+                  <div className="flex items-baseline justify-center lg:justify-end gap-3 overflow-visible whitespace-nowrap">
+                    <span style={{ color: '#FFF', textShadow: '0 4px 20px rgba(0,0,0,0.2)' }} className="text-6xl sm:text-7xl lg:text-8xl font-black tracking-wide [word-spacing:-0.15em] !font-anton whitespace-nowrap">
                       {formatPrice(product.price)}
                     </span>
                   </div>
@@ -512,99 +512,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
         </div>
       </section >
 
-      {/* Product Dietary Badges Section */}
-      <section className="py-12 md:py-16" style={{ backgroundColor: '#f2f2ec' }}>
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-wrap sm:grid sm:grid-cols-3 md:flex md:flex-row items-center justify-center md:justify-between gap-x-8 gap-y-10 md:gap-x-4">
-            
-            {/* Badge 1: High Fiber */}
-            <div className="flex flex-col items-center justify-center flex-1 min-w-[120px] max-w-[160px] mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-100">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 duration-300" style={{ backgroundColor: bgColor }}>
-                <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C11.5 4 9.5 6 9 8.5C8.5 7.5 7.5 7 6.5 7C5 7 4 8.5 5 10C6 11.5 8 11.5 9.5 10.5C9.5 12.5 8 14 7.5 16C7 15 6 14.5 5 14.5C3.5 14.5 2.5 16 3.5 17.5C4.5 19 6.5 19 8 18C8.5 20.5 7.5 21.5 7 22H9C10.5 20.5 11.5 18 12 15C12.5 18 13.5 20.5 15 22H17C16.5 21.5 15.5 20.5 16 18C17.5 19 19.5 19 20.5 17.5C21.5 16 20.5 14.5 19 14.5C18 14.5 17 15 16.5 16C16 14 14.5 12.5 14.5 10.5C16 11.5 18 11.5 19 10C20 8.5 19 7 17.5 7C16.5 7 15.5 7.5 15 8.5C14.5 6 12.5 4 12 2Z" />
-                </svg>
-              </div>
-              <span className="text-xs md:text-sm font-black uppercase tracking-wider text-center mt-4 transition-colors" style={{ color: bgColor, fontFamily: 'Satoshi, sans-serif' }}>
-                High Fiber
-              </span>
-            </div>
 
-            {/* Badge 2: Zero Sugar */}
-            <div className="flex flex-col items-center justify-center flex-1 min-w-[120px] max-w-[160px] mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-200">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 duration-300" style={{ backgroundColor: bgColor }}>
-                <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M4 14.5L8 12.5L12 14.5L8 16.5L4 14.5Z" />
-                  <path d="M4 14.5V18.5L8 20.5V16.5L4 14.5Z" opacity="0.8" />
-                  <path d="M8 16.5V20.5L12 18.5V14.5L8 16.5Z" opacity="0.9" />
-                  <path d="M10 8.5L14 6.5L18 8.5L14 10.5L10 8.5Z" />
-                  <path d="M10 8.5V12.5L14 14.5V10.5L10 8.5Z" opacity="0.8" />
-                  <path d="M14 10.5V14.5L18 12.5V8.5L14 10.5Z" opacity="0.9" />
-                  <path d="M16.5 2C14.6 2 13 3.6 13 5.5C13 7.4 14.6 9 16.5 9C18.4 9 20 7.4 20 5.5C20 3.6 18.4 2 16.5 2ZM18 6.5L17.3 7.2L16.5 6.4L15.7 7.2L15 6.5L15.8 5.7L15 5L15.7 4.3L16.5 5.1L17.3 4.3L18 5L17.2 5.7L18 6.5Z" fill="currentColor" />
-                </svg>
-              </div>
-              <span className="text-xs md:text-sm font-black uppercase tracking-wider text-center mt-4 transition-colors" style={{ color: bgColor, fontFamily: 'Satoshi, sans-serif' }}>
-                Zero Sugar
-              </span>
-            </div>
-
-            {/* Badge 3: Non GMO */}
-            <div className="flex flex-col items-center justify-center flex-1 min-w-[120px] max-w-[160px] mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-300">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 duration-300" style={{ backgroundColor: bgColor }}>
-                <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="5" y="10" width="14" height="8" rx="2" fill="currentColor" />
-                  <path d="M12 10C12 10 14 6 17 6C17 6 15 9 12 10Z" fill="currentColor" />
-                  <path d="M12 10C12 10 10 6 7 6C7 6 9 9 12 10Z" fill="currentColor" />
-                  <circle cx="12" cy="18" r="2.5" fill={bgColor} stroke="currentColor" strokeWidth="1" />
-                  <path d="M11 17L13 19M13 17L11 19" stroke="currentColor" strokeWidth="1" />
-                </svg>
-              </div>
-              <span className="text-xs md:text-sm font-black uppercase tracking-wider text-center mt-4 transition-colors" style={{ color: bgColor, fontFamily: 'Satoshi, sans-serif' }}>
-                Non GMO
-              </span>
-            </div>
-
-            {/* Badge 4: All Natural */}
-            <div className="flex flex-col items-center justify-center flex-1 min-w-[120px] max-w-[160px] mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-400">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 duration-300" style={{ backgroundColor: bgColor }}>
-                <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17 8C14.2 8 12 10.2 12 13C12 15.8 14.2 18 17 18C19.8 18 22 15.8 22 13C22 8 17 8 17 8ZM15.5 14.5C14.7 13.7 14.7 12.3 15.5 11.5C16.3 10.7 17.7 10.7 18.5 11.5L15.5 14.5Z" />
-                  <path d="M7 10C4.2 10 2 12.2 2 15C2 17.8 4.2 20 7 20C9.8 20 12 17.8 12 15C12 10 7 10 7 10ZM5.5 16.5C4.7 15.7 4.7 14.3 5.5 13.5C6.3 12.7 7.7 12.7 8.5 13.5L5.5 16.5Z" opacity="0.9" />
-                </svg>
-              </div>
-              <span className="text-xs md:text-sm font-black uppercase tracking-wider text-center mt-4 transition-colors" style={{ color: bgColor, fontFamily: 'Satoshi, sans-serif' }}>
-                All Natural
-              </span>
-            </div>
-
-            {/* Badge 5: Keto */}
-            <div className="flex flex-col items-center justify-center flex-1 min-w-[120px] max-w-[160px] mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-500">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 duration-300" style={{ backgroundColor: bgColor }}>
-                <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 6C9.5 9 6 12 6 15C6 17.8 8.2 20 11 20C13.8 20 16 17.8 16 15C16 12 14.5 9 12 6ZM11 18C9.3 18 8 16.7 8 15C8 13.8 9.5 11.5 11 9.5V18Z" opacity="0.9" />
-                  <path d="M16 10C14.5 11.8 12.5 13.8 12.5 15.8C12.5 17.7 14 19.2 15.8 19.2C17.7 19.2 19.2 17.7 19.2 15.8C19.2 13.8 18.2 11.8 16 10Z" />
-                </svg>
-              </div>
-              <span className="text-xs md:text-sm font-black uppercase tracking-wider text-center mt-4 transition-colors" style={{ color: bgColor, fontFamily: 'Satoshi, sans-serif' }}>
-                Keto
-              </span>
-            </div>
-
-            {/* Badge 6: Kosher */}
-            <div className="flex flex-col items-center justify-center flex-1 min-w-[120px] max-w-[160px] mx-auto animate-in fade-in slide-in-from-bottom-5 duration-500 delay-600">
-              <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-105 duration-300" style={{ backgroundColor: bgColor }}>
-                <svg className="w-8 h-8 md:w-10 md:h-10 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 4C7 4 3 8 3 13H21C21 8 17 4 12 4ZM12 2C12.6 2 13 2.4 13 3C13 3.6 12.6 4 12 4C11.4 4 11 3.6 11 3C11 2.4 11.4 2 12 2ZM2 14C2 14.6 2.4 15 3 15H21C21.6 15 22 14.6 22 14C22 13.4 21.6 13 21 13H3C2.4 13 2 13.4 2 14Z" />
-                  <path d="M12 6.5L13.2 9H16L13.8 10.5L14.6 13L12 11.5L9.4 13L10.2 10.5L8 9H10.8L12 6.5Z" fill={bgColor} stroke="currentColor" strokeWidth="0.5" />
-                </svg>
-              </div>
-              <span className="text-xs md:text-sm font-black uppercase tracking-wider text-center mt-4 transition-colors" style={{ color: bgColor, fontFamily: 'Satoshi, sans-serif' }}>
-                Kosher
-              </span>
-            </div>
-
-          </div>
-        </div>
-      </section>
 
       <section className="section overflow-hidden" style={{ backgroundColor: '#f2f2ec' }}>
         <div className="w-layout-blockcontainer container product-page-intro w-container">
@@ -658,13 +566,44 @@ const ProductPage: React.FC<ProductPageProps> = ({
               {(() => {
                 const filtered = (product.benefits || []).filter(b => b && b.trim() !== "");
                 const displayBenefits = filtered.length > 0 ? filtered : ["100% Roasted Peanuts", "High Protein Power", "Rich In Dietary Fiber", "Zero Trans Fat"];
+                
+                const icons = [
+                  // High Fiber / Plant
+                  <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C11.5 4 9.5 6 9 8.5C8.5 7.5 7.5 7 6.5 7C5 7 4 8.5 5 10C6 11.5 8 11.5 9.5 10.5C9.5 12.5 8 14 7.5 16C7 15 6 14.5 5 14.5C3.5 14.5 2.5 16 3.5 17.5C4.5 19 6.5 19 8 18C8.5 20.5 7.5 21.5 7 22H9C10.5 20.5 11.5 18 12 15C12.5 18 13.5 20.5 15 22H17C16.5 21.5 15.5 20.5 16 18C17.5 19 19.5 19 20.5 17.5C21.5 16 20.5 14.5 19 14.5C18 14.5 17 15 16.5 16C16 14 14.5 12.5 14.5 10.5C16 11.5 18 11.5 19 10C20 8.5 19 7 17.5 7C16.5 7 15.5 7.5 15 8.5C14.5 6 12.5 4 12 2Z" />
+                  </svg>,
+                  // All Natural / Leaves
+                  <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17 8C14.2 8 12 10.2 12 13C12 15.8 14.2 18 17 18C19.8 18 22 15.8 22 13C22 8 17 8 17 8ZM15.5 14.5C14.7 13.7 14.7 12.3 15.5 11.5C16.3 10.7 17.7 10.7 18.5 11.5L15.5 14.5Z" />
+                    <path d="M7 10C4.2 10 2 12.2 2 15C2 17.8 4.2 20 7 20C9.8 20 12 17.8 12 15C12 10 7 10 7 10ZM5.5 16.5C4.7 15.7 4.7 14.3 5.5 13.5C6.3 12.7 7.7 12.7 8.5 13.5L5.5 16.5Z" opacity="0.9" />
+                  </svg>,
+                  // Zero Sugar / Cubes
+                  <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 14.5L8 12.5L12 14.5L8 16.5L4 14.5Z" />
+                    <path d="M4 14.5V18.5L8 20.5V16.5L4 14.5Z" opacity="0.8" />
+                    <path d="M8 16.5V20.5L12 18.5V14.5L8 16.5Z" opacity="0.9" />
+                    <path d="M10 8.5L14 6.5L18 8.5L14 10.5L10 8.5Z" />
+                    <path d="M10 8.5V12.5L14 14.5V10.5L10 8.5Z" opacity="0.8" />
+                    <path d="M14 10.5V14.5L18 12.5V8.5L14 10.5Z" opacity="0.9" />
+                    <path d="M16.5 2C14.6 2 13 3.6 13 5.5C13 7.4 14.6 9 16.5 9C18.4 9 20 7.4 20 5.5C20 3.6 18.4 2 16.5 2ZM18 6.5L17.3 7.2L16.5 6.4L15.7 7.2L15 6.5L15.8 5.7L15 5L15.7 4.3L16.5 5.1L17.3 4.3L18 5L17.2 5.7L18 6.5Z" fill="currentColor" />
+                  </svg>,
+                  // Keto / Drop
+                  <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 6C9.5 9 6 12 6 15C6 17.8 8.2 20 11 20C13.8 20 16 17.8 16 15C16 12 14.5 9 12 6ZM11 18C9.3 18 8 16.7 8 15C8 13.8 9.5 11.5 11 9.5V18Z" opacity="0.9" />
+                    <path d="M16 10C14.5 11.8 12.5 13.8 12.5 15.8C12.5 17.7 14 19.2 15.8 19.2C17.7 19.2 19.2 17.7 19.2 15.8C19.2 13.8 18.2 11.8 16 10Z" />
+                  </svg>,
+                  // Kosher / Dome
+                  <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 4C7 4 3 8 3 13H21C21 8 17 4 12 4ZM12 2C12.6 2 13 2.4 13 3C13 3.6 12.6 4 12 4C11.4 4 11 3.6 11 3C11 2.4 11.4 2 12 2ZM2 14C2 14.6 2.4 15 3 15H21C21.6 15 22 14.6 22 14C22 13.4 21.6 13 21 13H3C2.4 13 2 13.4 2 14Z" />
+                    <path d="M12 6.5L13.2 9H16L13.8 10.5L14.6 13L12 11.5L9.4 13L10.2 10.5L8 9H10.8L12 6.5Z" fill={bgColor} stroke="currentColor" strokeWidth="0.5" />
+                  </svg>
+                ];
+
                 return displayBenefits.map((benefit, idx) => (
                   <div key={idx} className="sub-icon-block benefits">
                     <div style={{ backgroundColor: bgColor }} className="benefit-icon-wrap">
-                      <div className="benefit-icon w-embed">
-                        <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 48 48" fill="currentcolor" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm0 36c-8.82 0-16-7.18-16-16S15.18 8 24 8s16 7.18 16 16-7.18 16-16 16zm-2-8h4v-4h-4v4zm0-12h4V12h-4v8z"/>
-                        </svg>
+                      <div className="benefit-icon w-embed text-white">
+                        {icons[idx % icons.length]}
                       </div>
                     </div>
                     <div style={{ color: bgColor }} className="benefit-text-box">

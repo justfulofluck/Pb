@@ -87,6 +87,7 @@ const fetchProducts = async () => {
     ) : undefined,
     ingredients: p.ingredients || "",
     ingredientsList: p.ingredients_list || [],
+    detailedNutrition: p.detailed_nutrition || [],
     usageIdeas: (p.usage_ideas || []).map((idea: any) => ({
       id: String(idea.id),
       productId: String(idea.product),
@@ -393,6 +394,7 @@ const AppContent: React.FC = () => {
             nutrients: fullProduct.nutrients || [],
             ingredients: fullProduct.ingredients || "",
             ingredientsList: fullProduct.ingredients_list || [],
+            detailedNutrition: fullProduct.detailed_nutrition || [],
             usageIdeas: (fullProduct.usage_ideas || []).map((idea: any) => ({
               id: String(idea.id),
               productId: String(idea.product),
@@ -537,6 +539,7 @@ const AppContent: React.FC = () => {
                   nutrients: fullP.nutrients || [],
                   ingredients: fullP.ingredients || "",
                   ingredientsList: fullP.ingredients_list || [],
+                  detailedNutrition: fullP.detailed_nutrition || [],
                   usageIdeas: (fullP.usage_ideas || []).map((idea: any) => ({
                     id: String(idea.id),
                     productId: String(idea.product),
@@ -688,6 +691,7 @@ const AppContent: React.FC = () => {
           nutrients: newProduct.nutrients,
           ingredients: newProduct.ingredients,
           ingredients_list: newProduct.ingredientsList,
+          detailed_nutrition: newProduct.detailedNutrition,
           is_top_rated: newProduct.isTopRated,
           category: newProduct.category,
           stock: newProduct.stock,
@@ -733,6 +737,7 @@ const AppContent: React.FC = () => {
           nutrients: updatedProduct.nutrients,
           ingredients: updatedProduct.ingredients,
           ingredients_list: updatedProduct.ingredientsList,
+          detailed_nutrition: updatedProduct.detailedNutrition,
           is_top_rated: updatedProduct.isTopRated,
           category: updatedProduct.category,
           stock: updatedProduct.stock,
@@ -1081,16 +1086,38 @@ const AppContent: React.FC = () => {
     }
   };
 
+  const buildBlogFormData = (blog: BlogPost): FormData => {
+    const fd = new FormData();
+    fd.append('post_type', blog.type);
+    fd.append('title', blog.title);
+    fd.append('excerpt', blog.excerpt);
+    fd.append('date', blog.date ? new Date(blog.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+    fd.append('author', blog.author);
+    fd.append('content', blog.content);
+    fd.append('is_active', String(blog.isActive !== false));
+    fd.append('subtitle', blog.subtitle || '');
+    fd.append('intro_heading', blog.intro_heading || '');
+    fd.append('featured_quote', blog.featured_quote || '');
+    fd.append('tags', blog.tags ? blog.tags.join(',') : '');
+    fd.append('facts_list', JSON.stringify(blog.facts_list || []));
+    fd.append('key_points', JSON.stringify(blog.key_points || []));
+    fd.append('health_benefits', JSON.stringify(blog.health_benefits || []));
+    fd.append('usage_recipes', JSON.stringify(blog.usage_recipes || []));
+    return fd;
+  };
+
   const handleAddBlog = async (newBlog: BlogPost) => {
     try {
       const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/blog-posts/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const headers: Record<string, string> = { 'Authorization': `Bearer ${token}` };
+      let body: BodyInit;
+      if (newBlog.imageFile) {
+        const fd = buildBlogFormData(newBlog);
+        fd.append('image', newBlog.imageFile);
+        body = fd;
+      } else {
+        headers['Content-Type'] = 'application/json';
+        body = JSON.stringify({
           post_type: newBlog.type,
           title: newBlog.title,
           excerpt: newBlog.excerpt,
@@ -1107,7 +1134,12 @@ const AppContent: React.FC = () => {
           key_points: newBlog.key_points || [],
           health_benefits: newBlog.health_benefits || [],
           usage_recipes: newBlog.usage_recipes || []
-        })
+        });
+      }
+      const response = await fetch(`${API_BASE_URL}/api/blog-posts/`, {
+        method: 'POST',
+        headers,
+        body
       });
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
@@ -1202,13 +1234,15 @@ const AppContent: React.FC = () => {
   const handleUpdateBlog = async (updatedBlog: BlogPost) => {
     try {
       const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/blog-posts/${updatedBlog.id}/`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const headers: Record<string, string> = { 'Authorization': `Bearer ${token}` };
+      let body: BodyInit;
+      if (updatedBlog.imageFile) {
+        const fd = buildBlogFormData(updatedBlog);
+        fd.append('image', updatedBlog.imageFile);
+        body = fd;
+      } else {
+        headers['Content-Type'] = 'application/json';
+        body = JSON.stringify({
           post_type: updatedBlog.type,
           title: updatedBlog.title,
           excerpt: updatedBlog.excerpt,
@@ -1225,7 +1259,12 @@ const AppContent: React.FC = () => {
           key_points: updatedBlog.key_points || [],
           health_benefits: updatedBlog.health_benefits || [],
           usage_recipes: updatedBlog.usage_recipes || []
-        })
+        });
+      }
+      const response = await fetch(`${API_BASE_URL}/api/blog-posts/${updatedBlog.id}/`, {
+        method: 'PUT',
+        headers,
+        body
       });
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
@@ -1357,6 +1396,7 @@ const AppContent: React.FC = () => {
           nutrients: fullProduct.nutrients || [],
           ingredients: fullProduct.ingredients || "",
           ingredientsList: fullProduct.ingredients_list || [],
+          detailedNutrition: fullProduct.detailed_nutrition || [],
           usageIdeas: (fullProduct.usage_ideas || []).map((idea: any) => ({
             id: String(idea.id),
             productId: String(idea.product),

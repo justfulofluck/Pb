@@ -235,6 +235,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "benefits",
             "ingredients",
             "ingredients_list",
+            "detailed_nutrition",
             "model_3d",
             "orientation",
             "usage_ideas",

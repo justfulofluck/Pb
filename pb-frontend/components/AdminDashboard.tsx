@@ -465,6 +465,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   // Blog Management State
   const [editingBlogPost, setEditingBlogPost] = useState<BlogPost | null>(null);
+  const [blogImageFile, setBlogImageFile] = useState<File | null>(null);
   const [blogForm, setBlogForm] = useState<Partial<BlogPost>>({
     title: '',
     type: 'Recipe',
@@ -542,6 +543,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       nutrients: [],
       ingredients: '',
       ingredientsList: [],
+      detailedNutrition: [],
       nutrition: {
         calories: '',
         protein: '',
@@ -563,7 +565,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       themeColor: product.themeColor || '#FF6F00',
       orientation: product.orientation || '0deg 0deg 0deg',
       usageIdeas: product.usageIdeas || [],
-      ingredientsList: product.ingredientsList || []
+      ingredientsList: product.ingredientsList || [],
+      detailedNutrition: product.detailedNutrition || []
     });
     setProductView('add');
   };
@@ -612,6 +615,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       reader.readAsDataURL(file);
     }
   };
+
 
   const addIngredientItem = () => {
     setProductForm(prev => ({
@@ -724,6 +728,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Handlers for Blog
   const openAddBlog = () => {
     setEditingBlogPost(null);
+    setBlogImageFile(null);
     setBlogForm({
       title: '',
       type: 'Recipe',
@@ -746,6 +751,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const openEditBlog = (post: BlogPost) => {
     setEditingBlogPost(post);
+    setBlogImageFile(null);
     const content = Array.isArray(post.content) ? post.content.join('\n\n') : (post.content || '');
     setBlogForm({
       ...post,
@@ -789,22 +795,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       isActive: blogForm.isActive !== false
     };
 
+    if (blogImageFile) {
+      postData.imageFile = blogImageFile;
+    }
+
     if (editingBlogPost) {
       onUpdateBlog(postData);
     } else {
       onAddBlog(postData);
     }
+    setBlogImageFile(null);
     setBlogView('list');
   };
 
   const handleBlogImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setBlogForm(prev => ({ ...prev, image: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      setBlogImageFile(file);
+      setBlogForm(prev => ({ ...prev, image: URL.createObjectURL(file) }));
     }
   };
 

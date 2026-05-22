@@ -12,7 +12,7 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
   const limeGreen = bgColor; // Use the dynamic product color for the wave background
   const darkGreen = '#004d25';
   const tableHeaderBg = '#7c439f'; // Purple from screenshot
-  const peachBg = '#fdf4f0'; // Very light cream/peach
+  const peachBg = '#f2f2ec'; // Matches product page background
 
   return (
     <section
@@ -80,12 +80,16 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
               
               {/* Heading */}
               <h2
-                className="text-[2.2rem] sm:text-[3rem] md:text-[3.5rem] lg:text-[4rem] leading-[1.05] uppercase mb-4 sm:mb-6"
-                style={{ color: '#ffffff', fontFamily: 'var(--font-bombi, "Gochi Hand", cursive)' }}
+                className="leading-[1.05] uppercase mb-4 sm:mb-6"
+                style={{ 
+                  color: '#ffffff', 
+                  fontFamily: 'var(--font-bombi, "Gochi Hand", cursive)',
+                  fontSize: 'clamp(2.5rem, 8vw, 4.5rem)'
+                }}
               >
-                We Serve<br className="hidden md:block" />{' '}
-                Goodness With<br className="hidden md:block" />{' '}
-                Nuts
+                WE SERVE<br className="hidden md:block" />{' '}
+                GOODNESS WITH<br className="hidden md:block" />{' '}
+                NUTS
               </h2>
 
               {/* Body copy */}
@@ -124,7 +128,7 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
                   style={{ backgroundColor: tableHeaderBg }}
                 >
                   <div>
-                    <h3 className="text-white text-[14px] sm:text-[16px] md:text-[18px] font-bold leading-tight mb-0.5 font-satoshi">
+                    <h3 className="text-white text-[16px] sm:text-[18px] md:text-[20px] leading-tight mb-1 font-anton uppercase tracking-wider">
                       Nutritional Information
                     </h3>
                     <p className="text-white/75 text-[10px] sm:text-[11px] md:text-[12px] font-medium">
@@ -142,27 +146,145 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
                   <table className="w-full text-[11px] sm:text-[12px] md:text-[13px]" style={{ borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ borderBottom: '2px solid #ddd' }}>
-                        <th className="py-2 text-left font-bold text-gray-800 w-[45%] pl-2 sm:pl-3 pr-1" style={{ paddingRight: '4px' }}>Nutrients</th>
-                        <th className="py-2 text-center font-bold text-gray-800 w-[27%] border-l border-dashed border-gray-300 pl-1 pr-1" style={{ paddingLeft: '4px', paddingRight: '4px' }}>Per 100g</th>
-                        <th className="py-2 text-center font-bold text-gray-800 w-[28%] border-l border-dashed border-gray-300 pl-1 pr-1" style={{ paddingLeft: '4px', paddingRight: '4px' }}>Per Serve %RDA^</th>
+                        <th className="py-2 text-left font-bold text-gray-800 w-[35%] pl-2 sm:pl-3 pr-1" style={{ paddingRight: '4px' }}>Nutrients</th>
+                        <th className="py-2 text-center font-bold text-gray-800 w-[21%] border-l border-dashed border-gray-300 pl-1 pr-1" style={{ paddingLeft: '4px', paddingRight: '4px' }}>Per 100g</th>
+                        <th className="py-2 text-center font-bold text-gray-800 w-[21%] border-l border-dashed border-gray-300 pl-1 pr-1" style={{ paddingLeft: '4px', paddingRight: '4px' }}>Per 32g</th>
+                        <th className="py-2 text-center font-bold text-gray-800 w-[23%] border-l border-dashed border-gray-300 pl-1 pr-1" style={{ paddingLeft: '4px', paddingRight: '4px' }}>% Daily Value*</th>
                       </tr>
                     </thead>
                     <tbody className="text-gray-600">
-                      {[
-                        { n: 'Energy', v: '625 Kcal', r: '10 %', b: true },
-                        { n: 'Protein*', v: '30 g', r: '18 %', b: true },
-                        { n: 'Carbohydrate', v: '18 g', r: '- -', b: true },
-                        { n: 'Total Sugar', v: '3 g', r: '- -', i: true },
-                        { n: 'Added Sugar', v: '0 g', r: '0 %', i: true },
-                        { n: 'Dietary Fibre', v: '6 g', r: '5 %', i: true },
-                        { n: 'Total Fat', v: '49 g', r: '23 %', b: true },
-                        { n: 'Saturated Fat', v: '12 g', r: '17 %', i: true },
-                        { n: 'Polyunsaturated Fat', v: '16 g', r: '- -', i: true },
-                        { n: 'Monounsaturated Fat', v: '21 g', r: '- -', i: true },
-                        { n: 'Cholesterol', v: '0.0 mg', r: '- -', b: true },
-                        { n: 'Trans Fat', v: '0 g', r: '- -', b: true },
-                        { n: 'Sodium', v: '25 mg', r: '0.4 %', b: true },
-                      ].map((row, idx) => (
+                      {(() => {
+                        const slug = product.slug?.toLowerCase() || '';
+                        if (slug.includes('natural-crunchy')) {
+                          return [
+                            { n: 'Energy (kcal)', v100: '527', v32: '168.6', r: '- -', b: true },
+                            { n: 'Total Fat (g)', v100: '35 g', v32: '11.2 g', r: '45 %', b: true },
+                            { n: 'Saturated Fat (g)', v100: '5.9 g', v32: '1.88 g', r: '30 %', i: true },
+                            { n: 'Trans Fat (g)', v100: '0 g', v32: '- -', r: '- -', i: true },
+                            { n: 'Polyunsaturated Fat (g)', v100: '10 g', v32: '3.2 g', r: '- -', i: true },
+                            { n: 'Monounsaturated Fat (g)', v100: '19.1 g', v32: '6.11 g', r: '- -', i: true },
+                            { n: 'Cholesterol (mg)', v100: '0 mg', v32: '- -', r: '- -', b: true },
+                            { n: 'Sodium (mg)', v100: '45 mg', v32: '14.4 mg', r: '2 %', b: true },
+                            { n: 'Total Carbohydrate (g)', v100: '14 g', v32: '4.48 g', r: '5 %', b: true },
+                            { n: 'Dietary Fiber (g)', v100: '10 g', v32: '3.2 g', r: '36 %', i: true },
+                            { n: 'Natural Sugar (g)', v100: '5.9 g', v32: '1.5 g', r: '- -', i: true },
+                            { n: 'Added Sugar (g)', v100: '0 g', v32: '- -', r: '- -', i: true },
+                            { n: 'Sugar (g)', v100: '5.9 g', v32: '1.5 g', r: '- -', i: true },
+                            { n: 'Protein (g)', v100: '36 g', v32: '11.52 g', r: '72 %', b: true },
+                            { n: 'Calcium (mg)', v100: '35 mg', v32: '11.2 mg', r: '3 %', b: false },
+                            { n: 'Iron (mg)', v100: '0.5 mg', v32: '0.16 mg', r: '3 %', b: false },
+                            { n: 'Potassium (mg)', v100: '323 mg', v32: '103.36 mg', r: '7 %', b: false },
+                          ];
+                        }
+                        if (slug.includes('american-nuts')) {
+                          return [
+                            { n: 'Energy(kcal)', v100: '578', v32: '185', r: '9 %', b: true },
+                            { n: 'Total Fat', v100: '42 g', v32: '13.44 g', r: '20 %', b: true },
+                            { n: 'Saturated Fat', v100: '11 g', v32: '3.52 g', r: '18 %', i: true },
+                            { n: 'trans fat', v100: '0 mg', v32: '- -', r: '- -', i: true },
+                            { n: 'polyunsaturated fat', v100: '13 g', v32: '4.16 g', r: '- -', i: true },
+                            { n: 'monounsaturated fat', v100: '18 g', v32: '5.76 g', r: '- -', i: true },
+                            { n: 'Cholesterol', v100: '0 mg', v32: '- -', r: '0 %', b: true },
+                            { n: 'Sodium', v100: '52 mg', v32: '16.64 mg', r: '1 %', b: true },
+                            { n: 'Total Carbohydrate', v100: '23 g', v32: '7.36 g', r: '3 %', b: true },
+                            { n: 'Natural sugar', v100: '6 g', v32: '1.92 g', r: '- -', i: true },
+                            { n: 'Added sugar', v100: '12 g', v32: '3.84 g', r: '15 %', i: true },
+                            { n: 'Sugar', v100: '18 g', v32: '5.76 g', r: '- -', i: true },
+                            { n: 'Dietary Fiber', v100: '6 g', v32: '1.92 g', r: '7 %', i: true },
+                            { n: 'Protein', v100: '23 g', v32: '7.36 g', r: '15 %', b: true },
+                            { n: 'Calcium', v100: '0.2 mcg', v32: '0.064 mcg', r: '0 %', b: false },
+                            { n: 'Iron', v100: '46 mg', v32: '14.72 mg', r: '1 %', b: false },
+                            { n: 'Potassium', v100: '1.3 mg', v32: '.416 mg', r: '2 %', b: false },
+                          ];
+                        }
+                        if (slug.includes('dark-chocolate')) {
+                          return [
+                            { n: 'Energy(kcal)', v100: '540', v32: '173', r: '9 %', b: true },
+                            { n: 'Total Fat', v100: '38 g', v32: '12.16 g', r: '18 %', b: true },
+                            { n: 'Saturated Fat', v100: '6.2 g', v32: '1.984 g', r: '10 %', i: true },
+                            { n: 'trans fat', v100: '0 mg', v32: '- -', r: '- -', i: true },
+                            { n: 'polyunsaturated fat', v100: '13 g', v32: '4.16 g', r: '- -', i: true },
+                            { n: 'monounsaturated fat', v100: '18 g', v32: '5.76 g', r: '- -', i: true },
+                            { n: 'Cholesterol', v100: '0 mg', v32: '- -', r: '0 %', b: true },
+                            { n: 'Sodium', v100: '20 mg', v32: '6.4 mg', r: '0 %', b: true },
+                            { n: 'Total Carbohydrate', v100: '25 g', v32: '8 g', r: '3 %', b: true },
+                            { n: 'Natural sugar', v100: '2.1 g', v32: '0.67 g', r: '- -', i: true },
+                            { n: 'Added sugar', v100: '7 g', v32: '2.24 g', r: '9 %', i: true },
+                            { n: 'Sugar', v100: '9.1 g', v32: '2.91 g', r: '- -', i: true },
+                            { n: 'Dietary Fiber', v100: '7.9 g', v32: '2.5 g', r: '9 %', i: true },
+                            { n: 'Protein', v100: '25 g', v32: '8 g', r: '16 %', b: true },
+                            { n: 'Calcium', v100: '0.1 mg', v32: '0.032 mg', r: '0 %', b: false },
+                            { n: 'Iron', v100: '0.5 mg', v32: '0.16 mg', r: '1 %', b: false },
+                            { n: 'Potassium', v100: '0.1 mg', v32: '0.032 mg', r: '0 %', b: false },
+                          ];
+                        }
+                        if (slug.includes('pineapple')) {
+                          return [
+                            { n: 'Energy(kcal)', v100: '578', v32: '185', r: '9 %', b: true },
+                            { n: 'Total Fat', v100: '42 g', v32: '13.44 g', r: '20 %', b: true },
+                            { n: 'Saturated Fat', v100: '11 g', v32: '3.52 g', r: '18 %', i: true },
+                            { n: 'trans fat', v100: '0 mg', v32: '- -', r: '- -', i: true },
+                            { n: 'polyunsaturated fat', v100: '13 g', v32: '4.16 g', r: '- -', i: true },
+                            { n: 'monounsaturated fat', v100: '18 g', v32: '5.76 g', r: '- -', i: true },
+                            { n: 'Cholesterol', v100: '0 mg', v32: '- -', r: '0 %', b: true },
+                            { n: 'Sodium', v100: '52 mg', v32: '16.64 mg', r: '1 %', b: true },
+                            { n: 'Total Carbohydrate', v100: '23 g', v32: '7.36 g', r: '3 %', b: true },
+                            { n: 'Natural sugar', v100: '6 g', v32: '1.92 g', r: '- -', i: true },
+                            { n: 'Added sugar', v100: '12 g', v32: '3.84 g', r: '15 %', i: true },
+                            { n: 'Sugar', v100: '18 g', v32: '5.76 g', r: '- -', i: true },
+                            { n: 'Dietary Fiber', v100: '6 g', v32: '1.92 g', r: '7 %', i: true },
+                            { n: 'Protein', v100: '23 g', v32: '7.36 g', r: '15 %', b: true },
+                            { n: 'Vitamin D', v100: '0.2 mcg', v32: '0.064 mcg', r: '0 %', b: false },
+                            { n: 'Calcium', v100: '46 mg', v32: '14.72 mg', r: '1 %', b: false },
+                            { n: 'Iron', v100: '1.3 mg', v32: '.416 mg', r: '2 %', b: false },
+                            { n: 'Potassium', v100: '3.4 mg', v32: '1 mg', r: '0 %', b: false },
+                          ];
+                        }
+                        if (slug.includes('mango')) {
+                          return [
+                            { n: 'Energy(kcal)', v100: '578', v32: '185', r: '9 %', b: true },
+                            { n: 'Total Fat (g)', v100: '42 g', v32: '13.44 g', r: '20 %', b: true },
+                            { n: 'Saturated Fat (g)', v100: '11 g', v32: '3.52 g', r: '18 %', i: true },
+                            { n: 'trans fat (g)', v100: '0 mg', v32: '- -', r: '- -', i: true },
+                            { n: 'polyunsaturated fat (g)', v100: '13 g', v32: '4.16 g', r: '- -', i: true },
+                            { n: 'monounsaturated fat (g)', v100: '18 g', v32: '5.76 g', r: '- -', i: true },
+                            { n: 'Cholesterol (mg)', v100: '0 mg', v32: '- -', r: '0 %', b: true },
+                            { n: 'Sodium (mg)', v100: '52 mg', v32: '16.64 mg', r: '1 %', b: true },
+                            { n: 'Total Carbohydrate(g)', v100: '23 g', v32: '7.36 g', r: '3 %', b: true },
+                            { n: 'Natural sugar (g)', v100: '6 g', v32: '1.92 g', r: '- -', i: true },
+                            { n: 'Added sugar (g)', v100: '12 g', v32: '3.84 g', r: '15 %', i: true },
+                            { n: 'Sugar (g)', v100: '18 g', v32: '5.76 g', r: '- -', i: true },
+                            { n: 'Dietary Fiber (g)', v100: '6 g', v32: '1.92 g', r: '7 %', i: true },
+                            { n: 'Protein (g)', v100: '23 g', v32: '7.36 g', r: '15 %', b: true },
+                            { n: 'Vitamin D (mg)', v100: '0.2 mcg', v32: '0.064 mcg', r: '0 %', b: false },
+                            { n: 'Calcium (mg)', v100: '46 mg', v32: '14.72 mg', r: '1 %', b: false },
+                            { n: 'Iron (mg)', v100: '1.3 mg', v32: '.416 mg', r: '2 %', b: false },
+                            { n: 'Potassium (mg)', v100: '3.4 mg', v32: '1 mg', r: '0 %', b: false },
+                          ];
+                        }
+                        
+                        // Default / Strawberry
+                        return [
+                          { n: 'Energy (kcal)', v100: '578', v32: '185', r: '9 %', b: true },
+                          { n: 'Total Fat (g)', v100: '42 g', v32: '13.44 g', r: '20 %', b: true },
+                          { n: 'Saturated Fat (g)', v100: '11 g', v32: '3.52 g', r: '18 %', i: true },
+                          { n: 'Trans Fat (g)', v100: '0 mg', v32: '- -', r: '- -', i: true },
+                          { n: 'Polyunsaturated Fat (g)', v100: '13 g', v32: '4.16 g', r: '- -', i: true },
+                          { n: 'Monounsaturated Fat (g)', v100: '18 g', v32: '5.76 g', r: '- -', i: true },
+                          { n: 'Cholesterol (mg)', v100: '0 mg', v32: '- -', r: '0 %', b: true },
+                          { n: 'Sodium (mg)', v100: '52 mg', v32: '16.64 mg', r: '1 %', b: true },
+                          { n: 'Total Carbohydrate (g)', v100: '23 g', v32: '7.36 g', r: '3 %', b: true },
+                          { n: 'Natural Sugar (g)', v100: '6 g', v32: '1.92 g', r: '- -', i: true },
+                          { n: 'Added Sugar (g)', v100: '12 g', v32: '3.84 g', r: '15 %', i: true },
+                          { n: 'Sugar (g)', v100: '18 g', v32: '5.76 g', r: '- -', i: true },
+                          { n: 'Dietary Fiber (g)', v100: '6 g', v32: '1.92 g', r: '7 %', i: true },
+                          { n: 'Protein (g)', v100: '23 g', v32: '7.36 g', r: '15 %', b: true },
+                          { n: 'Vitamin D (mcg)', v100: '0.2 mcg', v32: '0.064 mcg', r: '0 %', b: false },
+                          { n: 'Calcium (mg)', v100: '46 mg', v32: '14.72 mg', r: '1 %', b: false },
+                          { n: 'Iron (mg)', v100: '1.3 mg', v32: '0.416 mg', r: '2 %', b: false },
+                          { n: 'Potassium (mg)', v100: '3.4 mg', v32: '1 mg', r: '0 %', b: false },
+                        ];
+                      })().map((row: any, idx: number) => (
                         <tr key={idx} style={{ borderBottom: '1px solid #f0f0f0' }}>
                           <td
                             className={`${row.b ? 'font-bold text-gray-800' : 'text-gray-500'}`}
@@ -175,7 +297,8 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
                           >
                             {row.n}
                           </td>
-                          <td className="text-center" style={{ borderLeft: '1px dashed #e8e8e8', paddingTop: '5px', paddingBottom: '5px', paddingLeft: '4px', paddingRight: '4px' }}>{row.v}</td>
+                          <td className="text-center" style={{ borderLeft: '1px dashed #e8e8e8', paddingTop: '5px', paddingBottom: '5px', paddingLeft: '4px', paddingRight: '4px' }}>{row.v100}</td>
+                          <td className="text-center" style={{ borderLeft: '1px dashed #e8e8e8', paddingTop: '5px', paddingBottom: '5px', paddingLeft: '4px', paddingRight: '4px' }}>{row.v32}</td>
                           <td className="text-center" style={{ borderLeft: '1px dashed #e8e8e8', paddingTop: '5px', paddingBottom: '5px', paddingLeft: '4px', paddingRight: '4px' }}>{row.r}</td>
                         </tr>
                       ))}

@@ -34,7 +34,7 @@ const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#0b3d2e", class
         if (!isInView) return;
 
         const tl1 = gsap.to(layer1Ref.current, {
-            x: "-50%",
+            x: -800,
             duration: 18,
             repeat: -1,
             ease: "none"
@@ -63,14 +63,15 @@ const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#0b3d2e", class
             <svg
                 viewBox="0 0 1600 240"
                 preserveAspectRatio="none"
-                className="absolute top-0 left-0 w-[200%] h-full pointer-events-none overflow-visible"
+                className="absolute top-0 left-0 w-[400%] md:w-[200%] h-full pointer-events-none overflow-visible"
                 xmlns="http://www.w3.org/2000/svg"
             >
                 {/* Single Layer - sharp and clean */}
                 <g ref={bob1Ref}>
                     <g ref={layer1Ref}>
-                        <path d={pathData} fill={fill} />
-                        <path d={pathData} fill={fill} transform="translate(799, 0)" />
+                        {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+                            <path key={i} d={pathData} fill={fill} stroke={fill} strokeWidth="2" transform={`translate(${i * 800}, 0)`} />
+                        ))}
                     </g>
                 </g>
             </svg>
