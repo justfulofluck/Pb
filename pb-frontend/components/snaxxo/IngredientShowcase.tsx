@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { getMediaUrl } from '@/utils/mediaHelper';
 
 interface Ingredient {
     name: string;
@@ -80,11 +81,11 @@ const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
                             viewport={{ once: true }}
                             className="flex flex-col items-center text-center min-w-[120px] md:min-w-[160px] group snap-center"
                         >
-                            <div className="w-24 h-24 md:w-40 md:h-40 rounded-full bg-white shadow-xl shadow-pink-200/50 flex items-center justify-center p-4 md:p-6 mb-4 group-hover:scale-105 transition-transform duration-500 relative ring-1 ring-pink-100">
+                            <div className="w-36 h-36 md:w-56 md:h-56 rounded-full shadow-xl shadow-pink-200/50 overflow-hidden mb-4 group-hover:scale-105 transition-transform duration-500 relative">
                                 <img
-                                    src={item.image}
+                                    src={getMediaUrl(item.image)}
                                     alt={item.name}
-                                    className="w-full h-full object-contain mix-blend-multiply"
+                                    className="w-full h-full object-cover"
                                 />
                             </div>
                             <span className="text-[10px] md:text-xs font-bold text-[#2d3e40] leading-tight max-w-[110px] md:max-w-[140px] tracking-wide">

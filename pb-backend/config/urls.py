@@ -37,10 +37,9 @@ urlpatterns = [
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]
 
-if settings.DEBUG:
-    urlpatterns += [
-        re_path(r'^media/(?P<path>.*)$', cors_static_serve, {'document_root': settings.MEDIA_ROOT}),
-    ]
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', cors_static_serve, {'document_root': settings.MEDIA_ROOT}),
+]
 
 urlpatterns += [
     re_path(r'^.*$', index_view, name='index'),
