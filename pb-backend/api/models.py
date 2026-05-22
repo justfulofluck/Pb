@@ -114,7 +114,7 @@ class BlogPost(models.Model):
     excerpt = models.TextField()
     image = models.ImageField(upload_to='blog/', null=True, blank=True)
     date = models.DateField()
-    read_time = models.CharField(max_length=20)
+    read_time = models.CharField(max_length=20, blank=True, default='')
     author = models.CharField(max_length=100)
     content = models.JSONField(default=list)  # List of paragraphs
     tags = models.JSONField(default=list, blank=True)
@@ -134,8 +134,8 @@ class BlogPost(models.Model):
     health_benefits = models.JSONField(default=list, blank=True)
     usage_recipes = models.JSONField(default=list, blank=True)
 
-    created_at = models.DateTimeField(null=True, blank=True)
-    updated_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:

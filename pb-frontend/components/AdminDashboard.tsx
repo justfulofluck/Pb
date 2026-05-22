@@ -136,6 +136,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [rewardRules, setRewardRules] = useState<RewardRule[]>([]);
   const [rewardTransactions, setRewardTransactions] = useState<RewardTransaction[]>([]);
 
+  // Profile & Security Modal State
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
+  const [profileForm, setProfileForm] = useState({ first_name: '', last_name: '' });
+  const [passwordForm, setPasswordForm] = useState({ current_password: '', new_password: '', confirm_password: '' });
+  const [profileLoading, setProfileLoading] = useState(false);
+
   // Customer Management State
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
 
@@ -259,9 +266,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     return () => clearInterval(interval);
   }, []);
 
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+
   // Compute Notifications
   const notifications = React.useMemo(() => {
     const list: any[] = [];
+    const now = Date.now();
+    const yesterday = now - TWENTY_FOUR_HOURS;
 
     // 1. Pending Orders
     orders.filter(o => o.status === 'PENDING').forEach(o => {
@@ -276,20 +287,52 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       });
     });
 
-    // 2. Low Stock Alerts
+    // 2. Low Stock Alerts (stable time = won't re-trigger as "new" every render)
     products.filter(p => p.stock < 10).forEach(p => {
       list.push({
         id: `stock-${p.id}`,
         title: "Low Stock Alert",
         desc: `${p.name} is below 10 units (${p.stock} left)`,
-        time: Date.now() - 1000, // Show as current
+        time: 0, // Always visible, never "new" (no blue dot)
         icon: "warning",
         color: "bg-red-100 text-red-600",
         tab: 'products'
       });
     });
 
-    // 3. Pending Distributor Applications
+    // 3. New Blog Posts (last 24h)
+    (blogPosts || []).forEach(p => {
+      const created = (p as any).created_at;
+      if (created) {
+        const t = new Date(created).getTime();
+        if (t > yesterday) {
+          list.push({
+            id: `blog-${p.id}`,
+            title: "New Blog Published",
+            desc: p.title || 'Untitled',
+            time: t,
+            icon: "article",
+            color: "bg-blue-100 text-blue-600",
+            tab: 'blogs'
+          });
+        }
+      }
+    });
+
+    // 4. New Products (last 24h — uses id recency as proxy since no created_at field)
+    products.slice().reverse().slice(0, 5).forEach(p => {
+      list.push({
+        id: `product-notif-${p.id}`,
+        title: "Product Updated",
+        desc: `${p.name} — ${p.stock} in stock`,
+        time: now - 2000,
+        icon: "inventory_2",
+        color: "bg-emerald-100 text-emerald-600",
+        tab: 'products'
+      });
+    });
+
+    // 5. Pending Distributor Applications
     distributorApplications.filter(a => a.status === 'Pending').forEach(a => {
       list.push({
         id: `dist-${a.id}`,
@@ -302,7 +345,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       });
     });
 
-    // 4. Recent Visitor Submissions
+    // 6. Recent Visitor Submissions
     (visitorForms || []).forEach(f => {
       (f.submissions || []).slice(-3).forEach(s => {
         list.push({
@@ -318,7 +361,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     });
 
     return list.sort((a, b) => b.time - a.time).slice(0, 10);
-  }, [orders, products, distributorApplications, visitorForms]);
+  }, [orders, products, blogPosts, distributorApplications, visitorForms]);
 
   const hasUnreadNotifications = notifications.some(n => n.time > notificationsLastClear);
 
@@ -334,6 +377,79 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     const now = Date.now();
     setNotificationsLastClear(now);
     localStorage.setItem('admin_notifications_last_clear', String(now));
+  };
+
+  const openProfileModal = async () => {
+    setShowProfileModal(true);
+    setProfileLoading(true);
+    try {
+      const token = localStorage.getItem('admin_access_token') || localStorage.getItem('access_token');
+      const res = await fetch(`${API_BASE_URL}/api/users/me/`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProfileForm({ first_name: data.first_name || '', last_name: data.last_name || '' });
+      }
+    } catch (err) {
+      console.error('Failed to load profile', err);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('admin_access_token') || localStorage.getItem('access_token');
+      const res = await fetch(`${API_BASE_URL}/api/users/update_profile/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(profileForm)
+      });
+      if (res.ok) {
+        showToast('Profile updated successfully', 'success');
+        setShowProfileModal(false);
+      } else {
+        const err = await res.json();
+        showToast(Object.values(err).flat().join(', ') || 'Failed to update profile', 'warning');
+      }
+    } catch (err) {
+      showToast('Failed to update profile', 'warning');
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordForm.new_password !== passwordForm.confirm_password) {
+      showToast('Passwords do not match', 'warning');
+      return;
+    }
+    if (passwordForm.new_password.length < 6) {
+      showToast('Password must be at least 6 characters', 'warning');
+      return;
+    }
+    try {
+      const token = localStorage.getItem('admin_access_token') || localStorage.getItem('access_token');
+      const res = await fetch(`${API_BASE_URL}/api/users/change_password/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          current_password: passwordForm.current_password,
+          new_password: passwordForm.new_password
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('Password changed successfully', 'success');
+        setPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
+        setShowSecurityModal(false);
+      } else {
+        showToast(data.error || 'Failed to change password', 'warning');
+      }
+    } catch (err) {
+      showToast('Failed to change password', 'warning');
+    }
   };
 
   // Slide Management State
@@ -354,90 +470,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     type: 'Recipe',
     excerpt: '',
     image: '',
-    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    readTime: '',
+    date: new Date().toISOString().split('T')[0],
     author: '',
     content: '',
     subtitle: '',
     intro_heading: '',
     featured_quote: '',
-    author_image: '',
-    author_role: '',
-    secondary_image: '',
-    tertiary_image: '',
     facts_list: [],
     key_points: [],
     health_benefits: [],
     usage_recipes: [],
-    scheduledDate: '',
     isActive: true
   });
-
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-
-  // Product Form State
-  const [productForm, setProductForm] = useState<Partial<Product>>({
-    name: '',
-    price: 0,
-    category: '',
-    stock: 100,
-    image: '',
-    rating: 5,
-    reviewCount: 0,
-    benefits: [],
-    nutrients: [],
-    ingredients: '',
-    ingredientsList: [],
-    nutrition: {
-      calories: '',
-      protein: '',
-      carbs: '',
-      fat: ''
-    },
-    model3d: '',
-    themeColor: '#FF6F00', // Default to a brand color if none selected
-    orientation: '0deg 0deg 0deg',
-    usageIdeas: []
-  });
-
-  const [editingEvent, setEditingEvent] = useState<EventBlog | null>(null);
-
-  // Event Form State
-  const [eventForm, setEventForm] = useState<Partial<EventBlog>>({
-    title: '',
-    date: '',
-    location: '',
-    image: '',
-    summary: '',
-    fullStory: [{ heading: '', content: '' }],
-    gallery: [],
-    featuredProducts: [],
-    impactParticipants: '',
-    fuelBarsShared: '',
-    vibeEnergy: '',
-    scheduledDate: '',
-    isActive: true
-  });
-
-  const [slideForm, setSlideForm] = useState<Partial<HeroSlide>>({
-    category: '',
-    headline: '',
-    image: '',
-    cta: 'SHOP NOW',
-    ctaLink: '/shop',
-    secondaryCta: '',
-    secondaryCtaLink: '',
-    bgColor: COLOR_THEMES[0].bgColor,
-    accentColor: COLOR_THEMES[0].accentColor,
-    blobColor: COLOR_THEMES[0].blobColor,
-    productId: '',
-    transitionType: 'fade',
-    mobileImage: '',
-    displayDuration: 5,
-    isActive: true
-  });
-
-  const [newCategory, setNewCategory] = useState('');
 
   // Story Handlers
   const [isProcessingDriveVideo, setIsProcessingDriveVideo] = useState(false);
@@ -613,31 +657,34 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       .trim();
 
     if (editingProduct) {
+      const { nutrition, ...rest } = productForm;
       const updatedProduct: Product = {
         ...editingProduct,
-        ...productForm as Product,
+        ...rest as Product,
         orientation: sanitizedOrientation,
-        id: editingProduct.id // Keep original ID
+        id: editingProduct.id
       };
       onUpdateProduct(updatedProduct);
     } else {
+      const { nutrition, ...rest } = productForm;
+      const nutrients = nutrition ? [
+        { label: 'Calories', value: nutrition.calories || '' },
+        { label: 'Protein', value: nutrition.protein || '' },
+        { label: 'Carbs', value: nutrition.carbs || '' },
+        { label: 'Fat', value: nutrition.fat || '' }
+      ].filter(n => n.value) : [];
       const newProduct: Product = {
         id: Date.now().toString(),
-        name: productForm.name || 'New Product',
-        price: Number(productForm.price) || 0,
-        category: productForm.category || 'Uncategorized',
-        stock: Number(productForm.stock) || 0,
-        image: productForm.image || '',
+        name: rest.name || 'New Product',
+        price: Number(rest.price) || 0,
+        category: rest.category || 'Uncategorized',
+        stock: Number(rest.stock) || 0,
+        image: rest.image || '',
         rating: 5,
         reviewCount: 0,
-        benefits: productForm.benefits || [],
-        nutrients: productForm.nutrition ? [
-          { label: 'Calories', value: productForm.nutrition.calories || '' },
-          { label: 'Protein', value: productForm.nutrition.protein || '' },
-          { label: 'Carbs', value: productForm.nutrition.carbs || '' },
-          { label: 'Fat', value: productForm.nutrition.fat || '' }
-        ].filter(n => n.value) : [],
-        ...productForm as Product,
+        benefits: rest.benefits || [],
+        nutrients,
+        ...rest as Product,
         orientation: sanitizedOrientation
       };
       onAddProduct(newProduct);
@@ -682,22 +729,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       type: 'Recipe',
       excerpt: '',
       image: '',
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      readTime: '',
+      date: new Date().toISOString().split('T')[0],
       author: '',
       content: '',
       subtitle: '',
       intro_heading: '',
       featured_quote: '',
-      author_image: '',
-      author_role: '',
-      secondary_image: '',
-      tertiary_image: '',
       facts_list: [],
       key_points: [],
       health_benefits: [],
       usage_recipes: [],
-      scheduledDate: '',
       isActive: true
     });
     setBlogView('form');
@@ -709,14 +750,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setBlogForm({
       ...post,
       content,
-      scheduledDate: post.scheduledDate || '',
       subtitle: post.subtitle || '',
       intro_heading: post.intro_heading || '',
       featured_quote: post.featured_quote || '',
-      author_image: post.author_image || '',
-      author_role: post.author_role || '',
-      secondary_image: post.secondary_image || '',
-      tertiary_image: post.tertiary_image || '',
       facts_list: post.facts_list || [],
       key_points: post.key_points || [],
       health_benefits: post.health_benefits || [],
@@ -739,22 +775,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       type: (blogForm.type as any) || 'Recipe',
       excerpt: blogForm.excerpt || '',
       image: blogForm.image || '',
-      date: blogForm.date || new Date().toDateString(),
-      readTime: blogForm.readTime || '5 min read',
+      date: blogForm.date || new Date().toISOString().split('T')[0],
+
       author: blogForm.author || 'Admin',
       content: blogForm.content || '',
       subtitle: blogForm.subtitle || '',
       intro_heading: blogForm.intro_heading || '',
       featured_quote: blogForm.featured_quote || '',
-      author_image: blogForm.author_image || '',
-      author_role: blogForm.author_role || '',
-      secondary_image: blogForm.secondary_image || '',
-      tertiary_image: blogForm.tertiary_image || '',
       facts_list: blogForm.facts_list || [],
       key_points: blogForm.key_points || [],
       health_benefits: blogForm.health_benefits || [],
       usage_recipes: blogForm.usage_recipes || [],
-      scheduledDate: blogForm.scheduledDate || '',
       isActive: blogForm.isActive !== false
     };
 
@@ -803,6 +834,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         productId: slideForm.productId || '',
         transitionType: slideForm.transitionType || 'fade',
         mobileImage: slideForm.mobileImage || '',
+        displayDuration: slideForm.displayDuration || 5,
         isActive: slideForm.isActive ?? true,
         order: slides.length > 0 ? Math.max(...slides.map(s => s.order || 0)) + 1 : 0
       };
@@ -1338,7 +1370,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
           </button>
         </div>
 
-        <nav className="flex-1 py-6 space-y-1">
+        <nav className="flex-1 overflow-y-auto custom-scroll py-6 space-y-1 min-h-0">
           {[
             { id: 'overview', icon: 'dashboard', label: 'Overview' },
             { id: 'products', icon: 'inventory_2', label: 'Products & Stock' },
@@ -1477,13 +1509,10 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                   <p className="font-black text-slate-900 truncate text-sm">{adminEmail}</p>
                 </div>
                 <div className="p-2 space-y-1">
-                  <button className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-bold text-slate-600 flex items-center gap-3 transition-colors">
+                  <button onClick={() => { setShowSettings(false); openProfileModal(); }} className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-bold text-slate-600 flex items-center gap-3 transition-colors">
                     <span className="material-symbols-outlined text-lg">person</span> Profile Settings
                   </button>
-                  <button className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-bold text-slate-600 flex items-center gap-3 transition-colors">
-                    <span className="material-symbols-outlined text-lg">tune</span> System Preferences
-                  </button>
-                  <button className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-bold text-slate-600 flex items-center gap-3 transition-colors">
+                  <button onClick={() => { setShowSettings(false); setShowSecurityModal(true); }} className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-bold text-slate-600 flex items-center gap-3 transition-colors">
                     <span className="material-symbols-outlined text-lg">security</span> Security
                   </button>
                 </div>
@@ -2196,24 +2225,10 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                     <div key={post.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col group">
                       <div className="h-48 overflow-hidden relative">
                         <img src={getMediaUrl(post.image)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={post.title} />
-                        <div className="absolute top-4 left-4 flex flex-col gap-1.5">
+                        <div className="absolute top-4 left-4">
                           <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-900 w-fit">
                             {post.type}
                           </span>
-                          {post.scheduledDate && (() => {
-                            try {
-                              const [y, m, d] = post.scheduledDate.split('-').map(Number);
-                              const scheduled = new Date(y, m - 1, d);
-                              const today = new Date();
-                              today.setHours(0, 0, 0, 0);
-                              return scheduled > today;
-                            } catch { return false; }
-                          })() && (
-                              <span className="bg-primary/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white w-fit flex items-center gap-1 shadow-lg">
-                                <span className="material-symbols-outlined text-[12px]">schedule</span>
-                                Scheduled: {post.scheduledDate}
-                              </span>
-                            )}
                         </div>
                         <div className="absolute top-4 right-4 flex gap-2">
                           <button
@@ -2239,9 +2254,8 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                             Hidden from Live Site
                           </div>
                         )}
-                        <div className="flex justify-between items-center mb-2">
+                        <div className="flex items-center mb-2">
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{post.date}</span>
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{post.readTime}</span>
                         </div>
                         <h4 className="font-black uppercase text-lg mb-2 leading-tight line-clamp-2 text-primary">{post.title}</h4>
                         <p className="text-sm text-slate-600 line-clamp-2 mb-4 flex-1">{post.excerpt}</p>
@@ -2294,27 +2308,32 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                         <label className="text-xs font-black uppercase tracking-widest text-slate-500">Author</label>
                         <input required type="text" value={blogForm.author} onChange={e => setBlogForm({ ...blogForm, author: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Chef Riya" />
                       </div>
+
                       <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Read Time</label>
-                        <input required type="text" value={blogForm.readTime} onChange={e => setBlogForm({ ...blogForm, readTime: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. 5" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Schedule Publish (Optional)</label>
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Visibility</label>
                         <div className="flex items-center gap-3">
-                          <input type="date" value={blogForm.scheduledDate} onChange={e => setBlogForm({ ...blogForm, scheduledDate: e.target.value })} className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" />
-                          <span className="material-symbols-outlined text-slate-400">calendar_today</span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-2">
                           <button
                             type="button"
                             onClick={() => setBlogForm({ ...blogForm, isActive: !blogForm.isActive })}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${blogForm.isActive !== false ? 'bg-green-50 border-green-200 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
+                            className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${blogForm.isActive !== false ? 'bg-green-50 border-green-200 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
                           >
                             <span className="material-symbols-outlined text-lg">{blogForm.isActive !== false ? 'visibility' : 'visibility_off'}</span>
                             <span className="text-xs font-bold uppercase tracking-widest">{blogForm.isActive !== false ? 'Visible on Site' : 'Hidden from Site'}</span>
                           </button>
                         </div>
-                        <p className="text-[10px] text-slate-400 font-bold">Pick a date to schedule when this blog appears on the site.</p>
+                      </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Cover Image (Featured)</label>
+                        <div className="flex items-center gap-4">
+                          {blogForm.image && (
+                            <img src={getMediaUrl(blogForm.image)} alt="Cover" className="h-24 w-40 object-cover rounded-xl border border-slate-200" />
+                          )}
+                          <label className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-slate-300 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
+                            <span className="material-symbols-outlined text-slate-400">add_photo_alternate</span>
+                            <span className="text-sm font-medium text-slate-500">{blogForm.image ? 'Change Cover Image' : 'Upload Cover Image'}</span>
+                            <input type="file" accept="image/*" onChange={handleBlogImageUpload} className="hidden" />
+                          </label>
+                        </div>
                       </div>
                       <div className="md:col-span-2 space-y-2">
                         <label className="text-xs font-black uppercase tracking-widest text-slate-500">Excerpt</label>
@@ -2331,30 +2350,6 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                       <div className="md:col-span-2 space-y-2">
                         <label className="text-xs font-black uppercase tracking-widest text-slate-500">Featured Quote (Boxed Content)</label>
                         <textarea value={blogForm.featured_quote} onChange={e => setBlogForm({ ...blogForm, featured_quote: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={3} placeholder="Quote to highlight in the article..." />
-                      </div>
-                    </section>
-
-                    {/* Author Profile */}
-                    <section className="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
-                      <h4 className="text-sm font-black uppercase text-slate-800 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-lg">person_edit</span>
-                        Author Branding
-                      </h4>
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Author Role/Title</label>
-                          <input type="text" value={blogForm.author_role} onChange={e => setBlogForm({ ...blogForm, author_role: e.target.value })} className="w-full px-4 py-2.5 rounded-xl border border-slate-200 font-bold text-sm" placeholder="e.g. Chief Nutritionist" />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Author Photo</label>
-                          <input type="file" accept="image/*" onChange={(e) => {
-                            if (e.target.files?.[0]) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => setBlogForm(prev => ({ ...prev, author_image: reader.result as string }));
-                              reader.readAsDataURL(e.target.files[0]);
-                            }
-                          }} className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-primary/10 file:text-primary" />
-                        </div>
                       </div>
                     </section>
 
@@ -2451,34 +2446,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                       </div>
                     </section>
 
-                    {/* Media Assets */}
-                    <section className="space-y-6 pt-6 border-t border-slate-100">
-                      <h4 className="text-sm font-black uppercase text-slate-800">Section Media (Secondary Images)</h4>
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">History Section Image</label>
-                          <input type="file" accept="image/*" onChange={(e) => {
-                            if (e.target.files?.[0]) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => setBlogForm(prev => ({ ...prev, secondary_image: reader.result as string }));
-                              reader.readAsDataURL(e.target.files[0]);
-                            }
-                          }} className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-primary/10 file:text-primary" />
-                          {blogForm.secondary_image && <img src={getMediaUrl(blogForm.secondary_image)} alt="History" className="h-32 w-full object-cover rounded-xl mt-2" />}
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Benefits Section Image</label>
-                          <input type="file" accept="image/*" onChange={(e) => {
-                            if (e.target.files?.[0]) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => setBlogForm(prev => ({ ...prev, tertiary_image: reader.result as string }));
-                              reader.readAsDataURL(e.target.files[0]);
-                            }
-                          }} className="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-primary/10 file:text-primary" />
-                          {blogForm.tertiary_image && <img src={getMediaUrl(blogForm.tertiary_image)} alt="Benefits" className="h-32 w-full object-cover rounded-xl mt-2" />}
-                        </div>
-                      </div>
-                    </section>
+
 
                     {/* Delicious Ways / Usage Ideas */}
                     <section className="space-y-4 pt-6 border-t border-slate-100">
@@ -3315,15 +3283,88 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                 </div>
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                   <p className="text-xs font-black uppercase tracking-widest text-slate-400">Pending</p>
-                  <p className="text-3xl font-black text-orange-500 mt-2">{orders.filter(o => o.status === 'Pending' || o.status === 'Processing').length}</p>
+                  <p className="text-3xl font-black text-orange-500 mt-2">{orders.filter(o => o.status === 'PENDING' || o.status === 'Processing').length}</p>
                 </div>
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                   <p className="text-xs font-black uppercase tracking-widest text-slate-400">Shipped</p>
-                  <p className="text-3xl font-black text-blue-500 mt-2">{orders.filter(o => o.status === 'Shipped').length}</p>
+                  <p className="text-3xl font-black text-blue-500 mt-2">{orders.filter(o => o.status === 'SHIPPED' || o.status === 'Shipped').length}</p>
                 </div>
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                   <p className="text-xs font-black uppercase tracking-widest text-slate-400">Delivered</p>
-                  <p className="text-3xl font-black text-green-500 mt-2">{orders.filter(o => o.status === 'Delivered').length}</p>
+                  <p className="text-3xl font-black text-green-500 mt-2">{orders.filter(o => o.status === 'DELIVERED' || o.status === 'Delivered').length}</p>
+                </div>
+              </div>
+
+              {/* Order List */}
+              <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                  <h4 className="text-sm font-black uppercase text-slate-800 tracking-tight">All Orders</h4>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg">search</span>
+                    <input
+                      type="text"
+                      placeholder="Search by order ID, email or name..."
+                      className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-72"
+                      value={orderSearchQuery}
+                      onChange={e => setOrderSearchQuery(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-50 border-b border-slate-200">
+                      <tr>
+                        <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Order ID</th>
+                        <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Customer</th>
+                        <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Date</th>
+                        <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Amount</th>
+                        <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Status</th>
+                        <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100/60">
+                      {filteredOrders.length > 0 ? filteredOrders.map(order => (
+                        <tr key={order.id} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => setViewingOrder(order)}>
+                          <td className="p-4">
+                            <span className="font-black text-slate-900 text-sm">#PB-{order.id}</span>
+                          </td>
+                          <td className="p-4">
+                            <p className="font-bold text-slate-700 text-sm">{order.user_name || `${order.first_name || ''} ${order.last_name || ''}`.trim() || 'Guest'}</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{order.user_email}</p>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-sm font-bold text-slate-600">{new Date(order.created_at).toLocaleDateString()}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="font-black text-slate-900">₹{Number(order.total_amount).toLocaleString()}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                              order.status === 'DELIVERED' || order.status === 'Delivered' ? 'bg-green-100 text-green-600' :
+                              order.status === 'SHIPPED' || order.status === 'Shipped' ? 'bg-purple-100 text-purple-600' :
+                              order.status === 'PROCESSING' || order.status === 'Processing' ? 'bg-blue-100 text-blue-600' :
+                              order.status === 'PENDING' || order.status === 'Pending' ? 'bg-orange-100 text-orange-600' :
+                              'bg-red-100 text-red-600'
+                            }`}>
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase()}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <button onClick={(e) => { e.stopPropagation(); setViewingOrder(order); }} className="text-primary font-bold text-xs uppercase hover:underline">
+                              View Details
+                            </button>
+                          </td>
+                        </tr>
+                      )) : (
+                        <tr>
+                          <td colSpan={6} className="p-12 text-center">
+                            <span className="material-symbols-outlined text-slate-200 text-5xl mb-4">shopping_bag</span>
+                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{orderSearchQuery ? 'No orders match your search.' : 'No orders yet.'}</p>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -4046,6 +4087,88 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
           </div>
         )
       }
+
+      {/* Delete Category Confirmation */}
+      <ConfirmationModal
+        isOpen={deleteCategoryModal.isOpen}
+        onClose={() => setDeleteCategoryModal({ isOpen: false, categoryId: null })}
+        onConfirm={() => deleteCategoryModal.categoryId && onDeleteCategory(deleteCategoryModal.categoryId)}
+        title="Delete Category"
+        message="Are you sure you want to delete this category? This action cannot be undone."
+        confirmLabel="Delete"
+        isDestructive
+      />
+
+      {/* Profile Settings Modal */}
+      {showProfileModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowProfileModal(false)}>
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-black uppercase text-slate-900">Profile Settings</h3>
+              <button onClick={() => setShowProfileModal(false)} className="text-slate-400 hover:text-slate-600">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            {profileLoading ? (
+              <div className="py-12 text-center">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-sm text-slate-400 font-bold">Loading profile...</p>
+              </div>
+            ) : (
+              <form onSubmit={handleUpdateProfile} className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Email</label>
+                  <input type="email" value={adminEmail} disabled className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 font-bold" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">First Name</label>
+                  <input required type="text" value={profileForm.first_name} onChange={e => setProfileForm({ ...profileForm, first_name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="First name" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Last Name</label>
+                  <input required type="text" value={profileForm.last_name} onChange={e => setProfileForm({ ...profileForm, last_name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="Last name" />
+                </div>
+                <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                  <button type="button" onClick={() => setShowProfileModal(false)} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                  <button type="submit" className="px-6 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Save Changes</button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Security Modal */}
+      {showSecurityModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowSecurityModal(false)}>
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-black uppercase text-slate-900">Change Password</h3>
+              <button onClick={() => setShowSecurityModal(false)} className="text-slate-400 hover:text-slate-600">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <form onSubmit={handleChangePassword} className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Current Password</label>
+                <input required type="password" value={passwordForm.current_password} onChange={e => setPasswordForm({ ...passwordForm, current_password: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="Enter current password" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-slate-500">New Password</label>
+                <input required type="password" value={passwordForm.new_password} onChange={e => setPasswordForm({ ...passwordForm, new_password: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="Min 6 characters" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Confirm New Password</label>
+                <input required type="password" value={passwordForm.confirm_password} onChange={e => setPasswordForm({ ...passwordForm, confirm_password: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="Re-enter new password" />
+              </div>
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button type="button" onClick={() => setShowSecurityModal(false)} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                <button type="submit" className="px-6 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Change Password</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

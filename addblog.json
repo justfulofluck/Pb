@@ -1,0 +1,35 @@
+{
+  "title": "Your Blog Post Title",
+  "type": "Recipe",
+  "excerpt": "Short summary shown on blog cards (1-2 sentences).",
+  "image": "base64 encoded image data or URL",
+  "date": "2026-05-22",
+  "author": "Author Name",
+  "content": "Main article body. Supports multi-paragraph — separate paragraphs with \\n\\n (double newline).",
+  "tags": ["tag1", "tag2"],
+  "isActive": true,
+
+  "subtitle": "Secondary headline / subheading for the article.",
+  "intro_heading": "Introductory section heading (e.g. 'What is Oats?').",
+  "featured_quote": "A highlighted quote shown in a box within the article.",
+
+  "facts_list": [
+    "Fun fact 1",
+    "Fun fact 2",
+    "Fun fact 3"
+  ],
+
+  "key_points": [
+    { "title": "Point Title", "desc": "Short description of the point." },
+    { "title": "Another Point", "desc": "Description here." }
+  ],
+
+  "health_benefits": [
+    { "title": "Benefit Title", "desc": "Short explanation." },
+    { "title": "Another Benefit", "desc": "Description." }
+  ],
+
+  "usage_recipes": [
+    { "title": "Recipe/Idea Name", "desc": "How to use it.", "image": "" }
+  ]
+}

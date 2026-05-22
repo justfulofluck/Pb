@@ -115,6 +115,13 @@ const fetchAnnouncements = async () => {
   return Array.isArray(data) ? data : [];
 };
 
+const fetchVisitorForms = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/visitor-forms/`);
+  if (!res.ok) throw new Error('Failed to fetch visitor forms');
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+};
+
 const fetchHeroSlides = async () => {
   const res = await fetch(`${API_BASE_URL}/api/hero-slides/`);
   if (!res.ok) throw new Error('Failed to fetch hero slides');
@@ -168,10 +175,8 @@ const fetchBlogs = async () => {
     id: String(b.id),
     slug: b.slug || '',
     type: b.post_type,
-    readTime: b.read_time,
     content: Array.isArray(b.content) ? b.content.join('\n\n') : (b.content || ''),
     tags: b.tags || [],
-    scheduledDate: b.scheduled_date,
     isActive: b.is_active,
   }));
 };
@@ -235,7 +240,6 @@ const AppContent: React.FC = () => {
     if (path.startsWith('/wishlist/shared/')) return 'shared-wishlist';
     return window.history.state?.view || 'home';
   });
-  const [visitorForms, setVisitorForms] = useState<VisitorForm[]>([]);
   const [pressUpdates, setPressUpdates] = useState<PressUpdate[]>(() => {
     try {
       const saved = localStorage.getItem('pinobite_press_updates');
@@ -269,6 +273,7 @@ const AppContent: React.FC = () => {
   const reviewsQuery = useQuery({ queryKey: ['reviews'], queryFn: fetchReviews, staleTime: 5 * 60 * 1000 });
   const categoriesQuery = useQuery({ queryKey: ['categories'], queryFn: fetchCategories, staleTime: 2 * 60 * 1000 });
   const announcementsQuery = useQuery({ queryKey: ['announcements'], queryFn: fetchAnnouncements, staleTime: 5 * 60 * 1000 });
+  const visitorFormsQuery = useQuery({ queryKey: ['visitor-forms'], queryFn: fetchVisitorForms, staleTime: 5 * 60 * 1000 });
   const heroSlidesQuery = useQuery({ queryKey: ['hero-slides'], queryFn: fetchHeroSlides, staleTime: 5 * 60 * 1000 });
   const eventsQuery = useQuery({ queryKey: ['events'], queryFn: fetchEvents, staleTime: 5 * 60 * 1000 });
   const blogPostsQuery = useQuery({ queryKey: ['blog-posts'], queryFn: fetchBlogs, staleTime: 5 * 60 * 1000 });
@@ -279,6 +284,7 @@ const AppContent: React.FC = () => {
   const reviews = reviewsQuery.data || INITIAL_REVIEWS;
   const categories = categoriesQuery.data || INITIAL_CATEGORIES;
   const announcements = announcementsQuery.data || [];
+  const visitorForms = visitorFormsQuery.data || [];
   const slides = heroSlidesQuery.data || INITIAL_SLIDES;
   const events = eventsQuery.data || INITIAL_EVENTS;
   const blogPosts = blogPostsQuery.data || [];
@@ -341,22 +347,12 @@ const AppContent: React.FC = () => {
 
   // Filter scheduled posts for public view
   const visibleBlogs = blogPosts.filter(post => {
-    if (post.isActive === false) return false;
-    if (!post.scheduledDate) return false;  // Fail closed - hide on error
-    try {
-      const scheduled = new Date(post.scheduledDate);
-      scheduled.setUTCHours(0, 0, 0, 0);
-      const today = new Date();
-      today.setUTCHours(0, 0, 0, 0);
-      return scheduled <= today;
-    } catch {
-      return false;  // Fail closed - hide on error
-    }
+    return post.isActive !== false;
   });
 
   const visibleEvents = events.filter(event => {
     if (event.isActive === false) return false;
-    if (!event.scheduledDate) return false;  // Fail closed - hide on error
+    if (!event.scheduledDate) return true;  // No schedule = publish immediately
     try {
       const scheduled = new Date(event.scheduledDate);
       scheduled.setUTCHours(0, 0, 0, 0);
@@ -364,7 +360,7 @@ const AppContent: React.FC = () => {
       today.setUTCHours(0, 0, 0, 0);
       return scheduled <= today;
     } catch {
-      return false;  // Fail closed - hide on error
+      return true;  // On parse error, show the event (fail open)
     }
   });
 
@@ -1099,13 +1095,18 @@ const AppContent: React.FC = () => {
           title: newBlog.title,
           excerpt: newBlog.excerpt,
           image: newBlog.image,
-          date: newBlog.date,
-          read_time: newBlog.readTime,
+          date: newBlog.date ? new Date(newBlog.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           author: newBlog.author,
           content: newBlog.content,
           tags: newBlog.tags,
-          scheduled_date: newBlog.scheduledDate || null,
-          is_active: newBlog.isActive !== false
+          is_active: newBlog.isActive !== false,
+          subtitle: newBlog.subtitle || null,
+          intro_heading: newBlog.intro_heading || null,
+          featured_quote: newBlog.featured_quote || null,
+          facts_list: newBlog.facts_list || [],
+          key_points: newBlog.key_points || [],
+          health_benefits: newBlog.health_benefits || [],
+          usage_recipes: newBlog.usage_recipes || []
         })
       });
       if (response.ok) {
@@ -1212,13 +1213,18 @@ const AppContent: React.FC = () => {
           title: updatedBlog.title,
           excerpt: updatedBlog.excerpt,
           image: updatedBlog.image,
-          date: updatedBlog.date,
-          read_time: updatedBlog.readTime,
+          date: updatedBlog.date ? new Date(updatedBlog.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           author: updatedBlog.author,
           content: updatedBlog.content,
           tags: updatedBlog.tags,
-          scheduled_date: updatedBlog.scheduledDate || null,
-          is_active: updatedBlog.isActive !== false
+          is_active: updatedBlog.isActive !== false,
+          subtitle: updatedBlog.subtitle || null,
+          intro_heading: updatedBlog.intro_heading || null,
+          featured_quote: updatedBlog.featured_quote || null,
+          facts_list: updatedBlog.facts_list || [],
+          key_points: updatedBlog.key_points || [],
+          health_benefits: updatedBlog.health_benefits || [],
+          usage_recipes: updatedBlog.usage_recipes || []
         })
       });
       if (response.ok) {

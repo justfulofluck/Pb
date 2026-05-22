@@ -347,9 +347,11 @@ class BlogPostViewSet(viewsets.ModelViewSet):
         return super().get_object()
 
     def get_queryset(self):
-        # List view: only show active posts
-        # Detail view: check is_active separately (returns 404 for inactive if not staff)
+        # Admin list view: show all posts (including inactive/scheduled)
+        # Public list view: only show active posts
         if self.action == 'list':
+            if self.request.user.is_staff:
+                return BlogPost.objects.all().order_by("-id")
             return BlogPost.objects.filter(is_active=True).order_by("-id")
         return BlogPost.objects.all().order_by("-id")
 
@@ -911,6 +913,44 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             # Return full user data
             return Response(UserSerializer(user).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(
+        detail=False,
+        methods=["post"],
+        permission_classes=[permissions.IsAuthenticated],
+    )
+    def change_password(self, request):
+        user = request.user
+        current_password = request.data.get("current_password")
+        new_password = request.data.get("new_password")
+
+        if not current_password or not new_password:
+            return Response(
+                {"error": "Both current_password and new_password are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if len(new_password) < 6:
+            return Response(
+                {"error": "New password must be at least 6 characters."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not user.check_password(current_password):
+            return Response(
+                {"error": "Current password is incorrect."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if current_password == new_password:
+            return Response(
+                {"error": "New password must be different from current password."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(new_password)
+        user.save()
+        return Response({"status": "Password changed successfully."})
 
 
 class VisitorFormViewSet(viewsets.ModelViewSet):
