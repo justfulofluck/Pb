@@ -10,6 +10,8 @@ pb-backend/venv/
 *.sqlite3
 media/
 staticfiles/
+pb-backend/frontend_build/
+pb-backend/gunicorn.pid
 
 # Node
 node_modules/
@@ -18,6 +20,7 @@ build/
 pb-frontend/node_modules/
 pb-frontend/dist/
 .DS_Store
+pb-frontend/.htaccess
 .check-status
 pw.txt
 
