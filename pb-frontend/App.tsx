@@ -32,6 +32,7 @@ const TermsAndConditionsPage = React.lazy(() => import('./components/TermsAndCon
 const RefundPolicyPage = React.lazy(() => import('./components/RefundPolicyPage'));
 const ShippingPolicyPage = React.lazy(() => import('./components/ShippingPolicyPage'));
 const SharedWishlistPage = React.lazy(() => import('./components/SharedWishlistPage'));
+const NotFoundPage = React.lazy(() => import('./components/NotFoundPage'));
 
 import RewardNotification from './components/RewardNotification';
 import { ToastProvider, useToast } from './components/Toast';
@@ -58,7 +59,7 @@ const CURRENT_USER = {
   avatar: "https://ui-avatars.com/api/?name=Alex+Fueler&background=008a45&color=fff"
 };
 
-type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey' | 'privacy-policy' | 'terms-and-conditions' | 'refund-policy' | 'shipping-policy' | 'visitor-form' | 'distributor' | 'shared-wishlist';
+type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey' | 'privacy-policy' | 'terms-and-conditions' | 'refund-policy' | 'shipping-policy' | 'visitor-form' | 'distributor' | 'shared-wishlist' | 'not-found';
 
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { API_BASE_URL } from './config';
@@ -239,7 +240,7 @@ const AppContent: React.FC = () => {
     if (path.startsWith('/admin')) return 'admin-dashboard';
     if (path.startsWith('/forms/')) return 'visitor-form';
     if (path.startsWith('/wishlist/shared/')) return 'shared-wishlist';
-    return window.history.state?.view || 'home';
+    return window.history.state?.view || 'not-found';
   });
   const [pressUpdates, setPressUpdates] = useState<PressUpdate[]>(() => {
     try {
@@ -487,6 +488,8 @@ const AppContent: React.FC = () => {
       setCurrentView('admin-login');
     } else if (path === '/admin') {
       setCurrentView('admin-dashboard');
+    } else {
+      setCurrentView('not-found');
     }
   }, []); // Run once on mount
   
@@ -668,6 +671,7 @@ const AppContent: React.FC = () => {
       'admin-dashboard': 'Admin Dashboard | PinoBite',
       'visitor-form': 'Visitor Form | PinoBite',
       'shared-wishlist': 'Shared Wishlist | PinoBite',
+      'not-found': 'Page Not Found | PinoBite',
     };
     document.title = titles[currentView] || 'PinoBite';
   }, [currentView, selectedProduct, selectedBlogPost, selectedEvent]);
@@ -1861,6 +1865,9 @@ const AppContent: React.FC = () => {
           )}
           {currentView === 'visitor-form' && selectedFormId && (
             <VisitorFormPage formId={selectedFormId} onHomeClick={goHome} />
+          )}
+          {currentView === 'not-found' && (
+            <NotFoundPage onHomeClick={goHome} />
           )}
         </React.Suspense>
       </main>
