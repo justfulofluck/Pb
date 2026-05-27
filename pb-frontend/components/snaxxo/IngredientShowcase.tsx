@@ -90,7 +90,7 @@ const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
                             viewport={{ once: true }}
                             className="flex flex-col items-center text-center min-w-[120px] md:min-w-[160px] group snap-center"
                         >
-                            <div className="w-36 h-36 md:w-56 md:h-56 mb-4 group-hover:scale-105 transition-transform duration-500 relative flex items-center justify-center p-[7px]">
+                            <div className="w-36 h-36 md:w-56 md:h-56 mb-4 group-hover:scale-105 transition-transform duration-500 relative flex items-center justify-center p-6">
                                 <img
                                     src={getMediaUrl(item.image)}
                                     alt={item.name}
