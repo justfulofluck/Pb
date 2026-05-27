@@ -44,9 +44,9 @@ const dataUrlToObjectUrl = (dataUrl: string): string | null => {
     if (binary.length < 12) return null;
     // Validate GLB header: check magic bytes (glTF) and declared length
     if (binary.charCodeAt(0) !== 0x67 || binary.charCodeAt(1) !== 0x6C ||
-        binary.charCodeAt(2) !== 0x54 || binary.charCodeAt(3) !== 0x46) return null;
-    const declaredLen = 
-      (binary.charCodeAt(8)      ) | (binary.charCodeAt(9)  << 8) |
+      binary.charCodeAt(2) !== 0x54 || binary.charCodeAt(3) !== 0x46) return null;
+    const declaredLen =
+      (binary.charCodeAt(8)) | (binary.charCodeAt(9) << 8) |
       (binary.charCodeAt(10) << 16) | (binary.charCodeAt(11) << 24);
     if (declaredLen > binary.length) return null;
     const bytes = new Uint8Array(binary.length);
@@ -211,8 +211,36 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
 
 const PRODUCT_HERO_MAP: Record<string, { desktop: string, mobile: string } | null> = {
   'Dark Chocolate Berries & Almonds Muesli': {
-    desktop: '/project_images/product-hero.png',
-    mobile: '/project_images/mobile-varient.png'
+    desktop: '/productpageimg/product-hero.png',
+    mobile: '/productpageimg/mobile-varient.png'
+  },
+  'Dark Chocolate & Almond Crunchy Peanut Butter': {
+    desktop: '/productpageimg/dark-chocolate-almond-crunchy-peanut-butter-dex.png',
+    mobile: '/productpageimg/dark-chocolate-almond-crunchy-peanut-butter-mobile.png'
+  },
+  'Mango with Chia Peanut Butter': {
+    desktop: '/productpageimg/mango-with-chia-seeds-peanut-butter-desktop.png',
+    mobile: '/productpageimg/mango-with-chia-seeds-peanut-butter-mobile.png'
+  },
+  'Mango With Chia Seeds Peanut Butter': {
+    desktop: '/productpageimg/mango-with-chia-seeds-peanut-butter-desktop.png',
+    mobile: '/productpageimg/mango-with-chia-seeds-peanut-butter-mobile.png'
+  },
+  'American Nuts Crunchy Peanut Butter': {
+    desktop: '/productpageimg/american-nuts-crunchy-peanut-butter-desktop.png',
+    mobile: '/productpageimg/american-nuts-crunchy-peanut-butter-mobile.png'
+  },
+  'Pineapple Crunchy Peanut Butter': {
+    desktop: '/productpageimg/pineapple-crunchy-peanut-butter-dektop.png',
+    mobile: '/productpageimg/pineapple-crunchy-peanut-butter-mobile.png'
+  },
+  'Strawberry with Chia Peanut Butter': {
+    desktop: '/productpageimg/strawberry-with-chia-peanut-butter-desktop.png',
+    mobile: '/productpageimg/strawberry-with-chia-peanut-butter-mobile.png'
+  },
+  'Natural Crunchy Peanut Butter': {
+    desktop: '/productpageimg/natural-crunchy-peanut-butter-desktop.png',
+    mobile: '/productpageimg/natural-crunchy-peanut-butter-mobile.png'
   }
   // Add other products here over time
 };
@@ -593,7 +621,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               {(() => {
                 const filtered = (product.benefits || []).filter(b => b && b.trim() !== "");
                 const displayBenefits = filtered.length > 0 ? filtered : ["100% Roasted Peanuts", "High Protein Power", "Rich In Dietary Fiber", "Zero Trans Fat"];
-                
+
                 const icons = [
                   // High Fiber / Plant
                   <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
