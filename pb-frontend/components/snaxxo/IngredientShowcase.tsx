@@ -97,7 +97,7 @@ const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
                                     className="w-full h-full object-contain"
                                 />
                             </div>
-                            <span className="text-[10px] md:text-xs font-bold text-[#2d3e40] leading-tight max-w-[110px] md:max-w-[140px] tracking-wide">
+                            <span className="text-[14px] md:text-[18px] font-bold text-[#2d3e40] leading-tight max-w-[110px] md:max-w-[200px] tracking-wide">
                                 {item.name}
                             </span>
                         </motion.div>
