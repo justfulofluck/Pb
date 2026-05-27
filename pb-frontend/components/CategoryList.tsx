@@ -157,7 +157,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
           {categories.filter(c => c.id === 'Muesli').map((item) => (
             <div
               key={item.id}
-              className="relative w-full pt-0 pb-4 -mt-4"
+              className="relative w-full pt-0 pb-4 -mt-3"
             >
               <img
                 src={getMediaUrl(item.mobileImage || item.image)}
