@@ -61,7 +61,7 @@ const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
                     className="font-anton uppercase text-textured-any text-center leading-[1.1] tracking-wider py-1 px-4"
                     style={{
                         backgroundColor: bgColor,
-                        fontSize: 'clamp(2.5rem, 8vw, 5rem)',
+                        fontSize: '80px',
                         width: 'fit-content',
                     }}
                 >
@@ -97,7 +97,7 @@ const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
                                     className="w-full h-full object-contain"
                                 />
                             </div>
-                            <span className="text-[14px] md:text-[18px] font-bold text-[#2d3e40] leading-tight max-w-[110px] md:max-w-[200px] tracking-wide">
+                            <span className="text-[16px] font-bold text-[#2d3e40] leading-tight max-w-[110px] md:max-w-[200px] tracking-wide">
                                 {item.name}
                             </span>
                         </motion.div>
