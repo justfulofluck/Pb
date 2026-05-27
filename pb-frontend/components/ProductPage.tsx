@@ -619,9 +619,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
         </div>
       </section>
 
-      {product.ingredientsList && product.ingredientsList.length > 0 && (
-        <IngredientShowcase ingredients={product.ingredientsList} />
-      )}
+      <IngredientShowcase ingredients={product.ingredientsList} bgColor={bgColor} />
       <SnaxxoProductComparison product={product} />
 
       <NutritionDetailedSection product={product} onAddToCart={onAddToCart} bgColor={bgColor} />

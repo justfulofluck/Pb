@@ -10,6 +10,7 @@ interface Ingredient {
 interface IngredientShowcaseProps {
     ingredients?: Ingredient[];
     title?: string;
+    bgColor?: string;
 }
 
 const DEFAULT_INGREDIENTS: Ingredient[] = [
@@ -45,20 +46,28 @@ const DEFAULT_INGREDIENTS: Ingredient[] = [
 
 const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
     ingredients,
-    title = "The Powerful Natural Ingredient Blend"
+    title = "Ingredient Blend",
+    bgColor = "#0b3d2e"
 }) => {
     const items = (ingredients && ingredients.length > 0) ? ingredients : DEFAULT_INGREDIENTS;
 
     return (
-        <section className="py-20 px-4 md:px-12 bg-[#fff1f1] font-satoshi flex flex-col items-center overflow-hidden">
-            <motion.h2
-                initial={{ opacity: 0, y: -20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="text-4xl md:text-6xl font-anton text-[#0b3d2e] uppercase tracking-wide text-center mb-16"
-            >
-                {title.replace("The Powerful Natural ", "")}
-            </motion.h2>
+        <section className="py-20 px-4 md:px-12 bg-[#f2f2ec] font-satoshi flex flex-col items-center overflow-hidden">
+            <div className="flex justify-center w-full mb-16">
+                <motion.h2
+                    initial={{ opacity: 0, y: -20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="font-anton uppercase text-textured-any text-center leading-[1.1] tracking-wider py-1 px-4"
+                    style={{
+                        backgroundColor: bgColor,
+                        fontSize: 'clamp(2.5rem, 8vw, 5rem)',
+                        width: 'fit-content',
+                    }}
+                >
+                    {title}
+                </motion.h2>
+            </div>
 
             <style>{`
                 .ingredient-scroll-hide::-webkit-scrollbar { display: none; }
@@ -81,11 +90,11 @@ const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
                             viewport={{ once: true }}
                             className="flex flex-col items-center text-center min-w-[120px] md:min-w-[160px] group snap-center"
                         >
-                            <div className="w-36 h-36 md:w-56 md:h-56 rounded-full shadow-xl shadow-pink-200/50 overflow-hidden mb-4 group-hover:scale-105 transition-transform duration-500 relative">
+                            <div className="w-36 h-36 md:w-56 md:h-56 mb-4 group-hover:scale-105 transition-transform duration-500 relative flex items-center justify-center">
                                 <img
                                     src={getMediaUrl(item.image)}
                                     alt={item.name}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-contain"
                                 />
                             </div>
                             <span className="text-[10px] md:text-xs font-bold text-[#2d3e40] leading-tight max-w-[110px] md:max-w-[140px] tracking-wide">

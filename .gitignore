@@ -49,3 +49,12 @@ docs/
 *.txt
 *.pkl
 *.pdf
+
+# Agent / IDE
+.opencode/
+.vscode/
+
+# Generated / Dumps
+pb-backend/db_dump.json
+pb-frontend/webflow_assets/
+pb-frontend/src/vendor/webflow.*.js
