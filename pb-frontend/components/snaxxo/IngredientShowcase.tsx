@@ -52,8 +52,8 @@ const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
     const items = (ingredients && ingredients.length > 0) ? ingredients : DEFAULT_INGREDIENTS;
 
     return (
-        <section className="py-20 px-4 md:px-12 bg-[#f2f2ec] font-satoshi flex flex-col items-center overflow-hidden">
-            <div className="flex justify-center w-full mb-16">
+        <section className="py-20 bg-[#f2f2ec] font-satoshi flex flex-col items-center overflow-hidden w-full">
+            <div className="flex justify-center w-full mb-16 px-4 md:px-12">
                 <motion.h2
                     initial={{ opacity: 0, y: -20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -73,14 +73,14 @@ const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
                 .ingredient-scroll-hide::-webkit-scrollbar { display: none; }
             `}</style>
             <div
-                className="ingredient-scroll-hide w-full overflow-x-auto pb-12 px-6 md:px-12 scroll-smooth snap-x snap-mandatory"
+                className="ingredient-scroll-hide w-full overflow-x-auto pb-12 scroll-smooth snap-x snap-mandatory"
                 style={{
                     scrollbarWidth: 'none',
                     msOverflowStyle: 'none',
                     WebkitOverflowScrolling: 'touch'
                 }}
             >
-                <div className="flex gap-4 md:gap-10 items-start justify-start md:justify-center min-w-max">
+                <div className="flex gap-4 md:gap-10 items-start justify-start min-w-max px-4 md:px-12">
                     {items.map((item, idx) => (
                         <motion.div
                             key={idx}
