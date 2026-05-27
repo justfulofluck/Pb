@@ -218,10 +218,6 @@ const PRODUCT_HERO_MAP: Record<string, { desktop: string, mobile: string } | nul
     desktop: '/productpageimg/dark-chocolate-almond-crunchy-peanut-butter-dex.png',
     mobile: '/productpageimg/dark-chocolate-almond-crunchy-peanut-butter-mobile.png'
   },
-  'Mango with Chia Peanut Butter': {
-    desktop: '/productpageimg/mango-with-chia-seeds-peanut-butter-desktop.png',
-    mobile: '/productpageimg/mango-with-chia-seeds-peanut-butter-mobile.png'
-  },
   'Mango With Chia Seeds Peanut Butter': {
     desktop: '/productpageimg/mango-with-chia-seeds-peanut-butter-desktop.png',
     mobile: '/productpageimg/mango-with-chia-seeds-peanut-butter-mobile.png'
