@@ -209,40 +209,21 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
   );
 }, (prev, next) => prev.product.id === next.product.id && prev.product.name === next.product.name);
 
-const PRODUCT_HERO_MAP: Record<string, { desktop: string, mobile: string } | null> = {
-  'Dark Chocolate Berries & Almonds Muesli': {
-    desktop: '/productpageimg/product-hero.png',
-    mobile: '/productpageimg/mobile-varient.png'
-  },
-  'Dark Chocolate & Almond Crunchy Peanut Butter': {
-    desktop: '/productpageimg/dark-chocolate-almond-crunchy-peanut-butter-dex.png',
-    mobile: '/productpageimg/dark-chocolate-almond-crunchy-peanut-butter-mobile.png'
-  },
-  'Mango with Chia Peanut Butter': {
-    desktop: '/productpageimg/mango-with-chia-seeds-peanut-butter-desktop.png',
-    mobile: '/productpageimg/mango-with-chia-seeds-peanut-butter-mobile.png'
-  },
-  'Mango With Chia Seeds Peanut Butter': {
-    desktop: '/productpageimg/mango-with-chia-seeds-peanut-butter-desktop.png',
-    mobile: '/productpageimg/mango-with-chia-seeds-peanut-butter-mobile.png'
-  },
-  'American Nuts Crunchy Peanut Butter': {
-    desktop: '/productpageimg/american-nuts-crunchy-peanut-butter-desktop.png',
-    mobile: '/productpageimg/american-nuts-crunchy-peanut-butter-mobile.png'
-  },
-  'Pineapple Crunchy Peanut Butter': {
-    desktop: '/productpageimg/pineapple-crunchy-peanut-butter-dektop.png',
-    mobile: '/productpageimg/pineapple-crunchy-peanut-butter-mobile.png'
-  },
-  'Strawberry with Chia Peanut Butter': {
-    desktop: '/productpageimg/strawberry-with-chia-peanut-butter-desktop.png',
-    mobile: '/productpageimg/strawberry-with-chia-peanut-butter-mobile.png'
-  },
-  'Natural Crunchy Peanut Butter': {
-    desktop: '/productpageimg/natural-crunchy-peanut-butter-desktop.png',
-    mobile: '/productpageimg/natural-crunchy-peanut-butter-mobile.png'
-  }
-  // Add other products here over time
+const HERO_IMAGE_SLUGS = new Set([
+  'american-nuts-crunchy-peanut-butter',
+  'strawberry-with-chia-peanut-butter',
+  'natural-crunchy-peanut-butter',
+  'pineapple-crunchy-peanut-butter',
+  'mango-with-chia-seeds-peanut-butter',
+  'dark-chocolate-almond-crunchy-peanut-butter',
+]);
+
+const getProductHeroImages = (slug: string) => {
+  if (!HERO_IMAGE_SLUGS.has(slug)) return null;
+
+  return {
+    mobile: `/product-page-images/${slug}-heroimage-mobile.png`,
+  };
 };
 
 const ProductPage: React.FC<ProductPageProps> = ({
@@ -590,31 +571,35 @@ const ProductPage: React.FC<ProductPageProps> = ({
             <div className="image-wrapper chip-single-pdp" style={{ minWidth: 'auto', maxWidth: '100%' }}>
 
               <div className="w-full flex justify-center items-center py-8 px-4">
-                {PRODUCT_HERO_MAP[product.name] ? (
-                  <>
-                    {/* Desktop Image */}
+                {(() => {
+                  const heroImages = getProductHeroImages(product.slug);
+                  if (heroImages) {
+                    return (
+                      <>
+                        <img
+                          src={getMediaUrl(product.image)}
+                          alt={product.name}
+                          className="hidden lg:block w-full h-auto object-contain drop-shadow-2xl transition-transform duration-700 hover:scale-105"
+                          style={{ maxWidth: '450px' }}
+                        />
+                        <img
+                          src={getMediaUrl(heroImages.mobile)}
+                          alt={product.name}
+                          className="block lg:hidden w-full h-auto object-contain drop-shadow-2xl transition-transform duration-700 hover:scale-105"
+                          style={{ maxWidth: '100%' }}
+                        />
+                      </>
+                    );
+                  }
+                  return (
                     <img
-                      src={getMediaUrl(PRODUCT_HERO_MAP[product.name]!.desktop)}
+                      src={getMediaUrl(product.image)}
                       alt={product.name}
-                      className="hidden lg:block w-full object-contain drop-shadow-2xl transition-transform duration-700 hover:scale-105"
-                      style={{ maxWidth: '1390px', height: '637px' }}
+                      className="w-full h-auto object-contain drop-shadow-2xl transition-transform duration-700 hover:scale-105"
+                      style={{ maxWidth: '450px' }}
                     />
-                    {/* Tablet and Mobile Image */}
-                    <img
-                      src={getMediaUrl(PRODUCT_HERO_MAP[product.name]!.mobile)}
-                      alt={product.name}
-                      className="block lg:hidden w-full h-auto object-contain drop-shadow-2xl transition-transform duration-700 hover:scale-105"
-                      style={{ maxWidth: '100%' }}
-                    />
-                  </>
-                ) : (
-                  <img
-                    src={getMediaUrl(product.image)}
-                    alt={product.name}
-                    className="w-full h-auto object-contain drop-shadow-2xl transition-transform duration-700 hover:scale-105"
-                    style={{ maxWidth: '450px' }}
-                  />
-                )}
+                  );
+                })()}
               </div>
             </div>
             <div className="benefit-circles flex flex-wrap md:flex-nowrap justify-center gap-x-4 md:gap-x-8 gap-y-12 mt-4 md:mt-16 mb-8 py-4" data-snaxxo-animate>
