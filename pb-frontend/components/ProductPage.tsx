@@ -209,6 +209,14 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
   );
 }, (prev, next) => prev.product.id === next.product.id && prev.product.name === next.product.name);
 
+const PRODUCT_HERO_MAP: Record<string, { desktop: string, mobile: string } | null> = {
+  'Dark Chocolate Berries & Almonds Muesli': {
+    desktop: '/project_images/product-hero.png',
+    mobile: '/project_images/mobile-varient.png'
+  }
+  // Add other products here over time
+};
+
 const ProductPage: React.FC<ProductPageProps> = ({
   product,
   products,
@@ -551,15 +559,34 @@ const ProductPage: React.FC<ProductPageProps> = ({
             </div>
           </div>
           <div className="content-wrapper intro-pdf">
-            <div className="image-wrapper chip-single-pdp">
+            <div className="image-wrapper chip-single-pdp" style={{ minWidth: 'auto', maxWidth: '100%' }}>
 
-              <div className="w-full flex justify-center items-center py-8">
-                <img
-                  src={getMediaUrl(product.image)}
-                  alt={product.name}
-                  className="w-full h-auto object-contain drop-shadow-2xl transition-transform duration-700 hover:scale-105"
-                  style={{ maxWidth: '450px' }}
-                />
+              <div className="w-full flex justify-center items-center py-8 px-4">
+                {PRODUCT_HERO_MAP[product.name] ? (
+                  <>
+                    {/* Desktop Image */}
+                    <img
+                      src={getMediaUrl(PRODUCT_HERO_MAP[product.name]!.desktop)}
+                      alt={product.name}
+                      className="hidden lg:block w-full object-contain drop-shadow-2xl transition-transform duration-700 hover:scale-105"
+                      style={{ maxWidth: '1390px', height: '637px' }}
+                    />
+                    {/* Tablet and Mobile Image */}
+                    <img
+                      src={getMediaUrl(PRODUCT_HERO_MAP[product.name]!.mobile)}
+                      alt={product.name}
+                      className="block lg:hidden w-full h-auto object-contain drop-shadow-2xl transition-transform duration-700 hover:scale-105"
+                      style={{ maxWidth: '100%' }}
+                    />
+                  </>
+                ) : (
+                  <img
+                    src={getMediaUrl(product.image)}
+                    alt={product.name}
+                    className="w-full h-auto object-contain drop-shadow-2xl transition-transform duration-700 hover:scale-105"
+                    style={{ maxWidth: '450px' }}
+                  />
+                )}
               </div>
             </div>
             <div className="benefit-circles flex flex-wrap md:flex-nowrap justify-center gap-x-4 md:gap-x-8 gap-y-12 mt-4 md:mt-16 mb-8 py-4" data-snaxxo-animate>
