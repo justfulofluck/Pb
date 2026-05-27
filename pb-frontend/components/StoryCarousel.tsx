@@ -19,7 +19,7 @@ const getDriveId = (url: string) => {
 
 const getDriveStreamUrl = (url: string) => {
   if (!url) return '';
-  
+
   // 1. If it's already a clean backend media path (starts with /media or media/)
   if (url.startsWith('/media/') || url.startsWith('media/')) {
     return getMediaUrl(url);
@@ -32,7 +32,7 @@ const getDriveStreamUrl = (url: string) => {
     // We use this as a secondary source if the local mediaUrl hasn't been processed yet.
     return `https://drive.google.com/uc?export=download&id=${fileId}`;
   }
-  
+
   // 3. Fallback to general media resolver (handles absolute URLs, data URLs, etc.)
   return getMediaUrl(url);
 };
@@ -196,7 +196,7 @@ const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProd
   }, [getProduct]);
 
   return (
-    <section className="py-10 md:py-24 bg-whiteboard texture-overlay texture-speckles overflow-hidden">
+    <section className="pt-2 pb-10 md:pt-10 md:pb-24 bg-whiteboard texture-overlay texture-speckles overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 relative flex flex-col items-center">
         {/* Centered Header */}
         <div className="text-center mb-8 md:mb-16 relative w-full flex flex-col items-center">

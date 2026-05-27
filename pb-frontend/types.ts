@@ -111,6 +111,7 @@ export interface CategoryDisplay {
   id: string;
   display: string;
   image: string;
+  mobileImage?: string;
   count: string;
   bgClass: string;
   borderClass: string;
@@ -169,21 +170,23 @@ export interface UsageIdea {
 
 export const CATEGORY_DISPLAY_DATA: CategoryDisplay[] = [
   {
-    id: "Peanut Butter",
-    display: "Peanut Butter",
-    image: "/assets/peanut-butter-display.jpg",
-    count: "0 Flavors",
-    bgClass: "bg-[#fff7ed]",
-    borderClass: "border-orange-100 hover:border-orange-300",
-    textClass: "text-orange-950",
-    accentClass: "bg-orange-600",
-    rotation: "rotate-2",
-    imagePosition: "object-center"
+    id: "Oats",
+    display: "Oats",
+    image: "/assets/oats-display.jpg",
+    mobileImage: "homepage/oats.png",
+    count: "0 Varieties",
+    bgClass: "bg-[#f0fdf4]",
+    borderClass: "border-green-100 hover:border-green-300",
+    textClass: "text-green-950",
+    accentClass: "bg-green-600",
+    rotation: "rotate-1",
+    imagePosition: "object-bottom"
   },
   {
     id: "Muesli",
     display: "Muesli",
     image: "/assets/muesli-display.jpg",
+    mobileImage: "homepage/musli.png",
     count: "0 Blends",
     bgClass: "bg-[#fefce8]",
     borderClass: "border-yellow-100 hover:border-yellow-300",
@@ -193,16 +196,17 @@ export const CATEGORY_DISPLAY_DATA: CategoryDisplay[] = [
     imagePosition: "object-bottom"
   },
   {
-    id: "Oats",
-    display: "Oats",
-    image: "/assets/oats-display.jpg",
-    count: "0 Varieties",
-    bgClass: "bg-[#f0fdf4]",
-    borderClass: "border-green-100 hover:border-green-300",
-    textClass: "text-green-950",
-    accentClass: "bg-green-600",
-    rotation: "rotate-1",
-    imagePosition: "object-bottom"
+    id: "Peanut Butter",
+    display: "Peanut Butter",
+    image: "/assets/peanut-butter-display.jpg",
+    mobileImage: "homepage/peanutbutter.png",
+    count: "0 Flavors",
+    bgClass: "bg-[#fff7ed]",
+    borderClass: "border-orange-100 hover:border-orange-300",
+    textClass: "text-orange-950",
+    accentClass: "bg-orange-600",
+    rotation: "rotate-2",
+    imagePosition: "object-center"
   }
 ];
 export interface VisitorSubmission {

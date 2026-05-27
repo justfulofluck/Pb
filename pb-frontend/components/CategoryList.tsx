@@ -69,7 +69,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
   });
 
   return (
-    <section className="pt-20 pb-12 md:py-24 bg-whiteboard texture-overlay texture-speckles relative z-20 overflow-hidden">
+    <section className="pt-20 pb-4 md:pb-12 md:pt-24 bg-whiteboard texture-overlay texture-speckles relative z-20 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="text-center mb-8 md:mb-24 relative">
           <span className="font-handdrawn text-2xl md:text-3xl text-primary transform rotate-6 inline-block mb-2 absolute -top-10 left-1/2 translate-x-[20px] md:translate-x-[90px] lg:translate-x-[120px] drop-shadow-sm">Pick your fav!</span>
@@ -123,46 +123,91 @@ const CategoryList: React.FC<CategoryListProps> = ({
           ))}
         </div>
 
-        {/* Mobile & Tablet View (Premium Arched Layout) */}
-        <div className="lg:hidden mt-0">
-          <div className="relative pt-4 pb-4 md:pb-20 px-2 overflow-visible">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[300px] bg-gradient-radial from-primary/5 to-transparent rounded-[100%] blur-2xl opacity-60 z-0"></div>
-
-            <div className="relative z-10 flex justify-center items-center gap-1 sm:gap-4 md:gap-8 px-1 py-4 md:py-10 w-full overflow-x-auto">
-              {categories.map((item, i) => {
-                const isCenter = i === Math.floor(categories.length / 2);
-                return (
-                  <div
-                    key={item.id}
-                    className="flex flex-col items-center group shrink w-1/3 min-w-[100px] xs:min-w-[120px]"
-                    onClick={() => handleCategoryClick(item.id)}
-                    style={{
-                      transform: isCenter ? 'translateY(-20px)' : 'translateY(0)',
-                      transition: 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)'
-                    }}
-                  >
-                    <div className={`relative w-24 h-24 md:w-36 md:h-36 rounded-full bg-white shadow-[0_20px_45px_rgba(0,0,0,0.12)] p-1 flex items-center justify-center border-4 border-white transition-all duration-500 group-active:scale-95`}>
-                      <div className="w-full h-full rounded-full overflow-hidden">
-                        <img
-                          src={getMediaUrl(item.image)}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          alt={item.display}
-                          draggable={false}
-                        />
-                      </div>
-                      <div className={`absolute inset-0 rounded-full border-2 border-transparent group-hover:border-primary/20 transition-colors duration-500`}></div>
-                    </div>
-                    <div className={`mt-4 text-center transition-all duration-300`}>
-                      <span className="block text-[11px] md:text-base font-normal uppercase tracking-widest text-slate-800 leading-tight font-anton">
-                        {item.display.replace('Super ', '')}
-                      </span>
-                      <div className={`w-6 h-1 bg-primary mx-auto mt-2 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300`}></div>
-                    </div>
-                  </div>
-                );
-              })}
+        {/* Mobile & Tablet View (Image-only Banners) */}
+        <div className="lg:hidden mt-4 mb-0 px-4 flex flex-col pb-8 ">
+          {/* Oats */}
+          {categories.filter(c => c.id === 'Oats').map((item) => (
+            <div
+              key={item.id}
+              className="relative w-full pt-0 pb-2"
+            >
+              <img
+                src={getMediaUrl(item.mobileImage || item.image)}
+                alt={item.display}
+                className="block h-auto w-full max-w-full"
+              />
+              {/* Text overlay - You can tweak pt/pb here for perfect vertical alignment */}
+              <div className="absolute inset-0 flex flex-col justify-center pl-6 pr-4 pt-7 pb-0 pointer-events-none">
+                <div
+                  onClick={() => handleCategoryClick(item.id)}
+                  className="pointer-events-auto cursor-pointer self-start active:scale-[0.95] transition-transform duration-300 drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)]"
+                >
+                  <h3 className="text-white text-3xl sm:text-4xl font-normal uppercase tracking-widest font-anton mb-1 leading-none">
+                    {item.display}
+                  </h3>
+                  <p className="text-white/90 text-[13px] sm:text-sm font-bold tracking-wider uppercase font-satoshi mt-1">
+                    Explore {item.count}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+          ))}
+
+          {/* Muesli */}
+          {categories.filter(c => c.id === 'Muesli').map((item) => (
+            <div
+              key={item.id}
+              className="relative w-full pt-0 pb-4 -mt-4"
+            >
+              <img
+                src={getMediaUrl(item.mobileImage || item.image)}
+                alt={item.display}
+                className="block h-auto w-[104%] mx-auto max-w-none"
+              />
+              {/* Text overlay - You can tweak pt/pb here for perfect vertical alignment */}
+              <div className="absolute inset-0 flex flex-col justify-center pl-5 pr-4 pt-2 pb-0 pointer-events-none">
+                <div
+                  onClick={() => handleCategoryClick(item.id)}
+                  className="pointer-events-auto cursor-pointer self-start active:scale-[0.95] transition-transform duration-300 drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)]"
+                >
+                  <h3 className="text-white text-3xl sm:text-4xl font-normal uppercase tracking-widest font-anton mb-1 leading-none">
+                    {item.display}
+                  </h3>
+                  <p className="text-white/90 text-[13px] sm:text-sm font-bold tracking-wider uppercase font-satoshi mt-1">
+                    Explore {item.count}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Peanut Butter */}
+          {categories.filter(c => c.id === 'Peanut Butter').map((item) => (
+            <div
+              key={item.id}
+              className="relative w-full pt-0 pb-0"
+            >
+              <img
+                src={getMediaUrl(item.mobileImage || item.image)}
+                alt={item.display}
+                className="block h-auto w-[108%] mx-auto max-w-none"
+              />
+              {/* Text overlay - You can tweak pt/pb here for perfect vertical alignment */}
+              <div className="absolute inset-0 flex flex-col justify-center pl-4 pr-4 pt-0 pb-11 pointer-events-none">
+                <div
+                  onClick={() => handleCategoryClick(item.id)}
+                  className="pointer-events-auto cursor-pointer self-start active:scale-[0.95] transition-transform duration-300 drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)]"
+                >
+                  <h3 className="text-white text-3xl sm:text-4xl font-normal uppercase tracking-widest font-anton mb-1 leading-none">
+                    {item.display}
+                  </h3>
+                  <p className="text-white/90 text-[13px] sm:text-sm font-bold tracking-wider uppercase font-satoshi mt-1">
+                    Explore {item.count}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
