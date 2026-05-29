@@ -201,7 +201,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
 
                     {/* Wishlist Heart - Top Right */}
                     <button
-                      className="absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-all duration-300 shadow-sm active:scale-90"
+                      className="absolute top-2 right-2 z-20 p-2 flex items-center justify-center transition-all duration-300 active:scale-90 group/heart"
                       onClick={async (e) => {
                         e.stopPropagation();
                         if (!user) {
@@ -233,7 +233,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
                         }
                       }}
                     >
-                      <span className={`material-symbols-outlined text-[18px] transition-colors ${wishlistIds.has(product.id as any) ? '!text-red-500 fill-1' : '!text-slate-300'}`}>favorite</span>
+                      <span className={`material-symbols-outlined text-[28px] drop-shadow-md transition-colors duration-300 ${wishlistIds.has(product.id as any) ? '!text-red-500 fill-1' : '!text-white/90 group-hover/heart:!text-red-400'}`} style={{ WebkitTextStroke: wishlistIds.has(product.id as any) ? '0px' : '1px rgba(0,0,0,0.2)' }}>favorite</span>
                     </button>
 
                     {/* Image */}

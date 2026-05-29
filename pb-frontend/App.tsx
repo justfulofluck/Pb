@@ -503,18 +503,28 @@ const AppContent: React.FC = () => {
   // Handle browser back/forward buttons and initial state restoration
   useEffect(() => {
     const syncState = async (state: any) => {
-      if (!state || !state.view) {
-        // Fallback or home - only update if actually on a different view
-        if (window.history.state?.view !== 'home') {
-          // Careful not to trigger loop here
-        }
-        return;
+      let targetView = state?.view;
+      if (!targetView) {
+        const p = window.location.pathname;
+        if (p === '/' || p === '') targetView = 'home';
+        else if (p.startsWith('/product/')) targetView = 'product';
+        else if (p.startsWith('/shop')) targetView = 'shop';
+        else if (p.startsWith('/blog/')) targetView = 'blog-detail';
+        else if (p.startsWith('/blogs')) targetView = 'blogs';
+        else if (p.startsWith('/event/')) targetView = 'event-detail';
+        else if (p.startsWith('/events')) targetView = 'event-blogs';
+        else if (p.startsWith('/dashboard')) targetView = 'dashboard';
+        else if (p.startsWith('/checkout')) targetView = 'checkout';
+        else targetView = 'home';
       }
 
       // 1. Sync View
-      if (window.history.state?.view !== state.view) {
-        setCurrentView(state.view);
-      }
+      setCurrentView(prev => {
+        if (prev !== targetView) {
+          return targetView;
+        }
+        return prev;
+      });
 
       // 2. Sync Product (only if needed)
       if (state.slug) {

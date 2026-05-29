@@ -129,9 +129,9 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
                     {/* Heart Icon */}
                     <button
                       onClick={(e) => toggleWishlist(e, String(product.id))}
-                      className="absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-all duration-300 shadow-sm active:scale-90"
+                      className="absolute top-2 right-2 z-20 p-2 flex items-center justify-center transition-all duration-300 active:scale-90 group/heart"
                     >
-                      <span className={`material-symbols-outlined text-[18px] transition-colors ${isWishlisted ? '!text-red-500 fill-1' : '!text-slate-300'}`}>favorite</span>
+                      <span className={`material-symbols-outlined text-[28px] drop-shadow-md transition-colors duration-300 ${isWishlisted ? '!text-red-500 fill-1' : '!text-white/90 group-hover/heart:!text-red-400'}`} style={{ WebkitTextStroke: isWishlisted ? '0px' : '1px rgba(0,0,0,0.2)' }}>favorite</span>
                     </button>
 
                     <div className="w-full h-full flex items-center justify-center relative">
