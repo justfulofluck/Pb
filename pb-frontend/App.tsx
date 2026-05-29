@@ -798,15 +798,46 @@ const AppContent: React.FC = () => {
         },
         body: JSON.stringify({
           title: newForm.title,
-          event_name: newForm.eventName,
-          status: newForm.status
+          event_name: newForm.event_name,
+          status: newForm.status,
+          form_schema: newForm.form_schema,
+          require_email_verification: newForm.require_email_verification
         })
       });
       if (response.ok) {
+        const created = await response.json();
         queryClient.invalidateQueries({ queryKey: ['visitor-forms'] });
+        return created;
+      } else {
+        const err = await response.json().catch(() => ({}));
+        showToast(err.detail || 'Failed to create form', 'error');
       }
     } catch (err) {
       console.error("Failed to add visitor form", err);
+      showToast('Failed to create form', 'error');
+    }
+    return null;
+  };
+
+  const handleUpdateVisitorForm = async (id: string, data: Partial<VisitorForm>) => {
+    try {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/visitor-forms/${id}/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+      });
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['visitor-forms'] });
+        showToast('Form updated successfully!', 'success');
+      } else {
+        showToast('Failed to update form', 'error');
+      }
+    } catch (err) {
+      console.error("Failed to update visitor form", err);
     }
   };
 
@@ -1610,6 +1641,7 @@ const AppContent: React.FC = () => {
         onDeleteStory={handleDeleteStory}
         visitorForms={visitorForms}
         onAddVisitorForm={handleAddVisitorForm}
+        onUpdateVisitorForm={handleUpdateVisitorForm}
         onDeleteVisitorForm={handleDeleteVisitorForm}
         announcements={announcements}
         onAddAnnouncement={handleAddAnnouncement}

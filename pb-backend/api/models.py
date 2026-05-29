@@ -295,7 +295,10 @@ class VisitorForm(models.Model):
     title = models.CharField(max_length=255)
     event_name = models.CharField(max_length=255)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Draft")
+    form_schema = models.JSONField(default=dict, blank=True)
+    require_email_verification = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title
@@ -305,21 +308,11 @@ class VisitorSubmission(models.Model):
     form = models.ForeignKey(
         VisitorForm, related_name="submissions", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=100)
-    email = models.EmailField()
-    phone = models.CharField(max_length=20)
-    address_details = models.CharField(max_length=255, default="")
-    buying_source = models.CharField(max_length=50, default="")
-    brand_awareness = models.BooleanField(default=False)
-    current_usage = models.CharField(max_length=255, default="")
-    flavor_preferences = models.TextField(default="")
-    reviewed_product = models.CharField(max_length=100, default="")
-    review_content = models.TextField(default="")
-    marketing_consent = models.BooleanField(default=False)
+    submission_data = models.JSONField(default=dict, blank=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.name} - {self.form.title}"
+        return f"Submission #{self.id} - {self.form.title}"
 
 
 class PasswordResetOTP(models.Model):
@@ -336,6 +329,21 @@ class PasswordResetOTP(models.Model):
 
     def __str__(self):
         return f"OTP for {self.user.username}"
+
+
+class FormVerificationOTP(models.Model):
+    email = models.EmailField()
+    otp = models.CharField(max_length=6)
+    verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self):
+        from django.utils import timezone
+        import datetime
+        return self.created_at >= timezone.now() - datetime.timedelta(minutes=10)
+
+    def __str__(self):
+        return f"Form OTP for {self.email}"
 
 
 class NewsletterSubscriber(models.Model):

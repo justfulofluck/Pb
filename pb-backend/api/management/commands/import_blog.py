@@ -55,13 +55,21 @@ class Command(BaseCommand):
             post_type=data["post_type"],
             title=data["title"],
             excerpt=data.get("excerpt", ""),
-            image=data.get("image", ""),
+            image=data.get("image") or None,
             date=data.get("date", ""),
             read_time=data.get("read_time", ""),
             author=data.get("author", ""),
             content=data.get("content", []),
             tags=data.get("tags", []),
             is_active=data.get("is_active", True),
+            subtitle=data.get("subtitle", ""),
+            intro_heading=data.get("intro_heading", ""),
+            featured_quote=data.get("featured_quote", ""),
+            author_role=data.get("author_role", ""),
+            facts_list=data.get("facts_list", []),
+            key_points=data.get("key_points", []),
+            health_benefits=data.get("health_benefits", []),
+            usage_recipes=data.get("usage_recipes", []),
         )
 
         self.stdout.write(

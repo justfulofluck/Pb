@@ -440,7 +440,8 @@ class UserSerializer(serializers.ModelSerializer):
 class VisitorSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = VisitorSubmission
-        fields = "__all__"
+        fields = ["id", "form", "submission_data", "submitted_at"]
+        read_only_fields = ["id", "submitted_at"]
 
 
 class VisitorFormSerializer(serializers.ModelSerializer):
@@ -448,7 +449,7 @@ class VisitorFormSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VisitorForm
-        fields = ["id", "title", "event_name", "status", "created_at", "submissions"]
+        fields = ["id", "title", "event_name", "status", "form_schema", "require_email_verification", "created_at", "updated_at", "submissions"]
 
 
 class RequestPasswordResetSerializer(serializers.Serializer):
@@ -464,6 +465,15 @@ class SetNewPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp = serializers.CharField(max_length=6)
     new_password = serializers.CharField(min_length=8)
+
+
+class FormSendOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class FormVerifyOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=6)
 
 
 class NewsletterSubscribeSerializer(serializers.Serializer):

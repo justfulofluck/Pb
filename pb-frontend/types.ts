@@ -212,27 +212,19 @@ export const CATEGORY_DISPLAY_DATA: CategoryDisplay[] = [
 export interface VisitorSubmission {
   id: string;
   form: string;
-  name: string;
-  email: string;
-  phone: string;
-  submittedAt?: string;
-  addressDetails?: string;
-  buyingSource?: string;
-  brandAwareness?: boolean;
-  currentUsage?: string;
-  flavorPreferences?: string; // Comma separated
-  reviewedProduct?: string;
-  reviewContent?: string;
-  marketingConsent?: boolean;
+  submission_data: Record<string, any>;
+  submitted_at: string;
 }
 
 export interface VisitorForm {
   id: string;
   title: string;
-  eventName: string;
+  event_name: string;
   status: 'Draft' | 'Published';
-  createdAt: string;
-  link: string;
+  form_schema: Record<string, any>;
+  require_email_verification?: boolean;
+  created_at: string;
+  updated_at: string;
   submissions: VisitorSubmission[];
 }
 

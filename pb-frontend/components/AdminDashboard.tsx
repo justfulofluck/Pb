@@ -32,7 +32,8 @@ interface AdminDashboardProps {
   onAddStory: (s: Story) => void;
   onDeleteStory: (id: string) => void;
   visitorForms: VisitorForm[];
-  onAddVisitorForm: (f: VisitorForm) => void;
+  onAddVisitorForm: (f: VisitorForm) => Promise<any>;
+  onUpdateVisitorForm: (id: string, data: Partial<VisitorForm>) => Promise<void>;
   onDeleteVisitorForm: (id: string) => void;
   announcements: Announcement[];
   onAddAnnouncement: (a: Announcement) => void;
@@ -89,6 +90,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onDeleteStory,
   visitorForms,
   onAddVisitorForm,
+  onUpdateVisitorForm,
   onDeleteVisitorForm,
   announcements,
   onAddAnnouncement,
@@ -125,7 +127,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
 
-  const adminEmail = localStorage.getItem('admin_email') || 'admin@pinobite.global';
+  const adminEmail = localStorage.getItem('admin_email') || 'admin@pinobite.com';
   const adminInitials = adminEmail.substring(0, 2).toUpperCase();
 
   // Distributor Applications State
@@ -189,12 +191,66 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   // Visitor Forms State
-  // visitorForms is now passed via props
-  const [visitorFormView, setVisitorFormView] = useState<'list' | 'create' | 'details'>('list');
+  const [visitorFormView, setVisitorFormView] = useState<'list' | 'create' | 'details' | 'edit'>('list');
   const [selectedVisitorForm, setSelectedVisitorForm] = useState<VisitorForm | null>(null);
-  const [newFormData, setNewFormData] = useState({ title: '', eventName: '' });
   const [visitorSubmissionPage, setVisitorSubmissionPage] = useState(1);
   const VISITOR_SUBMISSIONS_PER_PAGE = 6;
+
+  type BuilderField = {
+    id: string;
+    type: string;
+    title: string;
+    name: string;
+    isRequired: boolean;
+    placeholder: string;
+    choices: string[];
+    rateCount: number;
+    rateMax: number;
+    rateMin: number;
+  };
+
+  const defaultFieldTitle = (type: string) => {
+    const names: Record<string, string> = {
+      text: 'Short Text', email: 'Email', tel: 'Phone', textarea: 'Long Text',
+      select: 'Dropdown', checkbox: 'Checkboxes', radio: 'Multiple Choice',
+      date: 'Date', rating: 'Rating', file: 'File Upload'
+    };
+    return names[type] || 'Question';
+  };
+
+  const createField = (type: string, index: number): BuilderField => ({
+    id: `fld_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+    type,
+    title: defaultFieldTitle(type),
+    name: `question${index}`,
+    isRequired: false,
+    placeholder: '',
+    choices: ['Option 1', 'Option 2'],
+    rateCount: 5,
+    rateMax: 5,
+    rateMin: 1,
+  });
+
+  const [builderFields, setBuilderFields] = useState<BuilderField[]>([]);
+  const [builderTitle, setBuilderTitle] = useState('');
+  const [builderEventName, setBuilderEventName] = useState('');
+  const [builderStatus, setBuilderStatus] = useState<'Draft' | 'Published'>('Draft');
+  const [builderRequireEmail, setBuilderRequireEmail] = useState(false);
+  const [showFieldPicker, setShowFieldPicker] = useState(false);
+  const [previewSchema, setPreviewSchema] = useState<any>(null);
+
+  const fieldTypes = [
+    { type: 'text', icon: 'short_text', label: 'Short Text' },
+    { type: 'email', icon: 'mail', label: 'Email' },
+    { type: 'tel', icon: 'phone', label: 'Phone' },
+    { type: 'textarea', icon: 'notes', label: 'Long Text' },
+    { type: 'select', icon: 'arrow_drop_down_circle', label: 'Dropdown' },
+    { type: 'checkbox', icon: 'check_box', label: 'Checkboxes' },
+    { type: 'radio', icon: 'radio_button_checked', label: 'Multiple Choice' },
+    { type: 'date', icon: 'calendar_today', label: 'Date' },
+    { type: 'rating', icon: 'star', label: 'Rating' },
+    { type: 'file', icon: 'upload_file', label: 'File Upload' },
+  ];
 
   // Announcements state
   const [announcementForm, setAnnouncementForm] = useState<Partial<Announcement>>({
@@ -351,8 +407,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         list.push({
           id: `sub-${s.id}`,
           title: "New Visitor Submission",
-          desc: `${s.name} submitted ${f.title}`,
-          time: new Date(s.submittedAt || Date.now()).getTime(),
+          desc: `${(s.submission_data?.name || s.submission_data?.email || 'Someone')} submitted ${f.title}`,
+          time: new Date(s.submitted_at || Date.now()).getTime(),
           icon: "qr_code_scanner",
           color: "bg-purple-100 text-purple-600",
           tab: 'visitor-forms'
@@ -935,22 +991,137 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  // Handlers for Visitor Forms
-  const handleCreateForm = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newId = `vf - ${Date.now()} `;
-    const newForm: VisitorForm = {
-      id: newId,
-      title: newFormData.title,
-      eventName: newFormData.eventName,
-      status: 'Published',
-      link: `https://pinobite.global/forms/${newId}`,
-      createdAt: new Date().toISOString(),
-      submissions: []
+  // Form Builder helpers
+  const buildSurveySchema = (fields: BuilderField[]): any => {
+    const typeMap: Record<string, string> = {
+      text: 'text', email: 'text', tel: 'text', textarea: 'comment',
+      select: 'dropdown', checkbox: 'checkbox', radio: 'radiogroup',
+      date: 'text', rating: 'rating', file: 'file',
     };
-    onAddVisitorForm(newForm);
-    setVisitorFormView('list');
-    setNewFormData({ title: '', eventName: '' });
+    const inputTypeMap: Record<string, string> = {
+      email: 'email', tel: 'tel', date: 'date',
+    };
+    const elements = fields.map((f, i) => {
+      const el: any = {
+        type: typeMap[f.type] || 'text',
+        name: f.name || `question${i + 1}`,
+        title: f.title || f.type,
+        isRequired: f.isRequired,
+      };
+      if (inputTypeMap[f.type]) el.inputType = inputTypeMap[f.type];
+      if (f.placeholder) el.placeholder = f.placeholder;
+      if (['dropdown', 'checkbox', 'radiogroup'].includes(el.type)) {
+        el.choices = f.choices.length > 0 ? f.choices : ['Option 1'];
+      }
+      if (el.type === 'rating') {
+        el.rateCount = f.rateCount || 5;
+        el.rateMax = f.rateMax || 5;
+        el.rateMin = f.rateMin || 1;
+      }
+      if (f.type === 'file') {
+        el.allowMultiple = false;
+        el.maxSize = 0;
+      }
+      return el;
+    });
+    return { elements };
+  };
+
+  // Handlers for Visitor Forms
+  const handleSaveForm = async () => {
+    if (!builderTitle.trim()) {
+      showToast('Please enter a form title.', 'warning');
+      return;
+    }
+    if (builderFields.length === 0) {
+      showToast('Please add at least one field.', 'warning');
+      return;
+    }
+    const schema = buildSurveySchema(builderFields);
+    if (visitorFormView === 'edit' && selectedVisitorForm) {
+      await onUpdateVisitorForm(selectedVisitorForm.id, {
+        title: builderTitle,
+        event_name: builderEventName,
+        status: builderStatus,
+        form_schema: schema,
+        require_email_verification: builderRequireEmail,
+      });
+      setVisitorFormView('details');
+    } else {
+      const result = await onAddVisitorForm({
+        id: '',
+        title: builderTitle,
+        event_name: builderEventName,
+        status: builderStatus,
+        form_schema: schema,
+        require_email_verification: builderRequireEmail,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        submissions: [],
+      });
+      setVisitorFormView('list');
+    }
+    resetBuilder();
+  };
+
+  const resetBuilder = () => {
+    setBuilderFields([]);
+    setBuilderTitle('');
+    setBuilderEventName('');
+    setBuilderStatus('Draft');
+    setBuilderRequireEmail(false);
+    setPreviewSchema(null);
+  };
+
+  const handleEditForm = (form: VisitorForm) => {
+    setSelectedVisitorForm(form);
+    setBuilderTitle(form.title);
+    setBuilderEventName(form.event_name);
+    setBuilderStatus(form.status);
+    setBuilderRequireEmail(form.require_email_verification ?? false);
+    const fields: BuilderField[] = (form.form_schema?.elements || []).map((el: any, i: number) => ({
+      id: `fld_${i}`,
+      type: el.inputType === 'email' ? 'email' : el.inputType === 'tel' ? 'tel' : el.inputType === 'date' ? 'date' : el.type === 'comment' ? 'textarea' : el.type === 'dropdown' ? 'select' : el.type === 'radiogroup' ? 'radio' : el.type,
+      title: el.title || '',
+      name: el.name || `question${i + 1}`,
+      isRequired: el.isRequired || false,
+      placeholder: el.placeholder || '',
+      choices: el.choices || [],
+      rateCount: el.rateCount || 5,
+      rateMax: el.rateMax || 5,
+      rateMin: el.rateMin || 1,
+    }));
+    setBuilderFields(fields);
+    setVisitorFormView('edit');
+  };
+
+  const handleAddField = (type: string) => {
+    setBuilderFields(prev => [...prev, createField(type, prev.length + 1)]);
+    setShowFieldPicker(false);
+  };
+
+  const handleRemoveField = (id: string) => {
+    setBuilderFields(prev => prev.filter(f => f.id !== id));
+  };
+
+  const handleFieldMove = (id: string, direction: 'up' | 'down') => {
+    setBuilderFields(prev => {
+      const idx = prev.findIndex(f => f.id === id);
+      if (idx === -1) return prev;
+      const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (newIdx < 0 || newIdx >= prev.length) return prev;
+      const arr = [...prev];
+      [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+      return arr;
+    });
+  };
+
+  const handleFieldChange = (id: string, key: string, value: any) => {
+    setBuilderFields(prev => prev.map(f => f.id === id ? { ...f, [key]: value } : f));
+  };
+
+  const handlePreview = () => {
+    setPreviewSchema(buildSurveySchema(builderFields));
   };
 
   const downloadQRCode = async (dataUrl: string, filename: string) => {
@@ -974,39 +1145,26 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleExportCSV = () => {
     if (!selectedVisitorForm) return;
 
-    const headers = [
-      'Name',
-      'Email',
-      'Phone',
-      'Address/City',
-      'Buying Source',
-      'Brand Awareness',
-      'Current Usage',
-      'Flavor Preferences',
-      'Reviewed Product',
-      'Review Content',
-      'Marketing Consent',
-      'Submitted At'
-    ];
+    const schema = selectedVisitorForm.form_schema;
+    const allElements = schema?.pages
+      ? schema.pages.flatMap((p: any) => p.elements || [])
+      : schema?.elements || [];
+    const headers = allElements.map((el: any) => el.title || el.name);
+    headers.push('Submitted At');
 
-    const rows = selectedVisitorForm.submissions.map(sub => [
-      sub.name,
-      sub.email,
-      sub.phone,
-      sub.addressDetails || '',
-      sub.buyingSource || '',
-      sub.brandAwareness ? 'Yes' : 'No',
-      sub.currentUsage || '',
-      sub.flavorPreferences || '',
-      sub.reviewedProduct || '',
-      sub.reviewContent || '',
-      sub.marketingConsent ? 'Agreed' : 'Not Agreed',
-      new Date(sub.submittedAt || Date.now()).toLocaleString()
-    ]);
+    const rows = selectedVisitorForm.submissions.map(sub => {
+      const data = sub.submission_data || {};
+      const row = allElements.map((el: any) => {
+        const val = data[el.name];
+        return Array.isArray(val) ? val.join(', ') : String(val ?? '');
+      });
+      row.push(new Date(sub.submitted_at || Date.now()).toLocaleString());
+      return row;
+    });
 
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')) // Quote cells and escape existing quotes
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -1356,7 +1514,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
       case 'blogs': return 'Blog Manager';
       case 'events': return 'Event Stories';
       case 'ui-settings': return 'Site Customization';
-      case 'visitor-forms': return 'Pinobit Event Visitor Form';
+      case 'visitor-forms': return 'Form Builder';
       case 'announcements': return 'Dynamic Announcements';
       case 'rewards': return 'Loyalty & Rewards';
       case 'customers': return 'Customer Management';
@@ -1871,7 +2029,6 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
             </div>
           )}
 
-          {/* ----- VISITOR FORMS TAB ----- */}
           {/* ----- DISTRIBUTORS TAB ----- */}
           {activeTab === 'distributors' && (
             <div className="space-y-6 animate-in fade-in duration-300">
@@ -1981,228 +2138,395 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
               <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
                 <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
                   <button
-                    onClick={() => { setVisitorFormView('list'); setSelectedVisitorForm(null); }}
+                    onClick={() => { setVisitorFormView('list'); setSelectedVisitorForm(null); resetBuilder(); }}
                     className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${visitorFormView === 'list' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     All Forms
                   </button>
                   <button
-                    onClick={() => { setVisitorFormView('create'); setSelectedVisitorForm(null); }}
-                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${visitorFormView === 'create' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                    onClick={() => { setVisitorFormView('create'); setSelectedVisitorForm(null); resetBuilder(); }}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${visitorFormView === 'create' || visitorFormView === 'edit' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
                   >
-                    Create New Form
+                    {visitorFormView === 'edit' ? 'Editing...' : 'Create New Form'}
                   </button>
                 </div>
               </div>
 
-              {/* View: Create Form */}
-              {visitorFormView === 'create' && (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-2xl mx-auto">
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-                      <span className="material-symbols-outlined text-2xl">qr_code_2</span>
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-black uppercase text-slate-900">Create Visitor Form</h3>
-                      <p className="text-sm text-slate-500 font-medium">Generate a QR code for quick event check-ins.</p>
-                    </div>
-                  </div>
-
-                  <form onSubmit={handleCreateForm} className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-500">Form Title</label>
-                      <input required type="text" value={newFormData.title} onChange={e => setNewFormData({ ...newFormData, title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Morning Yoga Registration" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-500">Event Name</label>
-                      <input required type="text" value={newFormData.eventName} onChange={e => setNewFormData({ ...newFormData, eventName: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Yoga at the Park" />
-                    </div>
-
-                    <div className="pt-4 flex gap-4 justify-end">
-                      <button type="button" onClick={() => setVisitorFormView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
-                      <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Publish Form</button>
-                    </div>
-                  </form>
-                </div>
-              )}
-
-              {/* View: Form List */}
-              {visitorFormView === 'list' && (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {visitorForms.map(form => (
-                    <div key={form.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
-                      <div className="p-6 border-b border-slate-50 flex justify-between items-start">
-                        <div>
-                          <h4 className="font-black text-lg text-slate-900 mb-1">{form.title}</h4>
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{form.eventName}</p>
+              {/* View: Form Builder (Create/Edit) */}
+              {(visitorFormView === 'create' || visitorFormView === 'edit') && (
+                <div className="grid lg:grid-cols-3 gap-6">
+                  {/* Builder Panel */}
+                  <div className="lg:col-span-2 space-y-6">
+                    {/* Form Meta */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+                      <h3 className="font-black uppercase text-slate-900 text-lg">
+                        {visitorFormView === 'edit' ? 'Edit Form' : 'Create New Form'}
+                      </h3>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Form Title</label>
+                          <input type="text" value={builderTitle} onChange={e => setBuilderTitle(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary"
+                            placeholder="e.g. Event Registration" />
                         </div>
-                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-[10px] font-black uppercase tracking-wider">{form.status}</span>
+                        <div className="space-y-1">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Event Name</label>
+                          <input type="text" value={builderEventName} onChange={e => setBuilderEventName(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary"
+                            placeholder="e.g. Yoga at the Park" />
+                        </div>
                       </div>
-                      <div className="p-6 grid grid-cols-2 gap-4">
-                        <div className="text-center p-3 bg-slate-50 rounded-xl">
-                          <p className="text-2xl font-black text-primary">{form.submissions.length}</p>
-                          <p className="text-[10px] uppercase font-bold text-slate-400">Submissions</p>
-                        </div>
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="builderStatus" value="Draft" checked={builderStatus === 'Draft'}
+                            onChange={() => setBuilderStatus('Draft')} className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-bold text-slate-600">Draft</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="builderStatus" value="Published" checked={builderStatus === 'Published'}
+                            onChange={() => setBuilderStatus('Published')} className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-bold text-slate-600">Published</span>
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
                         <button
-                          onClick={() => { setSelectedVisitorForm(form); setVisitorFormView('details'); }}
-                          className="flex flex-col items-center justify-center p-3 bg-slate-900 text-white rounded-xl hover:bg-primary transition-colors"
+                          onClick={() => setBuilderRequireEmail(!builderRequireEmail)}
+                          className={`relative w-11 h-6 rounded-full transition-all duration-200 ${builderRequireEmail ? 'bg-primary' : 'bg-slate-300'}`}
                         >
-                          <span className="material-symbols-outlined mb-1">visibility</span>
-                          <span className="text-[10px] uppercase font-bold">View Details</span>
+                          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${builderRequireEmail ? 'translate-x-5' : ''}`} />
                         </button>
-                      </div>
-                    </div>
-                  ))}
-                  <button
-                    onClick={() => setVisitorFormView('create')}
-                    className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-400 hover:border-primary hover:text-primary transition-colors min-h-[200px]"
-                  >
-                    <span className="material-symbols-outlined text-4xl mb-2">add_circle</span>
-                    <span className="font-bold uppercase tracking-widest text-sm">Create New Form</span>
-                  </button>
-                </div>
-              )}
-
-              {/* View: Form Details */}
-              {visitorFormView === 'details' && selectedVisitorForm && (
-                <div className="space-y-8 animate-in fade-in duration-300">
-                  <button
-                    onClick={() => { setVisitorFormView('list'); setSelectedVisitorForm(null); }}
-                    className="flex items-center gap-2 text-slate-400 hover:text-slate-900 font-bold text-xs uppercase tracking-widest transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-sm">arrow_back</span> Back to Forms
-                  </button>
-
-                  <div className="grid lg:grid-cols-3 gap-8">
-                    {/* QR Code Panel */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col items-center text-center h-fit">
-                      <h3 className="font-black text-xl text-slate-900 mb-2">{selectedVisitorForm.title}</h3>
-                      <p className="text-sm text-slate-500 font-medium mb-8">{selectedVisitorForm.eventName}</p>
-
-                      <div className="bg-white p-4 rounded-xl border-2 border-slate-900 mb-8">
-                        <img
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(selectedVisitorForm.link)}`}
-                          alt="QR Code"
-                          className="w-48 h-48"
-                        />
-                      </div>
-
-                      <button
-                        onClick={() => downloadQRCode(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(selectedVisitorForm.link)}`, `${selectedVisitorForm.id}-qr.png`)}
-                        className="w-full py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 mb-4"
-                      >
-                        <span className="material-symbols-outlined text-lg">download</span>
-                        Download QR Code
-                      </button>
-
-                      <div className="w-full bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-center justify-between gap-2">
-                        <p className="text-xs text-slate-500 truncate font-mono">{selectedVisitorForm.link}</p>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(selectedVisitorForm.link);
-                            // Visual feedback could be added here, e.g. toast
-                            showToast("Link copied to clipboard!", 'success');
-                          }}
-                          className="text-primary hover:text-primary/80"
-                          title="Copy Link"
-                        >
-                          <span className="material-symbols-outlined text-sm">content_copy</span>
-                        </button>
-                      </div>
-
-                      <button
-                        onClick={() => {
-                          onDeleteVisitorForm(selectedVisitorForm.id);
-                          setSelectedVisitorForm(null);
-                          setVisitorFormView('list');
-                        }}
-                        className="mt-6 text-red-500 text-xs font-bold uppercase tracking-widest hover:underline"
-                      >
-                        Delete Form
-                      </button>
-                    </div>
-
-                    {/* Submissions Panel */}
-                    <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-                      <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                         <div>
-                          <h4 className="font-black uppercase text-slate-900">Visitor Submissions</h4>
-                          <p className="text-xs text-slate-500 font-medium mt-1">Total: {selectedVisitorForm.submissions.length}</p>
+                          <label className="text-sm font-bold text-slate-700 cursor-pointer" onClick={() => setBuilderRequireEmail(!builderRequireEmail)}>
+                            Require Email Verification
+                          </label>
+                          <p className="text-xs text-slate-400">Users must verify via OTP before filling this form</p>
                         </div>
-                        <button onClick={handleExportCSV} className="text-primary font-bold text-xs uppercase tracking-widest hover:underline flex items-center gap-1">
-                          <span className="material-symbols-outlined text-sm">download</span> Export CSV
-                        </button>
+                      </div>
+                    </div>
+
+                    {/* Fields List */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-black uppercase text-slate-900 text-sm">Form Fields ({builderFields.length})</h4>
+                        <div className="relative">
+                          <button onClick={() => setShowFieldPicker(!showFieldPicker)}
+                            className="px-4 py-2 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl hover:shadow-lg transition-all flex items-center gap-1">
+                            <span className="material-symbols-outlined text-sm">add</span> Add Field
+                          </button>
+                          {showFieldPicker && (
+                            <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-slate-200 p-3 z-50 w-64 grid grid-cols-2 gap-2">
+                              {fieldTypes.map(ft => (
+                                <button key={ft.type} onClick={() => handleAddField(ft.type)}
+                                  className="flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-slate-50 text-slate-600 hover:text-primary transition-colors">
+                                  <span className="material-symbols-outlined text-xl">{ft.icon}</span>
+                                  <span className="text-[10px] font-bold uppercase">{ft.label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                          <thead className="bg-slate-50 border-b border-slate-100">
-                            <tr>
-                              <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Name</th>
-                              <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Contact</th>
-                              <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest text-right">Time</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-50">
-                            {selectedVisitorForm.submissions.length > 0 ? (
-                              selectedVisitorForm.submissions
-                                .slice((visitorSubmissionPage - 1) * VISITOR_SUBMISSIONS_PER_PAGE, visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE)
-                                .map((sub, i) => (
-                                  <tr key={i} className="hover:bg-slate-50/50">
-                                    <td className="p-4">
-                                      <p className="font-bold text-slate-900 text-sm">{sub.name}</p>
-                                    </td>
-                                    <td className="p-4">
-                                      <p className="text-sm text-slate-600">{sub.email}</p>
-                                      <p className="text-xs text-slate-400 mt-0.5">{sub.phone}</p>
-                                    </td>
-                                    <td className="p-4 text-right">
-                                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">
-                                        {new Date(sub.submittedAt || Date.now()).toLocaleDateString()}
-                                      </p>
-                                    </td>
-                                  </tr>
-                                ))
-                            ) : (
-                              <tr>
-                                <td colSpan={3} className="p-12 text-center text-slate-400 font-medium">
-                                  No submissions yet. Share the QR code to get started!
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-
-
-                      {selectedVisitorForm.submissions.length > VISITOR_SUBMISSIONS_PER_PAGE && (
-                        <div className="p-4 border-t border-slate-50 flex items-center justify-between bg-white">
-                          <p className="text-xs text-slate-500 font-bold">
-                            Showing {(visitorSubmissionPage - 1) * VISITOR_SUBMISSIONS_PER_PAGE + 1} - {Math.min(visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE, selectedVisitorForm.submissions.length)} of {selectedVisitorForm.submissions.length}
-                          </p>
-                          <div className="flex gap-2">
-                            <button
-                              disabled={visitorSubmissionPage === 1}
-                              onClick={() => setVisitorSubmissionPage(p => p - 1)}
-                              className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              Previous
-                            </button>
-                            <button
-                              disabled={visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE >= selectedVisitorForm.submissions.length}
-                              onClick={() => setVisitorSubmissionPage(p => p + 1)}
-                              className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              Next
-                            </button>
-                          </div>
+                      {builderFields.length === 0 ? (
+                        <div className="p-12 text-center text-slate-400 font-medium border-2 border-dashed border-slate-200 rounded-xl">
+                          No fields yet. Click "Add Field" to start building your form.
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {builderFields.map((field, index) => (
+                            <div key={field.id} className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-black text-slate-400 bg-slate-200 px-2 py-0.5 rounded">{index + 1}</span>
+                                  <span className="text-xs font-black uppercase text-primary">{field.type}</span>
+                                  <span className="text-sm font-bold text-slate-700">{field.title}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <button onClick={() => handleFieldMove(field.id, 'up')} disabled={index === 0}
+                                    className="p-1 rounded hover:bg-slate-200 text-slate-400 disabled:opacity-30">
+                                    <span className="material-symbols-outlined text-sm">keyboard_arrow_up</span>
+                                  </button>
+                                  <button onClick={() => handleFieldMove(field.id, 'down')} disabled={index === builderFields.length - 1}
+                                    className="p-1 rounded hover:bg-slate-200 text-slate-400 disabled:opacity-30">
+                                    <span className="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+                                  </button>
+                                  <button onClick={() => handleRemoveField(field.id)}
+                                    className="p-1 rounded hover:bg-red-50 text-red-400">
+                                    <span className="material-symbols-outlined text-sm">delete</span>
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-black uppercase text-slate-400">Label</label>
+                                  <input type="text" value={field.title} onChange={e => handleFieldChange(field.id, 'title', e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary bg-white" />
+                                </div>
+                                {field.type !== 'checkbox' && field.type !== 'radio' && field.type !== 'rating' && field.type !== 'date' && field.type !== 'file' && (
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-400">Placeholder</label>
+                                    <input type="text" value={field.placeholder} onChange={e => handleFieldChange(field.id, 'placeholder', e.target.value)}
+                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary bg-white" />
+                                  </div>
+                                )}
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-black uppercase text-slate-400">Required</label>
+                                  <label className="flex items-center gap-2 cursor-pointer mt-2">
+                                    <input type="checkbox" checked={field.isRequired} onChange={e => handleFieldChange(field.id, 'isRequired', e.target.checked)}
+                                      className="w-4 h-4 text-primary rounded" />
+                                    <span className="text-sm font-bold text-slate-600">{field.isRequired ? 'Yes' : 'No'}</span>
+                                  </label>
+                                </div>
+                              </div>
+                              {(field.type === 'select' || field.type === 'checkbox' || field.type === 'radio') && (
+                                <div className="mt-3 space-y-1">
+                                  <label className="text-[10px] font-black uppercase text-slate-400">Options (one per line)</label>
+                                  <textarea value={field.choices.join('\n')} onChange={e => handleFieldChange(field.id, 'choices', e.target.value.split('\n').filter(Boolean))}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary bg-white"
+                                    rows={3} placeholder="Option 1&#10;Option 2&#10;Option 3" />
+                                </div>
+                              )}
+                              {field.type === 'rating' && (
+                                <div className="mt-3 grid grid-cols-3 gap-3">
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-400">Max Rating</label>
+                                    <input type="number" min={2} max={10} value={field.rateMax} onChange={e => handleFieldChange(field.id, 'rateMax', parseInt(e.target.value) || 5)}
+                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary bg-white" />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-400">Min Rating</label>
+                                    <input type="number" min={1} max={5} value={field.rateMin} onChange={e => handleFieldChange(field.id, 'rateMin', parseInt(e.target.value) || 1)}
+                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary bg-white" />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
+
+                    {/* Preview */}
+                    {previewSchema && (
+                      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                        <h4 className="font-black uppercase text-slate-900 text-sm mb-4">Preview</h4>
+                        <p className="text-xs text-slate-400 mb-4">This is how your form will look to visitors.</p>
+                        <div className="bg-slate-50 rounded-xl p-4">
+                          <pre className="text-xs text-slate-600 overflow-auto max-h-60">
+                            {JSON.stringify(previewSchema, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions Panel */}
+                  <div className="space-y-4">
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+                      <h4 className="font-black uppercase text-slate-900 text-sm">Actions</h4>
+                      <button onClick={handlePreview}
+                        className="w-full py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-lg">visibility</span> Preview Schema
+                      </button>
+                      <button onClick={handleSaveForm}
+                        className="w-full py-3 bg-primary text-white font-black uppercase tracking-widest rounded-xl hover:shadow-lg transition-all">
+                        {visitorFormView === 'edit' ? 'Update Form' : 'Save Form'}
+                      </button>
+                      <button onClick={() => { setVisitorFormView('list'); setSelectedVisitorForm(null); resetBuilder(); }}
+                        className="w-full py-3 text-slate-500 font-bold rounded-xl hover:bg-slate-50 transition-colors">
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 </div>
-              )}
-            </div>
+            )}
+
+            {/* View: Form List */}
+            {visitorFormView === 'list' && (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {(visitorForms || []).map(form => (
+                  <div key={form.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div className="p-6 border-b border-slate-50 flex justify-between items-start">
+                      <div>
+                        <h4 className="font-black text-lg text-slate-900 mb-1">{form.title}</h4>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{form.event_name}</p>
+                      </div>
+                      <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider ${form.status === 'Published' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{form.status}</span>
+                    </div>
+                    <div className="p-6 grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 bg-slate-50 rounded-xl">
+                        <p className="text-2xl font-black text-primary">{(form.submissions || []).length}</p>
+                        <p className="text-[10px] uppercase font-bold text-slate-400">Submissions</p>
+                      </div>
+                      <button
+                        onClick={() => { setSelectedVisitorForm(form); setVisitorFormView('details'); }}
+                        className="flex flex-col items-center justify-center p-3 bg-slate-900 text-white rounded-xl hover:bg-primary transition-colors"
+                      >
+                        <span className="material-symbols-outlined mb-1">visibility</span>
+                        <span className="text-[10px] uppercase font-bold">View Details</span>
+                      </button>
+                    </div>
+                    <div className="px-6 pb-4 flex gap-2">
+                      <button
+                        onClick={() => handleEditForm(form)}
+                        className="flex-1 py-2 bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-colors"
+                      >
+                        Edit Form
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  onClick={() => { setVisitorFormView('create'); resetBuilder(); }}
+                  className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-400 hover:border-primary hover:text-primary transition-colors min-h-[200px]"
+                >
+                  <span className="material-symbols-outlined text-4xl mb-2">add_circle</span>
+                  <span className="font-bold uppercase tracking-widest text-sm">Create New Form</span>
+                </button>
+              </div>
+            )}
+
+            {/* View: Form Details */}
+            {visitorFormView === 'details' && selectedVisitorForm && (
+              <div className="space-y-8 animate-in fade-in duration-300">
+                <button
+                  onClick={() => { setVisitorFormView('list'); setSelectedVisitorForm(null); }}
+                  className="flex items-center gap-2 text-slate-400 hover:text-slate-900 font-bold text-xs uppercase tracking-widest transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">arrow_back</span> Back to Forms
+                </button>
+
+                <div className="grid lg:grid-cols-3 gap-8">
+                  {/* QR Code Panel */}
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col items-center text-center h-fit">
+                    <h3 className="font-black text-xl text-slate-900 mb-2">{selectedVisitorForm.title}</h3>
+                    <p className="text-sm text-slate-500 font-medium mb-8">{selectedVisitorForm.event_name}</p>
+
+                    <div className="bg-white p-4 rounded-xl border-2 border-slate-900 mb-8">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`https://pinobite.com/forms/${selectedVisitorForm.id}`)}`}
+                        alt="QR Code"
+                        className="w-48 h-48"
+                      />
+                    </div>
+
+                    <button
+                      onClick={() => downloadQRCode(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`https://pinobite.com/forms/${selectedVisitorForm.id}`)}`, `${selectedVisitorForm.id}-qr.png`)}
+                      className="w-full py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 mb-4"
+                    >
+                      <span className="material-symbols-outlined text-lg">download</span>
+                      Download QR Code
+                    </button>
+
+                    <div className="w-full bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-center justify-between gap-2">
+                      <p className="text-xs text-slate-500 truncate font-mono">{`https://pinobite.com/forms/${selectedVisitorForm.id}`}</p>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(`https://pinobite.com/forms/${selectedVisitorForm.id}`);
+                          showToast("Link copied to clipboard!", 'success');
+                        }}
+                        className="text-primary hover:text-primary/80"
+                        title="Copy Link"
+                      >
+                        <span className="material-symbols-outlined text-sm">content_copy</span>
+                      </button>
+                    </div>
+
+                    <button onClick={() => handleEditForm(selectedVisitorForm)}
+                      className="mt-4 w-full py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-sm">edit</span> Edit Form
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        onDeleteVisitorForm(selectedVisitorForm.id);
+                        setSelectedVisitorForm(null);
+                        setVisitorFormView('list');
+                      }}
+                      className="mt-4 text-red-500 text-xs font-bold uppercase tracking-widest hover:underline"
+                    >
+                      Delete Form
+                    </button>
+                  </div>
+
+                  {/* Submissions Panel */}
+                  <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                    <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                      <div>
+                        <h4 className="font-black uppercase text-slate-900">Visitor Submissions</h4>
+                        <p className="text-xs text-slate-500 font-medium mt-1">Total: {(selectedVisitorForm.submissions || []).length}</p>
+                      </div>
+                      <button onClick={handleExportCSV} className="text-primary font-bold text-xs uppercase tracking-widest hover:underline flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm">download</span> Export CSV
+                      </button>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead className="bg-slate-50 border-b border-slate-100">
+                          <tr>
+                            <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Submission</th>
+                            <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest text-right">Time</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                          {(selectedVisitorForm.submissions || []).length > 0 ? (
+                            (selectedVisitorForm.submissions || [])
+                              .slice((visitorSubmissionPage - 1) * VISITOR_SUBMISSIONS_PER_PAGE, visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE)
+                              .map((sub, i) => (
+                                <tr key={i} className="hover:bg-slate-50/50">
+                                  <td className="p-4">
+                                    <p className="font-bold text-slate-900 text-sm">{sub.submission_data?.name || sub.submission_data?.email || `Submission #${i + 1}`}</p>
+                                    {sub.submission_data?.email && <p className="text-xs text-slate-400 mt-0.5">{sub.submission_data.email}</p>}
+                                  </td>
+                                  <td className="p-4 text-right">
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                                      {new Date(sub.submitted_at || Date.now()).toLocaleDateString()}
+                                    </p>
+                                  </td>
+                                </tr>
+                              ))
+                          ) : (
+                            <tr>
+                              <td colSpan={2} className="p-12 text-center text-slate-400 font-medium">
+                                No submissions yet. Share the QR code to get started!
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {(selectedVisitorForm.submissions || []).length > VISITOR_SUBMISSIONS_PER_PAGE && (
+                      <div className="p-4 border-t border-slate-50 flex items-center justify-between bg-white">
+                        <p className="text-xs text-slate-500 font-bold">
+                          Showing {(visitorSubmissionPage - 1) * VISITOR_SUBMISSIONS_PER_PAGE + 1} - {Math.min(visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE, (selectedVisitorForm.submissions || []).length)} of {(selectedVisitorForm.submissions || []).length}
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            disabled={visitorSubmissionPage === 1}
+                            onClick={() => setVisitorSubmissionPage(p => p - 1)}
+                            className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Previous
+                          </button>
+                          <button
+                            disabled={visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE >= (selectedVisitorForm.submissions || []).length}
+                            onClick={() => setVisitorSubmissionPage(p => p + 1)}
+                            className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
           )}
 
           {/* ----- BLOG MANAGER TAB ----- */}
@@ -3754,7 +4078,7 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
           )}
 
         </div>
-      </main >
+      </main>
 
       {/* Slide Edit/Add Modal */}
       {

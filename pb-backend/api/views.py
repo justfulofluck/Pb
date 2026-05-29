@@ -21,6 +21,7 @@ from .models import (
     RewardTransaction,
     WishlistItem,
     UsageIdea,
+    FormVerificationOTP,
 )
 from django.contrib.auth.models import User
 from rest_framework.response import Response
@@ -43,6 +44,8 @@ from .serializers import (
     RequestPasswordResetSerializer,
     VerifyOTPSerializer,
     SetNewPasswordSerializer,
+    FormSendOTPSerializer,
+    FormVerifyOTPSerializer,
     NewsletterSubscribeSerializer,
     NewsletterSubscriberSerializer,
     AnnouncementSerializer,
@@ -967,57 +970,145 @@ class VisitorSubmissionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         submission = serializer.save()
 
-        # Send Confirmation Email
+        # Send Confirmation Email if email exists in submission_data
         try:
-            subject = f"Registration Confirmed: {submission.form.title}"
+            email = submission.submission_data.get("email", "")
+            name = submission.submission_data.get("name", "Visitor")
+            if email:
+                subject = f"Registration Confirmed: {submission.form.title}"
 
-            html_message = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <style>
-                    body {{ font-family: sans-serif; background-color: #f9f9f9; padding: 20px; }}
-                    .container {{ max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }}
-                    .header {{ text-align: center; margin-bottom: 30px; }}
-                    .logo {{ font-size: 24px; font-weight: bold; color: #1a2333; }}
-                    .logo span {{ color: #008a45; }}
-                    .content {{ color: #444; line-height: 1.6; }}
-                    .footer {{ margin-top: 30px; text-align: center; font-size: 12px; color: #888; }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <div class="logo">Pino<span>bite</span> Global</div>
-                    </div>
-                    <div class="content">
-                        <h2>Hello {submission.name},</h2>
-                        <p>Thank you for registering for <strong>{submission.form.title}</strong>.</p>
-                        <p>We have successfully received your details.</p>
-                        <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                            <p style="margin: 0; color: #166534;"><strong>Event:</strong> {submission.form.event_name}</p>
-                            <p style="margin: 5px 0 0; color: #166534;"><strong>Date:</strong> {submission.submitted_at.strftime("%B %d, %Y")}</p>
+                html_message = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {{ font-family: sans-serif; background-color: #f9f9f9; padding: 20px; }}
+                        .container {{ max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }}
+                        .header {{ text-align: center; margin-bottom: 30px; }}
+                        .logo {{ font-size: 24px; font-weight: bold; color: #1a2333; }}
+                        .logo span {{ color: #008a45; }}
+                        .content {{ color: #444; line-height: 1.6; }}
+                        .footer {{ margin-top: 30px; text-align: center; font-size: 12px; color: #888; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <div class="logo">Pino<span>bite</span> Global</div>
                         </div>
-                        <p>We look forward to seeing you there!</p>
+                        <div class="content">
+                            <h2>Hello {name},</h2>
+                            <p>Thank you for registering for <strong>{submission.form.title}</strong>.</p>
+                            <p>We have successfully received your details.</p>
+                            <div style="background: #f0fdf4; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                                <p style="margin: 0; color: #166534;"><strong>Event:</strong> {submission.form.event_name}</p>
+                                <p style="margin: 5px 0 0; color: #166534;"><strong>Date:</strong> {submission.submitted_at.strftime("%B %d, %Y")}</p>
+                            </div>
+                            <p>We look forward to seeing you there!</p>
+                        </div>
+                        <div class="footer">
+                            &copy; 2026 Pinobite Global. All rights reserved.
+                        </div>
                     </div>
-                    <div class="footer">
-                        &copy; 2026 Pinobite Global. All rights reserved.
-                    </div>
-                </div>
-            </body>
-            </html>
-            """
+                </body>
+                </html>
+                """
 
-            send_mail(
-                subject,
-                f"Thank you for registering for {submission.form.title}.",
-                settings.EMAIL_HOST_USER,
-                [submission.email],
-                fail_silently=True,
-                html_message=html_message,
-            )
+                send_mail(
+                    subject,
+                    f"Thank you for registering for {submission.form.title}.",
+                    settings.EMAIL_HOST_USER,
+                    [email],
+                    fail_silently=True,
+                    html_message=html_message,
+                )
         except Exception as e:
             print(f"Error sending email: {e}")
+
+
+class SendFormOTPView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, form_id):
+        serializer = FormSendOTPSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+        email = serializer.validated_data["email"]
+
+        otp = "".join([str(random.randint(0, 9)) for _ in range(6)])
+        FormVerificationOTP.objects.create(email=email, otp=otp)
+
+        html_message = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{ font-family: sans-serif; background-color: #f9f9f9; padding: 20px; }}
+                .container {{ max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }}
+                .header {{ text-align: center; margin-bottom: 30px; }}
+                .logo {{ font-size: 24px; font-weight: bold; color: #1a2333; }}
+                .logo span {{ color: #008a45; }}
+                .otp-box {{ background: #f0fdf4; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; }}
+                .otp-code {{ font-size: 36px; font-weight: bold; color: #166534; letter-spacing: 8px; }}
+                .content {{ color: #444; line-height: 1.6; }}
+                .footer {{ margin-top: 30px; text-align: center; font-size: 12px; color: #888; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">Pino<span>bite</span></div>
+                </div>
+                <div class="content">
+                    <h2>Verify your email</h2>
+                    <p>Use the OTP below to verify your email and access the form.</p>
+                    <div class="otp-box">
+                        <div class="otp-code">{otp}</div>
+                        <p style="margin: 10px 0 0; color: #888; font-size: 13px;">This code expires in 10 minutes.</p>
+                    </div>
+                    <p>If you didn't request this, please ignore this email.</p>
+                </div>
+                <div class="footer">&copy; 2026 Pinobite. All rights reserved.</div>
+            </div>
+        </body>
+        </html>
+        """
+
+        try:
+            send_mail(
+                "Verify your email - Pinobite",
+                f"Your OTP is {otp}. It expires in 10 minutes.",
+                settings.EMAIL_HOST_USER,
+                [email],
+                fail_silently=False,
+                html_message=html_message,
+            )
+            return Response({"message": "OTP sent successfully."})
+        except Exception as e:
+            print(f"Error sending email: {e}")
+            return Response({"error": "Failed to send email."}, status=500)
+
+
+class VerifyFormOTPView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, form_id):
+        serializer = FormVerifyOTPSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+        email = serializer.validated_data["email"]
+        otp = serializer.validated_data["otp"]
+
+        record = (
+            FormVerificationOTP.objects.filter(email=email, otp=otp, verified=False)
+            .order_by("-created_at")
+            .first()
+        )
+        if record and record.is_valid():
+            record.verified = True
+            record.save()
+            return Response({"verified": True, "email": email})
+        return Response({"error": "Invalid or expired OTP."}, status=400)
 
 
 from .models import PasswordResetOTP

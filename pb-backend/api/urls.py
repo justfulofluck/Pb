@@ -31,6 +31,8 @@ from .views import (
     ProcessDriveVideoView,
     WishlistViewSet,
     RazorpayWebhookView,
+    SendFormOTPView,
+    VerifyFormOTPView,
 )
 
 router = DefaultRouter()
@@ -55,6 +57,16 @@ router.register(r"reward-transactions", RewardTransactionViewSet)
 router.register(r"wishlist", WishlistViewSet, basename="wishlist")
 
 urlpatterns = [
+    path(
+        "visitor-forms/<int:form_id>/send-otp/",
+        SendFormOTPView.as_view(),
+        name="visitor_form_send_otp",
+    ),
+    path(
+        "visitor-forms/<int:form_id>/verify-otp/",
+        VerifyFormOTPView.as_view(),
+        name="visitor_form_verify_otp",
+    ),
     path(
         "stories/process-drive-video/",
         ProcessDriveVideoView.as_view(),
