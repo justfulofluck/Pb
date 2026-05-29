@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Product, BlogPost, EventBlog } from '../types';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 
 interface NavbarProps {
   cartCount: number;
@@ -55,6 +55,19 @@ const Navbar: React.FC<NavbarProps> = ({
   const [currentAnnouncementIdx, setCurrentAnnouncementIdx] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { scrollY } = useScroll();
+  const [hidden, setHidden] = useState(false);
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() || 0;
+    // hide only if scrolled more than 150px and scrolling down
+    if (latest > previous && latest > 150) {
+      setHidden(true);
+    } else {
+      setHidden(false);
+    }
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -123,7 +136,16 @@ const Navbar: React.FC<NavbarProps> = ({
   const hasAnnouncements = announcements.length > 0;
 
   return (
-    <div className="sticky top-0 z-[1000] w-full">
+    <>
+      <motion.div 
+        variants={{
+          visible: { y: 0 },
+          hidden: { y: "-100%" }
+        }}
+        animate={hidden ? "hidden" : "visible"}
+        transition={{ duration: 0.35, ease: "easeInOut" }}
+        className="sticky top-0 z-[1000] w-full"
+      >
       {/* Announcement Band */}
       {hasAnnouncements && (
         <div className="bg-[#008a45] text-white px-4 text-center overflow-hidden min-h-[40px] lg:min-h-[44px] flex items-center justify-center relative">
@@ -421,6 +443,7 @@ const Navbar: React.FC<NavbarProps> = ({
           </AnimatePresence>
         </div>
       </nav>
+      </motion.div>
 
       {/* Mobile Side Menu */}
       <div
@@ -501,7 +524,7 @@ const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
