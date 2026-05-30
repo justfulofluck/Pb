@@ -112,7 +112,7 @@ const Footer: React.FC<FooterProps> = ({
             </div>
             <div className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors text-sm text-center md:text-left">
               <i className="fa-solid fa-location-dot text-[#f9bc15]"></i>
-              <a href="https://maps.app.goo.gl/m21Carqf53eYqKaVA" target="_blank" rel="noopener noreferrer" className="hover:underline">Fairyland School Dabhoi – Sinor Chowkdi, Sathod, India 391110</a>
+              <a href="https://maps.app.goo.gl/m21Carqf53eYqKaVA" target="_blank" rel="noopener noreferrer" className="hover:underline">Tri-origin Ayurveda, Sathod Vasahat, Sathod Road, Dabhoi-391110, Vadodara - Gujarat</a>
             </div>
           </div>
         </div>
