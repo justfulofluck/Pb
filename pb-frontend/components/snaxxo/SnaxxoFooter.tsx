@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
+import { motion, AnimatePresence } from 'framer-motion';
 import MultiLayerWave from './MultiLayerWave';
 
 
@@ -67,18 +68,23 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
             <div className="lg:border-none w-full flex flex-col items-start px-0">
                 <button
                     onClick={() => toggleSection(id)}
-                    className="w-full flex items-center justify-start py-2 lg:py-0 lg:mb-4 text-left focus:outline-none group px-0 m-0"
+                    className="w-full flex items-center justify-start py-1.5 lg:py-0 lg:mb-4 text-left focus:outline-none group px-0 m-0"
                 >
                     <div className="font-bold !text-secondary text-xl lg:text-2xl uppercase tracking-wider [word-spacing:0.02em] font-anton leading-tight text-left p-0 m-0">{title}</div>
                     <span className={`lg:hidden transition-transform duration-300 ml-2 ${isOpen ? 'rotate-180' : ''}`}>
                         <i className="fa-solid fa-chevron-down text-white/50 text-xs"></i>
                     </span>
                 </button>
-                <div className={`overflow-hidden transition-all duration-300 lg:h-auto lg:opacity-100 w-full ${isOpen ? 'max-h-[500px] opacity-100 pb-3' : 'max-h-0 opacity-0 lg:max-h-none'}`}>
-                    <div className="pt-3 lg:pt-4 flex flex-col items-start w-full p-0 m-0">
+                <motion.div
+                    initial={false}
+                    animate={{ height: isOpen ? 'auto' : 0, opacity: isOpen ? 1 : 0 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    className="w-full overflow-hidden lg:!h-auto lg:!opacity-100"
+                >
+                    <div className="pt-3 lg:pt-4 flex flex-col items-start w-full p-0 m-0 pb-3 lg:pb-0">
                         {children}
                     </div>
-                </div>
+                </motion.div>
             </div>
         );
     };
@@ -102,7 +108,6 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
                             <button onClick={onHomeClick} className="block h-12 lg:h-16 transition-transform hover:scale-105">
                                 <img
                                     src="/logos/Pinobite-logo.png"
-                                    alt="Pinobite Logo"
                                     className="h-full w-auto object-contain brightness-0 invert"
                                 />
                             </button>
@@ -120,7 +125,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
                         </div>
 
                         {/* Category Columns - Moved closer to the Brand info and strictly left-aligned */}
-                        <div className="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 lg:gap-x-12 gap-y-12 text-left items-start">
+                        <div className="flex-grow grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 lg:gap-x-12 gap-y-1 md:gap-y-8 lg:gap-y-12 text-left items-start">
                             <AccordionSection title="Collections" id="collections">
                                 <ul className="flex flex-col items-start gap-4 text-sm text-white/70 font-medium list-none !p-0 !m-0 w-full text-left">
                                     <li className="w-full text-left !p-0 !m-0 flex">

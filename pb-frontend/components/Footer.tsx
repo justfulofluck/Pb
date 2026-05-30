@@ -41,7 +41,6 @@ const Footer: React.FC<FooterProps> = ({
             <button onClick={onHomeClick} className="block mb-6 h-12 mx-auto lg:mx-0">
               <img
                 src="/logos/Pinobite-logo.png"
-                alt="Pinobite Logo"
                 className="h-full w-auto object-contain brightness-0 invert"
               />
             </button>
