@@ -421,9 +421,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-black text-slate-900 tracking-tighter">₹{order.total_amount}</p>
-                            <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mt-1 ${order.status === 'Delivered' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-accent-brown'
-                              }`}>
-                              {order.status}
+                            <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mt-1 ${
+                              order.status === 'DELIVERED' ? 'bg-green-100 text-green-600' :
+                              order.status === 'SHIPPED' ? 'bg-blue-100 text-blue-600' :
+                              order.status === 'PAID' ? 'bg-emerald-100 text-emerald-600' :
+                              order.status === 'CANCELLED' ? 'bg-red-100 text-red-500' :
+                              'bg-orange-100 text-accent-brown'
+                            }`}>
+                              {order.status === 'PAID' ? 'Processing' : order.status}
                             </span>
                           </div>
                         </div>
@@ -924,9 +929,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                     <span className="bg-[#0b3d2e]/10 text-[#0b3d2e] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
                       Order #{selectedOrder.id}
                     </span>
-                    <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${selectedOrder.status === 'Delivered' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-700'
-                      }`}>
-                      {selectedOrder.status}
+                    <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${
+                      selectedOrder.status === 'DELIVERED' ? 'bg-emerald-100 text-emerald-600' :
+                      selectedOrder.status === 'SHIPPED' ? 'bg-blue-100 text-blue-600' :
+                      selectedOrder.status === 'PAID' ? 'bg-emerald-100 text-emerald-600' :
+                      selectedOrder.status === 'CANCELLED' ? 'bg-red-100 text-red-500' :
+                      'bg-amber-100 text-amber-700'
+                    }`}>
+                      {selectedOrder.status === 'PAID' ? 'Processing' : selectedOrder.status}
                     </span>
                   </div>
                   <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tight leading-none">Order Details</h2>
