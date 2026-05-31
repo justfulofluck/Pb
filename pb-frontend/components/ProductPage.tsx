@@ -210,10 +210,6 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
 }, (prev, next) => prev.product.id === next.product.id && prev.product.name === next.product.name);
 
 const PRODUCT_HERO_MAP: Record<string, { desktop: string, mobile: string } | null> = {
-  'Dark Chocolate Berries & Almonds Muesli': {
-    desktop: '/productpageimg/product-hero.png',
-    mobile: '/productpageimg/mobile-varient.png'
-  },
   'Dark Chocolate & Almond Crunchy Peanut Butter': {
     desktop: '/productpageimg/dark-chocolate-almond-crunchy-peanut-butter-dex.png',
     mobile: '/productpageimg/dark-chocolate-almond-crunchy-peanut-butter-mobile.png'
