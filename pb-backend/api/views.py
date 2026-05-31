@@ -455,6 +455,15 @@ class RazorpayWebhookView(APIView):
 
                 # Only process if the order hasn't already been marked as paid
                 if order.status == "PENDING":
+                    # Deduct points if any were earmarked during initiate
+                    if order.points_deducted > 0 and order.user:
+                        from .utils import deduct_points
+                        deduct_points(
+                            order.user,
+                            order.points_deducted,
+                            f"Redeemed on Order #{order.id}",
+                        )
+
                     order.status = "PAID"
                     order.razorpay_payment_id = razorpay_payment_id
                     order.save()
@@ -544,7 +553,6 @@ class OrderViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["post"])
     def initiate(self, request):
         from django.db import transaction
-        from .utils import deduct_points
 
         try:
             user = request.user
@@ -650,21 +658,26 @@ class OrderViewSet(viewsets.ModelViewSet):
             if use_points and points_to_redeem > 0 and request.user.is_authenticated:
                 max_redeemable = min(points_to_redeem, int(total_amount * 10))
                 if max_redeemable > 0:
-                    success, message = deduct_points(
-                        request.user, max_redeemable, f"Redeemed on Order #{order.id}"
-                    )
-                    if success:
-                        points_discount = max_redeemable / 10
-                        points_deducted = max_redeemable
+                    points_discount = max_redeemable / 10
+                    points_deducted = max_redeemable
 
             # New total including shipping, less points discount
             final_total = total_amount + shipping - points_discount
 
-            # Update order total
+            # Store points_deducted on order (actual deduction happens after payment)
+            order.points_deducted = points_deducted
             order.total_amount = final_total
             order.save()
 
             if payment_method == "cod":
+                if order.points_deducted > 0 and request.user.is_authenticated:
+                    from .utils import deduct_points
+                    deduct_points(
+                        request.user,
+                        order.points_deducted,
+                        f"Redeemed on Order #{order.id}",
+                    )
+
                 order.status = "PAID"
                 order.save()
                 
@@ -760,6 +773,22 @@ class OrderViewSet(viewsets.ModelViewSet):
             )
 
             order = Order.objects.get(id=order_id, razorpay_order_id=razorpay_order_id)
+
+            if order.status != "PENDING":
+                return Response(
+                    {"error": "Order already processed"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Deduct points if any were earmarked during initiate
+            if order.points_deducted > 0 and order.user:
+                from .utils import deduct_points
+                deduct_points(
+                    order.user,
+                    order.points_deducted,
+                    f"Redeemed on Order #{order.id}",
+                )
+
             order.status = "PAID"
             order.razorpay_payment_id = razorpay_payment_id
             order.save()

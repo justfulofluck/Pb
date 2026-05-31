@@ -214,6 +214,7 @@ class Order(models.Model):
         max_length=20, choices=STATUS_CHOICES, default="PENDING", db_index=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    points_deducted = models.IntegerField(default=0)
     razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
     razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
 
