@@ -709,7 +709,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                     "order_id": order.id,
                     "points_discount": points_discount,
                     "points_deducted": points_deducted,
-                    "new_total": float(total_amount),
+                    "new_total": float(final_total),
                     "points_earned": total_awarded,
                 })
 
@@ -744,7 +744,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                     "key_id": settings.RAZORPAY_KEY_ID,
                     "points_discount": points_discount,
                     "points_deducted": points_deducted,
-                    "new_total": float(total_amount),
+                    "new_total": float(final_total),
                 }
             )
         except Exception as e:
@@ -833,65 +833,6 @@ class OrderViewSet(viewsets.ModelViewSet):
                 {"error": "Signature verification failed"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-    @action(detail=False, methods=["post"])
-    def redeem_points(self, request):
-        """
-        Redeem points for discount on an order.
-        POST: { "order_id": int, "points": int }
-        Returns: { "discount": float, "points_deducted": int, "new_total": float }
-        """
-        from django.db import transaction
-        from .utils import deduct_points
-
-        points_to_redeem = request.data.get("points", 0)
-        order_id = request.data.get("order_id")
-
-        if not order_id:
-            return Response(
-                {"error": "Order ID required"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if not points_to_redeem or points_to_redeem <= 0:
-            return Response(
-                {"error": "Valid points amount required"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            order = Order.objects.get(id=order_id, user=request.user)
-        except Order.DoesNotExist:
-            return Response(
-                {"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        if order.status != "PENDING":
-            return Response(
-                {"error": "Order already processed"}, status=status.HTTP_400_BAD_REQUEST
-            )
-
-        points_to_redeem = int(points_to_redeem)
-        max_redeemable = min(points_to_redeem, int(float(order.total_amount) * 10))
-
-        # Deduct points
-        with transaction.atomic():
-            success, message = deduct_points(
-                request.user, max_redeemable, f"Redeemed on Order #{order.id}"
-            )
-
-        if not success:
-            return Response({"error": message}, status=status.HTTP_400_BAD_REQUEST)
-
-        discount = max_redeemable / 10
-        new_total = float(order.total_amount) - discount
-
-        return Response(
-            {
-                "discount": discount,
-                "points_deducted": max_redeemable,
-                "new_total": new_total,
-            }
-        )
 
 
 class RegisterView(generics.CreateAPIView):

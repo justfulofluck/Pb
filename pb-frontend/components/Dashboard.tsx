@@ -590,7 +590,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                         <div className="space-y-2">
                           <div className="flex justify-between items-end">
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Balance: <span className="text-slate-900">{userData.points} Pts</span></p>
-                            <p className="text-[10px] font-black text-primary uppercase tracking-widest">Next: Legend Tier</p>
+                            <p className="text-[10px] font-black text-primary uppercase tracking-widest">Next: {userData.tier === "Legend Tier" ? "Max Tier" : userData.tier === "Pro Elite" ? "Legend Tier" : userData.tier === "Pro Member" ? "Pro Elite" : "Pro Member"}</p>
                           </div>
                           <div className="h-6 bg-slate-100 rounded-full border-4 border-white shadow-inner p-1">
                             <div className={`h-full bg-primary rounded-full transition-all duration-1000`} style={{ width: `${Math.min((userData.points / 3000) * 100, 100)}%` }} />

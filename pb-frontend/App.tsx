@@ -1077,6 +1077,23 @@ const AppContent: React.FC = () => {
   };
 
   const handleAddRewardRule = async (newRule: Omit<RewardRule, 'id'>) => {
+    try {
+      const token = localStorage.getItem('admin_access_token');
+      const response = await fetch(`${API_BASE_URL}/api/reward-rules/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(newRule),
+      });
+      if (response.ok) {
+        const createdRule = await response.json();
+        setRewardRules(prev => [...prev, createdRule]);
+      }
+    } catch (err) {
+      console.error("Failed to add reward rule:", err);
+    }
   };
 
   const handleUpdateSlide = async (updatedSlide: HeroSlide) => {
