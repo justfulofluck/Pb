@@ -146,7 +146,22 @@ def deduct_points(user, points, reason):
             return False, f"Insufficient points. Available: {profile.points}"
 
         profile.points -= points
-        profile.save(update_fields=["points"])
+
+        # Track savings (10 pts = ₹1 saved)
+        from decimal import Decimal
+        profile.savings = (profile.savings or Decimal("0.00")) + Decimal(str(points / 10))
+
+        # Recalculate tier (supports demotion when points drop)
+        if profile.points >= 3000:
+            profile.tier = "Legend Tier"
+        elif profile.points >= 1000:
+            profile.tier = "Pro Elite"
+        elif profile.points >= 500:
+            profile.tier = "Pro Member"
+        else:
+            profile.tier = "Member"
+
+        profile.save(update_fields=["points", "tier", "savings"])
 
         RewardTransaction.objects.create(
             user=user, points_change=-points, reason=reason

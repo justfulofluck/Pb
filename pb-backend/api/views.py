@@ -471,7 +471,8 @@ class RazorpayWebhookView(APIView):
                     # Award points
                     from .utils import award_points
 
-                    spend_points = int(order.total_amount / 100) * 10
+                    original_amount = float(order.total_amount) + (order.points_deducted / 10)
+                    spend_points = int(original_amount / 100) * 10
                     if spend_points > 0 and order.user:
                         award_points(
                             order.user,
@@ -684,7 +685,8 @@ class OrderViewSet(viewsets.ModelViewSet):
                 total_awarded = 0
                 if request.user.is_authenticated:
                     from .utils import award_points
-                    spend_points = int(order.total_amount / 100) * 10
+                    original_amount = float(order.total_amount) + (order.points_deducted / 10)
+                    spend_points = int(original_amount / 100) * 10
                     if spend_points > 0:
                         total_awarded += award_points(
                             request.user,
@@ -797,7 +799,8 @@ class OrderViewSet(viewsets.ModelViewSet):
             from .utils import award_points
 
             # 1. Standard Spend Points (₹100 = 10 pts)
-            spend_points = int(order.total_amount / 100) * 10
+            original_amount = float(order.total_amount) + (order.points_deducted / 10)
+            spend_points = int(original_amount / 100) * 10
             if spend_points > 0:
                 total_awarded += award_points(
                     request.user,
