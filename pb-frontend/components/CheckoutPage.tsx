@@ -344,11 +344,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
 
       <div className="flex flex-col lg:grid lg:grid-cols-12 gap-10 lg:gap-12 items-start">
         {/* Checkout Form */}
-        <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-10 w-full">
+        <form id="checkout-form" onSubmit={handleSubmit} className="lg:col-span-7 space-y-10 w-full">
           <section className="space-y-6">
             <div className="flex items-center gap-4">
               <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm flex-shrink-0">1</span>
-              <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight">Contact Information</h3>
+              <h3 className="text-xl sm:text-2xl font-normal uppercase tracking-wide [word-spacing:0.05em] relative top-[4px] leading-none">Contact Information</h3>
             </div>
             <div className="grid gap-4">
               <input
@@ -376,7 +376,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 items-start">
               <div className="flex items-center gap-4">
                 <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm flex-shrink-0">2</span>
-                <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight">Shipping Address</h3>
+                <h3 className="text-xl sm:text-2xl font-normal uppercase tracking-wide [word-spacing:0.05em] relative top-[4px] leading-none">Shipping Address</h3>
               </div>
               {savedAddress && (
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -417,7 +417,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
           <section className="space-y-6">
             <div className="flex items-center gap-4">
               <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm flex-shrink-0">3</span>
-              <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight">Payment Method</h3>
+              <h3 className="text-xl sm:text-2xl font-normal uppercase tracking-wide [word-spacing:0.05em] relative top-[4px] leading-none">Payment Method</h3>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <label className={`flex items-center gap-3 p-5 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'online' ? 'border-[#0b3d2e] bg-[#0b3d2e]/5' : 'border-slate-100 hover:border-slate-200'}`}>
@@ -437,19 +437,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
             </div>
           </section>
 
-          <button
-            type="submit"
-            disabled={isProcessing}
-            className="group w-full bg-slate-900 text-white hover:text-white py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-md hover:shadow-lg"
-          >
-            <span className="text-white group-hover:text-white">{isProcessing ? 'Processing...' : 'Complete Purchase'}</span>
-            {!isProcessing && <span className="material-symbols-outlined text-white group-hover:text-white">arrow_forward</span>}
-          </button>
         </form >
 
         {/* Order Summary */}
         <div className="lg:col-span-5 bg-white sm:bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-8 lg:sticky lg:top-8 w-full border border-slate-100 sm:border-none shadow-sm sm:shadow-none">
-          <h3 className="text-xl font-black uppercase tracking-tight">Order Summary</h3>
+          <h3 className="text-xl font-normal uppercase tracking-wide [word-spacing:0.05em] relative top-[4px] leading-none">Order Summary</h3>
           <div className="space-y-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
             {items.map(item => (
               <div key={item.id} className="flex gap-6 items-center">
@@ -533,6 +525,16 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
               )}
             </div>
           )}
+
+          <button
+            form="checkout-form"
+            type="submit"
+            disabled={isProcessing}
+            className="group w-full bg-slate-900 text-white hover:text-white py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-md hover:shadow-lg mt-8"
+          >
+            <span className="text-white group-hover:text-white">{isProcessing ? 'Processing...' : 'Complete Purchase'}</span>
+            {!isProcessing && <span className="material-symbols-outlined text-white group-hover:text-white">arrow_forward</span>}
+          </button>
         </div >
       </div >
 

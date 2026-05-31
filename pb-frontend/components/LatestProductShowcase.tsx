@@ -123,7 +123,7 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
           </span>
           <div className="relative inline-block px-10">
             <h2
-              className="font-normal text-textured-green tracking-wide [word-spacing:0.05em] !font-anton uppercase"
+              className="font-normal text-textured-green tracking-wide [word-spacing:0.05em] !font-anton uppercase text-[40px] lg:text-6xl"
             >
               Latest product
             </h2>
@@ -135,8 +135,8 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
           <div className="space-y-8 md:space-y-16 text-center lg:text-right order-2 lg:order-1">
             {benefitsLeft.map((item, idx) => (
               <div key={idx} className="group px-4 md:px-0 flex flex-col items-center lg:items-end">
-                <h3 className="text-[15px] md:text-lg lg:text-xl force-anton text-[#0b3d2e] mb-1 md:mb-2 uppercase leading-tight md:leading-none md:whitespace-nowrap text-center lg:text-right">{item.title}</h3>
-                <p className="text-[13px] md:text-sm text-slate-500 font-medium leading-relaxed font-satoshi text-center lg:text-right max-w-[320px]">
+                <h3 className="text-[22px] lg:text-[26px] force-anton text-[#0b3d2e] mb-1 md:mb-2 uppercase leading-tight md:leading-none md:whitespace-nowrap text-center lg:text-right">{item.title}</h3>
+                <p className="text-[16px] text-slate-500 font-medium leading-relaxed font-satoshi text-center lg:text-right max-w-[320px]">
                   {item.desc}
                 </p>
               </div>
@@ -202,8 +202,8 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
           <div className="space-y-8 md:space-y-16 text-center lg:text-left order-3">
             {benefitsRight.map((item, idx) => (
               <div key={idx} className="group px-4 md:px-0 flex flex-col items-center lg:items-start">
-                <h3 className="text-[15px] md:text-lg lg:text-xl force-anton text-[#0b3d2e] mb-1 md:mb-2 uppercase leading-tight md:leading-none md:whitespace-nowrap text-center lg:text-left">{item.title}</h3>
-                <p className="text-[13px] md:text-sm text-slate-500 font-medium leading-relaxed font-satoshi text-center lg:text-left max-w-[320px]">
+                <h3 className="text-[22px] lg:text-[26px] force-anton text-[#0b3d2e] mb-1 md:mb-2 uppercase leading-tight md:leading-none md:whitespace-nowrap text-center lg:text-left">{item.title}</h3>
+                <p className="text-[16px] text-slate-500 font-medium leading-relaxed font-satoshi text-center lg:text-left max-w-[320px]">
                   {item.desc}
                 </p>
               </div>
