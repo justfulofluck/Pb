@@ -454,8 +454,8 @@ class RazorpayWebhookView(APIView):
                 order = Order.objects.get(razorpay_order_id=razorpay_order_id)
 
                 # Only process if the order hasn't already been marked as paid
-                if order.status in ("Pending", "Created"):
-                    order.status = "Processing"
+                if order.status == "PENDING":
+                    order.status = "PAID"
                     order.razorpay_payment_id = razorpay_payment_id
                     order.save()
 
@@ -475,7 +475,7 @@ class RazorpayWebhookView(APIView):
                     if order.user:
                         order_count = Order.objects.filter(
                             user=order.user,
-                            status__in=["Processing", "Paid", "Shipped", "Delivered"],
+                            status__in=["PAID", "SHIPPED", "DELIVERED"],
                         ).count()
                         if order_count == 1:
                             award_points(order.user, "first_order")
@@ -529,11 +529,11 @@ class OrderViewSet(viewsets.ModelViewSet):
             subject = f"Order #{order.id} Update: {order.status}"
             contents = f"Hello {order.user.username},\n\nYour order #{order.id} status has been updated to: {order.status}."
 
-            if order.status == "Shipped":
+            if order.status == "SHIPPED":
                 contents += "\n\nIt is on its way to you!"
-            elif order.status == "Delivered":
+            elif order.status == "DELIVERED":
                 contents += "\n\nWe hope you enjoy your purchase!"
-            elif order.status == "Cancelled":
+            elif order.status == "CANCELLED":
                 contents += "\n\nIf you have any questions, please contact support."
 
             contents += "\n\nBest regards,\nPinobite Team"
@@ -587,7 +587,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             order = Order.objects.create(
                 user=user,
                 total_amount=total_amount,
-                status="Pending",
+                status="PENDING",
                 # Map shipping_address to model fields
                 address=f"{shipping_address.get('street', '')}, {shipping_address.get('city', '')}, {shipping_address.get('state', '')}, {shipping_address.get('zip', '')}",
                 city=shipping_address.get("city", ""),
@@ -665,7 +665,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             order.save()
 
             if payment_method == "cod":
-                order.status = "Processing"
+                order.status = "PAID"
                 order.save()
                 
                 total_awarded = 0
@@ -682,7 +682,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                     
                     order_count = Order.objects.filter(
                         user=request.user,
-                        status__in=["Processing", "Paid", "Shipped", "Delivered"],
+                        status__in=["PAID", "SHIPPED", "DELIVERED"],
                     ).count()
                     if order_count == 1:
                         total_awarded += award_points(request.user, "first_order")
@@ -760,7 +760,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             )
 
             order = Order.objects.get(id=order_id, razorpay_order_id=razorpay_order_id)
-            order.status = "Processing"  # Or Paid
+            order.status = "PAID"
             order.razorpay_payment_id = razorpay_payment_id
             order.save()
 
@@ -780,7 +780,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             # 2. First Order Bonus
             order_count = Order.objects.filter(
                 user=request.user,
-                status__in=["Processing", "Paid", "Shipped", "Delivered"],
+                status__in=["PAID", "SHIPPED", "DELIVERED"],
             ).count()
             if order_count == 1:
                 total_awarded += award_points(request.user, "first_order")
@@ -833,7 +833,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 {"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
-        if order.status not in ["PENDING", "Pending"]:
+        if order.status != "PENDING":
             return Response(
                 {"error": "Order already processed"}, status=status.HTTP_400_BAD_REQUEST
             )
