@@ -37,6 +37,28 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Frontend Validations
+    if (view === 'signup') {
+      if (password.length < 8) {
+        setError('Password must be at least 8 characters long');
+        return;
+      }
+      if (phone.length < 10) {
+        setError('Please enter a valid phone number');
+        return;
+      }
+    } else if (view === 'otp') {
+      if (newPassword.length < 8) {
+        setError('New password must be at least 8 characters long');
+        return;
+      }
+      if (otp.length !== 6) {
+        setError('Please enter a valid 6-digit OTP');
+        return;
+      }
+    }
+
     setIsLoading(true);
 
     try {
@@ -128,8 +150,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
         {view === 'login' && (
           <div className="space-y-6">
             <div className="text-center space-y-1">
-              <h2 className="text-3xl md:text-[42px] force-anton text-[#0b3d2e] uppercase tracking-normal leading-none whitespace-nowrap">Welcome!</h2>
-              <p className="font-handdrawn text-4xl md:text-[64px] text-[#0b3d2e] leading-tight" style={{ fontFamily: '"Gochi Hand", cursive' }}>NEW Ready for your health fix?</p>
+              <h2 className="text-[48px] md:text-[60px] force-anton text-[#0b3d2e] uppercase tracking-normal leading-none whitespace-nowrap">Welcome!</h2>
+              <p className="font-handdrawn text-[20px] text-[#0b3d2e] leading-tight" style={{ fontFamily: '"Gochi Hand", cursive' }}>NEW Ready for your health fix?</p>
             </div>
 
             {error && (
@@ -140,7 +162,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <label className="block text-[11px] font-black uppercase tracking-[0.15em] text-[#94a3b8]">Email Address</label>
+                <label className="block text-[12px] font-black uppercase tracking-[0.15em] text-[#94a3b8]">Email Address</label>
                 <input
                   required
                   type="email"
@@ -151,7 +173,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-[11px] font-black uppercase tracking-[0.15em] text-[#94a3b8]">Password</label>
+                <label className="block text-[12px] font-black uppercase tracking-[0.15em] text-[#94a3b8]">Password</label>
                 <input
                   required
                   type="password"
@@ -166,7 +188,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                 <button
                   type="button"
                   onClick={() => setView('reset')}
-                  className="text-[40px] font-medium text-[#94a3b8] hover:text-[#0b3d2e] transition-colors font-handdrawn"
+                  className="text-sm font-medium text-[#94a3b8] hover:text-[#0b3d2e] transition-colors font-handdrawn"
                   style={{ fontFamily: '"Gochi Hand", cursive' }}
                 >
                   Forgot Password?
@@ -199,8 +221,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
         {view === 'signup' && (
           <div className="space-y-8">
             <div className="text-center space-y-2">
-              <h2 className="text-3xl md:text-[40px] force-anton text-[#0b3d2e] uppercase tracking-normal leading-none">Join The Club</h2>
-              <p className="font-handdrawn text-xl md:text-[28px] text-[#0b3d2e] leading-tight" style={{ fontFamily: '"Gochi Hand", cursive' }}>Your journey starts here ✨</p>
+              <h2 className="text-[48px] md:text-[60px] force-anton text-[#0b3d2e] uppercase tracking-normal leading-none">Join The Club</h2>
+              <p className="font-handdrawn text-[20px] text-[#0b3d2e] leading-tight" style={{ fontFamily: '"Gochi Hand", cursive' }}>Your journey starts here ✨</p>
             </div>
 
             {error && (
@@ -212,7 +234,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
             <form onSubmit={handleSubmit} className="space-y-5 pt-2">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">First Name</label>
+                  <label className="block text-[12px] font-black uppercase tracking-widest text-[#94a3b8]">First Name</label>
                   <input
                     required
                     type="text"
@@ -223,7 +245,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Last Name</label>
+                  <label className="block text-[12px] font-black uppercase tracking-widest text-[#94a3b8]">Last Name</label>
                   <input
                     required
                     type="text"
@@ -235,7 +257,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="block text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Email</label>
+                <label className="block text-[12px] font-black uppercase tracking-widest text-[#94a3b8]">Email</label>
                 <input
                   required
                   type="email"
@@ -246,7 +268,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Phone</label>
+                <label className="block text-[12px] font-black uppercase tracking-widest text-[#94a3b8]">Phone</label>
                 <input
                   required
                   type="tel"
@@ -257,7 +279,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-[10px] font-black uppercase tracking-widest text-[#94a3b8]">Password</label>
+                <label className="block text-[12px] font-black uppercase tracking-widest text-[#94a3b8]">Password</label>
                 <input
                   required
                   type="password"
@@ -275,7 +297,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
               </button>
             </form>
 
-            <div className="flex items-center justify-center gap-2 text-[11px] font-black text-[#94a3b8] tracking-widest uppercase">
+            <div className="flex items-center justify-center gap-2 text-[15px] font-black text-[#94a3b8] tracking-widest uppercase">
               <span>Already a member?</span>
               <button onClick={() => setView('login')} className="text-[#0b3d2e] hover:underline underline-offset-4 decoration-2">
                 Log In
@@ -288,8 +310,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
         {view === 'reset' && (
           <div className="space-y-8">
             <div className="text-center space-y-2">
-              <h2 className="text-3xl md:text-[40px] force-anton text-[#0b3d2e] uppercase tracking-normal leading-none">Forgot it?</h2>
-              <p className="font-handdrawn text-xl md:text-[28px] text-[#0b3d2e] leading-tight">Don't worry, we got you! 🔑</p>
+              <h2 className="text-[48px] md:text-[60px] force-anton text-[#0b3d2e] uppercase tracking-normal leading-none">Forgot it?</h2>
+              <p className="font-handdrawn text-[20px] text-[#0b3d2e] leading-tight">Don't worry, we got you! 🔑</p>
             </div>
 
             <p className="text-slate-500 text-sm text-center font-medium leading-relaxed px-4">
@@ -298,7 +320,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
 
             <form onSubmit={handleSubmit} className="space-y-6 pt-2">
               <div className="space-y-2">
-                <label className="block text-[11px] font-black uppercase tracking-widest text-[#94a3b8]">Email Address</label>
+                <label className="block text-[12px] font-black uppercase tracking-widest text-[#94a3b8]">Email Address</label>
                 <input
                   required
                   type="email"
@@ -329,8 +351,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin }) => {
         {view === 'otp' && (
           <div className="space-y-8">
             <div className="text-center space-y-2">
-              <h2 className="text-3xl md:text-[40px] force-anton text-[#0b3d2e] uppercase tracking-normal leading-none">Verify Code</h2>
-              <p className="font-handdrawn text-xl md:text-[28px] text-[#0b3d2e] leading-tight">Check your inbox! 📧</p>
+              <h2 className="text-[48px] md:text-[60px] force-anton text-[#0b3d2e] uppercase tracking-normal leading-none">Verify Code</h2>
+              <p className="font-handdrawn text-[20px] text-[#0b3d2e] leading-tight">Check your inbox! 📧</p>
             </div>
 
             {error && (
