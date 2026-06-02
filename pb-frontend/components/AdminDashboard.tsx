@@ -537,26 +537,29 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     productId: ''
   });
 
-  // Blog Management State
-  const [editingBlogPost, setEditingBlogPost] = useState<BlogPost | null>(null);
-  const [blogImageFile, setBlogImageFile] = useState<File | null>(null);
-  const [blogForm, setBlogForm] = useState<Partial<BlogPost>>({
-    title: '',
-    type: 'Recipe',
-    excerpt: '',
-    image: '',
-    date: new Date().toISOString().split('T')[0],
-    author: '',
-    content: '',
-    subtitle: '',
-    intro_heading: '',
-    featured_quote: '',
-    facts_list: [],
-    key_points: [],
-    health_benefits: [],
-    usage_recipes: [],
-    isActive: true
-  });
+   // Blog Management State
+   const [editingBlogPost, setEditingBlogPost] = useState<BlogPost | null>(null);
+   const [blogImageFile, setBlogImageFile] = useState<File | null>(null);
+   const [blogForm, setBlogForm] = useState<Partial<BlogPost>>({
+     title: '',
+     type: 'Recipe',
+     excerpt: '',
+     image: '',
+     date: new Date().toISOString().split('T')[0],
+     author: '',
+     content: '',
+     slug: '',
+     readTime: '0 min read',
+     subtitle: '',
+     intro_heading: '',
+     featured_quote: '',
+     facts_list: [],
+     key_points: [] as { title: string; desc: string }[],
+     health_benefits: [] as { title: string; desc: string }[],
+     usage_recipes: [] as { title: string; desc: string; image: string }[],
+     tags: [],
+     isActive: true
+   });
 
   // Story Handlers
   const [isProcessingDriveVideo, setIsProcessingDriveVideo] = useState(false);
@@ -603,47 +606,49 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     onDeleteStory(id);
   };
 
-  const openAddProduct = () => {
-    setEditingProduct(null);
-    setProductForm({
-      name: '',
-      price: 0,
-      category: '',
-      stock: 100,
-      image: '',
-      rating: 5,
-      reviewCount: 0,
-      benefits: [],
-      nutrients: [],
-      ingredients: '',
-      ingredientsList: [],
-      detailedNutrition: [],
-      nutrition: {
-        calories: '',
-        protein: '',
-        carbs: '',
-        fat: ''
-      },
-      model3d: '',
-      themeColor: '#FF6F00',
-      orientation: '0deg 0deg 0deg',
-      usageIdeas: []
-    });
-    setProductView('add');
-  };
+   const openAddProduct = () => {
+     setEditingProduct(null);
+     setProductForm({
+       name: '',
+       price: 0,
+       category: '',
+       stock: 100,
+       image: '',
+       slug: '',
+       rating: 5,
+       reviewCount: 0,
+       benefits: [],
+       nutrients: [] as { label: string; value: string }[],
+       ingredients: '',
+       ingredientsList: [],
+       detailedNutrition: [] as { n: string; v100: string; v32: string; r: string; b?: boolean; i?: boolean }[],
+       nutrition: {
+         calories: '',
+         protein: '',
+         carbs: '',
+         fat: ''
+       },
+       model3d: '',
+       themeColor: '#FF6F00',
+       orientation: '0deg 0deg 0deg',
+       usageIdeas: []
+     });
+     setProductView('add');
+   };
 
-  const openEditProduct = (product: Product) => {
-    setEditingProduct(product);
-    setProductForm({
-      ...product,
-      themeColor: product.themeColor || '#FF6F00',
-      orientation: product.orientation || '0deg 0deg 0deg',
-      usageIdeas: product.usageIdeas || [],
-      ingredientsList: product.ingredientsList || [],
-      detailedNutrition: product.detailedNutrition || []
-    });
-    setProductView('add');
-  };
+   const openEditProduct = (product: Product) => {
+     setEditingProduct(product);
+     setProductForm({
+       ...product,
+       themeColor: product.themeColor || '#FF6F00',
+       orientation: product.orientation || '0deg 0deg 0deg',
+       usageIdeas: product.usageIdeas || [],
+       ingredientsList: product.ingredientsList || [],
+       detailedNutrition: product.detailedNutrition || [] as { n: string; v100: string; v32: string; r: string; b?: boolean; i?: boolean }[],
+       nutrients: product.nutrients || [] as { label: string; value: string }[]
+     });
+     setProductView('add');
+   };
 
   const updateBenefit = (index: number, value: string) => {
     const newBenefits = [...(productForm.benefits || [])];
@@ -723,25 +728,87 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   // Handlers for Products
-  const handleProductSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!productForm.image) {
-      showToast("Please upload a featured image.", 'warning');
-      return;
-    }
+   const handleProductSubmit = (e: React.FormEvent) => {
+     e.preventDefault();
+     if (!productForm.image) {
+       showToast("Please upload a featured image.", 'warning');
+       return;
+     }
 
-    const sanitizedOrientation = (productForm.orientation || '0deg 0deg 0deg')
-      .replace(/[Oo]/g, '0')
-      .trim();
+     // Generate slug from name if not provided
+     const slug = productForm.slug || 
+       productForm.name.toLowerCase()
+         .replace(/[^\w\s-]/g, '')
+         .replace(/[\s_-]+/g, '-')
+         .replace(/^-+|-+$/g, '');
 
-    if (editingProduct) {
-      const { nutrition, ...rest } = productForm;
-      const updatedProduct: Product = {
-        ...editingProduct,
-        ...rest as Product,
-        orientation: sanitizedOrientation,
-        id: editingProduct.id
-      };
+     const sanitizedOrientation = (productForm.orientation || '0deg 0deg 0deg')
+       .replace(/[Oo]/g, '0')
+       .trim();
+
+     if (editingProduct) {
+       const { nutrition, ...rest } = productForm;
+       const updatedProduct: Product = {
+         ...editingProduct,
+         ...rest as Product,
+         orientation: sanitizedOrientation,
+         id: editingProduct.id
+       };
+       onUpdateProduct(updatedProduct);
+     } else {
+       const { nutrition, ...rest } = productForm;
+       const nutrients = nutrition ? [
+         { label: 'Calories', value: nutrition.calories || '' },
+         { label: 'Protein', value: nutrition.protein || '' },
+         { label: 'Carbs', value: nutrition.carbs || '' },
+         { label: 'Fat', value: nutrition.fat || '' }
+       ].filter(n => n.value) : [];
+       const newProduct: Product = {
+         id: Date.now().toString(),
+         slug: slug,
+         name: rest.name || 'New Product',
+         price: Number(rest.price) || 0,
+         category: rest.category || 'Uncategorized',
+         stock: Number(rest.stock) || 0,
+         image: rest.image || '',
+         rating: 5,
+         reviewCount: 0,
+         benefits: rest.benefits || [],
+         nutrients,
+         ...rest as Product,
+         orientation: sanitizedOrientation
+       };
+       onAddProduct(newProduct);
+     }
+
+     setProductView('list');
+     setEditingProduct(null);
+     setProductForm({
+       name: '',
+       price: 0,
+       category: '',
+       stock: 100,
+       image: '',
+       slug: '',
+       rating: 5,
+       reviewCount: 0,
+       benefits: [],
+       nutrients: [] as { label: string; value: string }[],
+       ingredients: '',
+       ingredientsList: [],
+       detailedNutrition: [] as { n: string; v100: string; v32: string; r: string; b?: boolean; i?: boolean }[],
+       nutrition: {
+         calories: '',
+         protein: '',
+         carbs: '',
+         fat: ''
+       },
+       model3d: '',
+       themeColor: '#FF6F00',
+       orientation: '0deg 0deg 0deg',
+       usageIdeas: []
+     });
+   };
       onUpdateProduct(updatedProduct);
     } else {
       const { nutrition, ...rest } = productForm;
@@ -770,29 +837,31 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     setProductView('list');
     setEditingProduct(null);
-    setProductForm({
-      name: '',
-      price: 0,
-      category: '',
-      stock: 100,
-      image: '',
-      rating: 5,
-      reviewCount: 0,
-      benefits: [],
-      nutrients: [],
-      ingredients: '',
-      ingredientsList: [],
-      nutrition: {
-        calories: '',
-        protein: '',
-        carbs: '',
-        fat: ''
-      },
-      model3d: '',
-      themeColor: '#FF6F00',
-      orientation: '0deg 0deg 0deg',
-      usageIdeas: []
-    });
+     setProductForm({
+       name: '',
+       price: 0,
+       category: '',
+       stock: 100,
+       image: '',
+       slug: '',
+       rating: 5,
+       reviewCount: 0,
+       benefits: [],
+       nutrients: [] as { label: string; value: string }[],
+       ingredients: '',
+       ingredientsList: [],
+       detailedNutrition: [] as { n: string; v100: string; v32: string; r: string; b?: boolean; i?: boolean }[],
+       nutrition: {
+         calories: '',
+         protein: '',
+         carbs: '',
+         fat: ''
+       },
+       model3d: '',
+       themeColor: '#FF6F00',
+       orientation: '0deg 0deg 0deg',
+       usageIdeas: []
+     });
   };
 
   const handleStockUpdate = (product: Product, newStock: number) => {
@@ -841,46 +910,60 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setBlogView('form');
   };
 
-  const handleBlogSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+   const handleBlogSubmit = (e: React.FormEvent) => {
+     e.preventDefault();
 
-    if (!blogForm.image) {
-      showToast("Please upload a cover image.", 'warning');
-      return;
-    }
+     if (!blogForm.image) {
+       showToast("Please upload a cover image.", 'warning');
+       return;
+     }
 
-    const postData: BlogPost = {
-      id: editingBlogPost ? editingBlogPost.id : Date.now().toString(),
-      title: blogForm.title || 'Untitled Post',
-      type: (blogForm.type as any) || 'Recipe',
-      excerpt: blogForm.excerpt || '',
-      image: blogForm.image || '',
-      date: blogForm.date || new Date().toISOString().split('T')[0],
+     // Generate slug from title if not provided
+     const slug = blogForm.slug || 
+       blogForm.title.toLowerCase()
+         .replace(/[^\w\s-]/g, '')
+         .replace(/[\s_-]+/g, '-')
+         .replace(/^-+|-+$/g, '');
 
-      author: blogForm.author || 'Admin',
-      content: blogForm.content || '',
-      subtitle: blogForm.subtitle || '',
-      intro_heading: blogForm.intro_heading || '',
-      featured_quote: blogForm.featured_quote || '',
-      facts_list: blogForm.facts_list || [],
-      key_points: blogForm.key_points || [],
-      health_benefits: blogForm.health_benefits || [],
-      usage_recipes: blogForm.usage_recipes || [],
-      isActive: blogForm.isActive !== false
-    };
+     // Calculate read time (rough estimate: 200 words per minute)
+     const wordCount = blogForm.content.trim().split(/\s+/).filter(Boolean).length;
+     const readTime = blogForm.readTime || 
+       (wordCount === 0 ? '0 min read' : `${Math.max(1, Math.round(wordCount / 200))} min read`);
 
-    if (blogImageFile) {
-      postData.imageFile = blogImageFile;
-    }
+     const postData: BlogPost = {
+       id: editingBlogPost ? editingBlogPost.id : Date.now().toString(),
+       slug: slug,
+       title: blogForm.title || 'Untitled Post',
+       type: (blogForm.type as any) || 'Recipe',
+       excerpt: blogForm.excerpt || '',
+       image: blogForm.image || '',
+       date: blogForm.date || new Date().toISOString().split('T')[0],
+       readTime: readTime,
+       author: blogForm.author || 'Admin',
+       content: blogForm.content || '',
+       subtitle: blogForm.subtitle || '',
+       intro_heading: blogForm.intro_heading || '',
+       featured_quote: blogForm.featured_quote || '',
+       facts_list: blogForm.facts_list || [],
+       key_points: blogForm.key_points || [],
+       health_benefits: blogForm.health_benefits || [],
+       usage_recipes: blogForm.usage_recipes || [],
+       tags: blogForm.tags || [],
+       isActive: blogForm.isActive !== false
+     };
 
-    if (editingBlogPost) {
-      onUpdateBlog(postData);
-    } else {
-      onAddBlog(postData);
-    }
-    setBlogImageFile(null);
-    setBlogView('list');
-  };
+     if (blogImageFile) {
+       postData.imageFile = blogImageFile;
+     }
+
+     if (editingBlogPost) {
+       onUpdateBlog(postData);
+     } else {
+       onAddBlog(postData);
+     }
+     setBlogImageFile(null);
+     setBlogView('list');
+   };
 
   const handleBlogImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -2642,10 +2725,14 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                   <form onSubmit={handleBlogSubmit} className="space-y-8">
                     {/* Basic Info */}
                     <section className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Post Title</label>
-                        <input required type="text" value={blogForm.title} onChange={e => setBlogForm({ ...blogForm, title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. 5 Ways to Eat Oats" />
-                      </div>
+                     <div className="space-y-2">
+                       <label className="text-xs font-black uppercase tracking-widest text-slate-500">Post Title</label>
+                       <input required type="text" value={blogForm.title} onChange={e => setBlogForm({ ...blogForm, title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. 5 Ways to Eat Oats" />
+                     </div>
+                     <div className="space-y-2">
+                       <label className="text-xs font-black uppercase tracking-widest text-slate-500">URL Slug</label>
+                       <input type="text" value={blogForm.slug} onChange={e => setBlogForm({ ...blogForm, slug: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. 5-ways-to-eat-oats" />
+                     </div>
                       <div className="space-y-2">
                         <label className="text-xs font-black uppercase tracking-widest text-slate-500">Category Type</label>
                         <select required value={blogForm.type} onChange={e => setBlogForm({ ...blogForm, type: e.target.value as any })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white">
@@ -3242,10 +3329,14 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
                     {editingProduct ? 'Edit Product' : 'Add New Product'}
                   </h3>
                   <form onSubmit={handleProductSubmit} className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-500">Product Name</label>
-                      <input required type="text" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Super Oats" />
-                    </div>
+                     <div className="space-y-2">
+                       <label className="text-xs font-black uppercase tracking-widest text-slate-500">Product Name</label>
+                       <input required type="text" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Super Oats" />
+                     </div>
+                     <div className="space-y-2">
+                       <label className="text-xs font-black uppercase tracking-widest text-slate-500">URL Slug</label>
+                       <input type="text" value={productForm.slug} onChange={e => setProductForm({ ...productForm, slug: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. super-oats" />
+                     </div>
 
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
