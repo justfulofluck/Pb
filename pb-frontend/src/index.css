@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Bayon&family=Poppins:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Gochi+Hand&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Bayon&family=Gabarito:wght@400;500;700;800&family=Luckiest+Guy&family=Poppins:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Gochi+Hand&display=swap');
 @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
 @import "tailwindcss";
 @import "./legacy-vibe.css" layer(base);
@@ -114,18 +114,21 @@
     font-family: var(--font-anton);
     @apply text-5xl md:text-6xl lg:text-8xl;
     line-height: 1.1;
+    letter-spacing: normal !important;
   }
 
   h2 {
     font-family: var(--font-anton);
     @apply text-4xl md:text-5xl lg:text-6xl;
     line-height: 1.1;
+    letter-spacing: normal !important;
   }
 
   h3 {
     font-family: var(--font-anton);
     @apply text-2xl md:text-3xl lg:text-4xl;
     line-height: 1.1;
+    letter-spacing: normal !important;
   }
 
   input::placeholder,
@@ -194,7 +197,13 @@
 /* Cardboard / Paper Colors */
 .bg-greenboard {
   background-color: #0b3d2e !important;
-  background-image: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E") !important;
+  background-blend-mode: overlay !important;
+}
+
+.texture-blend {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E") !important;
+  background-blend-mode: overlay !important;
 }
 
 .bg-whiteboard {
@@ -276,6 +285,11 @@
 
 .force-anton {
   font-family: var(--font-anton) !important;
+}
+
+/* Fix overlapping text on dense heading fonts */
+.font-black, .font-anton, .force-anton {
+  letter-spacing: normal !important;
 }
 
 /* Zenvira theme overrides for Admin Dashboard and Login */
@@ -373,4 +387,155 @@
 .text-zenvira-text .border-slate-100,
 .text-zenvira-text .border-slate-200 {
   border-color: rgba(32, 41, 24, 0.1) !important;
+}
+
+/* Customer dashboard: Starlight Camp inspired design, scoped away from public site pages */
+.customer-dashboard {
+  --dashboard-primary: #0b3d2e;
+  --dashboard-secondary: #feb835;
+  --dashboard-bg: #f2f2ec;
+  --dashboard-surface: #e5f0d5;
+  --dashboard-text: #000000;
+  --dashboard-muted: #46664e;
+  --dashboard-border: #e5e5e5;
+  background: var(--dashboard-bg) !important;
+  color: var(--dashboard-text) !important;
+  font-family: "Gabarito", "Plus Jakarta Sans", sans-serif !important;
+}
+
+.customer-dashboard h1,
+.customer-dashboard h2,
+.customer-dashboard h3,
+.customer-dashboard .font-anton {
+  font-family: "Luckiest Guy", "Anton", cursive !important;
+  font-weight: 400 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  line-height: 1.05 !important;
+}
+
+.customer-dashboard h2 {
+  font-size: clamp(2rem, 4vw, 4.5rem) !important;
+}
+
+.customer-dashboard h3 {
+  font-size: clamp(1.15rem, 2vw, 1.5rem) !important;
+}
+
+.customer-dashboard p,
+.customer-dashboard label,
+.customer-dashboard span,
+.customer-dashboard input,
+.customer-dashboard button {
+  font-family: "Gabarito", "Plus Jakarta Sans", sans-serif !important;
+  letter-spacing: normal !important;
+}
+
+.customer-dashboard .bg-white,
+.customer-dashboard .bg-slate-50,
+.customer-dashboard .bg-slate-100,
+.customer-dashboard .bg-amber-50,
+.customer-dashboard .bg-emerald-50,
+.customer-dashboard .bg-sky-50,
+.customer-dashboard .bg-violet-50,
+.customer-dashboard .bg-orange-50 {
+  background-color: var(--dashboard-surface) !important;
+}
+
+.customer-dashboard aside,
+.customer-dashboard .shadow-sm,
+.customer-dashboard .shadow-xl,
+.customer-dashboard .shadow-2xl {
+  box-shadow: rgba(0, 0, 0, 0.08) 0px 4px 4px 0px !important;
+}
+
+.customer-dashboard aside,
+.customer-dashboard .rounded-2xl,
+.customer-dashboard .rounded-3xl,
+.customer-dashboard .rounded-xl,
+.customer-dashboard .rounded-lg {
+  border-radius: 24px !important;
+}
+
+.customer-dashboard .rounded-full,
+.customer-dashboard button,
+.customer-dashboard input {
+  border-radius: 999px !important;
+}
+
+.customer-dashboard .border,
+.customer-dashboard .border-slate-100,
+.customer-dashboard .border-slate-200 {
+  border-color: var(--dashboard-border) !important;
+}
+
+.customer-dashboard .text-slate-900,
+.customer-dashboard .text-slate-800,
+.customer-dashboard .text-slate-700 {
+  color: var(--dashboard-text) !important;
+}
+
+.customer-dashboard .text-slate-600,
+.customer-dashboard .text-slate-500,
+.customer-dashboard .text-slate-400,
+.customer-dashboard .text-slate-300 {
+  color: var(--dashboard-muted) !important;
+}
+
+.customer-dashboard .text-primary,
+.customer-dashboard .text-emerald-500,
+.customer-dashboard .text-emerald-600,
+.customer-dashboard .text-\[\#008a45\],
+.customer-dashboard .text-\[\#0b3d2e\] {
+  color: var(--dashboard-primary) !important;
+}
+
+.customer-dashboard .bg-primary,
+.customer-dashboard .bg-\[\#0b3d2e\],
+.customer-dashboard .bg-slate-900,
+.customer-dashboard .from-\[\#0b3d2e\] {
+  background-color: var(--dashboard-primary) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E") !important;
+  background-blend-mode: overlay !important;
+  color: #ffffff !important;
+}
+
+.customer-dashboard .to-\[\#145a3e\] {
+  --tw-gradient-to: var(--dashboard-secondary) var(--tw-gradient-to-position) !important;
+}
+
+.customer-dashboard button.bg-white,
+.customer-dashboard .bg-white\/80,
+.customer-dashboard .bg-white\/95 {
+  background-color: #ffffff !important;
+  color: var(--dashboard-text) !important;
+}
+
+.customer-dashboard button {
+  min-height: 44px;
+  font-weight: 800 !important;
+}
+
+.customer-dashboard button:hover {
+  transform: translateY(-1px);
+}
+
+.customer-dashboard input {
+  background-color: #ffffff !important;
+  border: 1px solid var(--dashboard-border) !important;
+  color: var(--dashboard-text) !important;
+  font-weight: 700 !important;
+}
+
+.customer-dashboard input:focus {
+  border-color: var(--dashboard-primary) !important;
+  box-shadow: 0 0 0 3px rgba(255, 92, 0, 0.16) !important;
+}
+
+.customer-dashboard .fixed.bottom-0 {
+  background: #ffffff !important;
+}
+
+.customer-dashboard .material-symbols-outlined {
+  font-family: "Material Symbols Outlined" !important;
 }

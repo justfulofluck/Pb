@@ -66,11 +66,19 @@ const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#0b3d2e", class
                 className="absolute top-0 left-0 w-[400%] md:w-[200%] h-full pointer-events-none overflow-visible"
                 xmlns="http://www.w3.org/2000/svg"
             >
+                <defs>
+                    <pattern id="noisePattern" patternUnits="userSpaceOnUse" width="400" height="400">
+                        <image href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E" width="400" height="400" preserveAspectRatio="none" />
+                    </pattern>
+                </defs>
                 {/* Single Layer - sharp and clean */}
                 <g ref={bob1Ref}>
                     <g ref={layer1Ref}>
                         {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-                            <path key={i} d={pathData} fill={fill} stroke={fill} strokeWidth="2" transform={`translate(${i * 800}, 0)`} />
+                            <g key={i} transform={`translate(${i * 800}, 0)`}>
+                                <path d={pathData} fill={fill} stroke={fill} strokeWidth="2" />
+                                <path d={pathData} fill="url(#noisePattern)" style={{ mixBlendMode: 'overlay' }} />
+                            </g>
                         ))}
                     </g>
                 </g>

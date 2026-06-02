@@ -17,14 +17,24 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
   return (
     <section
       className="relative w-full overflow-hidden"
-      style={{ backgroundColor: peachBg, minHeight: '520px' }}
+      style={{ backgroundColor: peachBg, minHeight: '300px' }}
     >
+      {/* Mobile colored overlay so white text is always readable */}
+      <div
+        className="block lg:hidden absolute inset-0 z-[0]"
+        style={{
+          backgroundColor: limeGreen,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E")`,
+          backgroundBlendMode: 'overlay',
+          opacity: 1
+        }}
+      />
       {/* ── Layered organic green waves ── */}
       {/* These sit at the bottom and create the organic flowing green shape */}
 
       {/* Wave layer 1 — lightest, furthest back, highest reach */}
       <svg
-        className="absolute bottom-0 left-0 w-full z-[1] pointer-events-none h-[140%] sm:h-[125%] lg:h-full opacity-[0.22] lg:opacity-[0.35]"
+        className="absolute bottom-0 left-0 w-full z-[1] pointer-events-none h-full opacity-[0.22] lg:opacity-[0.35]"
         viewBox="0 0 1440 600"
         preserveAspectRatio="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -37,7 +47,7 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
 
       {/* Wave layer 2 — medium, middle depth */}
       <svg
-        className="absolute bottom-0 left-0 w-full z-[2] pointer-events-none h-[140%] sm:h-[125%] lg:h-full opacity-[0.4] lg:opacity-[0.6]"
+        className="absolute bottom-0 left-0 w-full z-[2] pointer-events-none h-full opacity-[0.4] lg:opacity-[0.6]"
         viewBox="0 0 1440 600"
         preserveAspectRatio="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -50,7 +60,7 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
 
       {/* Wave layer 3 — main solid wave */}
       <svg
-        className="absolute bottom-0 left-0 w-full z-[3] pointer-events-none h-[140%] sm:h-[125%] lg:h-full opacity-[0.9] lg:opacity-100"
+        className="absolute bottom-0 left-0 w-full z-[3] pointer-events-none h-full opacity-[0.9] lg:opacity-100"
         viewBox="0 0 1440 600"
         preserveAspectRatio="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -63,9 +73,9 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
 
       {/* ── Content ── */}
       <div className="relative z-10 w-full">
-        <div className="max-w-[1240px] mx-auto px-5 md:px-10 lg:px-14 pt-[110px] sm:pt-[140px] lg:pt-[220px] pb-14 md:pb-20">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-10 lg:px-14 pt-10 sm:pt-[140px] lg:pt-[220px] pb-10 sm:pb-16 md:pb-20">
 
-          {/* Two-column grid */}
+          {/* Two-column grid — stacks on mobile */}
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
 
             {/* ─── LEFT column ─── */}
@@ -124,20 +134,20 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
               >
                 {/* Header */}
                 <div
-                  className="px-3 sm:px-4 py-3 sm:py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2"
+                  className="px-4 sm:px-4 py-4 sm:py-4 flex flex-col gap-2"
                   style={{ backgroundColor: tableHeaderBg }}
                 >
-                  <div>
-                    <h3 className="text-white text-[16px] sm:text-[18px] md:text-[20px] leading-tight mb-1 font-anton uppercase tracking-wider">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
+                    <h3 className="text-white text-[20px] sm:text-[18px] md:text-[20px] leading-tight mb-0 font-anton uppercase tracking-wider">
                       Nutritional Information
                     </h3>
-                    <p className="text-white/75 text-[10px] sm:text-[11px] md:text-[12px] font-medium">
+                    <p className="text-amber-300 text-[14px] sm:text-[11px] md:text-[12px] font-semibold shrink-0">(Approx. Values)</p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
+                    <p className="text-white/80 text-[13px] sm:text-[11px] md:text-[12px] font-medium">
                       No. of servings per pack: 31 (Approx)
                     </p>
-                  </div>
-                  <div className="text-left sm:text-right shrink-0">
-                    <p className="text-amber-300 text-[10px] sm:text-[11px] md:text-[12px] font-semibold">(Approx. Values)</p>
-                    <p className="text-white text-[10px] sm:text-[11px] md:text-[12px] font-bold">Serving Size: 32g (2 tbsp)</p>
+                    <p className="text-white text-[13px] sm:text-[11px] md:text-[12px] font-bold shrink-0">Serving Size: 32g (2 tbsp)</p>
                   </div>
                 </div>
 

@@ -98,7 +98,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
                 <MultiLayerWave fill="#0b3d2e" className="flex items-end h-full" />
             </div>
 
-            <section className="section bg-greenboard texture-overlay texture-speckles !bg-none overflow-hidden relative z-20">
+            <section className="section bg-greenboard texture-overlay texture-speckles overflow-hidden relative z-20">
                 <div className="!bg-transparent !mt-0 !max-w-7xl mx-auto px-4 !pt-10 !pb-10 font-satoshi relative z-10 w-full text-left items-start">
                     {/* Main Footer Content */}
                     <div className="flex flex-col md:flex-row gap-x-12 lg:gap-x-24 gap-y-12 items-start text-left w-full relative">

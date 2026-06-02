@@ -20,6 +20,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+  const [ordersCurrentPage, setOrdersCurrentPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [rewardTransactions, setRewardTransactions] = useState<any[]>([]);
   const [rewardRules, setRewardRules] = useState<RewardRule[]>([]);
@@ -199,30 +200,30 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
   // Hero banner now uses the global chalkboard texture for better contrast
 
   return (
-    <div className="min-h-screen bg-[#f2f2ec] relative overflow-x-hidden pb-24 lg:pb-0">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-6 sm:py-8 relative z-10">
+    <div className="customer-dashboard min-h-screen bg-[#f2f2ec] relative overflow-x-hidden pb-24 lg:pb-0">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-6 sm:py-8 relative z-10">
 
-        <div className="lg:grid lg:grid-cols-[240px_1fr] gap-8 items-start">
+        <div className="lg:grid lg:grid-cols-[280px_1fr] gap-8 items-start">
           {/* Desktop Sidebar - hidden on mobile */}
           <aside className="hidden lg:block bg-white rounded-3xl p-6 shadow-sm border border-slate-100 sticky top-8 space-y-6">
-            <div className="flex items-center gap-3 pb-5 border-b border-slate-100">
-              <div className="w-11 h-11 bg-[#0b3d2e] text-white rounded-xl flex items-center justify-center font-black text-lg">
+            <div className="flex items-center pb-6 border-b border-slate-100">
+              <div className="w-12 h-12 bg-[#0b3d2e] text-white rounded-full flex items-center justify-center font-black text-lg shadow-md -ml-6 flex-shrink-0 z-10 relative">
                 {(userData.name || ' ')[0]}
               </div>
-              <div className="min-w-0">
-                <h3 className="font-black text-sm uppercase truncate leading-tight text-slate-900">{userData.name}</h3>
+              <div className="min-w-0 pl-4">
+                <h3 className="font-black text-lg uppercase truncate leading-tight text-slate-900">{userData.name}</h3>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{userData.tier}</p>
               </div>
             </div>
 
-            <nav className="space-y-1">
+            <nav className="space-y-2">
               {navItems.map(item => (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id as TabType)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeTab === item.id
-                    ? 'bg-[#0b3d2e] !text-white shadow-md'
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  className={`w-full flex items-center gap-3 py-4 font-bold text-xs uppercase tracking-widest transition-all ${activeTab === item.id
+                    ? 'bg-[#0b3d2e] !text-white shadow-lg rounded-r-full -ml-6 pl-10 -mr-8 pr-8 relative z-10'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 px-4 rounded-xl'
                     }`}
                 >
                   <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
@@ -233,7 +234,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
 
             <button
               onClick={onLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest text-red-400 hover:text-red-600 hover:bg-red-50 transition-all mt-4 border-t border-slate-100 pt-5"
+              className="w-full flex items-center gap-3 px-4 py-4 rounded-xl font-bold text-xs uppercase tracking-widest text-red-400 hover:text-red-600 hover:bg-red-50 transition-all mt-4 border-t border-slate-100 pt-6"
             >
               <span className="material-symbols-outlined text-[18px]">logout</span>
               Sign Out
@@ -395,7 +396,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                     </div>
                   ) : orders.length > 0 ? (
                     <div className="space-y-4">
-                      {orders.map(order => (
+                      {orders.slice((ordersCurrentPage - 1) * 7, ordersCurrentPage * 7).map(order => (
                         <div
                           key={order.id}
                           onClick={() => setSelectedOrder(order)}
@@ -433,6 +434,29 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                           </div>
                         </div>
                       ))}
+                      
+                      {/* Pagination Controls */}
+                      {orders.length > 7 && (
+                        <div className="flex justify-center items-center gap-4 pt-6">
+                          <button
+                            onClick={() => setOrdersCurrentPage(p => Math.max(1, p - 1))}
+                            disabled={ordersCurrentPage === 1}
+                            className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#0b3d2e] hover:border-[#0b3d2e] disabled:opacity-50 disabled:pointer-events-none transition-all shadow-sm"
+                          >
+                            <span className="material-symbols-outlined text-lg">chevron_left</span>
+                          </button>
+                          <span className="text-xs font-black uppercase tracking-widest text-slate-400">
+                            Page {ordersCurrentPage} of {Math.ceil(orders.length / 7)}
+                          </span>
+                          <button
+                            onClick={() => setOrdersCurrentPage(p => Math.min(Math.ceil(orders.length / 7), p + 1))}
+                            disabled={ordersCurrentPage === Math.ceil(orders.length / 7)}
+                            className="w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-[#0b3d2e] hover:border-[#0b3d2e] disabled:opacity-50 disabled:pointer-events-none transition-all shadow-sm"
+                          >
+                            <span className="material-symbols-outlined text-lg">chevron_right</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="bg-white p-24 rounded-[40px] text-center border-2 border-dashed border-slate-100 flex flex-col items-center">
@@ -759,7 +783,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                 });
                               }
                             }}
-                            className="group relative bg-white border border-slate-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-emerald-100 transition-all duration-300 flex flex-col h-[320px] sm:h-[360px] cursor-pointer"
+                            className="group relative bg-white border-2 !border-slate-900 rounded-3xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-[320px] sm:h-[360px] cursor-pointer"
                           >
                             {/* Remove Button */}
                             <button
@@ -777,7 +801,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                   }
                                 } catch (err) { }
                               }}
-                              className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/80 backdrop-blur-md text-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white"
+                              className="absolute top-4 right-4 z-20 w-10 h-10 bg-white text-slate-900 rounded-full flex items-center justify-center transition-all hover:bg-slate-900 hover:text-white shadow-sm"
                             >
                               <span className="material-symbols-outlined text-[20px] fill-1">favorite</span>
                             </button>
@@ -792,18 +816,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                   showToast('Product link copied!', 'success');
                                 } catch (err) { }
                               }}
-                              className="absolute top-4 right-16 z-20 w-10 h-10 bg-white/80 backdrop-blur-md text-slate-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-slate-900 hover:text-white"
+                              className="absolute top-4 right-16 z-20 w-10 h-10 bg-white text-slate-900 rounded-full flex items-center justify-center transition-all hover:bg-slate-900 hover:text-white shadow-sm"
                             >
                               <span className="material-symbols-outlined text-[18px]">share</span>
                             </button>
 
                             {/* Image Section */}
-                            <div className="relative h-56 bg-white p-6 flex-shrink-0">
+                            <div className="relative h-56 bg-transparent p-6 flex-shrink-0">
                               {item.product_details?.image ? (
                                 <img
                                   src={item.product_details.image.startsWith('http') ? item.product_details.image : `${API_BASE_URL}${item.product_details.image}`}
                                   alt={item.product_details.name}
-                                  className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                                  className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
                                 />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center text-slate-200">
@@ -846,7 +870,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                                       showToast('Added to cart!', 'success');
                                     }
                                   }}
-                                  className="w-10 h-10 bg-[#0b3d2e] text-white rounded-xl flex items-center justify-center transition-all active:scale-95 shadow-sm hover:bg-emerald-900 flex-shrink-0"
+                                  className="w-10 h-10 bg-[#0b3d2e] text-white rounded-full flex items-center justify-center transition-all active:scale-95 shadow-sm hover:opacity-90 flex-shrink-0"
                                 >
                                   <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
                                 </button>
