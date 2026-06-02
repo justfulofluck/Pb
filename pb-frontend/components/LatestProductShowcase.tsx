@@ -123,7 +123,7 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
           </span>
           <div className="relative inline-block px-10">
             <h2
-              className="font-normal text-textured-green tracking-wide [word-spacing:0.05em] !font-anton uppercase text-[40px] lg:text-6xl"
+              className="font-normal text-textured-green tracking-normal [word-spacing:0.05em] !font-anton uppercase text-[40px] lg:text-[100px] lg:leading-[110px] lg:-mb-[12px] lg:pb-[12px] lg:font-bold"
             >
               Latest product
             </h2>

@@ -46,7 +46,7 @@ const Newsletter: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         <div className="bg-greenboard texture-overlay texture-speckles rounded-[40px] py-16 md:py-24 px-8 md:px-12 text-white overflow-hidden relative shadow-2xl">
           <div className="max-w-4xl mx-auto text-center relative z-10">
-            <h2 className="text-[2.2rem] sm:text-4xl md:text-7xl font-normal mb-6 uppercase tracking-wide [word-spacing:0.05em] !font-anton leading-[1.1] md:leading-[1.1]">
+            <h2 className="text-[2.2rem] sm:text-4xl md:text-7xl font-normal mb-6 uppercase tracking-normal [word-spacing:0.05em] !font-anton leading-[1.1] md:leading-[1.1] lg:text-[100px] lg:leading-[110px] lg:-mb-[12px] lg:pb-[12px] lg:font-bold">
               Nuts about health?<br />Join our newsletter
             </h2>
             <p className="text-base md:text-xl mb-12 opacity-90 max-w-2xl mx-auto font-medium px-4 md:px-0">

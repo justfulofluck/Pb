@@ -205,7 +205,7 @@ const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProd
           </span>
           <div className="relative inline-block">
             <h2
-              className="font-normal tracking-wide [word-spacing:0.05em] leading-[1.1] !font-anton uppercase text-textured-green text-[40px] lg:text-[72px]"
+              className="font-normal tracking-normal [word-spacing:0.05em] leading-[1.1] !font-anton uppercase text-textured-green text-[40px] lg:text-[100px] lg:leading-[110px] lg:-mb-[12px] lg:pb-[12px] lg:font-bold"
               style={{ textTransform: 'uppercase' }}
             >
               Social stories
