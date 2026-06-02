@@ -153,12 +153,12 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
   const renderResetEmail = () => (
     <form onSubmit={handleRequestOTP} className="space-y-6">
       <div>
-        <p className="text-slate-400 text-xs text-center mb-8 leading-relaxed">
+        <p className="text-zenvira-secondary text-sm text-center mb-8 leading-relaxed">
           Enter your registered Corporate ID. A temporary access key will be dispatched to your encrypted mail.
         </p>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Corporate ID / Email</label>
+        <label className="block text-xs font-bold uppercase tracking-wider text-zenvira-secondary mb-2">Corporate ID / Email</label>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center justify-center">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zenvira-secondary pointer-events-none flex items-center justify-center">
             <span className="material-symbols-outlined text-lg leading-none">badge</span>
           </span>
           <input
@@ -166,7 +166,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
             value={resetEmail}
             onChange={(e) => setResetEmail(e.target.value)}
             placeholder="admin@pinobite.com"
-            className="w-full bg-[#0f172a]/80 border border-slate-700/50 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all font-medium placeholder:text-slate-700"
+            className="w-full bg-[#f7f4ec]/50 border border-zenvira-border/20 text-zenvira-text pl-12 pr-4 py-4 rounded-2xl focus:border-zenvira-accent focus:ring-1 focus:ring-zenvira-accent/30 outline-none transition-all font-medium placeholder:text-zenvira-secondary/40"
             required
           />
         </div>
@@ -174,13 +174,13 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
 
       <button
         disabled={isLoading}
-        className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(0,138,69,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
+        className="w-full bg-zenvira-accent hover:bg-zenvira-accent/90 text-white py-4 rounded-full font-bold uppercase tracking-wider text-xs transition-all hover:shadow-[0_4px_12px_rgba(158,21,156,0.2)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
       >
         {isLoading ? 'SENDING...' : 'SEND OTP'}
         <span className="material-symbols-outlined text-lg">send</span>
       </button>
       <div className="text-center">
-        <button type="button" onClick={() => setView('login')} className="text-slate-500 hover:text-white text-[10px] uppercase font-black tracking-widest">Cancel</button>
+        <button type="button" onClick={() => setView('login')} className="text-zenvira-secondary hover:text-zenvira-accent text-xs uppercase font-bold tracking-wider">Cancel</button>
       </div>
     </form>
   );
@@ -188,12 +188,12 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
   const renderResetOTP = () => (
     <form onSubmit={handleVerifyOTP} className="space-y-6">
       <div>
-        <p className="text-slate-400 text-xs text-center mb-8 leading-relaxed">
+        <p className="text-zenvira-secondary text-sm text-center mb-8 leading-relaxed">
           Enter the 6-digit OTP sent to {resetEmail}
         </p>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">One-Time Password</label>
+        <label className="block text-xs font-bold uppercase tracking-wider text-zenvira-secondary mb-2">One-Time Password</label>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center justify-center">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zenvira-secondary pointer-events-none flex items-center justify-center">
             <span className="material-symbols-outlined text-lg leading-none">lock_clock</span>
           </span>
           <input
@@ -202,7 +202,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
             onChange={(e) => setOtp(e.target.value)}
             placeholder="123456"
             maxLength={6}
-            className="w-full bg-[#0f172a]/80 border border-slate-700/50 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all font-medium placeholder:text-slate-700 tracking-[0.5em] text-center text-lg"
+            className="w-full bg-[#f7f4ec]/50 border border-zenvira-border/20 text-zenvira-text pl-12 pr-4 py-4 rounded-2xl focus:border-zenvira-accent focus:ring-1 focus:ring-zenvira-accent/30 outline-none transition-all font-medium placeholder:text-zenvira-secondary/40 tracking-[0.5em] text-center text-lg"
             required
           />
         </div>
@@ -210,12 +210,12 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
 
       <button
         disabled={isLoading}
-        className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(0,138,69,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
+        className="w-full bg-zenvira-accent hover:bg-zenvira-accent/90 text-white py-4 rounded-full font-bold uppercase tracking-wider text-xs transition-all hover:shadow-[0_4px_12px_rgba(158,21,156,0.2)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
       >
         {isLoading ? 'VERIFYING...' : 'VERIFY OTP'}
       </button>
       <div className="text-center">
-        <button type="button" onClick={() => setView('reset-email')} className="text-slate-500 hover:text-white text-[10px] uppercase font-black tracking-widest">Back</button>
+        <button type="button" onClick={() => setView('reset-email')} className="text-zenvira-secondary hover:text-zenvira-accent text-xs uppercase font-bold tracking-wider">Back</button>
       </div>
     </form>
   );
@@ -223,33 +223,33 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
   const renderResetPassword = () => (
     <form onSubmit={handleSetNewPassword} className="space-y-6">
       <div>
-        <p className="text-slate-400 text-xs text-center mb-8 leading-relaxed">Create a new secure password.</p>
+        <p className="text-zenvira-secondary text-sm text-center mb-8 leading-relaxed">Create a new secure password.</p>
 
-        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">New Password</label>
+        <label className="block text-xs font-bold uppercase tracking-wider text-zenvira-secondary mb-2">New Password</label>
         <div className="relative mb-4">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center justify-center">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zenvira-secondary pointer-events-none flex items-center justify-center">
             <span className="material-symbols-outlined text-lg leading-none">vpn_key</span>
           </span>
           <input
             type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full bg-[#0f172a]/80 border border-slate-700/50 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all font-medium"
+            className="w-full bg-[#f7f4ec]/50 border border-zenvira-border/20 text-zenvira-text pl-12 pr-4 py-4 rounded-2xl focus:border-zenvira-accent focus:ring-1 focus:ring-zenvira-accent/30 outline-none transition-all font-medium"
             required
             minLength={8}
           />
         </div>
 
-        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Confirm Password</label>
+        <label className="block text-xs font-bold uppercase tracking-wider text-zenvira-secondary mb-2">Confirm Password</label>
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center justify-center">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zenvira-secondary pointer-events-none flex items-center justify-center">
             <span className="material-symbols-outlined text-lg leading-none">check_circle</span>
           </span>
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full bg-[#0f172a]/80 border border-slate-700/50 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all font-medium"
+            className="w-full bg-[#f7f4ec]/50 border border-zenvira-border/20 text-zenvira-text pl-12 pr-4 py-4 rounded-2xl focus:border-zenvira-accent focus:ring-1 focus:ring-zenvira-accent/30 outline-none transition-all font-medium"
             required
             minLength={8}
           />
@@ -258,7 +258,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
 
       <button
         disabled={isLoading}
-        className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(0,138,69,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
+        className="w-full bg-zenvira-accent hover:bg-zenvira-accent/90 text-white py-4 rounded-full font-bold uppercase tracking-wider text-xs transition-all hover:shadow-[0_4px_12px_rgba(158,21,156,0.2)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
       >
         {isLoading ? 'RESETTING...' : 'RESET PASSWORD'}
       </button>
@@ -266,35 +266,35 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
   );
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-zenvira-bg flex flex-col items-center justify-center p-4 relative overflow-hidden font-poppins text-zenvira-text">
       <div className="absolute inset-0 z-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-10 blur-sm"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 to-slate-900"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-5 blur-sm"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-zenvira-bg/50 to-zenvira-bg"></div>
       </div>
 
       <div className="relative z-10 w-full max-w-md">
         <div className="text-center mb-10">
-          <div className="flex flex-col items-center justify-center gap-4 text-white mb-4">
+          <div className="flex flex-col items-center justify-center gap-2 mb-4">
             <img
               src="/logos/Pinobite-logo.png"
               alt="Pinobite Logo"
               className="h-12 w-auto object-contain"
             />
-            <span className="text-xl font-black tracking-tighter uppercase text-slate-500">GLOBAL</span>
+            <span className="text-3xl font-bayon tracking-wide uppercase text-zenvira-accent">GLOBAL</span>
           </div>
-          <p className="text-slate-400 font-medium uppercase tracking-widest text-[10px]">
+          <p className="text-zenvira-secondary font-bold uppercase tracking-widest text-xs">
             {view === 'login' ? 'Internal Team Access Portal' : 'Security Recovery Protocol'}
           </p>
         </div>
 
-        <div className="bg-[#1a2333]/60 backdrop-blur-xl border border-white/5 p-8 md:p-10 rounded-[32px] shadow-2xl">
+        <div className="bg-white/80 backdrop-blur-xl border border-zenvira-border/10 p-8 md:p-10 rounded-[32px] shadow-[0_8px_30px_rgb(32,41,24,0.06)]">
           {error && (
-            <div className="mb-6 bg-red-500/10 border border-red-500/50 text-red-200 p-4 rounded-xl text-xs font-bold text-center tracking-wide">
+            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-xs font-bold text-center tracking-wide">
               {error}
             </div>
           )}
           {successMsg && (
-            <div className="mb-6 bg-green-500/10 border border-green-500/50 text-green-200 p-4 rounded-xl text-xs font-bold text-center tracking-wide">
+            <div className="mb-6 bg-green-50 border border-green-200 text-green-700 p-4 rounded-2xl text-xs font-bold text-center tracking-wide">
               {successMsg}
             </div>
           )}
@@ -302,9 +302,9 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
           {view === 'login' && (
             <form onSubmit={handleLogin} className="space-y-6">
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Corporate ID / Email</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zenvira-secondary mb-2">Corporate ID / Email</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center justify-center">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zenvira-secondary pointer-events-none flex items-center justify-center">
                     <span className="material-symbols-outlined text-lg leading-none">badge</span>
                   </span>
                   <input
@@ -312,16 +312,16 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin@pinobite.com"
-                    className="w-full bg-[#0f172a]/80 border border-slate-700/50 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all font-medium placeholder:text-slate-700"
+                    className="w-full bg-[#f7f4ec]/50 border border-zenvira-border/20 text-zenvira-text pl-12 pr-4 py-4 rounded-2xl focus:border-zenvira-accent focus:ring-1 focus:ring-zenvira-accent/30 outline-none transition-all font-medium placeholder:text-zenvira-secondary/40"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Access Key</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-zenvira-secondary mb-2">Access Key</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none flex items-center justify-center">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zenvira-secondary pointer-events-none flex items-center justify-center">
                     <span className="material-symbols-outlined text-lg leading-none">vpn_key</span>
                   </span>
                   <input
@@ -329,21 +329,21 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full bg-[#0f172a]/80 border border-slate-700/50 text-white pl-12 pr-4 py-4 rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/30 outline-none transition-all font-medium placeholder:text-slate-700"
+                    className="w-full bg-[#f7f4ec]/50 border border-zenvira-border/20 text-zenvira-text pl-12 pr-4 py-4 rounded-2xl focus:border-zenvira-accent focus:ring-1 focus:ring-zenvira-accent/30 outline-none transition-all font-medium placeholder:text-zenvira-secondary/40"
                     required
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[11px]">
-                <label className="flex items-center gap-2 text-slate-400 cursor-pointer hover:text-white transition-colors">
-                  <input type="checkbox" className="rounded border-slate-700 bg-slate-900 text-primary focus:ring-offset-slate-900" />
+              <div className="flex items-center justify-between text-xs">
+                <label className="flex items-center gap-2 text-zenvira-secondary cursor-pointer hover:text-zenvira-text transition-colors">
+                  <input type="checkbox" className="rounded border-zenvira-border/20 bg-white text-zenvira-accent focus:ring-zenvira-accent/50" />
                   Remember Device
                 </label>
                 <button
                   type="button"
                   onClick={() => { setView('reset-email'); setError(null); setSuccessMsg(null); }}
-                  className="text-primary font-bold hover:text-primary/80 transition-colors"
+                  className="text-zenvira-accent font-bold hover:text-zenvira-accent/80 transition-colors"
                 >
                   Lost Key?
                 </button>
@@ -351,7 +351,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
 
               <button
                 disabled={isLoading}
-                className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all hover:shadow-[0_0_20px_rgba(0,138,69,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
+                className="w-full bg-zenvira-accent hover:bg-zenvira-accent/90 text-white py-4 rounded-full font-bold uppercase tracking-wider text-xs transition-all hover:shadow-[0_4px_12px_rgba(158,21,156,0.2)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-95"
               >
                 {isLoading ? (
                   <>
@@ -377,7 +377,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
         <div className="text-center mt-10">
           <button
             onClick={onBackToSite}
-            className="text-slate-600 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-3 mx-auto"
+            className="text-zenvira-secondary hover:text-zenvira-accent transition-colors text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-3 mx-auto"
           >
             <span className="material-symbols-outlined text-sm">arrow_back</span>
             Return to Public Site
@@ -386,7 +386,7 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onLoginSuccess, onBackT
       </div>
 
       <div className="absolute bottom-8 left-0 w-full text-center">
-        <p className="text-slate-700 text-[9px] uppercase font-bold tracking-[0.3em]">
+        <p className="text-zenvira-secondary/60 text-[10px] uppercase font-bold tracking-wider">
           Authorized Personnel Only • Secure 256-bit Encrypted Connection
         </p>
       </div>

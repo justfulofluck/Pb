@@ -511,6 +511,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Slide Management State
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null);
   const [isSlideModalOpen, setIsSlideModalOpen] = useState(false);
+  const [slideForm, setSlideForm] = useState<Partial<HeroSlide>>({
+    category: '',
+    headline: '',
+    image: '',
+    cta: 'SHOP NOW',
+    ctaLink: '/shop',
+    secondaryCta: '',
+    secondaryCtaLink: '',
+    bgColor: COLOR_THEMES[0].bgColor,
+    accentColor: COLOR_THEMES[0].accentColor,
+    blobColor: COLOR_THEMES[0].blobColor,
+    backgroundImage: '',
+    productId: '',
+    transitionType: 'fade',
+    mobileImage: '',
+    displayDuration: 5,
+    isActive: true
+  });
 
   // Story Form State
   const [newStoryForm, setNewStoryForm] = useState<Partial<Story>>({
@@ -1523,13 +1541,13 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-100 flex font-satoshi overflow-hidden">
+    <div className="fixed inset-0 bg-zenvira-bg flex font-poppins text-zenvira-text overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-20 lg:w-64 bg-slate-900 text-white flex flex-col flex-shrink-0 transition-all duration-300">
-        <div className="p-4 border-b border-slate-800 h-20 flex items-center justify-center">
+      <aside className="w-20 lg:w-64 bg-white text-zenvira-text flex flex-col flex-shrink-0 border-r border-zenvira-border/10 transition-all duration-300">
+        <div className="p-4 border-b border-zenvira-border/10 h-20 flex items-center justify-center">
           <button
             onClick={onBackToSite}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-primary text-white rounded-xl transition-all duration-300 group"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zenvira-bg hover:bg-zenvira-accent hover:text-white text-zenvira-text border border-zenvira-border/15 rounded-full transition-all duration-300 group"
           >
             <span className="material-symbols-outlined text-xl group-hover:-translate-x-1 transition-transform">arrow_back</span>
             <span className="font-bold text-sm hidden lg:block uppercase tracking-wider">Go to Site</span>
@@ -1554,38 +1572,38 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center gap-4 px-6 py-4 transition-colors relative ${activeTab === item.id
-                ? 'text-white bg-slate-800'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                ? 'text-zenvira-accent bg-zenvira-accent/10'
+                : 'text-zenvira-secondary hover:text-zenvira-text hover:bg-zenvira-bg/50'
                 }`}
             >
               <span className="material-symbols-outlined">{item.icon}</span>
               <span className="font-bold text-sm hidden lg:block">{item.label}</span>
               {activeTab === item.id && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-zenvira-accent"></div>
               )}
             </button>
           ))}
         </nav>
 
-        <div className="p-4 border-t border-slate-800/50">
-          <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/30">
+        <div className="p-4 border-t border-zenvira-border/10">
+          <div className="bg-zenvira-bg/50 rounded-2xl p-4 border border-zenvira-border/10">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center font-black text-white shadow-lg shadow-primary/20 flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-zenvira-accent flex items-center justify-center font-bold text-white shadow-md shadow-zenvira-accent/25 flex-shrink-0">
                 {adminInitials}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Signed in as</p>
-                <p className="text-xs font-bold text-white truncate" title={adminEmail}>{adminEmail}</p>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-zenvira-secondary mb-0.5">Signed in as</p>
+                <p className="text-xs font-bold text-zenvira-text truncate" title={adminEmail}>{adminEmail}</p>
               </div>
             </div>
-            <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
-              <span className="text-[10px] font-black uppercase tracking-widest text-primary/80 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+            <div className="flex items-center justify-between pt-3 border-t border-zenvira-border/10">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-zenvira-accent flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-zenvira-accent animate-pulse"></span>
                 Super Admin
               </span>
               <button
                 onClick={onLogout}
-                className="w-8 h-8 rounded-lg bg-slate-700/50 text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-all flex items-center justify-center group"
+                className="w-8 h-8 rounded-lg bg-white border border-zenvira-border/10 text-zenvira-secondary hover:text-red-600 hover:bg-red-50 hover:border-red-100 transition-all flex items-center justify-center group"
                 title="Logout"
               >
                 <span className="material-symbols-outlined text-lg group-hover:translate-x-0.5 transition-transform">logout</span>
@@ -1598,8 +1616,8 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-full overflow-hidden min-h-0">
         {/* Top Header */}
-        <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 flex-shrink-0 relative z-30">
-          <h2 className="text-2xl font-black uppercase text-slate-800">
+        <header className="h-20 bg-white border-b border-zenvira-border/10 flex items-center justify-between px-8 flex-shrink-0 relative z-30">
+          <h2 className="text-3xl font-bayon font-normal uppercase text-zenvira-text tracking-wide">
             {getPageTitle()}
           </h2>
           <div className="flex items-center gap-4 relative">

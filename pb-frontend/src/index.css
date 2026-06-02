@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Anton&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Gochi+Hand&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Bayon&family=Poppins:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Gochi+Hand&display=swap');
 @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
 @import "tailwindcss";
 @import "./legacy-vibe.css" layer(base);
@@ -11,6 +11,15 @@
   --font-handdrawn: "Gochi Hand", cursive;
   --font-headline: "Epilogue", sans-serif;
   --font-body: "Manrope", sans-serif;
+  --font-bayon: "Bayon", sans-serif;
+  --font-poppins: "Poppins", sans-serif;
+
+  --color-zenvira-bg: #f7f4ec;
+  --color-zenvira-accent: #9e159c;
+  --color-zenvira-text: #000000;
+  --color-zenvira-secondary: #666666;
+  --color-zenvira-border: #202918;
+  --color-zenvira-dark: #34402c;
 
   --color-primary: #008a45;
   --color-secondary: #f9bc15;
@@ -267,4 +276,101 @@
 
 .force-anton {
   font-family: var(--font-anton) !important;
+}
+
+/* Zenvira theme overrides for Admin Dashboard and Login */
+.text-zenvira-text {
+  --custom-scroll-bg: #f7f4ec;
+  --custom-scroll-thumb: #9e159c;
+}
+
+.text-zenvira-text input,
+.text-zenvira-text select,
+.text-zenvira-text textarea {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid rgba(32, 41, 24, 0.15) !important;
+  border-radius: 12px !important;
+  font-family: "Poppins", sans-serif !important;
+}
+
+.text-zenvira-text input:focus,
+.text-zenvira-text select:focus,
+.text-zenvira-text textarea:focus {
+  border-color: #9e159c !important;
+  outline: none !important;
+  box-shadow: 0 0 0 1px rgba(158, 21, 156, 0.3) !important;
+}
+
+/* Rounded elements and cards */
+.text-zenvira-text .bg-white {
+  background-color: #ffffff !important;
+  border: 1px solid rgba(32, 41, 24, 0.08) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 4px 20px rgba(32, 41, 24, 0.04) !important;
+}
+
+/* Heading font classes */
+.text-zenvira-text h1,
+.text-zenvira-text h2,
+.text-zenvira-text h3,
+.text-zenvira-text h4,
+.text-zenvira-text .font-black,
+.text-zenvira-text .font-extrabold {
+  font-family: "Bayon", sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* Primary Button spec from DESIGN.md */
+.text-zenvira-text button.bg-primary,
+.text-zenvira-text button.bg-slate-900:not(.bg-white):not(.bg-slate-800/40),
+.text-zenvira-text .bg-primary:not(.text-primary-foreground),
+.text-zenvira-text a.bg-primary {
+  background-color: #9e159c !important;
+  color: #ffffff !important;
+  border-radius: 132px !important;
+  font-family: "Poppins", sans-serif !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  border: none !important;
+  transition: all 0.2s ease-in-out !important;
+  box-shadow: 0 4px 12px rgba(158, 21, 156, 0.2) !important;
+}
+
+.text-zenvira-text button.bg-primary:hover,
+.text-zenvira-text button.bg-slate-900:not(.bg-white):hover {
+  background-color: #7d0d7b !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 16px rgba(158, 21, 156, 0.3) !important;
+}
+
+/* Secondary CTA / text colors */
+.text-zenvira-text .text-primary {
+  color: #9e159c !important;
+}
+
+.text-zenvira-text .border-primary {
+  border-color: #9e159c !important;
+}
+
+.text-zenvira-text .text-slate-800 {
+  color: #000000 !important;
+}
+
+.text-zenvira-text .text-slate-600,
+.text-zenvira-text .text-slate-500,
+.text-zenvira-text .text-slate-400 {
+  color: #666666 !important;
+}
+
+.text-zenvira-text .bg-slate-100,
+.text-zenvira-text .bg-slate-50 {
+  background-color: #f7f4ec !important;
+}
+
+.text-zenvira-text .border-slate-100,
+.text-zenvira-text .border-slate-200 {
+  border-color: rgba(32, 41, 24, 0.1) !important;
 }
