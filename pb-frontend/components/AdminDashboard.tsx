@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category, Announcement, DistributorApplication, PressUpdate, RewardRule, RewardTransaction, UsageIdea, Customer } from '../types';
 import { API_BASE_URL } from '../config';
+import { adminApiFetch, adminApiFetchWithFallback } from '../utils/adminApi';
 // import { jsPDF } from "jspdf"; // Removed deprecated dependency
 import ConfirmationModal from './ConfirmationModal';
 import { useToast } from './Toast';
@@ -266,13 +267,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   useEffect(() => {
     const fetchAdminData = async () => {
       try {
-        const token = localStorage.getItem('admin_access_token') || localStorage.getItem('access_token');
-        if (!token) return;
-
         // Fetch Orders
-        const ordersRes = await fetch(`${API_BASE_URL}/api/orders/`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const ordersRes = await adminApiFetchWithFallback(`${API_BASE_URL}/api/orders/`);
         if (ordersRes.ok) {
           const data = await ordersRes.json();
           if (Array.isArray(data)) {
@@ -282,9 +278,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         }
 
         // Fetch Distributor Applications
-        const distRes = await fetch(`${API_BASE_URL}/api/distributor-applications/`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const distRes = await adminApiFetchWithFallback(`${API_BASE_URL}/api/distributor-applications/`);
         if (distRes.ok) {
           const data = await distRes.json();
           if (Array.isArray(data)) {
@@ -292,9 +286,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }
         }
         // Fetch Reward Rules
-        const rewardRulesRes = await fetch(`${API_BASE_URL}/api/reward-rules/`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const rewardRulesRes = await adminApiFetchWithFallback(`${API_BASE_URL}/api/reward-rules/`);
         if (rewardRulesRes.ok) {
           const data = await rewardRulesRes.json();
           if (Array.isArray(data)) {
@@ -303,9 +295,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         }
 
         // Fetch Reward Transactions
-        const rewardTransRes = await fetch(`${API_BASE_URL}/api/reward-transactions/`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const rewardTransRes = await adminApiFetchWithFallback(`${API_BASE_URL}/api/reward-transactions/`);
         if (rewardTransRes.ok) {
           const data = await rewardTransRes.json();
           if (Array.isArray(data)) {
@@ -439,10 +429,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setShowProfileModal(true);
     setProfileLoading(true);
     try {
-      const token = localStorage.getItem('admin_access_token') || localStorage.getItem('access_token');
-      const res = await fetch(`${API_BASE_URL}/api/users/me/`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await adminApiFetchWithFallback(`${API_BASE_URL}/api/users/me/`);
       if (res.ok) {
         const data = await res.json();
         setProfileForm({ first_name: data.first_name || '', last_name: data.last_name || '' });
@@ -457,10 +444,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('admin_access_token') || localStorage.getItem('access_token');
-      const res = await fetch(`${API_BASE_URL}/api/users/update_profile/`, {
+      const res = await adminApiFetchWithFallback(`${API_BASE_URL}/api/users/update_profile/`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileForm)
       });
       if (res.ok) {
@@ -486,10 +472,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       return;
     }
     try {
-      const token = localStorage.getItem('admin_access_token') || localStorage.getItem('access_token');
-      const res = await fetch(`${API_BASE_URL}/api/users/change_password/`, {
+      const res = await adminApiFetchWithFallback(`${API_BASE_URL}/api/users/change_password/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           current_password: passwordForm.current_password,
           new_password: passwordForm.new_password
@@ -809,60 +794,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
        usageIdeas: []
      });
    };
-      onUpdateProduct(updatedProduct);
-    } else {
-      const { nutrition, ...rest } = productForm;
-      const nutrients = nutrition ? [
-        { label: 'Calories', value: nutrition.calories || '' },
-        { label: 'Protein', value: nutrition.protein || '' },
-        { label: 'Carbs', value: nutrition.carbs || '' },
-        { label: 'Fat', value: nutrition.fat || '' }
-      ].filter(n => n.value) : [];
-      const newProduct: Product = {
-        id: Date.now().toString(),
-        name: rest.name || 'New Product',
-        price: Number(rest.price) || 0,
-        category: rest.category || 'Uncategorized',
-        stock: Number(rest.stock) || 0,
-        image: rest.image || '',
-        rating: 5,
-        reviewCount: 0,
-        benefits: rest.benefits || [],
-        nutrients,
-        ...rest as Product,
-        orientation: sanitizedOrientation
-      };
-      onAddProduct(newProduct);
-    }
-
-    setProductView('list');
-    setEditingProduct(null);
-     setProductForm({
-       name: '',
-       price: 0,
-       category: '',
-       stock: 100,
-       image: '',
-       slug: '',
-       rating: 5,
-       reviewCount: 0,
-       benefits: [],
-       nutrients: [] as { label: string; value: string }[],
-       ingredients: '',
-       ingredientsList: [],
-       detailedNutrition: [] as { n: string; v100: string; v32: string; r: string; b?: boolean; i?: boolean }[],
-       nutrition: {
-         calories: '',
-         protein: '',
-         carbs: '',
-         fat: ''
-       },
-       model3d: '',
-       themeColor: '#FF6F00',
-       orientation: '0deg 0deg 0deg',
-       usageIdeas: []
-     });
-  };
 
   const handleStockUpdate = (product: Product, newStock: number) => {
     onUpdateProduct({ ...product, stock: Math.max(0, newStock) });
@@ -1308,13 +1239,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Handlers for Rewards
   const handleToggleRewardRule = async (rule: RewardRule) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/reward-rules/${rule.id}/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/reward-rules/${rule.id}/`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_enabled: !rule.is_enabled })
       });
       if (response.ok) {
@@ -1327,13 +1254,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const handleUpdateRewardPoints = async (rule: RewardRule, newPoints: number) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/reward-rules/${rule.id}/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/reward-rules/${rule.id}/`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ points: newPoints })
       });
       if (response.ok) {
@@ -1566,14 +1489,9 @@ ${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
   const handleStatusUpdate = async (newStatus: string) => {
     if (!viewingOrder) return;
     try {
-      const token = localStorage.getItem('admin_access_token') || localStorage.getItem('access_token');
-      if (!token) return;
-      const response = await fetch(`${API_BASE_URL}/api/orders/${viewingOrder.id}/`, {
+      const response = await adminApiFetchWithFallback(`${API_BASE_URL}/api/orders/${viewingOrder.id}/`, {
         method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
       if (response.ok) {

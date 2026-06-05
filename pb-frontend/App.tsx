@@ -40,6 +40,7 @@ import BlogSection from './components/BlogSection';
 import EventsSection from './components/EventsSection';
 const EventModal = React.lazy(() => import('./components/EventModal'));
 import StoryCarousel from './components/StoryCarousel';
+import { adminApiFetch } from './utils/adminApi';
 import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category, Announcement, PressUpdate, Customer } from './types';
 import SnaxxoLanding from './components/snaxxo/SnaxxoLanding';
 const SnaxxoProductWheel = React.lazy(() => import('./components/snaxxo/SnaxxoProductWheel'));
@@ -295,10 +296,7 @@ const AppContent: React.FC = () => {
   const customersQuery = useQuery({
     queryKey: ['customers'],
     queryFn: async () => {
-      const token = localStorage.getItem('admin_access_token');
-      const res = await fetch(`${API_BASE_URL}/api/customers/`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await adminApiFetch(`${API_BASE_URL}/api/customers/`);
       if (!res.ok) throw new Error('Failed to fetch customers');
       return res.json() as Promise<Customer[]>;
     },
@@ -606,6 +604,19 @@ const AppContent: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const handleAdminLogoutEvent = () => {
+      showToast("Session expired. Please log in again.", 'warning');
+      setIsAdminLoggedIn(false);
+      localStorage.removeItem('admin_access_token');
+      localStorage.removeItem('admin_refresh_token');
+      setCurrentView('home');
+      window.history.pushState({ view: 'home' }, '', '/');
+    };
+    window.addEventListener('admin:logout', handleAdminLogoutEvent);
+    return () => window.removeEventListener('admin:logout', handleAdminLogoutEvent);
+  }, [showToast]);
+
   // Redirect to home if user session expires while on dashboard
   useEffect(() => {
     if (!user && !isLoading && currentView === 'dashboard') {
@@ -627,22 +638,15 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     if (currentView === 'admin-dashboard') {
       const refreshAdminData = async () => {
-        const token = localStorage.getItem('admin_access_token');
-        if (!token) return;
-
         try {
           // Refresh Visitor Forms
-          const response = await fetch(`${API_BASE_URL}/api/visitor-forms/`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
+          const response = await adminApiFetch(`${API_BASE_URL}/api/visitor-forms/`);
           if (response.ok) {
             queryClient.invalidateQueries({ queryKey: ['visitor-forms'] });
           }
 
           // Refresh Announcements
-          const annRes = await fetch(`${API_BASE_URL}/api/announcements/`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
+          const annRes = await adminApiFetch(`${API_BASE_URL}/api/announcements/`);
           if (annRes.ok) {
             queryClient.invalidateQueries({ queryKey: ['announcements'] });
           }
@@ -688,13 +692,9 @@ const AppContent: React.FC = () => {
 
   const handleAddProduct = async (newProduct: Product) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/products/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/products/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: newProduct.name,
           price: newProduct.price,
@@ -733,13 +733,9 @@ const AppContent: React.FC = () => {
 
   const handleUpdateProduct = async (updatedProduct: Product) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/products/${updatedProduct.id}/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/products/${updatedProduct.id}/`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: updatedProduct.name,
           price: updatedProduct.price,
@@ -778,10 +774,8 @@ const AppContent: React.FC = () => {
 
   const handleDeleteProduct = async (id: string) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/products/${id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/products/${id}/`, {
+        method: 'DELETE'
       });
       if (response.status === 401) {
         handleAdminLogout();
@@ -799,13 +793,9 @@ const AppContent: React.FC = () => {
   };
   const handleAddVisitorForm = async (newForm: VisitorForm) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/visitor-forms/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/visitor-forms/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: newForm.title,
           event_name: newForm.event_name,
@@ -831,13 +821,9 @@ const AppContent: React.FC = () => {
 
   const handleUpdateVisitorForm = async (id: string, data: Partial<VisitorForm>) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/visitor-forms/${id}/`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+      const response = await adminApiFetch(`${API_BASE_URL}/api/visitor-forms/${id}/`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
       if (response.ok) {
@@ -853,10 +839,8 @@ const AppContent: React.FC = () => {
 
   const handleDeleteVisitorForm = async (id: string) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/visitor-forms/${id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/visitor-forms/${id}/`, {
+        method: 'DELETE'
       });
       if (response.status === 401) {
         handleAdminLogout();
@@ -873,13 +857,9 @@ const AppContent: React.FC = () => {
   };
   const handleAddCategory = async (newCategory: Category) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/categories/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/categories/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCategory)
       });
       if (response.status === 401) {
@@ -897,10 +877,8 @@ const AppContent: React.FC = () => {
 
   const handleDeleteCategory = async (id: string) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/categories/${id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/categories/${id}/`, {
+        method: 'DELETE'
       });
       if (response.status === 401) {
         showToast("Session expired. Please log in again.", 'warning');
@@ -916,13 +894,9 @@ const AppContent: React.FC = () => {
 
   const handleAddEvent = async (newEvent: EventBlog) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/events/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/events/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: newEvent.title,
           location: newEvent.location,
@@ -953,13 +927,9 @@ const AppContent: React.FC = () => {
 
   const handleUpdateEvent = async (updatedEvent: EventBlog) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/events/${updatedEvent.id}/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/products/${updatedProduct.id}/`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: updatedEvent.title,
           location: updatedEvent.location,
@@ -990,10 +960,8 @@ const AppContent: React.FC = () => {
 
   const handleDeleteEvent = async (id: string) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/events/${id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/events/${id}/`, {
+        method: 'DELETE'
       });
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ['events'] });
@@ -1009,10 +977,8 @@ const AppContent: React.FC = () => {
 
   const handleToggleCustomerActive = async (id: string) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/customers/${id}/toggle_active/`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/customers/${id}/toggle_active/`, {
+        method: 'POST'
       });
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ['customers'] });
@@ -1024,10 +990,8 @@ const AppContent: React.FC = () => {
   const handleDeleteCustomer = async (id: string) => {
     if (!window.confirm("Are you sure you want to permanently delete this customer?")) return;
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/customers/${id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/customers/${id}/`, {
+        method: 'DELETE'
       });
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ['customers'] });
@@ -1038,13 +1002,9 @@ const AppContent: React.FC = () => {
 
   const handleAddSlide = async (newSlide: HeroSlide) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/hero-slides/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/hero-slides/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           category: newSlide.category,
           headline: newSlide.headline,
@@ -1078,13 +1038,9 @@ const AppContent: React.FC = () => {
 
   const handleAddRewardRule = async (newRule: Omit<RewardRule, 'id'>) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/reward-rules/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/reward-rules/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newRule),
       });
       if (response.ok) {
@@ -1098,13 +1054,9 @@ const AppContent: React.FC = () => {
 
   const handleUpdateSlide = async (updatedSlide: HeroSlide) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/hero-slides/${updatedSlide.id}/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/hero-slides/${updatedSlide.id}/`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           category: updatedSlide.category,
           headline: updatedSlide.headline,
@@ -1137,11 +1089,7 @@ const AppContent: React.FC = () => {
 
   const handleDeleteSlide = async (id: string) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      await fetch(`${API_BASE_URL}/api/hero-slides/${id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      await adminApiFetch(`${API_BASE_URL}/api/hero-slides/${id}/`, { method: 'DELETE' });
       queryClient.invalidateQueries({ queryKey: ['hero-slides'] });
     } catch (err) {
       console.error("Failed to delete slide", err);
@@ -1170,8 +1118,7 @@ const AppContent: React.FC = () => {
 
   const handleAddBlog = async (newBlog: BlogPost) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const headers: Record<string, string> = { 'Authorization': `Bearer ${token}` };
+      const headers: Record<string, string> = {};
       let body: BodyInit;
       if (newBlog.imageFile) {
         const fd = buildBlogFormData(newBlog);
@@ -1198,7 +1145,7 @@ const AppContent: React.FC = () => {
           usage_recipes: newBlog.usage_recipes || []
         });
       }
-      const response = await fetch(`${API_BASE_URL}/api/blog-posts/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/blog-posts/`, {
         method: 'POST',
         headers,
         body
@@ -1213,13 +1160,9 @@ const AppContent: React.FC = () => {
 
   const handleAddAnnouncement = async (newA: Announcement) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/announcements/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/announcements/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: newA.message,
           start_date: newA.start_date,
@@ -1237,13 +1180,9 @@ const AppContent: React.FC = () => {
 
   const handleUpdateAnnouncement = async (updatedA: Announcement) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/announcements/${updatedA.id}/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/events/${updatedEvent.id}/`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: updatedA.message,
           start_date: updatedA.start_date,
@@ -1261,12 +1200,8 @@ const AppContent: React.FC = () => {
 
   const handleDeleteAnnouncement = async (id: number) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/announcements/${id}/`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/announcements/${id}/`, {
+        method: 'DELETE'
       });
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ['announcements'] });
@@ -1295,8 +1230,7 @@ const AppContent: React.FC = () => {
 
   const handleUpdateBlog = async (updatedBlog: BlogPost) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const headers: Record<string, string> = { 'Authorization': `Bearer ${token}` };
+      const headers: Record<string, string> = {};
       let body: BodyInit;
       if (updatedBlog.imageFile) {
         const fd = buildBlogFormData(updatedBlog);
@@ -1323,7 +1257,7 @@ const AppContent: React.FC = () => {
           usage_recipes: updatedBlog.usage_recipes || []
         });
       }
-      const response = await fetch(`${API_BASE_URL}/api/blog-posts/${updatedBlog.id}/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/blog-posts/${updatedBlog.id}/`, {
         method: 'PUT',
         headers,
         body
@@ -1338,16 +1272,9 @@ const AppContent: React.FC = () => {
 
   const handleDeleteBlog = async (id: string) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/blog-posts/${id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/blog-posts/${id}/`, {
+        method: 'DELETE'
       });
-      if (response.status === 401) {
-        showToast("Session expired. Please log in again.", 'warning');
-        handleAdminLogout();
-        return;
-      }
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
       }
@@ -1364,13 +1291,9 @@ const AppContent: React.FC = () => {
 
   const handleAddStory = async (newStory: Story) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/stories/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/stories/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           media_url: newStory.mediaUrl,
           poster_url: newStory.posterUrl,
@@ -1395,10 +1318,8 @@ const AppContent: React.FC = () => {
 
   const handleDeleteStory = async (id: string) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/stories/${id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/stories/${id}/`, {
+        method: 'DELETE'
       });
       if (response.ok) {
         queryClient.invalidateQueries({ queryKey: ['stories'] });
@@ -1685,7 +1606,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen selection:bg-primary/20 bg-background-light">
+    <div className={`min-h-screen selection:bg-primary/20 ${['dashboard', 'shop'].includes(currentView) ? 'bg-[#f2f2ec]' : 'bg-background-light'}`}>
       {/* Full Page Premium Loading Screen */}
       <AnimatePresence>
         {isLoading && (
@@ -1932,7 +1853,7 @@ const AppContent: React.FC = () => {
       </main>
 
       {
-        currentView !== 'checkout' && currentView !== 'visitor-form' && (
+        currentView !== 'checkout' && currentView !== 'visitor-form' && currentView !== 'dashboard' && (
           <SnaxxoFooter
             onShopClick={(cat) => cat ? navigateToShopCategory(cat) : navigateToShop()}
             onHomeClick={goHome}
