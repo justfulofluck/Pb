@@ -57,7 +57,13 @@ const SimpleHeroSlider: React.FC<HeroSliderProps> = ({ slides = [] }) => {
     };
 
     return (
-        <div className="relative w-full h-screen md:h-[80vh] lg:h-[85vh] overflow-hidden bg-background-light">
+        <div className="relative w-full overflow-hidden bg-background-light flex items-center justify-center">
+            {/* Invisible placeholder to establish the exact height of the slider based on the image's aspect ratio */}
+            <img
+                src={getMediaUrl((isMobile && activeSlides[current].mobileImage) ? activeSlides[current].mobileImage : activeSlides[current].image)}
+                alt="placeholder"
+                className="w-full h-auto invisible block"
+            />
             <AnimatePresence initial={false} custom={direction}>
                 <motion.div
                     key={current}

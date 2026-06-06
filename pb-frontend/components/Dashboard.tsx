@@ -192,7 +192,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
   const navItems = [
     { id: 'overview', label: 'Overview', icon: 'dashboard' },
     { id: 'orders', label: 'My Orders', icon: 'shopping_bag' },
-    { id: 'wishlist', label: 'Wishlist', icon: 'favorite' },
     { id: 'rewards', label: 'Rewards & Tiers', icon: 'workspace_premium' },
     { id: 'profile', label: 'Edit Profile', icon: 'person_edit' },
   ];
@@ -205,28 +204,28 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
 
         <div className="lg:grid lg:grid-cols-[280px_1fr] gap-8 items-start">
           {/* Desktop Sidebar - hidden on mobile */}
-          <aside className="hidden lg:block bg-white rounded-3xl p-6 shadow-sm border border-slate-100 sticky top-8 space-y-6">
-            <div className="flex items-center pb-6 border-b border-slate-100">
-              <div className="w-12 h-12 bg-[#0b3d2e] text-white rounded-full flex items-center justify-center font-black text-lg shadow-md -ml-6 flex-shrink-0 z-10 relative">
+          <aside className="hidden lg:block bg-white rounded-[32px] p-6 shadow-sm border border-slate-100 sticky top-8 space-y-8">
+            {/* User Profile Section */}
+            <div className="flex flex-col items-center text-center pb-6 border-b border-slate-100">
+              <div className="w-20 h-20 bg-[#0b3d2e] text-white rounded-full flex items-center justify-center font-black text-3xl shadow-xl shadow-[#0b3d2e]/20 mb-4 ring-4 ring-slate-50">
                 {(userData.name || ' ')[0]}
               </div>
-              <div className="min-w-0 pl-4">
-                <h3 className="font-black text-lg uppercase truncate leading-tight text-slate-900">{userData.name}</h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{userData.tier}</p>
-              </div>
+              <h3 className="force-anton text-3xl tracking-wide uppercase truncate leading-none text-[#0b3d2e] w-full">{userData.name}</h3>
+              <p className="text-xs font-black text-primary uppercase tracking-widest mt-2 bg-[#0b3d2e]/5 px-3 py-1 rounded-full">{userData.tier}</p>
             </div>
 
+            {/* Navigation Menu */}
             <nav className="space-y-2">
               {navItems.map(item => (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id as TabType)}
-                  className={`w-full flex items-center gap-3 py-4 font-bold text-xs uppercase tracking-widest transition-all ${activeTab === item.id
-                    ? 'bg-[#0b3d2e] !text-white shadow-lg rounded-r-full -ml-6 pl-10 -mr-8 pr-8 relative z-10'
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 px-4 rounded-xl'
+                  className={`w-full flex items-center gap-3.5 py-4 px-5 font-bold text-sm uppercase tracking-widest transition-all rounded-2xl ${activeTab === item.id
+                    ? 'bg-[#0b3d2e] !text-white shadow-xl shadow-[#0b3d2e]/20 scale-[1.02]'
+                    : 'text-slate-500 hover:bg-[#0b3d2e]/5 hover:text-[#0b3d2e]'
                     }`}
                 >
-                  <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
+                  <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
                   {item.label}
                 </button>
               ))}
@@ -234,9 +233,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
 
             <button
               onClick={onLogout}
-              className="w-full flex items-center gap-3 px-4 py-4 rounded-xl font-bold text-xs uppercase tracking-widest text-red-400 hover:text-red-600 hover:bg-red-50 transition-all mt-4 border-t border-slate-100 pt-6"
+              className="w-full flex items-center gap-3 px-5 py-4 rounded-xl font-bold text-sm uppercase tracking-widest text-red-400 hover:text-red-600 hover:bg-red-50 transition-all mt-4 border-t border-slate-100 pt-6"
             >
-              <span className="material-symbols-outlined text-[18px]">logout</span>
+              <span className="material-symbols-outlined text-[20px]">logout</span>
               Sign Out
             </button>
           </aside>
@@ -294,75 +293,73 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                   </div>
 
                   {/* Stats Row */}
-                  <div className="grid grid-cols-2 sm:flex sm:flex-row gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {[
-                      { label: 'PinoPoints', val: userData.points, icon: 'workspace_premium', bg: 'bg-amber-50', iconColor: 'text-amber-500' },
-                      { label: 'Orders', val: orders.length, icon: 'shopping_bag', bg: 'bg-emerald-50', iconColor: 'text-emerald-500' },
-                      { label: 'Savings', val: `₹${userData.savings}`, icon: 'savings', bg: 'bg-sky-50', iconColor: 'text-sky-500' },
-                      { label: 'Spent', val: `₹${userData.totalSpent}`, icon: 'wallet', bg: 'bg-violet-50', iconColor: 'text-violet-500' }
+                      { label: 'PinoPoints', val: userData.points, icon: 'workspace_premium', iconColor: 'text-amber-500', iconBg: 'bg-amber-50' },
+                      { label: 'Orders', val: orders.length, icon: 'shopping_bag', iconColor: 'text-emerald-500', iconBg: 'bg-emerald-50' },
+                      { label: 'Savings', val: `₹${userData.savings}`, icon: 'savings', iconColor: 'text-sky-500', iconBg: 'bg-sky-50' },
+                      { label: 'Spent', val: `₹${userData.totalSpent}`, icon: 'wallet', iconColor: 'text-violet-500', iconBg: 'bg-violet-50' }
                     ].map((stat, i) => (
-                      <div key={i} className={`flex-1 min-w-0 ${stat.bg} rounded-2xl p-3 sm:p-4 flex items-center gap-2 sm:gap-3 border border-white`}>
-                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center ${stat.iconColor} shadow-sm flex-shrink-0`}>
-                          <span className="material-symbols-outlined text-[16px] sm:text-[18px]">{stat.icon}</span>
+                      <div key={i} className={`flex flex-col items-start bg-white rounded-[24px] p-5 shadow-sm border border-slate-100`}>
+                        <div className={`w-12 h-12 rounded-full ${stat.iconBg} flex items-center justify-center ${stat.iconColor} mb-4`}>
+                          <span className="material-symbols-outlined text-[24px]">{stat.icon}</span>
                         </div>
-                        <div className="min-w-0 text-left">
-                          <p className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">{stat.label}</p>
-                          <p className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-tight truncate">{stat.val}</p>
-                        </div>
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
+                        <p className="force-anton text-3xl tracking-wide text-[#0b3d2e] leading-none truncate w-full">{stat.val}</p>
                       </div>
                     ))}
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-4">
                     {/* Point Activity */}
-                    <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-base font-black uppercase tracking-tight text-slate-900">Points</h3>
-                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Recent</span>
+                    <div className="bg-white rounded-[24px] p-6 border border-slate-100 shadow-sm">
+                      <div className="flex justify-between items-end mb-6 border-b border-slate-50 pb-4">
+                        <h3 className="force-anton text-3xl tracking-wide uppercase leading-none text-[#0b3d2e]">Points</h3>
+                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full mb-1">Recent</span>
                       </div>
-                      <div className="space-y-0 divide-y divide-slate-50">
+                      <div className="space-y-4">
                         {rewardTransactions.length > 0 ? rewardTransactions.slice(0, 5).map((tx: any) => (
-                          <div key={tx.id} className="flex items-center justify-between py-3">
+                          <div key={tx.id} className="flex items-center justify-between pb-4 border-b border-slate-50 last:border-0 last:pb-0">
                             <div className="min-w-0 mr-3">
-                              <p className="text-xs font-bold text-slate-700 truncate">{tx.reason}</p>
-                              <p className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">{new Date(tx.timestamp).toLocaleDateString()}</p>
+                              <p className="text-base font-bold text-slate-800 truncate mb-0.5">{tx.reason}</p>
+                              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{new Date(tx.timestamp).toLocaleDateString()}</p>
                             </div>
-                            <span className={`text-sm font-black flex-shrink-0 ${tx.points_change > 0 ? 'text-emerald-500' : 'text-red-400'}`}>
+                            <span className={`force-anton text-2xl tracking-wide flex-shrink-0 ${tx.points_change > 0 ? 'text-emerald-500' : 'text-red-400'}`}>
                               {tx.points_change > 0 ? '+' : ''}{tx.points_change}
                             </span>
                           </div>
                         )) : (
                           <div className="text-center py-8 text-slate-300">
-                            <span className="material-symbols-outlined text-3xl block mb-1">history</span>
-                            <p className="text-[10px] font-bold uppercase tracking-widest">No activity</p>
+                            <span className="material-symbols-outlined text-4xl block mb-2">history</span>
+                            <p className="text-[11px] font-black uppercase tracking-widest">No activity</p>
                           </div>
                         )}
                       </div>
                     </div>
 
                     {/* Last Order */}
-                    <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-base font-black uppercase tracking-tight text-slate-900">Last Order</h3>
-                        <button onClick={() => setActiveTab('orders')} className="text-[9px] text-[#0b3d2e] font-black uppercase tracking-widest hover:underline">All →</button>
+                    <div className="bg-white rounded-[24px] p-6 border border-slate-100 shadow-sm flex flex-col">
+                      <div className="flex justify-between items-end mb-6 border-b border-slate-50 pb-4">
+                        <h3 className="force-anton text-3xl tracking-wide uppercase leading-none text-[#0b3d2e]">Last Order</h3>
+                        <button onClick={() => setActiveTab('orders')} className="text-[10px] text-[#0b3d2e] font-black uppercase tracking-widest bg-[#0b3d2e]/5 px-3 py-1 rounded-full hover:bg-[#0b3d2e]/10 transition-colors mb-1">All →</button>
                       </div>
                       {orders.length > 0 ? (
                         <div
                           onClick={() => setSelectedOrder(orders[0])}
-                          className="p-4 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors"
+                          className="p-5 bg-slate-50 rounded-[20px] cursor-pointer hover:bg-slate-100 transition-colors"
                         >
-                          <div className="flex justify-between items-start mb-3">
+                          <div className="flex justify-between items-start mb-5">
                             <div>
-                              <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">#{orders[0].id}</p>
-                              <p className="text-lg font-black text-slate-900">₹{orders[0].total_amount}</p>
+                              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1.5">#{orders[0].id}</p>
+                              <p className="force-anton text-4xl tracking-wide text-[#0b3d2e] leading-none">₹{orders[0].total_amount}</p>
                             </div>
-                            <span className="bg-emerald-100 text-emerald-600 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase">
+                            <span className="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
                               {orders[0].status}
                             </span>
                           </div>
-                          <div className="flex gap-1.5">
+                          <div className="flex gap-2">
                             {orders[0].items.slice(0, 4).map((item, i) => (
-                              <div key={i} className="w-10 h-10 bg-white rounded-lg overflow-hidden shadow-sm border border-slate-100">
+                              <div key={i} className="w-12 h-12 bg-white rounded-[12px] overflow-hidden shadow-sm border border-slate-100">
                                 <img src={item.product_image?.startsWith('http') ? item.product_image : `${API_BASE_URL}${item.product_image}`} className="w-full h-full object-cover" />
                               </div>
                             ))}
@@ -370,35 +367,14 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                         </div>
                       ) : (
                         <div className="text-center py-8 text-slate-300">
-                          <span className="material-symbols-outlined text-3xl block mb-1">shopping_basket</span>
-                          <p className="text-[10px] font-bold uppercase tracking-widest">No orders yet</p>
+                          <span className="material-symbols-outlined text-4xl block mb-2">shopping_basket</span>
+                          <p className="text-[11px] font-black uppercase tracking-widest">No orders yet</p>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Frequently Ordered / Purchased Products */}
-                  {orders.length > 0 && (
-                    <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-                      <h3 className="text-base font-black uppercase tracking-tight mb-4 text-slate-900">Your Collection</h3>
-                      <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 hide-scrollbar">
-                        {Array.from(new Set((orders || []).flatMap(o => o.items || []).map(item => JSON.stringify({ id: item.product, name: item.product_name, img: item.product_image }))))
-                          .map((pStr: any) => {
-                            try { return JSON.parse(pStr); } catch { return null; }
-                          })
-                          .filter(Boolean)
-                          .map((product: any, i) => (
-                            <div key={i} className="flex-shrink-0 w-28 sm:w-32 md:w-40 space-y-2 sm:space-y-3 group cursor-pointer" onClick={() => setActiveTab('orders')}>
-                              <div className="aspect-square bg-slate-50 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-transparent group-hover:border-primary/20 transition-all p-2 sm:p-4">
-                                <img src={product.img?.startsWith('http') ? product.img : `${API_BASE_URL}${product.img}`} className="w-full h-full object-contain group-hover:scale-110 transition-transform" />
-                              </div>
-                              <p className="text-[8px] sm:text-[10px] font-black uppercase text-center leading-tight truncate px-1">{product.name}</p>
-                            </div>
-                          ))
-                        }
-                      </div>
-                    </div>
-                  )}
+
                 </motion.div>
               )}
 
@@ -491,6 +467,174 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                       <button onClick={onHomeClick} className="bg-primary text-white px-8 py-3 rounded-full font-black uppercase tracking-widest hover:scale-105 transition-transform">Shop Now</button>
                     </div>
                   )}
+
+                  {/* Wishlist Section */}
+                  <div className="flex items-center justify-between bg-white p-5 rounded-2xl border border-slate-100 shadow-sm mt-8">
+                    <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-slate-900">Wishlist</h2>
+                    {wishlistItems.length > 0 && (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const token = localStorage.getItem('access_token');
+                            const res = await fetch(`${API_BASE_URL}/api/wishlist/`, {
+                              headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            const items = await res.json();
+
+                            if (onAddToCart) {
+                              for (const item of items) {
+                                const product = {
+                                  id: String(item.product),
+                                  name: item.product_details?.name || '',
+                                  price: parseFloat(item.product_details?.price) || 0,
+                                  originalPrice: item.product_details?.original_price ? parseFloat(item.product_details.original_price) : undefined,
+                                  image: item.product_details?.image || '',
+                                  category: item.product_details?.category_name || '',
+                                };
+                                onAddToCart(product);
+                              }
+                              showToast('All items added to cart!', 'success');
+                            } else {
+                              showToast('Cart function not available', 'error');
+                            }
+                          } catch (err) {
+                            showToast('Failed to add items to cart', 'error');
+                          }
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-[#0b3d2e] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-sm active:scale-95"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">shopping_cart</span>
+                        <span className="hidden sm:inline">Add All to Cart</span>
+                        <span className="sm:hidden">Add All</span>
+                      </button>
+                    )}
+                  </div>
+                    {isLoadingWishlist ? (
+                      <div className="flex justify-center py-20">
+                        <div className="w-12 h-12 border-4 border-slate-100 border-t-primary rounded-full animate-spin" />
+                      </div>
+                    ) : wishlistItems.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                        {wishlistItems.map((item: any) => (
+                          <div
+                            key={item.id}
+                            onClick={() => {
+                              if (onProductClick) {
+                                onProductClick({
+                                  ...item.product_details,
+                                  id: String(item.product),
+                                  price: parseFloat(item.product_details.price),
+                                  originalPrice: item.product_details.original_price ? parseFloat(item.product_details.original_price) : undefined,
+                                });
+                              }
+                            }}
+                            className="group relative bg-white border border-slate-100 rounded-[24px] overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col cursor-pointer p-4"
+                          >
+                            {/* Remove Button */}
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const token = localStorage.getItem('access_token');
+                                  const res = await fetch(`${API_BASE_URL}/api/wishlist/toggle/`, {
+                                    method: 'POST',
+                                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ product_id: item.product })
+                                  });
+                                  if (res.ok) {
+                                    setWishlistItems(prev => prev.filter(w => w.id !== item.id));
+                                  }
+                                } catch (err) { }
+                              }}
+                              className="absolute top-7 right-7 z-20 w-9 h-9 bg-white text-slate-400 rounded-full flex items-center justify-center transition-all hover:bg-red-50 hover:text-red-500 shadow-sm border border-slate-100"
+                            >
+                              <span className="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
+
+                            {/* Share Button */}
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const url = `${window.location.origin}/product/${item.product}`;
+                                  await navigator.clipboard.writeText(url);
+                                  showToast('Product link copied!', 'success');
+                                } catch (err) { }
+                              }}
+                              className="absolute top-7 right-18 z-20 w-9 h-9 bg-white text-slate-600 rounded-full flex items-center justify-center transition-all hover:bg-slate-100 shadow-sm border border-slate-100"
+                              style={{ right: '4.5rem' }}
+                            >
+                              <span className="material-symbols-outlined text-[16px]">share</span>
+                            </button>
+
+                            {/* Image Section */}
+                            <div className="relative aspect-[4/5] bg-slate-50 rounded-2xl p-6 flex-shrink-0 mb-4 overflow-hidden">
+                              {item.product_details?.image ? (
+                                <img
+                                  src={item.product_details.image.startsWith('http') ? item.product_details.image : `${API_BASE_URL}${item.product_details.image}`}
+                                  alt={item.product_details.name}
+                                  className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500 mix-blend-multiply"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-slate-200">
+                                  <span className="material-symbols-outlined text-5xl">inventory_2</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Content Section */}
+                            <div className="flex flex-col flex-1 px-1">
+                              <div className="mb-auto">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 truncate">
+                                  {item.product_details?.category_name}
+                                </p>
+                                <h3 className="force-anton text-2xl uppercase leading-tight tracking-wide text-[#0b3d2e] line-clamp-2">
+                                  {item.product_details?.name}
+                                </h3>
+                              </div>
+
+                              <div className="flex items-center justify-between mt-5 gap-3">
+                                <div className="flex flex-col">
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Price</span>
+                                  <span className="force-anton text-2xl tracking-wide text-[#0b3d2e] leading-none">
+                                    ₹{item.product_details?.price}
+                                  </span>
+                                </div>
+
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onAddToCart) {
+                                      onAddToCart({
+                                        id: String(item.product),
+                                        name: item.product_details?.name || '',
+                                        price: parseFloat(item.product_details?.price) || 0,
+                                        originalPrice: item.product_details?.original_price ? parseFloat(item.product_details.original_price) : undefined,
+                                        image: item.product_details?.image || '',
+                                        category: item.product_details?.category_name || '',
+                                      });
+                                      showToast('Added to cart!', 'success');
+                                    }
+                                  }}
+                                  className="w-10 h-10 bg-[#0b3d2e] text-white rounded-full flex items-center justify-center transition-all active:scale-95 shadow-sm hover:opacity-90 flex-shrink-0"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-20 px-4">
+                        <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                          <span className="material-symbols-outlined text-4xl text-slate-300">favorite_border</span>
+                        </div>
+                        <h3 className="text-2xl font-black uppercase tracking-tight text-slate-900 mb-2">Your wishlist is empty</h3>
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-8">Save items you love to view them later.</p>
+
+                      </div>
+                    )}
                 </motion.div>
               )}
 
@@ -739,184 +883,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                 </motion.div>
               )}
 
-              {activeTab === 'wishlist' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-8"
-                >
-                  <div className="bg-white p-5 sm:p-8 rounded-2xl border border-slate-100 shadow-sm overflow-hidden relative">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
-                      <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-slate-900">Wishlist</h2>
-                      {wishlistItems.length > 0 && (
-                        <div className="flex w-full sm:w-auto gap-3">
-                          <button
-                            onClick={async () => {
-                              try {
-                                const token = localStorage.getItem('access_token');
-                                const res = await fetch(`${API_BASE_URL}/api/wishlist/`, {
-                                  headers: { 'Authorization': `Bearer ${token}` }
-                                });
-                                const items = await res.json();
-
-                                // Add items to cart instead of creating orders
-                                if (onAddToCart) {
-                                  for (const item of items) {
-                                    const product = {
-                                      id: String(item.product),
-                                      name: item.product_details?.name || '',
-                                      price: parseFloat(item.product_details?.price) || 0,
-                                      originalPrice: item.product_details?.original_price ? parseFloat(item.product_details.original_price) : undefined,
-                                      image: item.product_details?.image || '',
-                                      category: item.product_details?.category_name || '',
-                                    };
-                                    onAddToCart(product);
-                                  }
-                                  showToast('All items added to cart!', 'success');
-                                } else {
-                                  showToast('Cart function not available', 'error');
-                                }
-                              } catch (err) {
-                                showToast('Failed to add items to cart', 'error');
-                              }
-                            }}
-                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-[#0b3d2e] text-white rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest hover:bg-emerald-900 transition-all shadow-md active:scale-95"
-                          >
-                            <span className="material-symbols-outlined text-[16px]">shopping_cart</span>
-                            <span>Add All to Cart</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    {isLoadingWishlist ? (
-                      <div className="flex justify-center py-20">
-                        <div className="w-12 h-12 border-4 border-slate-100 border-t-primary rounded-full animate-spin" />
-                      </div>
-                    ) : wishlistItems.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {wishlistItems.map((item: any) => (
-                          <div
-                            key={item.id}
-                            onClick={() => {
-                              if (onProductClick) {
-                                onProductClick({
-                                  ...item.product_details,
-                                  id: String(item.product),
-                                  price: parseFloat(item.product_details.price),
-                                  originalPrice: item.product_details.original_price ? parseFloat(item.product_details.original_price) : undefined,
-                                });
-                              }
-                            }}
-                            className="group relative bg-white border-2 !border-slate-900 rounded-3xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-[320px] sm:h-[360px] cursor-pointer"
-                          >
-                            {/* Remove Button */}
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                try {
-                                  const token = localStorage.getItem('access_token');
-                                  const res = await fetch(`${API_BASE_URL}/api/wishlist/toggle/`, {
-                                    method: 'POST',
-                                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ product_id: item.product })
-                                  });
-                                  if (res.ok) {
-                                    setWishlistItems(prev => prev.filter(w => w.id !== item.id));
-                                  }
-                                } catch (err) { }
-                              }}
-                              className="absolute top-4 right-4 z-20 w-10 h-10 bg-white text-slate-900 rounded-full flex items-center justify-center transition-all hover:bg-slate-900 hover:text-white shadow-sm"
-                            >
-                              <span className="material-symbols-outlined text-[20px] fill-1">favorite</span>
-                            </button>
-
-                            {/* Share Button */}
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                try {
-                                  const url = `${window.location.origin}/product/${item.product}`;
-                                  await navigator.clipboard.writeText(url);
-                                  showToast('Product link copied!', 'success');
-                                } catch (err) { }
-                              }}
-                              className="absolute top-4 right-16 z-20 w-10 h-10 bg-white text-slate-900 rounded-full flex items-center justify-center transition-all hover:bg-slate-900 hover:text-white shadow-sm"
-                            >
-                              <span className="material-symbols-outlined text-[18px]">share</span>
-                            </button>
-
-                            {/* Image Section */}
-                            <div className="relative h-56 bg-transparent p-6 flex-shrink-0">
-                              {item.product_details?.image ? (
-                                <img
-                                  src={item.product_details.image.startsWith('http') ? item.product_details.image : `${API_BASE_URL}${item.product_details.image}`}
-                                  alt={item.product_details.name}
-                                  className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-slate-200">
-                                  <span className="material-symbols-outlined text-5xl">inventory_2</span>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Content Section */}
-                            <div className="p-4 pt-0 flex flex-col flex-1">
-                              <div className="mb-auto">
-                                <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1 truncate">
-                                  {item.product_details?.category_name}
-                                </p>
-                                <h3 className="font-anton text-lg uppercase leading-tight tracking-wide text-slate-900 line-clamp-2">
-                                  {item.product_details?.name}
-                                </h3>
-                              </div>
-
-                              <div className="flex items-center justify-between mt-3 gap-3">
-                                <div className="flex flex-col">
-                                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-0.5">Price</span>
-                                  <span className="font-black text-xl text-slate-900">
-                                    ₹{item.product_details?.price}
-                                  </span>
-                                </div>
-
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (onAddToCart) {
-                                      onAddToCart({
-                                        id: String(item.product),
-                                        name: item.product_details?.name || '',
-                                        price: parseFloat(item.product_details?.price) || 0,
-                                        originalPrice: item.product_details?.original_price ? parseFloat(item.product_details.original_price) : undefined,
-                                        image: item.product_details?.image || '',
-                                        category: item.product_details?.category_name || '',
-                                      });
-                                      showToast('Added to cart!', 'success');
-                                    }
-                                  }}
-                                  className="w-10 h-10 bg-[#0b3d2e] text-white rounded-full flex items-center justify-center transition-all active:scale-95 shadow-sm hover:opacity-90 flex-shrink-0"
-                                >
-                                  <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-20 px-4">
-                        <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                          <span className="material-symbols-outlined text-4xl text-slate-300">favorite_border</span>
-                        </div>
-                        <h3 className="text-2xl font-black uppercase tracking-tight text-slate-900 mb-2">Your wishlist is empty</h3>
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-8">Save items you love to view them later.</p>
-
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
             </AnimatePresence>
           </main>
         </div>

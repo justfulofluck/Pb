@@ -267,7 +267,7 @@ const AppContent: React.FC = () => {
   const [isNutritionOpen, setIsNutritionOpen] = useState(false);
 
   // --- External Hooks ---
-  const { user, logout, checkAuth } = useAuth();
+  const { user, logout, checkAuth, isLoading: isAuthLoading } = useAuth();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
 
@@ -619,11 +619,11 @@ const AppContent: React.FC = () => {
 
   // Redirect to home if user session expires while on dashboard
   useEffect(() => {
-    if (!user && !isLoading && currentView === 'dashboard') {
+    if (!user && !isAuthLoading && currentView === 'dashboard') {
       setCurrentView('home');
       window.history.pushState({ view: 'home' }, '', '/');
     }
-  }, [user, isLoading, currentView]);
+  }, [user, isAuthLoading, currentView]);
 
   // CMS Content is now handled by useQuery hooks above.
 

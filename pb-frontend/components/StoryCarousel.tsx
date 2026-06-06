@@ -165,12 +165,12 @@ const StoryCard = React.memo(({ story, product, onClick, onProductClick }: {
             </div>
             <div className="flex-1 min-w-0">
               <h4
-                className="force-anton leading-[1.2] line-clamp-3 uppercase tracking-wider [word-spacing:0.05em]"
+                className="force-anton leading-[1.2] line-clamp-3 uppercase tracking-wider [word-spacing:0.05em] mb-1 md:mb-0"
                 style={{ color: '#008a45', fontSize: '16px' }}
               >
                 {product.name.split('(')[0] || product.name}
               </h4>
-              <div className="flex items-center gap-2 mt-0">
+              <div className="flex items-center gap-2 mt-0 md:-mt-1">
                 <span className="text-[15px] font-black text-slate-900">₹{product.price.toLocaleString()}</span>
                 {product.originalPrice && product.originalPrice > product.price && (
                   <span className="text-[11px] text-slate-400 line-through decoration-slate-300">₹{product.originalPrice.toLocaleString()}</span>
