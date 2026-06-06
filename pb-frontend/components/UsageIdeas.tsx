@@ -82,7 +82,7 @@ const UsageIdeas: React.FC<UsageIdeasProps> = ({ ideas, bgColor = '#0b3d2e' }) =
         : "flex-none w-[270px] md:w-[300px] lg:w-[320px] group/card snap-center usage-idea-card";
 
     return (
-        <section className="py-16 md:py-24 px-0 overflow-hidden bg-[#f2f2ec]">
+        <section className="py-[60px] md:py-24 px-0 overflow-hidden bg-[#f2f2ec]">
             {/* Constrained Header Container */}
             <div className="max-w-7xl mx-auto px-4 md:px-8 mb-12 md:mb-16">
                 {/* Section Header with dynamic brand color & chalkboard texture */}

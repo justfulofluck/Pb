@@ -102,7 +102,7 @@ const StoryCard = React.memo(({ story, product, onClick, onProductClick }: {
     <div
       ref={storyRef}
       onClick={() => onClick(story)}
-      className="min-w-[260px] md:min-w-[300px] aspect-[9/16] rounded-[24px] overflow-hidden relative group snap-start flex-shrink-0 cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500 bg-slate-200"
+      className="w-[300px] md:w-[320px] aspect-[9/16] rounded-[24px] overflow-hidden relative group snap-center flex-shrink-0 cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500 bg-slate-200"
     >
       {/* Background Story Media */}
       {isVideo ? (
@@ -196,7 +196,7 @@ const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProd
   }, [getProduct]);
 
   return (
-    <section className="pt-2 pb-10 md:pt-10 md:pb-24 bg-whiteboard texture-overlay texture-speckles overflow-hidden">
+    <section className="py-[60px] bg-whiteboard texture-overlay texture-speckles overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 relative flex flex-col items-center">
         {/* Centered Header */}
         <div className="text-center mb-8 md:mb-16 relative w-full flex flex-col items-center">
@@ -216,16 +216,18 @@ const StoryCarousel: React.FC<StoryCarouselProps> = ({ stories, products, onProd
         {/* Centered Flex Container */}
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 snap-x snap-mandatory justify-start md:justify-center w-full"
+          className={`flex gap-4 overflow-x-auto hide-scrollbar pb-8 snap-x snap-mandatory w-full px-4 md:px-0`}
+          style={{ justifyContent: stories.length <= 2 ? 'center' : 'flex-start' }}
         >
           {stories.map((story) => (
-            <StoryCard
-              key={story.id}
-              story={story}
-              product={getProduct(story.productId)}
-              onClick={handleStoryClick}
-              onProductClick={onProductClick}
-            />
+            <div key={story.id} className="snap-center">
+              <StoryCard
+                story={story}
+                product={getProduct(story.productId)}
+                onClick={handleStoryClick}
+                onProductClick={onProductClick}
+              />
+            </div>
           ))}
         </div>
       </div>

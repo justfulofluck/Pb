@@ -99,7 +99,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
             </div>
 
             <section className="section bg-greenboard texture-overlay texture-speckles overflow-hidden relative z-20">
-                <div className="!bg-transparent !mt-0 !max-w-7xl mx-auto px-4 !pt-10 !pb-10 font-satoshi relative z-10 w-full text-left items-start">
+                <div className="!bg-transparent !mt-0 !max-w-7xl mx-auto px-4 !pt-10 pb-28 lg:!pb-10 font-satoshi relative z-10 w-full text-left items-start">
                     {/* Main Footer Content */}
                     <div className="flex flex-col md:flex-row gap-x-12 lg:gap-x-24 gap-y-12 items-start text-left w-full relative">
 
@@ -194,14 +194,14 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
 
                     {/* Divider and Contact Row */}
                     <div className="border-t border-white/5 pt-10 pb-10">
-                        <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-16">
-                            <div className="flex items-center gap-4 text-white hover:text-white/80 transition-colors text-sm md:text-base">
+                        <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+                            <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-white hover:text-white/80 transition-colors text-sm md:text-base">
                                 <i className="fa-solid fa-phone text-[#f9bc15] text-xl"></i>
                                 <a href="tel:+919328173747" className="font-medium tracking-wide">+91 9328173747</a>
                             </div>
-                            <div className="flex items-center gap-4 text-white hover:text-white/80 transition-colors text-sm md:text-base text-center md:text-left">
+                            <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-white hover:text-white/80 transition-colors text-sm md:text-base text-center md:text-left">
                                 <i className="fa-solid fa-location-dot text-[#f9bc15] text-xl"></i>
-                                <a href="https://maps.app.goo.gl/m21Carqf53eYqKaVA" target="_blank" rel="noopener noreferrer" className="font-medium tracking-wide hover:underline cursor-pointer">Tri-origin Ayurveda, Sathod Vasahat, Sathod Road, Dabhoi-391110, Vadodara - Gujarat</a>
+                                <a href="https://maps.app.goo.gl/m21Carqf53eYqKaVA" target="_blank" rel="noopener noreferrer" className="font-medium tracking-wide hover:underline cursor-pointer text-center">Tri-origin Ayurveda, Sathod Vasahat, Sathod Road, Dabhoi-391110, Vadodara - Gujarat</a>
                             </div>
                         </div>
                     </div>

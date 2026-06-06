@@ -1,5 +1,6 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 
 interface MobileBottomNavProps {
     currentView: string;
@@ -25,6 +26,19 @@ const MobileBottomNav: React.FC<MobileBottomNavProps & { isHidden?: boolean }> =
     isMenuOpen = false,
     isHidden = false
 }) => {
+    const { scrollY } = useScroll();
+    const [isScrolledDown, setIsScrolledDown] = useState(false);
+
+    useMotionValueEvent(scrollY, "change", (latest) => {
+        const previous = scrollY.getPrevious() || 0;
+        // hide only if scrolled more than 150px and scrolling down
+        if (latest > previous && latest > 150) {
+            setIsScrolledDown(true);
+        } else {
+            setIsScrolledDown(false);
+        }
+    });
+
     if (isMenuOpen || isHidden || isCartOpen || isAuthOpen) return null;
     // Explicit Active States
     const isCartActive = isCartOpen;
@@ -46,7 +60,12 @@ const MobileBottomNav: React.FC<MobileBottomNavProps & { isHidden?: boolean }> =
     `;
 
     return (
-        <div className="lg:hidden fixed bottom-[env(safe-area-inset-bottom,12px)] left-0 right-0 z-[99999] flex justify-center px-4 animate-in slide-in-from-bottom-6 duration-500">
+        <motion.div 
+            initial={{ y: 100 }}
+            animate={{ y: isScrolledDown ? 150 : 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="lg:hidden fixed bottom-[env(safe-area-inset-bottom,12px)] left-0 right-0 z-[99999] flex justify-center px-4"
+        >
             <div className="w-full max-w-[440px] bg-white/90 backdrop-blur-xl rounded-[32px] p-2 shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-white/50 flex items-center justify-between">
                 {/* Home Item */}
                 <button
@@ -91,7 +110,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps & { isHidden?: boolean }> =
                     <span className={getLabelClass(isProfileActive)}>Profile</span>
                 </button>
             </div>
-        </div>
+        </motion.div>
     );
 };
 

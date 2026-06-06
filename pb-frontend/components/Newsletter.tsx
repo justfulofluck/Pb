@@ -42,7 +42,7 @@ const Newsletter: React.FC = () => {
   };
 
   return (
-    <section className="py-24 bg-whiteboard texture-overlay texture-speckles px-4 md:px-6">
+    <section className="py-[60px] bg-whiteboard texture-overlay texture-speckles px-4 md:px-6">
       <div className="max-w-7xl mx-auto">
         <div className="bg-greenboard texture-overlay texture-speckles rounded-[40px] py-16 md:py-24 px-8 md:px-12 text-white overflow-hidden relative shadow-2xl">
           <div className="max-w-4xl mx-auto text-center relative z-10">

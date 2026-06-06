@@ -12,7 +12,7 @@ const COMPARISON_DATA: ComparisonRow[] = [
 
 const ComparisonTable: React.FC = () => {
   return (
-    <section className="py-24 md:py-32 bg-whiteboard texture-overlay texture-speckles overflow-hidden font-satoshi">
+    <section className="py-[60px] bg-whiteboard texture-overlay texture-speckles overflow-hidden font-satoshi">
       <div className="max-w-6xl mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-16 md:mb-24">
@@ -88,28 +88,41 @@ const ComparisonTable: React.FC = () => {
         </div>
 
         {/* Mobile View */}
-        <div className="md:hidden space-y-6">
-          <div className="relative bg-white/60 rounded-[3rem] border-2 border-primary/20 overflow-hidden shadow-2xl backdrop-blur-sm">
-            <div className="grid grid-cols-3 bg-[#f8fafc]/50 border-b-2 border-primary/10">
-              <div className="p-4 text-center text-[11px] font-black text-slate-800 leading-tight flex items-center justify-center border-r border-primary/5 uppercase tracking-tighter">Home<br/>Food</div>
-              <div className="p-4 text-center text-[11px] font-black text-slate-800 leading-tight flex items-center justify-center border-r border-primary/5 uppercase tracking-tighter">Junk Food</div>
-              <div className="p-4 bg-primary text-white text-center flex flex-col items-center justify-center">
-                <span className="font-black text-sm tracking-widest uppercase">PINO</span>
+        <div className="md:hidden">
+          <div className="relative rounded-[2rem] border-4 border-primary/20 overflow-hidden shadow-2xl bg-white flex flex-col w-full mx-auto max-w-md">
+            
+            {/* 3 continuous column backgrounds */}
+            <div className="absolute inset-0 flex pointer-events-none z-0">
+              <div className="w-[33.33%] h-full bg-[#99d4c0]"></div>
+              <div className="w-[33.33%] h-full bg-[#b2dfcc]"></div>
+              <div className="w-[33.33%] h-full bg-[#0b3d2e]"></div>
+            </div>
+
+            {/* Header row */}
+            <div className="relative z-10 grid grid-cols-3 pt-6 pb-2">
+              <div className="px-2 text-center text-[10px] sm:text-[11px] font-black text-[#0b3d2e] leading-tight flex items-center justify-center uppercase tracking-widest">Ghar Ka<br/>Khaana</div>
+              <div className="px-2 text-center text-[10px] sm:text-[11px] font-black text-[#0b3d2e] leading-tight flex items-center justify-center uppercase tracking-widest">Junk Food</div>
+              <div className="px-2 text-center flex items-center justify-center">
+                <span className="font-handdrawn text-[26px] text-white transform -rotate-2 -mt-2">Pinobite</span>
               </div>
             </div>
 
-            <div className="divide-y-2 divide-primary/5">
+            {/* Rows */}
+            <div className="relative z-10 flex flex-col pb-8 pt-2">
               {COMPARISON_DATA.map((row, i) => (
-                <div key={i} className="p-10">
-                  <div className="flex justify-center mb-6">
-                    <div className="bg-white text-primary px-10 py-3 rounded-full text-base font-black shadow-md border border-primary/10 uppercase tracking-widest">
-                      {row.feature}
+                <div key={i} className="flex flex-col w-full">
+                  {/* Category Pill spanning all 3 columns */}
+                  <div className="px-4 py-2 w-full">
+                    <div className="bg-[#fff0eb] w-full rounded-xl py-2 flex items-center justify-center shadow-sm">
+                      <span className="font-black text-[13px] sm:text-sm text-[#0b3d2e] uppercase tracking-widest">{row.feature}</span>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 text-center gap-4 items-center">
-                    <div className="text-sm font-bold text-slate-500 leading-tight">{row.ghar}</div>
-                    <div className="text-sm font-bold text-slate-500 leading-tight">{row.junk}</div>
-                    <div className="text-base font-black text-primary bg-primary/5 rounded-2xl py-5 border-2 border-primary/10">{row.pino}</div>
+                  
+                  {/* Values */}
+                  <div className="grid grid-cols-3 text-center items-stretch w-full min-h-[60px]">
+                    <div className="px-2 py-3 flex items-center justify-center text-[11px] sm:text-xs font-bold text-[#0b3d2e] leading-snug">{row.ghar}</div>
+                    <div className="px-2 py-3 flex items-center justify-center text-[11px] sm:text-xs font-bold text-[#0b3d2e] leading-snug">{row.junk}</div>
+                    <div className="px-2 py-3 flex items-center justify-center text-[11px] sm:text-xs font-black text-[#9cd92a] leading-snug">{row.pino}</div>
                   </div>
                 </div>
               ))}

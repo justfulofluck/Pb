@@ -11,48 +11,103 @@ interface IngredientShowcaseProps {
     ingredients?: Ingredient[];
     title?: string;
     bgColor?: string;
+    productId?: string | number;
 }
 
 const DEFAULT_INGREDIENTS: Ingredient[] = [
     {
         name: 'Natural Peanut Butter Unsweetened',
-        image: 'https://images.unsplash.com/photo-1590301157890-4810ed352733?auto=format&fit=crop&w=300'
+        image: '/ingridents/natural-peanut-butter-unsweetened.png'
     },
     {
         name: 'Rolled Oats',
-        image: 'https://images.unsplash.com/photo-1586444248902-2f64eddc13df?auto=format&fit=crop&w=300'
+        image: '/ingridents/rolled-oats.png'
     },
     {
         name: 'Natural Jaggery',
-        image: 'https://images.unsplash.com/photo-16154852d0694-3998b368735d?auto=format&fit=crop&w=300'
+        image: '/ingridents/natural-jaggery.png'
     },
     {
         name: 'Soya Protein',
-        image: 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?auto=format&fit=crop&w=300'
+        image: '/ingridents/soya-protein.png'
     },
     {
         name: 'Rosemary Extract',
-        image: 'https://images.unsplash.com/photo-1544154471-700676a08605?auto=format&fit=crop&w=300'
+        image: '/ingridents/rosemary-extract.png'
     },
     {
         name: 'Cocoa Powder',
-        image: 'https://images.unsplash.com/photo-1589415668102-1f31f9e2fca9?auto=format&fit=crop&w=300'
+        image: '/ingridents/cocoa-powder.png'
     },
     {
         name: 'Nuts & Seed Mix',
-        image: 'https://images.unsplash.com/photo-1536627217148-d4a522b0fe0d?auto=format&fit=crop&w=300'
+        image: '/ingridents/nuts-and-seed-mix.png'
     }
 ];
+
+const PRODUCT_INGREDIENTS_MAP: Record<string, Ingredient[]> = {
+  "29": [
+    { name: "Roasted Peanut", image: "/ingridents/Roasted Peanut.png" },
+    { name: "Almond", image: "/ingridents/ALMOND.png" },
+    { name: "Cashew", image: "/ingridents/cashew.png" },
+    { name: "Pistachio", image: "/ingridents/pistachio.png" },
+    { name: "Walnut", image: "/ingridents/walnut.png" },
+    { name: "Cranberry", image: "/ingridents/CHOCOLATE OATS WITH CRANBERRY.png" },
+    { name: "Blueberry", image: "/ingridents/BLUE BERRY.png" },
+    { name: "Raisin", image: "/ingridents/raisin.png" },
+    { name: "Brown Sugar", image: "/ingridents/ORGANIC JAGGERY.png" }
+  ],
+  "30": [
+    { name: "Roasted Peanut", image: "/ingridents/Roasted Peanut.png" },
+    { name: "Chia Seed", image: "/ingridents/chia seed.png" },
+    { name: "Milk Solid", image: "/ingridents/milk-solid.png" },
+    { name: "Brown Sugar", image: "/ingridents/ORGANIC JAGGERY.png" },
+    { name: "Natural Identical Flavour", image: "/ingridents/natural-identical-flavour.png" },
+    { name: "E471 Emulsifier", image: "/ingridents/e471-emulsifier.png" }
+  ],
+  "31": [
+    { name: "Roasted Peanut", image: "/ingridents/Roasted Peanut.png" },
+    { name: "Peanut Butter Powder", image: "/ingridents/peanut-butter-powder.png" }
+  ],
+  "32": [
+    { name: "Roasted Peanut", image: "/ingridents/Roasted Peanut.png" },
+    { name: "Milk Solid", image: "/ingridents/milk-solid.png" },
+    { name: "Brown Sugar", image: "/ingridents/ORGANIC JAGGERY.png" },
+    { name: "Natural Identical Flavour", image: "/ingridents/natural-identical-flavour.png" },
+    { name: "E471 Emulsifier", image: "/ingridents/e471-emulsifier.png" }
+  ],
+  "33": [
+    { name: "Roasted Peanut", image: "/ingridents/Roasted Peanut.png" },
+    { name: "Chia Seed", image: "/ingridents/chia seed.png" },
+    { name: "Milk Solid", image: "/ingridents/milk-solid.png" },
+    { name: "Brown Sugar", image: "/ingridents/ORGANIC JAGGERY.png" },
+    { name: "Natural Identical Flavour", image: "/ingridents/natural-identical-flavour.png" },
+    { name: "E471 Emulsifier", image: "/ingridents/e471-emulsifier.png" }
+  ],
+  "34": [
+    { name: "Peanut", image: "/ingridents/Roasted Peanut.png" },
+    { name: "Brown Sugar", image: "/ingridents/ORGANIC JAGGERY.png" },
+    { name: "Dark Chocolate Paste", image: "/ingridents/dark-chocolate-paste.png" },
+    { name: "Salt", image: "/ingridents/PINK SALT.png" },
+    { name: "E471 Emulsifier", image: "/ingridents/e471-emulsifier.png" }
+  ]
+};
 
 const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
     ingredients,
     title = "Ingredient Blend",
-    bgColor = "#0b3d2e"
+    bgColor = "#0b3d2e",
+    productId
 }) => {
-    const items = (ingredients && ingredients.length > 0) ? ingredients : DEFAULT_INGREDIENTS;
+    let items = DEFAULT_INGREDIENTS;
+    if (ingredients && ingredients.length > 0) {
+        items = ingredients;
+    } else if (productId && PRODUCT_INGREDIENTS_MAP[productId.toString()]) {
+        items = PRODUCT_INGREDIENTS_MAP[productId.toString()];
+    }
 
     return (
-        <section className="py-20 bg-[#f2f2ec] font-satoshi flex flex-col items-center overflow-hidden w-full">
+        <section className="py-[60px] md:py-24 bg-[#f2f2ec] font-satoshi flex flex-col items-center overflow-hidden w-full">
             <div className="flex justify-center w-full mb-16 px-4 md:px-12">
                 <motion.h2
                     initial={{ opacity: 0, y: -20 }}

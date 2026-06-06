@@ -38,7 +38,7 @@ const Testimonials: React.FC<TestimonialsProps> = ({ reviews, showHeading = true
   const topReviews = reviews.filter(r => r.rating >= 4).slice(0, 6);
 
   return (
-    <section className="pt-12 pb-12 bg-whiteboard overflow-hidden">
+    <section className="py-[60px] bg-whiteboard overflow-hidden">
       <div className="max-w-7xl mx-auto px-4">
         {showHeading && (
           <div className="text-center mb-0 relative">

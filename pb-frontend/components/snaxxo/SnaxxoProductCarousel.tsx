@@ -212,7 +212,7 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                                 <span className="text-[12px] text-slate-500 font-bold ml-1 self-center">({product.reviewCount || 0} reviews)</span>
                             </div>
 
-                            <h3 className="text-[#0b3d2e] !text-[1.4rem] text-center mb-1.5 px-2 line-clamp-2 h-[2.8rem] uppercase tracking-normal leading-[1.2] cursor-default !inline-block w-full overflow-hidden flex-shrink-0 font-anton">
+                            <h3 className="text-[#0b3d2e] !text-[1.4rem] text-center mb-1.5 px-2 line-clamp-2 min-h-[3.5rem] uppercase tracking-normal leading-[1.2] cursor-default w-full overflow-hidden flex-shrink-0 font-anton">
                                 {product.name}
                             </h3>
 
@@ -225,7 +225,7 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
 
                             <button
                                 onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
-                                className="btn-greenboard text-white w-[85%] mx-auto py-3.5 rounded-full font-black text-[12px] uppercase tracking-widest transition-all shadow-lg active:scale-95 mt-auto flex items-center justify-center gap-1.5"
+                                className="shine-coin btn-greenboard text-white w-[85%] mx-auto py-3.5 rounded-full font-black text-[12px] uppercase tracking-widest transition-all shadow-lg active:scale-95 mt-auto flex items-center justify-center gap-1.5"
                             >
                                 {product.stock <= 0 ? 'SOLD OUT' : 'ADD TO CART'}
                             </button>

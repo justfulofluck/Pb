@@ -24,7 +24,7 @@ const BlogSection: React.FC<BlogSectionProps> = ({ posts, onPostClick, onViewAll
   }
 
   return (
-    <section className="py-24 bg-whiteboard texture-overlay texture-speckles overflow-hidden">
+    <section className="py-[60px] bg-whiteboard texture-overlay texture-speckles overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
           <div className="max-w-2xl">
@@ -46,11 +46,11 @@ const BlogSection: React.FC<BlogSectionProps> = ({ posts, onPostClick, onViewAll
           </button>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="flex md:grid overflow-x-auto md:overflow-visible snap-x snap-mandatory md:snap-none pb-8 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 gap-5 md:gap-8 md:grid-cols-3 hide-scrollbar">
           {displayPosts.map((post) => (
             <div
               key={post.id}
-              className="group cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col hover:shadow-lg transition-all duration-300 p-6"
+              className="flex-shrink-0 w-[85vw] sm:w-[320px] md:w-auto snap-center group cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col hover:shadow-lg transition-all duration-300 p-6"
               onClick={() => onPostClick(post)}
             >
               {/* Header: Type and Read Time */}

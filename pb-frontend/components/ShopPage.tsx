@@ -283,7 +283,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
                       </div>
 
                       <button
-                        className="w-[95%] md:w-fit mx-auto btn-greenboard py-2 md:py-3 px-2 md:px-[50px] rounded-lg font-bold !text-[10px] md:!text-base uppercase tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center font-anton"
+                        className="shine-coin w-[95%] md:w-fit mx-auto btn-greenboard py-2.5 md:py-3 px-2 md:px-[50px] rounded-lg font-bold !text-[13px] md:!text-base uppercase tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center font-anton"
                         onClick={(e) => {
                           e.stopPropagation();
                           onAddToCart(product);

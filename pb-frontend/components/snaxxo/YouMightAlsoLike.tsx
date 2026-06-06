@@ -95,7 +95,7 @@ const YouMightAlsoLike: React.FC<YouMightAlsoLikeProps> = ({
       style={{
         backgroundColor: '#f2f2ec',
         paddingTop: '60px',
-        paddingBottom: '70px',
+        paddingBottom: '60px',
       }}
     >
       {/* Section Heading */}
@@ -206,7 +206,7 @@ const YouMightAlsoLike: React.FC<YouMightAlsoLikeProps> = ({
                       e.stopPropagation();
                       onAddToCart(p);
                     }}
-                    className="px-5 py-2 sm:px-8 sm:py-2.5 rounded-full text-[11px] sm:text-[13px] md:text-[14px] uppercase tracking-[0.08em] transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
+                    className="shine-coin px-5 py-2 sm:px-8 sm:py-2.5 rounded-full text-[11px] sm:text-[13px] md:text-[14px] uppercase tracking-[0.08em] transition-all duration-300 hover:scale-105 hover:shadow-lg active:scale-95"
                     style={{
                       backgroundColor: '#008a45',
                       color: '#ffffff',

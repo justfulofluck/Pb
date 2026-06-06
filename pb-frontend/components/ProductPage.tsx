@@ -259,6 +259,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const [activeTab, setActiveTab] = useState<'nutrition' | 'ingredients'>('nutrition');
   const [packSize, setPackSize] = useState("");
   const [isHovering, setIsHovering] = useState(false);
+  const [proteinCount, setProteinCount] = useState(0);
+  const statsSectionRef = useRef<HTMLDivElement>(null);
 
   const heroRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -291,6 +293,36 @@ const ProductPage: React.FC<ProductPageProps> = ({
       tl.kill();
     };
   }, [product?.id]); // Only re-animate and reset if the actual product ID changes
+
+  // Count-up animation for the protein stat
+  useEffect(() => {
+    const el = statsSectionRef.current;
+    if (!el) return;
+    let animFrame: number;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          const target = 30;
+          const duration = 1200;
+          const startTime = performance.now();
+          const tick = (now: number) => {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setProteinCount(Math.round(eased * target));
+            if (progress < 1) animFrame = requestAnimationFrame(tick);
+          };
+          animFrame = requestAnimationFrame(tick);
+        } else {
+          setProteinCount(0);
+          cancelAnimationFrame(animFrame);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => { observer.disconnect(); cancelAnimationFrame(animFrame); };
+  }, [product?.id]);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -383,7 +415,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 <div className="add-to-cart-block-wrapper _02 w-full max-w-sm mx-auto lg:mx-0">
                   <form onSubmit={handleAddToCart} className="w-commerce-commerceaddtocartform default-state w-full">
                     <div className="product-page-info-cta-contain flex flex-col sm:flex-row gap-3 items-center justify-center lg:justify-end h-auto md:h-[48px]">
-                      <div style={{ borderColor: 'rgba(255,255,255,0.3)' }} className="quantity-wrapper flex items-center border rounded-lg h-[40px] md:h-[48px] !w-[140px] sm:!w-[200px] overflow-hidden">
+                      <div style={{ borderColor: 'rgba(255,255,255,0.3)' }} className="quantity-wrapper flex items-center border rounded-lg h-[40px] md:h-[48px] w-[160px] sm:w-[200px] overflow-hidden !m-0">
                         <button
                           type="button"
                           onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
@@ -395,7 +427,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                           type="number"
                           min="1"
                           style={{ color: '#FFF' }}
-                          className="w-10 h-full text-center bg-transparent border-none focus:outline-none font-bold text-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          className="w-10 h-full text-center bg-transparent border-none focus:outline-none font-bold text-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none !m-0"
                           value={quantity}
                           onChange={(e) => setQuantity(Number(e.target.value) || 1)}
                         />
@@ -408,7 +440,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
                         </button>
                       </div>
                       <input
-                        className="w-commerce-commerceaddtocartbutton add-to-cart-button-main product-page cursor-pointer transition-transform hover:scale-105 !w-[160px] sm:!w-[200px] force-anton"
+                        className="w-commerce-commerceaddtocartbutton add-to-cart-button-main product-page cursor-pointer transition-transform hover:scale-105 w-[160px] sm:w-[200px] force-anton !m-0"
                         style={{ backgroundColor: '#FFF', color: bgColor || '#008a45', height: '100%', minHeight: '40px', borderRadius: '8px', fontSize: '1.2rem', fontWeight: '400', textTransform: 'uppercase' }}
                         type="submit"
                         value="Add to cart"
@@ -585,8 +617,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
               {/* TOP TWO BLOCKS */}
               <div className="w-full grid grid-cols-2 gap-4 px-2 relative z-10">
-                <div><h3 className="font-satoshi font-black text-[20px] sm:text-[22px] leading-[1.1] mb-1" style={{ color: bgColor }}>30g<br />Protein<br /><span className="text-[15px] sm:text-[16px]">Per 100g</span></h3><p className="font-satoshi text-[12px] sm:text-[13px] font-semibold leading-snug" style={{ color: bgColor }}>Supports muscle recovery and keeps you energized all day.</p></div>
-                <div className="text-right"><h3 className="font-satoshi font-black text-[20px] sm:text-[22px] leading-[1.1] mb-1" style={{ color: bgColor }}>No Added<br />Sugar, Salt,<br />or Palm Oil</h3><p className="font-satoshi text-[12px] sm:text-[13px] font-semibold leading-snug" style={{ color: bgColor }}>Purely roasted peanuts for clean and nutritious eating.</p></div>
+                <div><h3 className="font-satoshi font-black text-[20px] sm:text-[22px] leading-[1.1] mb-1" style={{ color: bgColor }}>30g<br />Protein<br /><span className="text-[15px] sm:text-[16px]">Per 100g</span></h3><p className="font-satoshi text-[12px] sm:text-[13px] font-semibold leading-snug" style={{ color: '#000000' }}>Supports muscle recovery and keeps you energized all day.</p></div>
+                <div className="text-right"><h3 className="font-satoshi font-black text-[20px] sm:text-[22px] leading-[1.1] mb-1" style={{ color: bgColor }}>No Added<br />Sugar, Salt,<br />or Palm Oil</h3><p className="font-satoshi text-[12px] sm:text-[13px] font-semibold leading-snug" style={{ color: '#000000' }}>Purely roasted peanuts for clean and nutritious eating.</p></div>
               </div>
 
               {/* CENTER IMAGE */}
@@ -601,15 +633,15 @@ const ProductPage: React.FC<ProductPageProps> = ({
               </div>
 
               {/* BOTTOM TWO BLOCKS */}
-              <div className="w-full grid grid-cols-2 gap-4 px-2 relative z-10">
-                <div><h3 className="font-satoshi font-black text-[20px] sm:text-[22px] leading-[1.1] mb-1" style={{ color: bgColor }}>Rich in<br />Healthy Fats</h3><p className="font-satoshi text-[12px] sm:text-[13px] font-semibold leading-snug" style={{ color: bgColor }}>Promotes heart health and overall well-being naturally.</p></div>
-                <div className="text-right"><h3 className="font-satoshi font-black text-[20px] sm:text-[22px] leading-[1.1] mb-1" style={{ color: bgColor }}>The World's<br />Best Peanuts</h3><p className="font-satoshi text-[12px] sm:text-[13px] font-semibold leading-snug" style={{ color: bgColor }}>Premium farm-fresh peanuts for rich flavor and perfect crunch.</p></div>
+              <div className="w-full grid grid-cols-2 gap-4 px-2 pt-6 relative z-10">
+                <div><h3 className="font-satoshi font-black text-[20px] sm:text-[22px] leading-[1.1] mb-1 uppercase" style={{ color: bgColor }}>Rich in<br />Healthy Fats</h3><p className="font-satoshi text-[12px] sm:text-[13px] font-semibold leading-snug" style={{ color: '#000000' }}>Promotes heart health and overall well-being naturally.</p></div>
+                <div className="text-right"><h3 className="font-satoshi font-black text-[20px] sm:text-[22px] leading-[1.1] mb-1 uppercase" style={{ color: bgColor }}>The World's<br />Best Peanuts</h3><p className="font-satoshi text-[12px] sm:text-[13px] font-semibold leading-snug" style={{ color: '#000000' }}>Premium farm-fresh peanuts for rich flavor and perfect crunch.</p></div>
               </div>
 
             </div>
 
             {/* Desktop layout: image center + 4 corner text blocks */}
-            <div className="hidden md:block relative w-full" style={{ minHeight: '640px' }}>
+            <div ref={statsSectionRef} className="hidden md:block relative w-full" style={{ minHeight: '640px' }}>
 
               {/* Center Image */}
               <div className="absolute inset-0 flex justify-center items-center" style={{ zIndex: 1 }}>
@@ -631,41 +663,41 @@ const ProductPage: React.FC<ProductPageProps> = ({
               </div>
 
               {/* TOP-LEFT: 30g Protein — text only */}
-              <div className="absolute" style={{ top: '8%', left: '3%', maxWidth: '220px', zIndex: 2 }}>
-                <h3 className="font-satoshi font-black text-[28px] lg:text-[32px] leading-[1.1] mb-2" style={{ color: bgColor }}>
-                  30g<br />Protein<br /><span className="text-[19px] lg:text-[21px]">Per 100g</span>
+              <div className="absolute" style={{ top: '8%', left: '3%', maxWidth: '280px', zIndex: 2 }}>
+                <h3 className="font-satoshi font-black text-[22px] lg:text-[26px] leading-[1.15] mb-2 uppercase" style={{ color: bgColor }}>
+                  <span className="tabular-nums">{proteinCount}</span>g<br />Protein<br /><span className="text-[16px] lg:text-[18px]">Per 100g</span>
                 </h3>
-                <p className="font-satoshi font-semibold text-[14px] leading-snug" style={{ color: bgColor }}>
+                <p className="font-satoshi font-semibold text-[14px] leading-snug" style={{ color: '#000000' }}>
                   Supports muscle recovery and keeps you energized all day.
                 </p>
               </div>
 
               {/* TOP-RIGHT: No Added Sugar — text only */}
-              <div className="absolute text-right" style={{ top: '8%', right: '3%', maxWidth: '220px', zIndex: 2 }}>
-                <h3 className="font-satoshi font-black text-[28px] lg:text-[32px] leading-[1.1] mb-2" style={{ color: bgColor }}>
-                  No Added<br />Sugar, Salt, or<br />Palm Oil
+              <div className="absolute text-right" style={{ top: '8%', right: '3%', maxWidth: '280px', zIndex: 2 }}>
+                <h3 className="font-satoshi font-black text-[22px] lg:text-[26px] leading-[1.15] mb-2 uppercase" style={{ color: bgColor }}>
+                  No Added Sugar, Salt,<br />or Palm Oil
                 </h3>
-                <p className="font-satoshi font-semibold text-[14px] leading-snug" style={{ color: bgColor }}>
+                <p className="font-satoshi font-semibold text-[14px] leading-snug" style={{ color: '#000000' }}>
                   Purely roasted peanuts for clean and nutritious eating.
                 </p>
               </div>
 
               {/* BOTTOM-LEFT: Rich in Healthy Fats — text only */}
-              <div className="absolute" style={{ bottom: '8%', left: '3%', maxWidth: '220px', zIndex: 2 }}>
-                <h3 className="font-satoshi font-black text-[28px] lg:text-[32px] leading-[1.1] mb-2" style={{ color: bgColor }}>
+              <div className="absolute" style={{ bottom: '8%', left: '3%', maxWidth: '280px', zIndex: 2 }}>
+                <h3 className="font-satoshi font-black text-[22px] lg:text-[26px] leading-[1.15] mb-2 uppercase" style={{ color: bgColor }}>
                   Rich in<br />Healthy Fats
                 </h3>
-                <p className="font-satoshi font-semibold text-[14px] leading-snug" style={{ color: bgColor }}>
+                <p className="font-satoshi font-semibold text-[14px] leading-snug" style={{ color: '#000000' }}>
                   Promotes heart health and overall well-being naturally.
                 </p>
               </div>
 
               {/* BOTTOM-RIGHT: The World's Best Peanuts — text only */}
-              <div className="absolute text-right" style={{ bottom: '8%', right: '3%', maxWidth: '220px', zIndex: 2 }}>
-                <h3 className="font-satoshi font-black text-[28px] lg:text-[32px] leading-[1.1] mb-2" style={{ color: bgColor }}>
-                  The World's<br />Best Peanuts
+              <div className="absolute text-right" style={{ bottom: '8%', right: '3%', maxWidth: '280px', zIndex: 2 }}>
+                <h3 className="font-satoshi font-black text-[22px] lg:text-[26px] leading-[1.15] mb-2 uppercase" style={{ color: bgColor }}>
+                  The World's Best<br />Peanuts
                 </h3>
-                <p className="font-satoshi font-semibold text-[14px] leading-snug" style={{ color: bgColor }}>
+                <p className="font-satoshi font-semibold text-[14px] leading-snug" style={{ color: '#000000' }}>
                   Premium farm-fresh peanuts for rich flavor and perfect crunch.
                 </p>
               </div>
@@ -674,41 +706,41 @@ const ProductPage: React.FC<ProductPageProps> = ({
               {/* At 1920px: text right/left edges at ~14.5%, image edges at ~38% (left) and ~62% (right) */}
               {/* At 640px height: top text center ~20%, bottom text center ~80%, image occupies ~10-90% */}
 
-              {/* TOP-LEFT arrow: from text bottom-right corner → image top-left */}
+              {/* TOP-LEFT arrow: gentle wide S — leans outward then sweeps in */}
               <div style={{ position: 'absolute', left: '15%', top: '15%', width: '23%', height: '22%', pointerEvents: 'none', zIndex: 3 }}>
                 <svg viewBox="0 0 100 100" fill="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                  <path d="M 0,0 Q 60,10 100,100" stroke={bgColor} strokeWidth="2" strokeLinecap="round" fill="none" />
-                  <rect x="93" y="92" width="10" height="10" fill={bgColor} transform="rotate(45 98 97)" />
+                  <path d="M 0,0 C 70,-25 30,125 100,100" stroke={bgColor} strokeWidth="1.8" strokeLinecap="round" fill="none" />
+                  <rect x="-5" y="-5" width="10" height="10" fill={bgColor} transform="rotate(45 0 0)" />
                 </svg>
               </div>
 
-              {/* BOTTOM-LEFT arrow: from text top-right corner → image bottom-left */}
+              {/* BOTTOM-LEFT arrow: tight early S — curves quickly then stretches flat */}
               <div style={{ position: 'absolute', left: '15%', bottom: '15%', width: '23%', height: '22%', pointerEvents: 'none', zIndex: 3 }}>
                 <svg viewBox="0 0 100 100" fill="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                  <path d="M 0,100 Q 60,90 100,0" stroke={bgColor} strokeWidth="2" strokeLinecap="round" fill="none" />
-                  <rect x="93" y="-8" width="10" height="10" fill={bgColor} transform="rotate(45 98 -3)" />
+                  <path d="M 0,100 C 20,140 80,-30 100,0" stroke={bgColor} strokeWidth="1.8" strokeLinecap="round" fill="none" />
+                  <rect x="-5" y="95" width="10" height="10" fill={bgColor} transform="rotate(45 0 100)" />
                 </svg>
               </div>
 
-              {/* TOP-RIGHT arrow: from text bottom-left corner → image top-right */}
+              {/* TOP-RIGHT arrow: elongated S — starts nearly flat then plunges down */}
               <div style={{ position: 'absolute', right: '15%', top: '15%', width: '23%', height: '22%', pointerEvents: 'none', zIndex: 3 }}>
                 <svg viewBox="0 0 100 100" fill="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                  <path d="M 100,0 Q 40,10 0,100" stroke={bgColor} strokeWidth="2" strokeLinecap="round" fill="none" />
-                  <rect x="-3" y="92" width="10" height="10" fill={bgColor} transform="rotate(45 2 97)" />
+                  <path d="M 100,0 C 30,-30 70,125 0,100" stroke={bgColor} strokeWidth="1.8" strokeLinecap="round" fill="none" />
+                  <rect x="95" y="-5" width="10" height="10" fill={bgColor} transform="rotate(45 100 0)" />
                 </svg>
               </div>
 
-              {/* BOTTOM-RIGHT arrow: from text top-left corner → image bottom-right */}
+              {/* BOTTOM-RIGHT arrow: wide swooping S — lazy wide arc with late curve */}
               <div style={{ position: 'absolute', right: '15%', bottom: '15%', width: '23%', height: '22%', pointerEvents: 'none', zIndex: 3 }}>
                 <svg viewBox="0 0 100 100" fill="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                  <path d="M 100,100 Q 40,90 0,0" stroke={bgColor} strokeWidth="2" strokeLinecap="round" fill="none" />
-                  <rect x="-3" y="-8" width="10" height="10" fill={bgColor} transform="rotate(45 2 -3)" />
+                  <path d="M 100,100 C 30,140 70,-50 0,0" stroke={bgColor} strokeWidth="1.8" strokeLinecap="round" fill="none" />
+                  <rect x="95" y="95" width="10" height="10" fill={bgColor} transform="rotate(45 100 100)" />
                 </svg>
               </div>
 
             </div>
 
-            <div className="benefit-circles flex flex-wrap md:flex-nowrap justify-center gap-x-4 md:gap-x-8 gap-y-12 mt-4 md:mt-16 mb-8 py-4" data-snaxxo-animate>
+            <div className="benefit-circles grid grid-cols-2 md:flex md:flex-nowrap justify-items-center md:justify-center gap-x-4 md:gap-x-8 gap-y-8 md:gap-y-12 mt-4 md:mt-16 mb-8 py-4" data-snaxxo-animate>
               {(() => {
                 const filtered = (product.benefits || []).filter(b => b && b.trim() !== "");
                 const displayBenefits = filtered.length > 0 ? filtered : ["100% Roasted Peanuts", "High Protein Power", "Rich In Dietary Fiber", "Zero Trans Fat"];
@@ -765,7 +797,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
         </div>
       </section>
 
-      <IngredientShowcase ingredients={product.ingredientsList} bgColor={bgColor} />
+      <IngredientShowcase ingredients={product.ingredientsList} bgColor={bgColor} productId={product.id} />
       <SnaxxoProductComparison product={product} />
 
       <NutritionDetailedSection product={product} onAddToCart={onAddToCart} bgColor={bgColor} />

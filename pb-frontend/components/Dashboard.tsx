@@ -243,6 +243,31 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
 
           {/* Main Content */}
           <main className="min-h-[400px] lg:min-h-[600px] w-full min-w-0 space-y-4 sm:space-y-6">
+            {/* Mobile Top Tabs */}
+            <div className="lg:hidden flex overflow-x-auto hide-scrollbar gap-2 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+              {navItems.map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id as TabType)}
+                  className={`flex-shrink-0 flex items-center gap-2 py-2.5 px-4 rounded-full font-bold text-[10px] uppercase tracking-widest transition-all border ${
+                    activeTab === item.id
+                      ? 'bg-[#0b3d2e] text-white border-[#0b3d2e] shadow-md'
+                      : 'bg-white text-slate-500 border-slate-200 shadow-sm'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[16px]">{item.icon}</span>
+                  {item.label}
+                </button>
+              ))}
+              <button
+                onClick={onLogout}
+                className="flex-shrink-0 flex items-center gap-2 py-2.5 px-4 rounded-full font-bold text-[10px] uppercase tracking-widest bg-red-50 text-red-500 border border-red-100 transition-all shadow-sm"
+              >
+                <span className="material-symbols-outlined text-[16px]">logout</span>
+                Logout
+              </button>
+            </div>
+
             <AnimatePresence mode="wait">
               {activeTab === 'overview' && (
                 <motion.div
@@ -268,21 +293,21 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
                     <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
                   </div>
 
-                  {/* Stats Row - Scrollable on mobile */}
-                  <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 hide-scrollbar">
+                  {/* Stats Row */}
+                  <div className="grid grid-cols-2 sm:flex sm:flex-row gap-3">
                     {[
                       { label: 'PinoPoints', val: userData.points, icon: 'workspace_premium', bg: 'bg-amber-50', iconColor: 'text-amber-500' },
                       { label: 'Orders', val: orders.length, icon: 'shopping_bag', bg: 'bg-emerald-50', iconColor: 'text-emerald-500' },
                       { label: 'Savings', val: `₹${userData.savings}`, icon: 'savings', bg: 'bg-sky-50', iconColor: 'text-sky-500' },
                       { label: 'Spent', val: `₹${userData.totalSpent}`, icon: 'wallet', bg: 'bg-violet-50', iconColor: 'text-violet-500' }
                     ].map((stat, i) => (
-                      <div key={i} className={`flex-shrink-0 flex-1 min-w-[120px] ${stat.bg} rounded-2xl p-4 flex items-center gap-3 border border-white`}>
-                        <div className={`w-10 h-10 rounded-xl bg-white flex items-center justify-center ${stat.iconColor} shadow-sm flex-shrink-0`}>
-                          <span className="material-symbols-outlined text-[18px]">{stat.icon}</span>
+                      <div key={i} className={`flex-1 min-w-0 ${stat.bg} rounded-2xl p-3 sm:p-4 flex items-center gap-2 sm:gap-3 border border-white`}>
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white flex items-center justify-center ${stat.iconColor} shadow-sm flex-shrink-0`}>
+                          <span className="material-symbols-outlined text-[16px] sm:text-[18px]">{stat.icon}</span>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">{stat.label}</p>
-                          <p className="text-lg font-black text-slate-900 tracking-tight leading-tight truncate">{stat.val}</p>
+                        <div className="min-w-0 text-left">
+                          <p className="text-[8px] sm:text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none mb-0.5">{stat.label}</p>
+                          <p className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-tight truncate">{stat.val}</p>
                         </div>
                       </div>
                     ))}
@@ -897,32 +922,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, onHomeClick, onAddToCar
         </div>
       </div>
 
-      {/* Mobile Bottom Tab Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-slate-200 safe-area-bottom">
-        <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
-          {navItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id as TabType)}
-              className={`flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl transition-all ${activeTab === item.id
-                ? 'text-[#0b3d2e]'
-                : 'text-slate-400'
-                }`}
-            >
-              <span className={`material-symbols-outlined text-[22px] ${activeTab === item.id ? 'fill-1' : ''}`}>{item.icon}</span>
-              <span className="text-[9px] font-bold uppercase tracking-wide">{item.label.split(' ')[0]}</span>
-              {activeTab === item.id && <div className="w-1 h-1 rounded-full bg-[#0b3d2e] mt-0.5" />}
-            </button>
-          ))}
-          <button
-            onClick={onLogout}
-            className="flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl text-slate-400 transition-all"
-          >
-            <span className="material-symbols-outlined text-[22px]">logout</span>
-            <span className="text-[9px] font-bold uppercase tracking-wide">Exit</span>
-          </button>
-        </div>
-      </div>
+
       {/* Order Details Modal (Existing but updated with product list) */}
       <AnimatePresence>
         {selectedOrder && (

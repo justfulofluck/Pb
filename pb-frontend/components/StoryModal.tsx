@@ -19,18 +19,18 @@ const getDriveId = (url: string) => {
 
 const getDriveStreamUrl = (url: string) => {
     if (!url) return '';
-    
+
     // 1. If it's already a clean backend media path (starts with /media or media/)
     if (url.startsWith('/media/') || url.startsWith('media/')) {
         return getMediaUrl(url);
     }
-    
+
     // 2. If it's a Google Drive URL, extract ID and return stream URL
     const fileId = getDriveId(url);
     if (fileId) {
         return `https://drive.google.com/uc?export=download&id=${fileId}`;
     }
-    
+
     // 3. Fallback to general media resolver (handles absolute URLs, data URLs, etc.)
     return getMediaUrl(url);
 };
@@ -41,9 +41,9 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
 
     // Fail-safe: Always prioritize local files (full or loop) over Drive links to avoid ORB blocking
     const videoUrl = story.fullVideoUrl || story.mediaUrl || story.originalDriveUrl || '';
-    const isVideo = story.mediaType === 'video' || 
+    const isVideo = story.mediaType === 'video' ||
         (typeof videoUrl === 'string' && (
-            videoUrl.toLowerCase().includes('.mp4') || 
+            videoUrl.toLowerCase().includes('.mp4') ||
             videoUrl.toLowerCase().includes('drive.google.com') ||
             videoUrl.includes('stories/')
         ));
@@ -75,7 +75,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
         return () => {
             document.body.style.overflow = '';
             window.removeEventListener('keydown', handleKeyDown);
-            
+
             if (videoElement) {
                 videoElement.pause();
             }
@@ -103,24 +103,24 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
 
     return (
         <div
-            className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300"
+            className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/90 md:bg-black/80 backdrop-blur-sm md:p-4 animate-in fade-in duration-300"
             onClick={handleBackdropClick}
         >
-            {/* Close button in top right of screen */}
+            {/* Desktop Close button */}
             <button
                 onClick={onClose}
-                className="absolute top-6 right-6 text-white hover:text-orange-400 transition-colors z-[10]"
+                className="hidden md:flex absolute top-6 right-6 text-white hover:text-orange-400 transition-colors z-[10]"
                 aria-label="Close story modal"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
 
             {/* Modal Container */}
-            <div className="bg-white rounded-2xl md:rounded-[32px] overflow-hidden flex flex-col md:flex-row w-full max-w-5xl h-[90vh] md:h-[80vh] shadow-2xl relative animate-in zoom-in-95 duration-300">
+            <div className="bg-black md:bg-white rounded-none md:rounded-[32px] overflow-hidden flex flex-col md:flex-row w-full h-full md:max-w-5xl md:h-[80vh] shadow-2xl relative animate-in zoom-in-95 duration-300">
 
-                {/* Left Side: Full Video */}
+                {/* Left Side / Full Screen Video Area */}
                 <div
-                    className={`w-full ${product ? 'md:w-1/2 h-1/2 md:h-full' : 'w-full h-full'} bg-black relative flex items-center justify-center overflow-hidden cursor-pointer`}
+                    className={`absolute inset-0 md:relative md:inset-auto w-full h-full ${product ? 'md:w-1/2' : 'w-full'} bg-black flex items-center justify-center overflow-hidden cursor-pointer`}
                     onClick={() => setIsMuted(!isMuted)}
                 >
                     {isVideo ? (
@@ -149,8 +149,66 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
                         />
                     )}
 
-                    {/* Video Controls Overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    {/* === MOBILE OVERLAYS === */}
+                    <div className="md:hidden absolute inset-0 pointer-events-none">
+                        {/* Gradients */}
+                        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/60 to-transparent"></div>
+                        <div className="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-black/80 to-transparent"></div>
+
+                        {/* Top Header */}
+                        <div className="absolute top-4 left-4 pointer-events-auto">
+                            <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
+
+                        {/* Side Actions */}
+                        <div className="absolute right-4 bottom-[200px] flex flex-col gap-4 pointer-events-auto items-center">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
+                                className="w-11 h-11 bg-black/40 backdrop-blur-md text-white rounded-full flex items-center justify-center hover:bg-black/60 transition-all border border-white/20"
+                            >
+                                {isMuted ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                                )}
+                            </button>
+                        </div>
+
+                        {/* Mobile Bottom Product Card */}
+                        {product && (
+                            <div className="absolute bottom-4 left-4 right-4 pointer-events-auto">
+                                <div className="bg-white/95 backdrop-blur-xl rounded-[20px] p-3 flex flex-col gap-3 shadow-2xl">
+                                    <div className="flex gap-4 items-center px-1">
+                                        <div className="w-[60px] h-[60px] bg-slate-50 rounded-xl flex items-center justify-center flex-shrink-0 p-1 border border-slate-100">
+                                            <img src={getMediaUrl(product.image)} className="w-full h-full object-contain" alt={product.name} />
+                                        </div>
+                                        <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                            <h4 className="font-satoshi font-semibold text-slate-800 text-[15px] leading-none line-clamp-1">
+                                                {product.name}
+                                            </h4>
+                                            <div className="flex items-center gap-2 -mt-0.5">
+                                                <span className="text-[14px] font-black text-slate-900 leading-none">₹{product.price.toLocaleString()}</span>
+                                                {product.originalPrice && (
+                                                    <span className="text-[14px] text-slate-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); onAddToCart(product); onClose(); }}
+                                        className="w-full bg-[#282828] text-white font-bold py-3.5 rounded-xl text-[15px] hover:bg-black transition-colors"
+                                    >
+                                        Add to Cart
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* === DESKTOP OVERLAYS === */}
+                    <div className="hidden md:flex absolute inset-0 items-center justify-center pointer-events-none">
                         {isMuted && (
                             <div className="bg-black/40 backdrop-blur-md px-6 py-3 rounded-full flex items-center gap-3 animate-pulse">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
@@ -158,14 +216,10 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
                             </div>
                         )}
                     </div>
-
-                    <div className="absolute right-4 bottom-4 flex flex-col gap-4">
+                    <div className="hidden md:flex absolute right-4 bottom-4 flex-col gap-4 pointer-events-auto">
                         <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsMuted(!isMuted);
-                            }}
-                            className="w-12 h-12 bg-black/40 backdrop-blur-md text-white rounded-full flex items-center justify-center hover:bg-black/60 transition-all hover:scale-110 z-20 pointer-events-auto"
+                            onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
+                            className="w-12 h-12 bg-black/40 backdrop-blur-md text-white rounded-full flex items-center justify-center hover:bg-black/60 transition-all hover:scale-110 z-20"
                             aria-label={isMuted ? "Unmute video" : "Mute video"}
                         >
                             {isMuted ? (
@@ -177,9 +231,9 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
                     </div>
                 </div>
 
-                {/* Right Side: Product Details */}
+                {/* Right Side: Product Details (Desktop Only) */}
                 {product && (
-                    <div className="w-full md:w-1/2 h-1/2 md:h-full flex flex-col bg-white">
+                    <div className="hidden md:flex w-full md:w-1/2 h-full flex-col bg-white">
                         <div className="flex-1 overflow-y-auto hide-scrollbar p-6 md:p-8">
                             <div className="bg-[#fff9f5] rounded-2xl p-6 flex justify-center items-center mb-6">
                                 <img src={getMediaUrl(product.image)} className="w-48 h-48 object-contain transform hover:scale-105 transition-transform duration-500" alt={product.name} />
@@ -235,7 +289,6 @@ const StoryModal: React.FC<StoryModalProps> = ({ story, product, onClose, onAddT
                         </div>
                     </div>
                 )}
-
             </div>
         </div>
     );

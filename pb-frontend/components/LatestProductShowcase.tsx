@@ -104,7 +104,7 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
   ];
 
   return (
-    <section className="py-24 relative overflow-hidden bg-whiteboard texture-overlay texture-speckles">
+    <section className="py-[60px] relative overflow-hidden bg-whiteboard texture-overlay texture-speckles">
       {/* Background Glow Removed to maintain board texture */}
 
       <style>{`
@@ -164,8 +164,7 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
                 disable-zoom
                 disable-tap
                 interaction-prompt="auto"
-                ar
-                ar-modes="webxr scene-viewer quick-look"
+
                 touch-action="pan-y"
                 style={{ width: '100%', outline: 'none' }}
                 className="h-[400px] md:h-[500px] lg:h-[600px]"

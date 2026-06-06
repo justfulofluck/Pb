@@ -35,7 +35,7 @@ const PressUpdates: React.FC<PressUpdatesProps> = ({ pressUpdates }) => {
   if (!pressUpdates.length) return null;
 
   return (
-    <section className="py-24 bg-whiteboard texture-overlay texture-speckles relative overflow-hidden">
+    <section className="py-[60px] bg-whiteboard texture-overlay texture-speckles relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-16">

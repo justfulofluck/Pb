@@ -73,26 +73,26 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
 
       {/* ── Content ── */}
       <div className="relative z-10 w-full">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-10 lg:px-14 pt-10 sm:pt-[140px] lg:pt-[220px] pb-10 sm:pb-16 md:pb-20">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-10 lg:px-14 pt-[60px] sm:pt-[140px] lg:pt-[220px] pb-[60px] sm:pb-16 md:pb-20">
 
           {/* Two-column grid — stacks on mobile */}
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
 
             {/* ─── LEFT column ─── */}
-            <div 
+            <div
               className="w-full lg:w-[42%] flex flex-col [--left-col-pt:0px] lg:[--left-col-pt:calc(var(--spacing)*50)]"
-              style={{ 
-                paddingLeft: '10px', 
-                paddingRight: '10px', 
-                paddingTop: 'var(--left-col-pt)' 
+              style={{
+                paddingLeft: '10px',
+                paddingRight: '10px',
+                paddingTop: 'var(--left-col-pt)'
               } as React.CSSProperties}
             >
-              
+
               {/* Heading */}
               <h2
                 className="leading-[1.05] uppercase mb-4 sm:mb-6"
-                style={{ 
-                  color: '#ffffff', 
+                style={{
+                  color: '#ffffff',
                   fontFamily: 'var(--font-bombi, "Gochi Hand", cursive)',
                   fontSize: 'clamp(2.5rem, 8vw, 4.5rem)'
                 }}
@@ -125,7 +125,7 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
             </div>
 
             {/* ─── RIGHT column: Nutrition table ─── */}
-            <div 
+            <div
               className="w-full lg:w-[58%] pt-4 lg:pt-6"
               style={{ paddingLeft: '10px', paddingRight: '10px' }}
             >
@@ -134,20 +134,24 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
               >
                 {/* Header */}
                 <div
-                  className="px-4 sm:px-4 py-4 sm:py-4 flex flex-col gap-2"
+                  className="px-4 py-4 sm:px-4 sm:py-4"
                   style={{ backgroundColor: tableHeaderBg }}
                 >
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
-                    <h3 className="text-white text-[20px] sm:text-[18px] md:text-[20px] leading-tight mb-0 font-anton uppercase tracking-wider">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end w-full mb-4 sm:mb-2">
+                    <h3 className="text-white text-[28px] sm:text-[36px] md:text-[40px] leading-[1.1] m-0 font-anton uppercase !tracking-[4px]">
                       Nutritional Information
                     </h3>
-                    <p className="text-amber-300 text-[14px] sm:text-[11px] md:text-[12px] font-semibold shrink-0">(Approx. Values)</p>
+                    <p className="text-amber-300 text-[13px] md:text-[12px] font-semibold leading-normal mt-2 sm:mt-0 mb-0">
+                      (Approx. Values)
+                    </p>
                   </div>
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-2">
-                    <p className="text-white/80 text-[13px] sm:text-[11px] md:text-[12px] font-medium">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full">
+                    <p className="text-white/80 text-[14px] md:text-[17px] font-medium leading-snug m-0 mb-2 sm:mb-0">
                       No. of servings per pack: 31 (Approx)
                     </p>
-                    <p className="text-white text-[13px] sm:text-[11px] md:text-[12px] font-bold shrink-0">Serving Size: 32g (2 tbsp)</p>
+                    <p className="text-white text-[14px] md:text-[17px] font-bold leading-snug m-0">
+                      Serving Size: 32g (2 tbsp)
+                    </p>
                   </div>
                 </div>
 
@@ -272,7 +276,7 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
                             { n: 'Potassium (mg)', v100: '3.4 mg', v32: '1 mg', r: '0 %', b: false },
                           ];
                         }
-                        
+
                         // Default / Strawberry
                         return [
                           { n: 'Energy (kcal)', v100: '578', v32: '185', r: '9 %', b: true },
