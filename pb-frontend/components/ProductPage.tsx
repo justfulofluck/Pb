@@ -367,7 +367,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
     <div className="page-wrapper" style={{ opacity: 1, backgroundColor: tintColor }}>
 
       <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-[85vh] md:min-h-[95vh] flex flex-col items-center pt-4 md:pt-0 pb-20 md:pb-10 texture-blend relative">
-        {product.slug?.includes('dark-chocolate') && (
+        {product.slug?.includes('dark-chocolate') && product.category?.toLowerCase().includes('peanut butter') && (
           <>
             <video
               autoPlay
