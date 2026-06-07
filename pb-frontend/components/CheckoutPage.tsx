@@ -334,7 +334,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
           className="flex items-center gap-2 text-slate-400 hover:text-primary font-bold text-xs tracking-widest uppercase transition-colors"
         >
           <span className="material-symbols-outlined text-sm">arrow_back</span>
-          Back to cart
+          Back to Products
         </button>
         <div className="flex items-center gap-2 font-extrabold text-primary">
           <span className="material-symbols-outlined">lock</span>

@@ -103,3 +103,28 @@ export const getMediaUrl = (path: string | null | undefined): string => {
   const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
   return `${baseUrl}${finalPath}`;
 };
+
+/**
+ * Returns a 3D model path based on the product name.
+ * Uses the fallback models stored in /public/3D-assets/
+ */
+export const getDynamic3DModel = (productName?: string): string => {
+  if (!productName) return '/3D-assets/AmericanNuts.glb';
+  
+  const name = productName.toLowerCase();
+  
+  if (name.includes('american')) return '/3D-assets/AmericanNuts.glb';
+  if (name.includes('dark') && name.includes('muesli')) return '/3D-assets/Dark-Chocolate-Berries-Almonds-Muesli.glb';
+  if (name.includes('dark') || name.includes('almond')) return '/3D-assets/Dark Chocolate with almond.glb';
+  if (name.includes('chocolate') && name.includes('muesli')) return '/3D-assets/Chocolate-Muesli.glb';
+  if (name.includes('coffee') || name.includes('mocha')) return '/3D-assets/Coffee-Mocha-Oats.glb';
+  if (name.includes('mango')) return '/3D-assets/mango-with-chia.glb';
+  if (name.includes('pineapple')) return '/3D-assets/pineapple.glb';
+  if (name.includes('strawberry')) return '/3D-assets/strawberry-with-chia.glb';
+  if (name.includes('natural') || name.includes('classic')) return '/3D-assets/natural.glb';
+  
+  if (name.includes('muesli')) return '/3D-assets/Chocolate-Muesli.glb';
+  if (name.includes('oat')) return '/3D-assets/Coffee-Mocha-Oats.glb';
+  
+  return '/3D-assets/AmericanNuts.glb';
+};

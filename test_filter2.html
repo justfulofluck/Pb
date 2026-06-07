@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<body>
+<svg width="800" height="400" viewBox="0 0 800 400">
+  <defs>
+    <filter id="waveNoise" filterUnits="userSpaceOnUse" x="-50%" y="-50%" width="200%" height="200%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch" result="noise" />
+        <feColorMatrix type="saturate" values="0" in="noise" result="desaturatedNoise" />
+        <feComponentTransfer in="desaturatedNoise" result="opacityNoise">
+            <feFuncA type="linear" slope="0.4" />
+        </feComponentTransfer>
+        <feBlend mode="overlay" in="opacityNoise" in2="SourceGraphic" result="blended" />
+        <feComposite operator="in" in="blended" in2="SourceGraphic" />
+    </filter>
+  </defs>
+  <g filter="url(#waveNoise)">
+    <rect x="-400" y="0" width="1600" height="400" fill="#0b3d2e" />
+  </g>
+</svg>
+</body>
+</html>

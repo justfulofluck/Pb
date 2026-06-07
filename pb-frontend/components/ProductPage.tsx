@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Product, Review, Story } from '../types';
 import { API_BASE_URL } from '../config';
-import { getMediaUrl } from '../utils/mediaHelper';
+import { getMediaUrl, getDynamic3DModel } from '../utils/mediaHelper';
 import MultiLayerWave from './snaxxo/MultiLayerWave';
 
 
@@ -77,15 +77,7 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
       }
     }
     if (!src) {
-      if (product.name === 'Dark Chocolate Berries & Almonds Muesli') {
-        src = '/3D-assets/Dark-Chocolate-Berries-Almonds-Muesli.glb';
-      } else if (product.name === 'American Nuts Crunchy Peanut Butter') {
-        src = '/3D-assets/AmericanNuts-v1.glb';
-      } else if (product.name === 'Strawberry with Chia Peanut Butter') {
-        src = '/3D-assets/Strawberry-with-Chia.glb';
-      } else if (product.name === 'Dark Chocolate & Almond Crunchy Peanut Butter') {
-        src = '/3D-assets/Dark-Chocolate-Almond.glb';
-      }
+      src = getDynamic3DModel(product.name);
     }
     setModelSrc(src);
   }, [product.id, product.model3d, product.name]);
@@ -577,38 +569,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
       <section className="section overflow-hidden" style={{ backgroundColor: '#f2f2ec' }}>
         <div className="w-layout-blockcontainer container product-page-intro w-container">
           <div className="content-wrapper product-page-intro">
-            <div className="pdp-heading-container">
-              <div className="image-wrapper start-02" data-snaxxo-animate>
-                <div style={{ color: bgColor }} className="content-image _100 w-embed">
-                  <svg style={{ width: 'inherit', height: 'inherit' }} viewBox="0 0 259 259" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M258.809 257.997C252.02 249.194 245.323 240.289 238.444 231.586C224.666 213.798 210.612 196.216 196.925 178.328C174.398 149.072 175.123 107.306 198.455 78.4639C208.864 65.5899 218.967 52.3507 229.276 39.3867C239.404 26.6234 249.533 13.86 258.741 0C249.732 6.87895 240.723 13.7579 231.72 20.732C213.532 34.881 195.555 49.4006 177.156 63.1791C149.372 83.9514 108.378 83.2777 81.0124 61.9191C56.0481 42.5332 31.3502 22.751 6.47656 3.26448C4.67724 1.83284 2.61211 0.797401 0 0.268603C19.2182 24.927 38.5217 49.39 57.559 74.2489C86.4779 112.043 85.6133 149.424 55.7191 186.16C37.5841 208.423 19.9414 230.945 2.19811 253.378C1.30524 254.571 0.71394 256.035 0.826374 258.13C19.6566 243.469 38.5772 228.708 57.5031 214.042C66.4161 207.168 75.0227 199.929 84.4492 193.696C114.946 173.542 153.168 176.083 181.772 199.094C206.973 219.326 232.53 239.063 257.906 259C258.273 258.694 258.639 258.388 259 257.987L258.809 257.997Z" fill="currentColor" />
-                  </svg>
-                </div>
-              </div>
-              <div className="image-wrapper start-01" data-snaxxo-animate>
-                <div style={{ color: bgColor }} className="content-image _100 w-embed">
-                  <svg style={{ width: 'inherit', height: 'inherit' }} viewBox="0 0 379 424" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M223.927 226.081C218.579 218.478 213.313 210.796 207.883 203.271C197.027 187.906 185.926 172.7 175.15 157.256C157.406 131.992 159.917 97.3816 180.984 74.4925C190.382 64.2756 199.538 53.7424 208.856 43.4464C218.012 33.3088 227.167 23.1712 235.594 12.0833C227.654 17.3897 219.713 22.696 211.773 28.0816C195.73 39.0112 179.849 50.2576 163.645 60.8703C139.175 76.8685 104.496 74.4925 82.2957 55.5641C62.0397 38.3776 42.0265 20.8744 21.8514 3.6089C20.3929 2.34171 18.6914 1.39131 16.5037 0.836914C31.6553 22.1417 46.8879 43.288 61.8776 64.7511C84.6452 97.3816 82.2147 128.349 55.2334 157.494C38.8665 175.155 22.9047 193.055 6.86181 210.874C6.05157 211.825 5.48438 213.013 5.48438 214.755C22.0944 203.43 38.7855 192.025 55.4765 180.699C63.336 175.393 70.9524 169.77 79.2167 165.018C105.955 149.653 138.203 153.455 161.376 173.809C181.794 191.708 202.536 209.211 223.116 226.873C223.441 226.635 223.765 226.398 224.088 226.081H223.927Z" fill="currentColor" />
-                    <path d="M372.36 286.507C367.741 289.992 363.123 293.398 358.504 296.882C349.187 303.931 339.95 311.059 330.632 318.108C315.319 329.592 293.361 329.196 278.371 317.316C271.647 312.009 264.678 306.782 257.872 301.555C251.228 296.407 244.503 291.18 237.211 286.507C240.857 291.101 244.422 295.694 248.068 300.288C255.442 309.633 263.058 318.742 270.269 328.245C281.126 342.422 280.721 363.331 269.54 377.35C259.331 390.101 249.041 402.693 238.75 415.365C238.021 416.316 237.454 417.345 237.211 418.692C250.094 408.871 262.976 399.05 275.941 389.308C295.711 374.577 315.319 375.052 334.522 390.338C346.189 399.604 357.938 408.633 369.686 417.741C370.334 418.217 371.064 418.533 372.117 418.454C364.419 408.792 356.722 399.129 349.106 389.467C345.541 384.952 341.733 380.517 338.492 375.686C327.958 360.084 329.255 340.522 341.327 325.949C351.942 313.119 362.313 300.051 372.765 287.141C372.603 286.982 372.441 286.745 372.279 286.587L372.36 286.507Z" fill="currentColor" />
-                  </svg>
-                </div>
-              </div>
-              <div className="w-layout-grid heading-grid center-two-rows tablet-flex-center max-w-full overflow-hidden">
-                <div id="w-node-_1456048c-5ed6-222f-c30e-3b71073b440b-98e0d5d3" className="grid-block w-full">
-                  <div className="text-box w-full flex justify-center">
-                    <h2 style={{
-                      backgroundColor: bgColor,
-                      fontSize: 'clamp(2.5rem, 12vw, 5.5rem)',
-                      lineHeight: '1.1',
-                      textAlign: 'center',
-                      width: '100%',
-                    }} className="h2-heading no-margin break-words font-anton uppercase text-textured-any" data-snaxxo-animate>
-                      Small Size Huge Flavor
-                    </h2>
-                  </div>
-                </div>
-              </div>
-            </div>
+
           </div>
           <div className="content-wrapper intro-pdf w-full overflow-hidden">
 

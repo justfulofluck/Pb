@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { throttle } from '../utils/performance';
 import { Product } from '../types';
-import { getMediaUrl } from '../utils/mediaHelper';
+import { getMediaUrl, getDynamic3DModel } from '../utils/mediaHelper';
 
 interface LatestProductShowcaseProps {
   product?: Product;
@@ -70,8 +70,8 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
     };
   }, []);
 
-  // Use the provided product's 3D model, or fallback to the hardcoded one
-  const modelSrc = product?.model3d ? getMediaUrl(product.model3d) : "/3D-assets/AmericanNuts-v1.glb";
+  // Use the provided product's 3D model, or fallback to dynamic naming logic
+  const modelSrc = product?.model3d ? getMediaUrl(product.model3d) : getDynamic3DModel(product?.name);
 
   const benefitsLeft = [
     {
@@ -132,7 +132,7 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
 
         <div className="grid lg:grid-cols-3 gap-8 md:gap-12 lg:gap-20 items-center mt-[-1rem] md:mt-[-2rem]">
           {/* Left Column */}
-          <div className="space-y-8 md:space-y-16 text-center lg:text-right order-2 lg:order-1">
+          <div className="space-y-12 md:space-y-24 text-center lg:text-right order-2 lg:order-1">
             {benefitsLeft.map((item, idx) => (
               <div key={idx} className="group px-4 md:px-0 flex flex-col items-center lg:items-end">
                 <h3 className="text-[22px] lg:text-[26px] force-anton text-[#0b3d2e] mb-1 md:mb-2 uppercase leading-tight md:leading-none md:whitespace-nowrap text-center lg:text-right">{item.title}</h3>
@@ -198,7 +198,7 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
           </div>
 
           {/* Right Column */}
-          <div className="space-y-8 md:space-y-16 text-center lg:text-left order-3">
+          <div className="space-y-12 md:space-y-24 text-center lg:text-left order-3">
             {benefitsRight.map((item, idx) => (
               <div key={idx} className="group px-4 md:px-0 flex flex-col items-center lg:items-start">
                 <h3 className="text-[22px] lg:text-[26px] force-anton text-[#0b3d2e] mb-1 md:mb-2 uppercase leading-tight md:leading-none md:whitespace-nowrap text-center lg:text-left">{item.title}</h3>

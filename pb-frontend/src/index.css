@@ -215,14 +215,16 @@
 .btn-greenboard {
   background-color: #0b3d2e !important;
   color: white !important;
-  position: relative;
-  overflow: hidden;
+  position: relative !important;
+  overflow: hidden !important;
+  transform: translateZ(0); /* webkit border-radius overflow fix */
+  isolation: isolate;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   letter-spacing: 0.1em !important;
-  font-size: 10px !important;
+  font-size: 14px !important;
   text-transform: none !important;
-  font-weight: 400 !important;
+  font-weight: 600 !important;
 }
 
 .btn-greenboard:hover {
@@ -561,8 +563,9 @@
 }
 
 .shine-coin {
-  position: relative;
-  overflow: hidden;
+  position: relative !important;
+  overflow: hidden !important;
+  transform: translateZ(0);
 }
 
 .shine-coin::before {

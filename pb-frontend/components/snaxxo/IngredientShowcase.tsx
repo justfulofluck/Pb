@@ -52,44 +52,45 @@ const PRODUCT_INGREDIENTS_MAP: Record<string, Ingredient[]> = {
     { name: "Cashew", image: "/ingridents/cashew.png" },
     { name: "Pistachio", image: "/ingridents/pistachio.png" },
     { name: "Walnut", image: "/ingridents/walnut.png" },
-    { name: "Cranberry", image: "/ingridents/CHOCOLATE OATS WITH CRANBERRY.png" },
+    { name: "Cranberry", image: "/ingridents/cranberry.png" },
     { name: "Blueberry", image: "/ingridents/BLUE BERRY.png" },
     { name: "Raisin", image: "/ingridents/raisin.png" },
     { name: "Brown Sugar", image: "/ingridents/ORGANIC JAGGERY.png" }
   ],
   "30": [
     { name: "Roasted Peanut", image: "/ingridents/Roasted Peanut.png" },
-    { name: "Chia Seed", image: "/ingridents/chia seed.png" },
-    { name: "Milk Solid", image: "/ingridents/milk-solid.png" },
+    { name: "Chia Seed", image: "/ingridents/chia-seed.png" },
+    { name: "Protein Blend", image: "/ingridents/PROTEIN BLEND.png" },
     { name: "Brown Sugar", image: "/ingridents/ORGANIC JAGGERY.png" },
-    { name: "Natural Identical Flavour", image: "/ingridents/natural-identical-flavour.png" },
-    { name: "E471 Emulsifier", image: "/ingridents/e471-emulsifier.png" }
+    { name: "Rosemary Extract", image: "/ingridents/rosemery extract.png" },
+    { name: "Vitamin E", image: "/ingridents/VITAMIN E.png" }
   ],
   "31": [
     { name: "Roasted Peanut", image: "/ingridents/Roasted Peanut.png" },
-    { name: "Peanut Butter Powder", image: "/ingridents/peanut-butter-powder.png" }
+    { name: "Peanut Butter Powder", image: "/ingridents/peanut-butter-powder.png" },
+    { name: "Pink Salt", image: "/ingridents/PINK SALT.png" }
   ],
   "32": [
     { name: "Roasted Peanut", image: "/ingridents/Roasted Peanut.png" },
-    { name: "Milk Solid", image: "/ingridents/milk-solid.png" },
+    { name: "Pineapple", image: "/ingridents/pineapple.png" },
+    { name: "Protein Blend", image: "/ingridents/PROTEIN BLEND.png" },
     { name: "Brown Sugar", image: "/ingridents/ORGANIC JAGGERY.png" },
-    { name: "Natural Identical Flavour", image: "/ingridents/natural-identical-flavour.png" },
-    { name: "E471 Emulsifier", image: "/ingridents/e471-emulsifier.png" }
+    { name: "Rosemary Extract", image: "/ingridents/rosemery extract.png" }
   ],
   "33": [
     { name: "Roasted Peanut", image: "/ingridents/Roasted Peanut.png" },
-    { name: "Chia Seed", image: "/ingridents/chia seed.png" },
-    { name: "Milk Solid", image: "/ingridents/milk-solid.png" },
-    { name: "Brown Sugar", image: "/ingridents/ORGANIC JAGGERY.png" },
-    { name: "Natural Identical Flavour", image: "/ingridents/natural-identical-flavour.png" },
-    { name: "E471 Emulsifier", image: "/ingridents/e471-emulsifier.png" }
+    { name: "Mango", image: "/ingridents/mango.png" },
+    { name: "Chia Seed", image: "/ingridents/chia-seed.png" },
+    { name: "Protein Blend", image: "/ingridents/PROTEIN BLEND.png" },
+    { name: "Brown Sugar", image: "/ingridents/ORGANIC JAGGERY.png" }
   ],
   "34": [
-    { name: "Peanut", image: "/ingridents/Roasted Peanut.png" },
-    { name: "Brown Sugar", image: "/ingridents/ORGANIC JAGGERY.png" },
+    { name: "Roasted Peanut", image: "/ingridents/Roasted Peanut.png" },
     { name: "Dark Chocolate Paste", image: "/ingridents/dark-chocolate-paste.png" },
-    { name: "Salt", image: "/ingridents/PINK SALT.png" },
-    { name: "E471 Emulsifier", image: "/ingridents/e471-emulsifier.png" }
+    { name: "Cocoa Powder", image: "/ingridents/COCOA-POWDER.png" },
+    { name: "Almond", image: "/ingridents/ALMOND.png" },
+    { name: "Pink Salt", image: "/ingridents/PINK SALT.png" },
+    { name: "Brown Sugar", image: "/ingridents/ORGANIC JAGGERY.png" }
   ]
 };
 
@@ -135,7 +136,7 @@ const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
                     WebkitOverflowScrolling: 'touch'
                 }}
             >
-                <div className="flex gap-4 md:gap-10 items-start justify-start min-w-max px-4 md:px-12">
+                <div className={`flex gap-4 md:gap-10 items-start justify-start ${items.length <= 6 ? 'md:justify-center' : 'md:justify-start'} min-w-max px-4 md:px-12`}>
                     {items.map((item, idx) => (
                         <motion.div
                             key={idx}

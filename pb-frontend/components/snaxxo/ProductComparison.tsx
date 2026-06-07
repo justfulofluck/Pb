@@ -8,6 +8,17 @@ interface ProductComparisonProps {
 }
 
 const ProductComparison: React.FC<ProductComparisonProps> = ({ product }) => {
+    const getOthersImage = () => {
+        const cat = product.category?.toLowerCase() || '';
+        if (cat.includes('muesli')) {
+            return 'project_images/muesli-pouch.png';
+        }
+        if (cat.includes('oat')) {
+            return 'project_images/oats-pouch.png';
+        }
+        return 'project_images/peanut-butter-jar.png';
+    };
+
     const comparisonRows = [
         {
             icon: 'fitness_center',
@@ -48,29 +59,28 @@ const ProductComparison: React.FC<ProductComparisonProps> = ({ product }) => {
             <div className="hidden md:flex w-full max-w-5xl bg-white rounded-[40px] shadow-xl flex-col md:flex-row relative mx-auto mt-0">
                 {/* Left & Center Columns (White part) */}
                 <div className="flex-1 p-6 md:p-12 pb-6 flex flex-col">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-8">
-                        <div className="flex flex-col items-start md:items-center w-full md:w-auto gap-4">
+                    <div className="flex w-full items-center mb-12">
+                        <div className="w-1/2 flex justify-start">
                             <h3 className="text-[40px] md:text-[50px] font-bold text-[#0b3d2e] uppercase font-anton tracking-wider leading-tight">
                                 Pinobite <br /> Vs Others
                             </h3>
                         </div>
 
-                        <div className="flex flex-col items-center">
-                            <div className="h-24 md:h-32 mb-4">
+                        <div className="w-1/2 flex justify-center">
+                            <div className="h-32 md:h-48 pb-2">
                                 <img
-                                    src="https://images.unsplash.com/photo-1586444248902-2f64eddc13df?auto=format&fit=crop&w=200"
+                                    src={getMediaUrl(getOthersImage())}
                                     alt="Others"
-                                    className="h-full w-auto object-contain brightness-95 opacity-80"
+                                    className="h-full w-auto object-contain brightness-95 opacity-90 drop-shadow-sm mix-blend-multiply"
                                 />
                             </div>
-                            <span className="text-sm font-black text-gray-500 uppercase tracking-widest">Others</span>
                         </div>
                     </div>
 
                     <div className="space-y-0 w-full mb-8">
                         <div className="flex border-b-2 border-[#9cd92a] pb-2 mb-4 relative">
-                            <div className="w-1/2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Category</div>
-                            <div className="w-1/2 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Others</div>
+                            <div className="w-1/2 text-[18px] font-black text-gray-500 uppercase tracking-widest">Category</div>
+                            <div className="w-1/2 text-center text-[18px] font-black text-gray-500 uppercase tracking-widest">Others</div>
                         </div>
 
                         {comparisonRows.map((row, idx) => (
@@ -130,11 +140,10 @@ const ProductComparison: React.FC<ProductComparisonProps> = ({ product }) => {
                     <div className="flex w-full relative">
                         <div className="w-1/2 bg-white pt-6 pb-4 px-2 flex flex-col items-center z-10 border-b-2 border-gray-50">
                             <img
-                                src="https://images.unsplash.com/photo-1586444248902-2f64eddc13df?auto=format&fit=crop&w=200"
+                                src={getMediaUrl(getOthersImage())}
                                 alt="Others"
                                 className="h-20 object-contain mb-3 brightness-95 opacity-80"
                             />
-                            <span className="text-[#1f3a47] font-black text-xs uppercase tracking-widest text-center">Others</span>
                         </div>
                         <div className="w-1/2 bg-[#1f3a47] pt-6 pb-4 px-2 flex flex-col items-center z-10 border-b-2 border-[#1f3a47]">
                             <img
