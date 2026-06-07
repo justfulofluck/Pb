@@ -1730,11 +1730,204 @@ def _inject_meta_view(request):
     if should_noindex:
         meta_block += '    <meta name="robots" content="noindex, nofollow">\n'
 
+    base_url = f"https://{request.get_host()}"
+    site_url = base_url
+    page_url = f"{base_url}{raw_path}"
+
+    schemas = []
+
+    breadcrumb_items = [{"position": 1, "name": "Home", "item": site_url}]
+    if normalized_path != "/":
+        parts = [p for p in normalized_path.split("/") if p]
+        accum = ""
+        breadcrumb_label_map = {
+            "shop": "Shop", "about": "About", "journey": "Our Journey",
+            "contact": "Contact", "events": "Events", "blogs": "Blog",
+            "distributors": "Distributors", "faq": "FAQ", "terms": "Terms & Conditions",
+            "privacy": "Privacy Policy", "refund": "Refund & Cancellation",
+            "shipping": "Shipping Policy", "product": "Shop", "blog": "Blog",
+        }
+        content_type_parts = {"product", "blog", "events"}
+        for i, part in enumerate(parts):
+            accum += "/" + part
+            label = breadcrumb_label_map.get(part, part.replace("-", " ").title())
+            is_content_type = part in content_type_parts
+            is_slug_after_content = i > 0 and parts[i - 1] in content_type_parts
+            if is_content_type:
+                label = breadcrumb_label_map[part]
+            elif is_slug_after_content:
+                if parts[i - 1] == "product" and product:
+                    label = product.name
+                elif parts[i - 1] == "blog" and post:
+                    label = post.title
+                elif parts[i - 1] == "events" and event:
+                    label = event.title
+            breadcrumb_items.append({
+                "position": len(breadcrumb_items) + 1,
+                "name": label,
+                "item": site_url + accum,
+            })
+
+    schemas.append({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": it["position"],
+             "name": it["name"], "item": it["item"]}
+            for it in breadcrumb_items
+        ],
+    })
+
+    if normalized_path == "/":
+        schemas.append({
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Pinobite",
+            "url": site_url,
+            "logo": "https://pinobite.com/logos/Pinobite-logo.png",
+            "sameAs": [
+                "https://www.instagram.com/pinobite",
+                "https://www.facebook.com/pinobite",
+            ],
+        })
+        schemas.append({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Pinobite",
+            "url": site_url,
+            "potentialAction": {
+                "@type": "SearchAction",
+                "target": f"{site_url}/shop?search={{search_term_string}}",
+                "query-input": "required name=search_term_string",
+            },
+        })
+
+    elif normalized_path.startswith("/product/") and product:
+        sale_price = float(product.price)
+        orig_price = float(product.original_price) if product.original_price else sale_price
+        schemas.append({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": product.name,
+            "description": meta_description,
+            "image": og_image if og_image != _DEFAULT_OG_IMAGE else None,
+            "sku": product.slug,
+            "brand": {"@type": "Brand", "name": "Pinobite"},
+            "offers": {
+                "@type": "Offer",
+                "url": page_url,
+                "priceCurrency": "INR",
+                "price": sale_price,
+                "priceValidUntil": "2027-12-31",
+                "availability": (
+                    "https://schema.org/InStock"
+                    if getattr(product, "stock", 0) > 0
+                    else "https://schema.org/OutOfStock"
+                ),
+                "itemCondition": "https://schema.org/NewCondition",
+            },
+            "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": getattr(product, "rating", 0) or 0,
+                "reviewCount": getattr(product, "review_count", 0) or 0,
+            },
+        })
+
+    elif normalized_path.startswith("/blog/") and post:
+        schemas.append({
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "headline": post.title,
+            "description": meta_description,
+            "image": og_image if og_image != _DEFAULT_OG_IMAGE else None,
+            "datePublished": post.date.isoformat() if hasattr(post, "date") and post.date else None,
+            "author": {"@type": "Person", "name": getattr(post, "author", "Pinobite") or "Pinobite"},
+            "publisher": {"@type": "Organization", "name": "Pinobite"},
+        })
+
+    elif normalized_path.startswith("/events/") and event:
+        schemas.append({
+            "@context": "https://schema.org",
+            "@type": "Event",
+            "name": event.title,
+            "description": meta_description,
+            "image": og_image if og_image != _DEFAULT_OG_IMAGE else None,
+            "startDate": event.date.isoformat() if hasattr(event, "date") and event.date else None,
+            "location": {
+                "@type": "Place",
+                "name": getattr(event, "location", "") or "",
+            },
+        })
+
+    elif normalized_path == "/faq":
+        faq_data = [
+            ("What is the shelf life of Pinobite products?",
+             "Most Pinobite products have a shelf life of 6-9 months from the date of manufacture. "
+             "Check the packaging for the best-before date specific to each product."),
+            ("Are Pinobite products 100% natural?",
+             "Yes, all Pinobite products are made with 100% natural ingredients. We use no artificial "
+             "preservatives, flavors, or colors. Our nut butters are made from carefully selected nuts "
+             "with no added refined sugar or hydrogenated oils."),
+            ("Does Pinobite offer vegan products?",
+             "Absolutely. Most of our products, including all nut butters and energy bars, are plant-based "
+             "and vegan-friendly. Each product page lists detailed ingredients so you can verify."),
+            ("Are Pinobite products gluten-free?",
+             "Our muesli and oats contain gluten. Our peanut butters are naturally gluten-free. "
+             "Please check individual product labels for the most accurate allergen information."),
+            ("Do Pinobite products contain added sugar?",
+             "Our nut butters contain no added refined sugar. Some products like our Dark Chocolate varieties "
+             "use natural sweeteners or dark chocolate with minimal sugar. Check the nutrition facts on each product page."),
+            ("How should I store Pinobite peanut butter?",
+             "Store in a cool, dry place away from direct sunlight. Natural peanut butter may separate — simply "
+             "stir before use. Refrigeration is not required but can extend freshness."),
+            ("What payment methods does Pinobite accept?",
+             "We accept all major credit and debit cards (Visa, Mastercard, RuPay), UPI (Google Pay, PhonePe, "
+             "Paytm), Net Banking, and Cash on Delivery (COD) for eligible orders."),
+            ("How long does shipping take?",
+             "We process orders within 24 hours. Standard delivery takes 3-7 business days across India. "
+             "Metro cities typically receive orders within 2-4 business days."),
+            ("Does Pinobite offer free shipping?",
+             "Yes, we offer free shipping on all orders above Rs. 299. Orders below this amount have a "
+             "nominal shipping fee calculated at checkout."),
+            ("What is Pinobite's return policy?",
+             "We offer a 7-day return policy from the date of delivery. If you receive a damaged or defective "
+             "product, contact us at support@pinobite.com with your order details and we will arrange a replacement."),
+            ("Can I order in bulk or wholesale?",
+             "Yes, we offer bulk and wholesale pricing for businesses, gyms, cafes, and retailers. Visit our "
+             "Distributors page or email distributors@pinobite.com for customized pricing."),
+            ("Does Pinobite ship internationally?",
+             "Currently, we ship across India. International shipping will be available soon. "
+             "Sign up for our newsletter to get notified when we launch globally."),
+            ("How can I track my order?",
+             "Once your order is shipped, you will receive a tracking link via email and SMS. "
+             "You can also track your order from the My Orders section in your account dashboard."),
+            ("What if I receive a damaged product?",
+             "We take utmost care in packaging, but if your order arrives damaged, please email us photos "
+             "at support@pinobite.com within 48 hours of delivery. We will issue a full refund or replacement."),
+            ("Can I cancel my order after placing it?",
+             "You can cancel within 2 hours of placing the order by logging into your account. "
+             "After that, if the order has already been processed, please contact support for assistance."),
+        ]
+        schemas.append({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+                {"@type": "Question", "name": q,
+                 "acceptedAnswer": {"@type": "Answer", "text": a}}
+                for q, a in faq_data
+            ],
+        })
+
+    schema_block = ""
+    for s in schemas:
+        cleaned = {k: v for k, v in s.items() if v is not None}
+        schema_block += f'    <script type="application/ld+json">{json.dumps(cleaned, ensure_ascii=False)}</script>\n'
+
     template = get_template("index.html")
     html = template.render({}, request)
 
     html = _re.sub(r"<title>[^<]*</title>", "", html, count=1, flags=_re.IGNORECASE)
-    html = html.replace("<head>", "<head>\n" + meta_block)
+    html = html.replace("<head>", "<head>\n" + meta_block + schema_block)
 
     return HttpResponse(html, content_type="text/html; charset=utf-8")
 
