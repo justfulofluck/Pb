@@ -290,7 +290,7 @@ const ShopPage: React.FC<ShopPageProps> = ({
                         }}
                         disabled={product.stock <= 0}
                       >
-                        {product.stock <= 0 ? 'Out of Stock' : 'ADD TO CART'}
+                        {product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
                       </button>
                     </div>
                   </div>

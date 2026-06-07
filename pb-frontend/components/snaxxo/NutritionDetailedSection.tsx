@@ -115,7 +115,7 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
                 onClick={(e) => { e.preventDefault(); onAddToCart(product); }}
                 className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-[#004d25] rounded-full pl-5 pr-3 py-2 sm:pl-6 sm:pr-4 sm:py-2.5 font-bold text-[11px] sm:text-[12px] tracking-[0.1em] uppercase transition-all duration-300 hover:scale-[1.03] shadow-sm w-fit border border-gray-100"
               >
-                ADD TO CART
+                Add to Cart
                 <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[#004d25] ml-1 opacity-70">
                   <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="9 18 15 12 9 6" />

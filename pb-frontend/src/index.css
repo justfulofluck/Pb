@@ -26,7 +26,7 @@
   --color-background-light: #f2f2ec;
   --color-background-dark: #0f172a;
   --color-accent-brown: #5d4037;
- 
+
   /* Editorial Palette */
   --color-on-tertiary-fixed-variant: #7f2928;
   --color-surface-container-high: #e6e8ea;
@@ -219,6 +219,10 @@
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  letter-spacing: 0.1em !important;
+  font-size: 10px !important;
+  text-transform: none !important;
+  font-weight: 400 !important;
 }
 
 .btn-greenboard:hover {
@@ -288,7 +292,9 @@
 }
 
 /* Fix overlapping text on dense heading fonts */
-.font-black, .font-anton, .force-anton {
+.font-black:not(.btn-greenboard),
+.font-anton:not(.btn-greenboard),
+.force-anton:not(.btn-greenboard) {
   letter-spacing: normal !important;
 }
 
@@ -541,9 +547,17 @@
 }
 
 @keyframes shine-coin {
-  0% { left: -150%; }
-  30% { left: 150%; }
-  100% { left: 150%; }
+  0% {
+    left: -150%;
+  }
+
+  60% {
+    left: 150%;
+  }
+
+  100% {
+    left: 150%;
+  }
 }
 
 .shine-coin {
@@ -558,9 +572,9 @@
   left: -150%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(to right, rgba(255, 215, 0, 0) 0%, rgba(255, 215, 0, 0.4) 50%, rgba(255, 215, 0, 0) 100%);
   transform: skewX(-25deg);
-  animation: shine-coin 6s infinite ease-in-out;
+  animation: shine-coin 3s infinite ease-in-out;
   pointer-events: none;
   z-index: 20;
 }

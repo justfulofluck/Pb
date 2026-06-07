@@ -227,7 +227,7 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                                 onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
                                 className="shine-coin btn-greenboard text-white w-[85%] mx-auto py-3.5 rounded-full font-black text-[12px] uppercase tracking-widest transition-all shadow-lg active:scale-95 mt-auto flex items-center justify-center gap-1.5"
                             >
-                                {product.stock <= 0 ? 'SOLD OUT' : 'ADD TO CART'}
+                                {product.stock <= 0 ? 'SOLD OUT' : 'Add to Cart'}
                             </button>
                         </div>
                     );

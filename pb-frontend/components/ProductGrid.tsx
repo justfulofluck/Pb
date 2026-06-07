@@ -187,7 +187,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({ products, onAddToCart, onProd
                         disabled={product.stock <= 0}
                         className="w-[95%] mx-auto btn-greenboard py-1.5 md:py-4 rounded-lg font-bold !text-[9px] md:!text-sm uppercase tracking-[0.2em] active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center relative overflow-hidden"
                       >
-                        {product.stock <= 0 ? 'Out of Stock' : 'ADD TO CART'}
+                        {product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
                       </button>
                     </div>
                   </div>
