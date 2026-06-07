@@ -1425,11 +1425,17 @@ const AppContent: React.FC = () => {
   }, []);
 
   const navigateToCheckout = React.useCallback(() => {
+    if (!isLoggedIn) {
+      localStorage.setItem('redirect_after_login', 'checkout');
+      setIsAuthOpen(true);
+      setIsCartOpen(false);
+      return;
+    }
     setCurrentView('checkout');
     setIsCartOpen(false);
     setSelectedProduct(null);
     window.history.pushState({ view: 'checkout' }, '', '/checkout');
-  }, []);
+  }, [isLoggedIn]);
 
   const navigateToDashboard = React.useCallback(() => {
     setCurrentView('dashboard');
@@ -1528,8 +1534,15 @@ const AppContent: React.FC = () => {
 
   const handleLogin = () => {
     setIsAuthOpen(false);
-    setCurrentView('dashboard');
-    window.history.pushState({ view: 'dashboard' }, '', '/dashboard');
+    const redirect = localStorage.getItem('redirect_after_login');
+    if (redirect === 'checkout') {
+      localStorage.removeItem('redirect_after_login');
+      setCurrentView('checkout');
+      window.history.pushState({ view: 'checkout' }, '', '/checkout');
+    } else {
+      setCurrentView('dashboard');
+      window.history.pushState({ view: 'dashboard' }, '', '/dashboard');
+    }
   };
 
   const handleLogout = () => {
@@ -1776,7 +1789,10 @@ const AppContent: React.FC = () => {
                 setCart([]);
                 goHome();
               }}
-              onLoginRequired={() => setIsAuthOpen(true)}
+              onLoginRequired={() => {
+                localStorage.setItem('redirect_after_login', 'checkout');
+                setIsAuthOpen(true);
+              }}
               checkAuth={checkAuth}
             />
           )}
