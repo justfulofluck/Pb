@@ -1,44 +1,198 @@
-{% extends "emails/base_email.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Confirmed - Pinobite</title>
+</head>
 
-{% block content %}
-<h1 style="color: #008a45; font-size: 28px; margin-bottom: 20px;">Order Confirmed! 🍿</h1>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia, serif;">
 
-<p>Hello <strong>{{ order.first_name|default:"Customer" }}</strong>,</p>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;">
+<tr>
+<td align="center">
 
-<p>Thank you for choosing Pinobite! Your order <strong>#{{ order.id }}</strong> has been received and is now being
-    processed with care.</p>
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;max-width:600px;">
 
-<div class="highlight-box">
-    <h3 style="margin-top: 0; color: #0b3d2e; font-size: 18px; text-transform: uppercase;">Order Summary</h3>
-    <table width="100%" cellpadding="10" cellspacing="0">
+  <!-- Header -->
+  <tr>
+    <td align="center" style="background:#00843D;padding:50px 30px;">
+      <h1 style="margin:0;color:#ffffff;font-size:42px;font-weight:bold;">
+        ORDER CONFIRMED 🎉
+      </h1>
+      <p style="margin:15px 0 0;color:#d9f5e4;font-size:20px;">
+        Your snacks are officially on the way.
+      </p>
+    </td>
+  </tr>
+
+  <!-- Greeting -->
+  <tr>
+    <td style="padding:40px 40px 10px;">
+      <h2 style="margin:0;color:#1d1d1d;font-size:30px;">
+        Hey {{ order.first_name|default:"Pinobite Fan" }} 👋
+      </h2>
+    </td>
+  </tr>
+
+  <!-- Intro -->
+  <tr>
+    <td style="padding:0 40px 20px;">
+      <p style="font-size:18px;line-height:1.8;color:#333333;">
+        We've received your order and we're already getting it ready.
+      </p>
+
+      <p style="font-size:18px;line-height:1.8;color:#333333;">
+        Your peanut butter obsession is about to be fully justified. 🥜😎
+      </p>
+
+      <p style="font-size:18px;line-height:1.8;color:#333333;">
+        You'll receive another email as soon as your order ships.
+      </p>
+    </td>
+  </tr>
+
+  <!-- Order Box -->
+  <tr>
+    <td style="padding:0 40px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"
+      style="background:#f8f8f8;border-radius:10px;padding:25px;">
+        <tr>
+          <td>
+            <h3 style="margin-top:0;color:#00843D;font-size:24px;">
+              📦 Order Summary
+            </h3>
+
+            <p style="font-size:16px;color:#333333;margin:8px 0;">
+              <strong>Order Number:</strong> #{{ order.id }}
+            </p>
+
+            <p style="font-size:16px;color:#333333;margin:8px 0;">
+              <strong>Order Date:</strong> {{ order.created_at }}
+            </p>
+
+            <p style="font-size:16px;color:#333333;margin:8px 0;">
+              <strong>Total Amount:</strong> ₹{{ order.total_amount }}
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Product Section -->
+  <tr>
+    <td style="padding:35px 40px 15px;">
+      <h3 style="color:#00843D;font-size:26px;margin-bottom:15px;">
+        🛒 What's Coming Your Way
+      </h3>
+
+      <p style="font-size:18px;line-height:1.8;color:#333333;">
+        {{ items|length }} item(s) packed with flavor, protein, and good vibes.
+      </p>
+
+      <table width="100%" cellpadding="10" cellspacing="0" style="margin-top:15px;">
         {% for item in items %}
         <tr>
-            <td style="border-bottom: 1px solid #eeeeee;">{{ item.quantity }} x {{ item.product_name }}</td>
-            <td align="right" style="border-bottom: 1px solid #eeeeee;">₹{{ item.price }}</td>
+          <td style="border-bottom:1px solid #eee;font-size:16px;color:#333;">{{ item.quantity }} x {{ item.product_name }}</td>
+          <td align="right" style="border-bottom:1px solid #eee;font-size:16px;color:#333;">₹{{ item.price }}</td>
         </tr>
         {% endfor %}
+      </table>
+    </td>
+  </tr>
+
+  <!-- Shipping -->
+  <tr>
+    <td style="padding:10px 40px;">
+      <h3 style="color:#00843D;font-size:26px;margin-bottom:15px;">
+        🚚 Delivery Details
+      </h3>
+
+      <p style="font-size:18px;line-height:1.8;color:#333333;">
+        Shipping to:
+      </p>
+
+      <p style="font-size:16px;line-height:1.8;color:#666666;">
+        {{ order.first_name }} {{ order.last_name }}<br>
+        {{ order.address }}<br>
+        {{ order.city }}, {{ order.state }} - {{ order.pin_code }}
+      </p>
+
+      <p style="font-size:18px;color:#333333;">
+        Estimated delivery:
+        <strong>2–5 business days</strong>
+      </p>
+    </td>
+  </tr>
+
+  <!-- CTA -->
+  <tr>
+    <td align="center" style="padding:40px;">
+      <a href="{{ frontend_url }}/account"
+      style="background:#00843D;
+             color:#ffffff;
+             text-decoration:none;
+             padding:16px 40px;
+             border-radius:8px;
+             font-size:18px;
+             font-weight:bold;
+             display:inline-block;">
+        TRACK MY ORDER
+      </a>
+    </td>
+  </tr>
+
+  <!-- Cross Sell -->
+  <tr>
+    <td style="padding:0 40px 35px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"
+      style="background:#fff7eb;border:1px solid #ffe2b0;border-radius:10px;padding:20px;">
         <tr>
-            <td style="font-weight: 800; font-size: 18px; padding-top: 20px;">TOTAL</td>
-            <td align="right" style="font-weight: 800; font-size: 18px; padding-top: 20px;">₹{{ order.total_amount }}
-            </td>
+          <td align="center">
+            <h3 style="color:#00843D;margin-top:0;">
+              🥜 Fun Fact
+            </h3>
+
+            <p style="font-size:17px;color:#555555;line-height:1.8;">
+              Every Pinobite jar is crafted to make healthy eating
+              feel less like a chore and more like a treat.
+            </p>
+          </td>
         </tr>
-    </table>
-    <div style="margin-top: 15px; font-size: 14px; color: #666666;">
-        <strong>Payment ID:</strong> {{ razorpay_payment_id }}
-    </div>
-</div>
+      </table>
+    </td>
+  </tr>
 
-<p>We'll notify you as soon as your treats are shipped! In the meantime, you can track your order in your dashboard.</p>
+  <!-- Footer -->
+  <tr>
+    <td align="center" style="padding:35px;background:#f7f7f7;">
 
-<div style="text-align: center;">
-    <a href="{{ frontend_url }}/account" class="button">VIEW ORDER</a>
-</div>
+      <p style="font-size:18px;color:#333333;margin:0;">
+        Thanks for choosing Pinobite 💚
+      </p>
 
-<p style="font-size: 14px; color: #666666; margin-top: 30px;">
-    <strong>Shipping to:</strong><br>
-    {{ order.first_name }} {{ order.last_name }}<br>
-    {{ order.address }}<br>
-    {{ order.city }}, {{ order.state }} - {{ order.pin_code }}
-</p>
+      <p style="font-size:16px;color:#666666;line-height:1.8;margin-top:15px;">
+        Questions? Just reply to this email.<br>
+        We're always happy to help.
+      </p>
 
-{% endblock %}
+      <p style="font-size:16px;color:#00843D;margin-top:20px;">
+        <strong>@pinobite</strong>
+      </p>
+
+      <p style="font-size:14px;color:#999999;margin-top:20px;">
+        Fuel Better. Snack Better. Live Better.
+      </p>
+
+    </td>
+  </tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>

@@ -118,7 +118,7 @@ const Footer: React.FC<FooterProps> = ({
 
         {/* Bottom Bar */}
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
-          <p>© 2025 Pinobite Plan Consultants, Inc. All Rights Reserved.</p>
+          <p>© 2026 Pinobite. All Rights Reserved.</p>
           <div className="flex gap-6">
             <button onClick={onTermsClick} className="hover:text-white transition-colors">Terms</button>
             <button onClick={onPrivacyClick} className="hover:text-white transition-colors">Privacy</button>

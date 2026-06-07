@@ -218,3 +218,29 @@ def cache_get_or_set_fallback(key, default_func, timeout=300, local_timeout=60):
         except Exception:
             pass
         return value
+
+
+def send_distributor_application_emails(application):
+    """
+    Send notification email to admin and confirmation email to applicant
+    when a distributor application is submitted.
+    """
+    from django.template.loader import render_to_string
+
+    admin_subject = f"📋 New Distributor Application - {application.business_name}"
+    admin_context = {
+        "application": application,
+        "admin_url": getattr(settings, "ADMIN_URL", "https://pinobite.com/admin"),
+    }
+    admin_html = render_to_string(
+        "emails/admin_distributor_notification.html", admin_context
+    )
+    send_email(settings.ADMIN_EMAIL, admin_subject, admin_html)
+
+    if application.email:
+        user_subject = "Thank You for Your Distributor Application - Pinobite"
+        user_context = {"application": application}
+        user_html = render_to_string(
+            "emails/distributor_confirmation.html", user_context
+        )
+        send_email(application.email, user_subject, user_html)

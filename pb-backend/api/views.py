@@ -659,7 +659,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             if use_points and points_to_redeem > 0 and request.user.is_authenticated:
                 max_redeemable = min(points_to_redeem, int(total_amount * 10))
                 if max_redeemable > 0:
-                    points_discount = max_redeemable / 10
+                    points_discount = max_redeemable // 10
                     points_deducted = max_redeemable
 
             # New total including shipping, less points discount
@@ -1334,6 +1334,12 @@ class DistributorApplicationViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
+    def perform_create(self, serializer):
+        application = serializer.save()
+        from .utils import send_distributor_application_emails
+
+        send_distributor_application_emails(application)
+
 
 class RewardRuleViewSet(viewsets.ModelViewSet):
     queryset = RewardRule.objects.all()
@@ -1569,5 +1575,168 @@ class ProcessDriveVideoView(APIView):
             )
 
 
-# Serve Single Page Application
-index_view = never_cache(TemplateView.as_view(template_name="index.html"))
+# =============================================================================
+# SEO Meta-Tag Injection View
+# =============================================================================
+import re as _re
+from django.template.loader import get_template
+from django.http import HttpResponse
+from django.utils.html import escape as _escape
+
+_PAGE_META = {
+    "/": {
+        "title": "Pinobite | Fuel Your Body with Goodness",
+        "description": "Discover Pinobite — premium healthy energy bars, nut butters, and superfoods crafted to fuel your active lifestyle. 100% natural, delicious nutrition.",
+    },
+    "/shop": {
+        "title": "Shop Premium Healthy Snacks | Pinobite",
+        "description": "Browse Pinobite's collection of energy bars, nut butters, and superfoods. Fuel your body with 100% natural, delicious goodness.",
+    },
+    "/about": {
+        "title": "About Pinobite | Our Story & Mission",
+        "description": "Learn the Pinobite story — how we're on a mission to create delicious, nutritious snacks that fuel your body and delight your taste buds.",
+    },
+    "/journey": {
+        "title": "Our Journey | Pinobite",
+        "description": "Follow Pinobite's journey from a small kitchen to a global brand. Discover how we're changing the way the world snacks.",
+    },
+    "/contact": {
+        "title": "Contact Pinobite | Get in Touch",
+        "description": "Have a question? Contact the Pinobite team. We'd love to hear from you about our products, orders, or anything else.",
+    },
+    "/events": {
+        "title": "Events | Pinobite",
+        "description": "Discover upcoming Pinobite events — tastings, workshops, and community gatherings. Join us and fuel your body with goodness.",
+    },
+    "/blogs": {
+        "title": "Blog | Pinobite",
+        "description": "Explore the Pinobite blog for healthy recipes, wellness tips, lifestyle inspiration, and the latest news about our products.",
+    },
+    "/distributors": {
+        "title": "Become a Distributor | Pinobite",
+        "description": "Partner with Pinobite as a distributor. Bring premium healthy snacks to your community and grow with us.",
+    },
+    "/faq": {
+        "title": "Frequently Asked Questions | Pinobite",
+        "description": "Find answers to common questions about Pinobite products, ordering, shipping, returns, and more.",
+    },
+    "/terms": {
+        "title": "Terms & Conditions | Pinobite",
+        "description": "Read the terms and conditions governing the use of Pinobite's website and services.",
+    },
+    "/privacy": {
+        "title": "Privacy Policy | Pinobite",
+        "description": "Read how Pinobite collects, uses, and protects your personal information in our privacy policy.",
+    },
+    "/refund": {
+        "title": "Refund & Cancellation Policy | Pinobite",
+        "description": "Learn about Pinobite's refund, return, and cancellation policies for online orders.",
+    },
+    "/shipping": {
+        "title": "Shipping Policy | Pinobite",
+        "description": "Learn about Pinobite's shipping options, delivery timelines, and shipping costs.",
+    },
+}
+
+_NOINDEX_PREFIXES = ("/admin", "/checkout", "/dashboard", "/forms")
+
+def _should_noindex(path):
+    for prefix in _NOINDEX_PREFIXES:
+        if path == prefix or path.startswith(prefix):
+            return True
+    return False
+
+_DEFAULT_TITLE = "Pinobite | Fuel Your Body with Goodness"
+_DEFAULT_DESCRIPTION = "Discover Pinobite — premium healthy energy bars, nut butters, and superfoods."
+_DEFAULT_OG_IMAGE = "https://pinobite.com/logos/og-image.png"
+
+
+@never_cache
+def _inject_meta_view(request):
+    raw_path = request.path_info
+    normalized_path = raw_path.rstrip("/") or "/"
+
+    should_noindex = _should_noindex(normalized_path)
+
+    meta_title = _DEFAULT_TITLE
+    meta_description = _DEFAULT_DESCRIPTION
+    og_image = _DEFAULT_OG_IMAGE
+    og_type = "website"
+
+    if normalized_path in _PAGE_META:
+        page = _PAGE_META[normalized_path]
+        meta_title = page["title"]
+        meta_description = page["description"]
+
+    elif normalized_path.startswith("/product/"):
+        slug = normalized_path.split("/product/")[-1]
+        try:
+            product = Product.objects.get(slug=slug)
+            meta_title = f"{product.name} | Buy Online | Pinobite"
+            desc = product.description or ""
+            desc_plain = _re.sub(r"<[^>]+>", "", desc).strip()
+            meta_description = (desc_plain[:152] + "...") if len(desc_plain) > 155 else desc_plain
+            if product.image:
+                og_image = request.build_absolute_uri(product.image.url)
+            og_type = "product"
+        except Product.DoesNotExist:
+            pass
+
+    elif normalized_path.startswith("/blog/"):
+        slug = normalized_path.split("/blog/")[-1]
+        try:
+            post = BlogPost.objects.get(slug=slug)
+            meta_title = f"{post.title} | Pinobite Blog"
+            excerpt = post.excerpt or ""
+            meta_description = (excerpt[:152] + "...") if len(excerpt) > 155 else excerpt
+            if post.image:
+                og_image = request.build_absolute_uri(post.image.url)
+            og_type = "article"
+        except BlogPost.DoesNotExist:
+            pass
+
+    elif normalized_path.startswith("/events/"):
+        event_id = normalized_path.split("/events/")[-1]
+        try:
+            event = Event.objects.get(pk=event_id)
+            meta_title = f"{event.title} | Pinobite Events"
+            summary = event.summary or ""
+            meta_description = (summary[:152] + "...") if len(summary) > 155 else summary
+            if event.image:
+                og_image = request.build_absolute_uri(event.image.url)
+        except (Event.DoesNotExist, ValueError):
+            pass
+
+    e_title = _escape(meta_title)
+    e_description = _escape(meta_description)
+    e_url = _escape(request.build_absolute_uri(raw_path))
+    e_image = _escape(og_image)
+
+    meta_block = f"""
+    <title>{e_title}</title>
+    <meta name="description" content="{e_description}">
+    <link rel="canonical" href="{e_url}">
+    <meta property="og:title" content="{e_title}">
+    <meta property="og:description" content="{e_description}">
+    <meta property="og:url" content="{e_url}">
+    <meta property="og:image" content="{e_image}">
+    <meta property="og:type" content="{og_type}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{e_title}">
+    <meta name="twitter:description" content="{e_description}">
+    <meta name="twitter:image" content="{e_image}">
+"""
+
+    if should_noindex:
+        meta_block += '    <meta name="robots" content="noindex, nofollow">\n'
+
+    template = get_template("index.html")
+    html = template.render({}, request)
+
+    html = _re.sub(r"<title>[^<]*</title>", "", html, count=1, flags=_re.IGNORECASE)
+    html = html.replace("<head>", "<head>\n" + meta_block)
+
+    return HttpResponse(html, content_type="text/html; charset=utf-8")
+
+
+index_view = _inject_meta_view

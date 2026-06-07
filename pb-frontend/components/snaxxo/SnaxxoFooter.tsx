@@ -208,7 +208,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
 
                     {/* Bottom Bar */}
                     <div className="border-t border-white/5 pt-10 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-white/60">
-                        <p className="text-center md:text-left">© 2025 Pinobite Plan Consultants, Inc. All Rights Reserved.</p>
+                        <p className="text-center md:text-left">© 2026 Pinobite. All Rights Reserved.</p>
                         <div className="flex gap-6 sm:gap-8 justify-center">
                             <button onClick={onTermsClick} className="hover:text-white transition-colors cursor-pointer">Terms</button>
                             <button onClick={onPrivacyClick} className="hover:text-white transition-colors cursor-pointer">Privacy</button>

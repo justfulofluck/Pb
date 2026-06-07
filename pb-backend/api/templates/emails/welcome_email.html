@@ -1,33 +1,79 @@
 {% extends "emails/base_email.html" %}
 
 {% block content %}
-<div
-    style="text-align: center; background: linear-gradient(135deg, #008a45 0%, #007038 100%); color: white; padding: 40px 20px; border-radius: 12px; margin-bottom: 30px;">
-    <h1 style="margin:0; font-size: 32px; font-weight: 900; letter-spacing: -1px; color: white;">YOU'RE IN! 🚀</h1>
-    <p style="font-size: 18px; opacity: 0.9; margin-top: 10px;">Welcome to the healthier side of life.</p>
+
+<!-- YOU'RE IN Banner -->
+<div style="text-align: center; background: #00843D; padding: 50px 30px; border-radius: 12px; margin-bottom: 30px;">
+    <h1 style="margin:0; color:#ffffff; font-size:44px; font-weight:bold;">YOU'RE IN! 🚀</h1>
+    <p style="margin:15px 0 0; color:#d9f5e4; font-size:22px; line-height:1.5;">Welcome to the healthier side of life.</p>
 </div>
 
-<h2 style="color: #0b3d2e;">Hello {{ user.first_name|default:user.username }},</h2>
+<!-- Greeting -->
+<h2 style="color:#1d1d1d; font-size:32px; margin:0 0 20px;">Hey {{ user.first_name|default:user.username }} 👋</h2>
 
-<p>We're absolutely thrilled to have you join the <strong>Pinobite Club</strong>! You've just taken the first step
-    towards a more energized, nutritious, and delicious lifestyle.</p>
+<!-- Intro -->
+<p style="font-size:18px; line-height:1.8; color:#333333; margin:0 0 15px;">
+    Welcome to the <strong>Pinobite Club</strong>! 🥜
+</p>
 
-<div class="highlight-box">
-    <h3 style="margin-top: 0; color: #166534; font-size: 18px; text-transform: uppercase;">Your Member Perks 🎁</h3>
-    <ul style="padding: 0; list-style: none;">
-        <li style="margin-bottom: 12px; padding-left: 30px; position: relative; color: #166534; font-weight: 600;">✅
-            Exclusive Rewards: Earn points on every purchase.</li>
-        <li style="margin-bottom: 12px; padding-left: 30px; position: relative; color: #166534; font-weight: 600;">✅
-            Early Access: Be the first to try new flavors.</li>
-        <li style="margin-bottom: 12px; padding-left: 30px; position: relative; color: #166534; font-weight: 600;">✅
-            Nutritional Coaching: Pro Tips for active lifestyle.</li>
-    </ul>
-</div>
+<p style="font-size:18px; line-height:1.8; color:#333333; margin:0 0 15px;">
+    You just unlocked access to a world where healthy meets ridiculously delicious.
+</p>
 
-<p>Ready to explore the world of premium nut butters and healthy snacks? Your journey starts here.</p>
+<p style="font-size:18px; line-height:1.8; color:#333333; margin:0 0 15px;">
+    No boring diets. No bland snacks. Just premium nut butters, better ingredients, and flavors you'll actually look forward to.
+</p>
 
-<div style="text-align: center;">
-    <a href="{{ frontend_url }}" class="button">START SHOPPING</a>
+<p style="font-size:18px; line-height:1.8; color:#333333; margin:0 0 15px;">
+    We're seriously excited to have you here. 💚
+</p>
+
+<!-- Benefits -->
+<h3 style="color:#00843D; font-size:28px; margin:30px 0 20px;">🎁 What You Just Unlocked</h3>
+
+<p style="font-size:18px; line-height:1.8; color:#333333; margin:0 0 15px;">
+    ✅ <strong>Earn Rewards</strong><br>
+    Get points on every order and turn them into discounts, freebies, and surprises.
+</p>
+
+<p style="font-size:18px; line-height:1.8; color:#333333; margin:0 0 15px;">
+    🚨 <strong>First Dibs on New Drops</strong><br>
+    New flavors? Limited editions? You'll hear about them before everyone else.
+</p>
+
+<p style="font-size:18px; line-height:1.8; color:#333333; margin:0 0 15px;">
+    💸 <strong>Members-Only Deals</strong><br>
+    Exclusive offers that don't make it to the public.
+</p>
+
+<p style="font-size:18px; line-height:1.8; color:#333333; margin:0 0 15px;">
+    🌱 <strong>Healthy Living, Made Easy</strong><br>
+    Recipes, nutrition tips, and snack hacks delivered straight to your inbox.
+</p>
+
+<!-- Why Pinobite -->
+<h3 style="color:#00843D; font-size:28px; margin:30px 0 20px;">🥜 Why People Love Pinobite</h3>
+
+<p style="font-size:18px; line-height:2; color:#333333; margin:0 0 10px;">✨ Real ingredients</p>
+<p style="font-size:18px; line-height:2; color:#333333; margin:0 0 10px;">✨ Protein-packed goodness</p>
+<p style="font-size:18px; line-height:2; color:#333333; margin:0 0 10px;">✨ No unnecessary nonsense</p>
+<p style="font-size:18px; line-height:2; color:#333333; margin:0 0 10px;">✨ Flavors you'll crave</p>
+<p style="font-size:18px; line-height:2; color:#333333; margin:0 0 10px;">
+    ✨ Made for gym lovers, busy hustlers &amp; snack enthusiasts alike
+</p>
+
+<!-- CTA -->
+<div style="text-align: center; margin: 35px 0 20px;">
+    <p style="font-size:22px; color:#1d1d1d; font-weight:bold; margin-bottom:25px;">
+        Your Healthy Snacking Era Starts Now.
+    </p>
+
+    <a href="https://pinobite.com"
+       style="background:#00843D; color:#ffffff; text-decoration:none;
+              padding:16px 40px; border-radius:8px;
+              font-size:18px; font-weight:bold; display:inline-block;">
+        SHOP NOW
+    </a>
 </div>
 
 {% endblock %}

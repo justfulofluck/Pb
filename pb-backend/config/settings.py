@@ -60,6 +60,8 @@ INSTALLED_APPS = [
     "django_filters",
     "drf_spectacular",
     "corsheaders",
+    # SEO
+    "django.contrib.sitemaps",
     # Local
     "api",
 ]
@@ -72,6 +74,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "api.middleware.PrerenderMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -249,3 +252,7 @@ CACHE_PRODUCT_TIMEOUT = 300
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://pinobite.com")
+
+# Prerender.io Configuration
+PRERENDER_TOKEN = os.environ.get("PRERENDER_TOKEN", "")
+PRERENDER_PROXIES = None
