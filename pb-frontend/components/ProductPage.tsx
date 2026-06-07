@@ -366,8 +366,23 @@ const ProductPage: React.FC<ProductPageProps> = ({
   return (
     <div className="page-wrapper" style={{ opacity: 1, backgroundColor: tintColor }}>
 
-      <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-[85vh] md:min-h-[95vh] flex flex-col items-center pt-4 md:pt-0 pb-20 md:pb-10 texture-blend">
-        <div className="w-layout-blockcontainer container product-page-hero w-container !pt-2 md:!pt-6 !mt-0">
+      <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-[85vh] md:min-h-[95vh] flex flex-col items-center pt-4 md:pt-0 pb-20 md:pb-10 texture-blend relative">
+        {product.slug?.includes('dark-chocolate') && (
+          <>
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover z-0"
+              style={{ pointerEvents: 'none' }}
+            >
+              <source src="/videos/Sequence%2001.mp4" type="video/mp4" />
+            </video>
+            <div className="absolute inset-0 w-full h-full z-[1] bg-[#4a2e15]/60 pointer-events-none mix-blend-multiply"></div>
+          </>
+        )}
+        <div className="w-layout-blockcontainer container product-page-hero w-container !pt-2 md:!pt-6 !mt-0 relative z-10">
           <div className="content-wrapper product-page-hero">
             <div className="heading-text-box pdp-h1 mt-0 pt-0 px-6 md:px-12 lg:px-16 mb-[-50px] lg:mb-[-4rem]">
               <h1 ref={titleRef} style={{ color: '#fff', textShadow: '0 4px 20px rgba(0,0,0,0.2)', lineHeight: '1.1', fontSize: 'clamp(2.2rem, 10vw, 120px)' }} className="!font-anton font-bold uppercase tracking-wide [word-spacing:0.15em] md:[word-spacing:0.05em]">
