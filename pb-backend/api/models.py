@@ -40,6 +40,8 @@ class Product(models.Model):
     model_3d = models.FileField(upload_to='models_3d/', blank=True, null=True)
     theme_color = models.CharField(max_length=50, blank=True, null=True)
     orientation = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:

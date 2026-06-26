@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { throttle } from '../utils/performance';
 import { Product } from '../types';
@@ -10,6 +10,8 @@ interface LatestProductShowcaseProps {
 
 const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }) => {
   const jarContainerRef = useRef<HTMLDivElement>(null);
+  const viewerRef = useRef<HTMLElement | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     const container = jarContainerRef.current;
@@ -72,6 +74,18 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
 
   // Use the provided product's 3D model, or fallback to dynamic naming logic
   const modelSrc = product?.model3d ? getMediaUrl(product.model3d) : getDynamic3DModel(product?.name);
+
+  useEffect(() => {
+    setLoadError(false);
+  }, [modelSrc]);
+
+  useEffect(() => {
+    const el = viewerRef.current;
+    if (!el || !modelSrc) return;
+    const onError = () => setLoadError(true);
+    el.addEventListener('error', onError);
+    return () => el.removeEventListener('error', onError);
+  }, [modelSrc]);
 
   const benefitsLeft = [
     {
@@ -154,7 +168,13 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
                 zIndex: 2
               }}
             >
+              {loadError ? (
+                <div className="flex items-center justify-center h-[400px] md:h-[500px] lg:h-[600px]">
+                  <img src={getMediaUrl(product?.image || '')} alt={product?.name || 'Product'} className="max-w-full max-h-full object-contain" />
+                </div>
+              ) : (
               <model-viewer
+                ref={viewerRef}
                 src={modelSrc}
                 alt="3D Interactive Jar"
                 shadow-intensity="0"
@@ -164,7 +184,7 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
                 disable-zoom
                 disable-tap
                 interaction-prompt="auto"
-
+                reveal="auto"
                 touch-action="pan-y"
                 style={{ width: '100%', outline: 'none' }}
                 className="h-[400px] md:h-[500px] lg:h-[600px]"
@@ -174,6 +194,7 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
                   <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 </div>
               </model-viewer>
+              )}
 
               {/* Dynamic Light Sweep Overlay */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-full opacity-30 mix-blend-overlay">

@@ -58,13 +58,16 @@ const dataUrlToObjectUrl = (dataUrl: string): string | null => {
 
 const StableModelViewer = React.memo(({ product }: { product: Product }) => {
   const objectUrlRef = React.useRef<string | null>(null);
+  const viewerRef = React.useRef<HTMLElement | null>(null);
   const [modelSrc, setModelSrc] = React.useState<string | null>(null);
+  const [loadError, setLoadError] = React.useState(false);
 
   React.useEffect(() => {
     if (objectUrlRef.current) {
       URL.revokeObjectURL(objectUrlRef.current);
       objectUrlRef.current = null;
     }
+    setLoadError(false);
     let src: string | null = null;
     if (product.model3d) {
       const url = getMediaUrl(product.model3d);
@@ -83,12 +86,20 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
   }, [product.id, product.model3d, product.name]);
 
   React.useEffect(() => {
+    const el = viewerRef.current;
+    if (!el || !modelSrc) return;
+    const onError = () => setLoadError(true);
+    el.addEventListener('error', onError);
+    return () => el.removeEventListener('error', onError);
+  }, [modelSrc]);
+
+  React.useEffect(() => {
     return () => {
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
     };
   }, []);
 
-  if (!modelSrc) {
+  if (!modelSrc || loadError) {
     return <img src={getMediaUrl(product.image)} alt={product.name} className="content-image _100-full" />;
   }
 
@@ -116,6 +127,7 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
       `}</style>
       <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         <model-viewer
+          ref={viewerRef}
           key={`${product.id}-${modelSrc}`}
           src={modelSrc}
           alt={product.name}
@@ -131,6 +143,7 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
           touch-action="pan-y"
           interaction-prompt="none"
           auto-rotate
+          reveal="auto"
           rotation-speed="20deg"
           orientation={product.orientation || '0deg 0deg -15deg'}
           style={{

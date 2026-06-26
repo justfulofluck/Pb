@@ -67,6 +67,14 @@ class PrerenderMiddleware:
         ".eot", ".pdf", ".zip", ".gz", ".map",
     )
 
+    OLD_URL_PREFIXES = (
+        "/product-category/", "/product-tag/", "/product-type-",
+        "/blog/tag/", "/blog/type/",
+        "/wp-", "/my-account", "/cart", "/checkout-2-2",
+        "/shop-right-sidebar", "/about", "/contact", "/our-story",
+        "/feed", "/history", "/our-products", "/account-login-page",
+    )
+
     def __init__(self, get_response):
         self.get_response = get_response
 
@@ -78,6 +86,9 @@ class PrerenderMiddleware:
 
         if path.startswith("/api/") or path.startswith("/admin/") \
                 or path.startswith("/media/") or path.startswith("/static/"):
+            return self.get_response(request)
+
+        if any(path.startswith(prefix) for prefix in self.OLD_URL_PREFIXES):
             return self.get_response(request)
 
         if any(path.lower().endswith(ext) for ext in self.EXTENSIONS_TO_SKIP):

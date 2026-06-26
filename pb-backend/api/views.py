@@ -1651,6 +1651,55 @@ _DEFAULT_DESCRIPTION = "Discover Pinobite — premium healthy energy bars, nut b
 _DEFAULT_OG_IMAGE = "https://pinobite.com/logos/og-image.png"
 
 
+def _clean_product_desc(desc: str, product_name: str) -> str:
+    raw = _re.sub(r"<[^>]+>", "", desc).strip()
+    raw = _re.sub(r"Benefits\s*", "", raw, flags=_re.IGNORECASE)
+    raw = _re.sub(r"[✨⚡❤️🍯🥜🌿🔥🍓🍫🥣✅💪🌾?❓⭐⏺★•●▶→▪–—]+", "", raw)
+    raw = _re.sub(r"\n+", " ", raw)
+    raw = _re.sub(r"\s{2,}", " ", raw).strip()
+    if raw and len(raw) > 20:
+        return raw
+    return f"{product_name} — a premium product from Pinobite, made with carefully selected natural ingredients."
+
+
+_SHIPPING_DETAILS = {
+    "@type": "OfferShippingDetails",
+    "shippingRate": {
+        "@type": "MonetaryAmount",
+        "value": 99,
+        "currency": "INR",
+    },
+    "shippingDestination": {
+        "@type": "DefinedRegion",
+        "addressCountry": "IN",
+    },
+    "deliveryTime": {
+        "@type": "ShippingDeliveryTime",
+        "handlingTime": {
+            "@type": "QuantitativeValue",
+            "minValue": 1,
+            "maxValue": 2,
+            "unitCode": "DAY",
+        },
+        "transitTime": {
+            "@type": "QuantitativeValue",
+            "minValue": 2,
+            "maxValue": 5,
+            "unitCode": "DAY",
+        },
+    },
+}
+
+_RETURN_POLICY = {
+    "@type": "MerchantReturnPolicy",
+    "applicableCountry": "IN",
+    "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+    "merchantReturnDays": 7,
+    "returnMethod": "https://schema.org/ReturnByMail",
+    "returnFees": "https://schema.org/FreeReturn",
+}
+
+
 @never_cache
 def _inject_meta_view(request):
     raw_path = request.path_info
@@ -1673,9 +1722,7 @@ def _inject_meta_view(request):
         try:
             product = Product.objects.get(slug=slug)
             meta_title = f"{product.name} | Buy Online | Pinobite"
-            desc = product.description or ""
-            desc_plain = _re.sub(r"<[^>]+>", "", desc).strip()
-            meta_description = (desc_plain[:152] + "...") if len(desc_plain) > 155 else desc_plain
+            meta_description = _clean_product_desc(product.description, product.name)[:155]
             if product.image:
                 og_image = request.build_absolute_uri(product.image.url)
             og_type = "product"
@@ -1805,11 +1852,12 @@ def _inject_meta_view(request):
     elif normalized_path.startswith("/product/") and product:
         sale_price = float(product.price)
         orig_price = float(product.original_price) if product.original_price else sale_price
-        schemas.append({
+        clean_desc = _clean_product_desc(product.description, product.name)
+        product_schema = {
             "@context": "https://schema.org",
             "@type": "Product",
             "name": product.name,
-            "description": meta_description,
+            "description": clean_desc,
             "image": og_image if og_image != _DEFAULT_OG_IMAGE else None,
             "sku": product.slug,
             "brand": {"@type": "Brand", "name": "Pinobite"},
@@ -1825,13 +1873,18 @@ def _inject_meta_view(request):
                     else "https://schema.org/OutOfStock"
                 ),
                 "itemCondition": "https://schema.org/NewCondition",
+                "shippingDetails": _SHIPPING_DETAILS,
+                "hasMerchantReturnPolicy": _RETURN_POLICY,
             },
-            "aggregateRating": {
+        }
+        review_count = getattr(product, "review_count", 0) or 0
+        if review_count > 0:
+            product_schema["aggregateRating"] = {
                 "@type": "AggregateRating",
                 "ratingValue": getattr(product, "rating", 0) or 0,
-                "reviewCount": getattr(product, "review_count", 0) or 0,
-            },
-        })
+                "reviewCount": review_count,
+            }
+        schemas.append(product_schema)
 
     elif normalized_path.startswith("/blog/") and post:
         schemas.append({
@@ -1923,13 +1976,28 @@ def _inject_meta_view(request):
         cleaned = {k: v for k, v in s.items() if v is not None}
         schema_block += f'    <script type="application/ld+json">{json.dumps(cleaned, ensure_ascii=False)}</script>\n'
 
+    if "text/markdown" in request.META.get("HTTP_ACCEPT", ""):
+        from config.urls import llms_txt
+        resp = llms_txt(request)
+        resp["Content-Type"] = "text/markdown; charset=utf-8"
+        return resp
+
     template = get_template("index.html")
     html = template.render({}, request)
 
     html = _re.sub(r"<title>[^<]*</title>", "", html, count=1, flags=_re.IGNORECASE)
     html = html.replace("<head>", "<head>\n" + meta_block + schema_block)
 
-    return HttpResponse(html, content_type="text/html; charset=utf-8")
+    response = HttpResponse(html, content_type="text/html; charset=utf-8")
+    response["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+    response["Link"] = (
+        '</llms.txt>; rel="service-doc", '
+        '</sitemap.xml>; rel="sitemap", '
+        '</api/docs/>; rel="service-doc"'
+    )
+    return response
 
 
 index_view = _inject_meta_view

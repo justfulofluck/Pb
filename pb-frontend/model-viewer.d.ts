@@ -4,6 +4,7 @@ declare module 'react' {
     namespace JSX {
         interface IntrinsicElements {
             'model-viewer': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+                ref?: React.Ref<HTMLElement>;
                 src?: string;
                 alt?: string;
                 'camera-controls'?: boolean;
@@ -25,6 +26,7 @@ declare module 'react' {
                 'ar'?: boolean;
                 'ar-modes'?: string;
                 'poster'?: string;
+                'reveal'?: string;
             };
         }
     }
