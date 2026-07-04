@@ -243,12 +243,6 @@ const AppContent: React.FC = () => {
     if (path.startsWith('/wishlist/shared/')) return 'shared-wishlist';
     return window.history.state?.view || 'not-found';
   });
-  const [pressUpdates, setPressUpdates] = useState<PressUpdate[]>(() => {
-    try {
-      const saved = localStorage.getItem('pinobite_press_updates');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
@@ -626,14 +620,6 @@ const AppContent: React.FC = () => {
   }, [user, isAuthLoading, currentView]);
 
   // CMS Content is now handled by useQuery hooks above.
-
-  // Sync pressUpdates to localStorage with a cap
-  useEffect(() => {
-    if (pressUpdates.length > 0) {
-      const capped = pressUpdates.slice(-20);
-      localStorage.setItem('pinobite_press_updates', JSON.stringify(capped));
-    }
-  }, [pressUpdates]);
 
   useEffect(() => {
     if (currentView === 'admin-dashboard') {
@@ -1211,23 +1197,6 @@ const AppContent: React.FC = () => {
     }
   };
 
-  // Press Updates Handlers (localStorage-based - no backend API yet)
-  const handleAddPressUpdate = (newPress: PressUpdate) => {
-    setPressUpdates(prev => {
-      const updated = [newPress, ...prev];
-      localStorage.setItem('pinobite_press_updates', JSON.stringify(updated));
-      return updated;
-    });
-  };
-
-  const handleDeletePressUpdate = (id: string) => {
-    setPressUpdates(prev => {
-      const updated = prev.filter(p => p.id !== id);
-      localStorage.setItem('pinobite_press_updates', JSON.stringify(updated));
-      return updated;
-    });
-  };
-
   const handleUpdateBlog = async (updatedBlog: BlogPost) => {
     try {
       const headers: Record<string, string> = {};
@@ -1736,7 +1705,7 @@ const AppContent: React.FC = () => {
                   onViewRecapsClick={navigateToEventBlogs}
                 />
               )}
-              {pressUpdates.length > 0 && <PressUpdates pressUpdates={pressUpdates} />}
+              <PressUpdates pressUpdates={[]} />
               <Newsletter />
             </>
           )}

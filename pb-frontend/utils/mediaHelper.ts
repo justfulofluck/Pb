@@ -8,8 +8,8 @@ import { API_BASE_URL } from '../config';
  * 3. Relative paths from the API (prepends API_BASE_URL)
  * 4. Empty/null values
  */
-export const getMediaUrl = (path: string | null | undefined): string => {
-  if (!path || typeof path !== 'string') return '';
+export const getMediaUrl = (path: string | null | undefined): string | undefined => {
+  if (!path || typeof path !== 'string') return undefined;
   
   let trimmedPath = path.trim();
 
@@ -24,19 +24,22 @@ export const getMediaUrl = (path: string | null | undefined): string => {
   }
 
   // Handle data URLs (both raw, URL encoded, or with /media/ prepended)
-  // Try all detection methods: raw prefix, URL-encoded prefix, or full decode check
   const tryDecodeDataUrl = (str: string): string | null => {
-    if (str.startsWith('data:')) {
-      try { return decodeURIComponent(str); } catch { return str; }
+    let current = str.replace(/[\r\n\s]+/g, '');
+    for (let i = 0; i < 3; i++) {
+      if (current.startsWith('data:')) return current.replace(/[\r\n\s]+/g, '');
+      const lower = current.toLowerCase();
+      if (lower.startsWith('data%')) {
+        try { current = decodeURIComponent(current); } catch { break; }
+      } else {
+        break;
+      }
     }
-    const lower = str.toLowerCase();
-    if (lower.startsWith('data%3a')) {
-      try { return decodeURIComponent(str); } catch { return str; }
-    }
-    // Fallback: fully decode and check
+    if (current.startsWith('data:')) return current.replace(/[\r\n\s]+/g, '');
+    
     try {
       const decoded = decodeURIComponent(str);
-      if (decoded.startsWith('data:')) return decoded;
+      if (decoded.startsWith('data:')) return decoded.replace(/[\r\n\s]+/g, '');
     } catch { /* ignore */ }
     return null;
   };
@@ -45,20 +48,26 @@ export const getMediaUrl = (path: string | null | undefined): string => {
 
   // 1. Handle absolute URLs — detect mistakenly stored data URLs and fix them
   if (trimmedPath.startsWith('http')) {
-    try {
-      const url = new URL(trimmedPath);
-      // Check if path starts with /media/data%3A (URL-encoded base64 data stored as file)
-      if (url.pathname.toLowerCase().includes('/media/data%3a') || url.pathname.toLowerCase().includes('/media/data:')) {
-        const mediaIndex = url.pathname.indexOf('/media/');
-        if (mediaIndex !== -1) {
-          const encodedPart = url.pathname.slice(mediaIndex + 7);
-          try {
-            return decodeURIComponent(encodedPart);
-          } catch {
-            return encodedPart;
+    const lowerTrimmed = trimmedPath.toLowerCase();
+    if (lowerTrimmed.includes('/media/data%') || lowerTrimmed.includes('/media/data:')) {
+      const mediaIndex = trimmedPath.indexOf('/media/');
+      if (mediaIndex !== -1) {
+        let encodedPart = trimmedPath.slice(mediaIndex + 7).replace(/[\r\n\s]+/g, '');
+        try {
+          for (let i = 0; i < 3; i++) {
+            if (encodedPart.includes('%25') || encodedPart.toLowerCase().includes('%3a')) {
+              encodedPart = decodeURIComponent(encodedPart);
+            }
           }
+          return encodedPart.replace(/[\r\n\s]+/g, '');
+        } catch {
+          return encodedPart.replace(/[\r\n\s]+/g, '');
         }
       }
+    }
+
+    try {
+      const url = new URL(trimmedPath);
       if (url.hostname === 'localhost') {
         const correct = new URL(API_BASE_URL);
         url.hostname = correct.hostname;
@@ -81,7 +90,7 @@ export const getMediaUrl = (path: string | null | undefined): string => {
   // it's likely raw binary/base64 data accidentally being passed as a path.
   if (trimmedPath.length > 1000) {
     console.warn('getMediaUrl: Received an unusually long path. Potential 414 error prevented.', trimmedPath.substring(0, 50) + '...');
-    return ''; 
+    return undefined; 
   }
 
   // 4. Handle frontend assets (public folder)

@@ -61,10 +61,24 @@ class FlexibleFileField(serializers.FileField):
     """
     def to_internal_value(self, data):
         if isinstance(data, str):
+            import urllib.parse
+            # Decode URL-encoded base64 just in case it was encoded by the frontend
+            current_data = data
+            for _ in range(3):
+                if current_data.startswith('data:'):
+                    break
+                if current_data.lower().startswith('data%'):
+                    try:
+                        current_data = urllib.parse.unquote(current_data)
+                    except Exception:
+                        break
+                else:
+                    break
+
             # Handle Base64
-            if data.startswith('data:'):
+            if current_data.startswith('data:'):
                 try:
-                    format_part, filestr = data.split(';base64,')
+                    format_part, filestr = current_data.split(';base64,')
                     mime_type = format_part.split(':')[-1]
                     ext = mime_type.split('/')[-1]
                     ext_map = {
@@ -85,8 +99,8 @@ class FlexibleFileField(serializers.FileField):
                                 f"received {len(raw_bytes)}"
                             )
                     file_name = f"{uuid.uuid4()}.{ext}"
-                    data = ContentFile(raw_bytes, name=file_name)
-                    return super().to_internal_value(data)
+                    new_data = ContentFile(raw_bytes, name=file_name)
+                    return super().to_internal_value(new_data)
                 except serializers.ValidationError:
                     raise
                 except Exception as e:
@@ -113,20 +127,34 @@ class FlexibleImageField(serializers.ImageField):
     """
     def to_internal_value(self, data):
         if isinstance(data, str):
-            if data.startswith('data:'):
+            import urllib.parse
+            current_data = data
+            for _ in range(3):
+                if current_data.startswith('data:'):
+                    break
+                if current_data.lower().startswith('data%'):
+                    try:
+                        current_data = urllib.parse.unquote(current_data)
+                    except Exception:
+                        break
+                else:
+                    break
+
+            if current_data.startswith('data:'):
                 try:
-                    format_part, imgstr = data.split(';base64,')
+                    format_part, imgstr = current_data.split(';base64,')
                     mime_type = format_part.split(':')[-1]
                     ext = mime_type.split('/')[-1]
                     ext_map = {
                         'jpeg': 'jpg',
-                        'svg+xml': 'svg'
+                        'svg+xml': 'svg',
+                        'webp': 'webp'
                     }
                     ext = ext_map.get(ext, ext)
                     file_name = f"{uuid.uuid4()}.{ext}"
                     raw_bytes = base64.b64decode(imgstr)
-                    data = ContentFile(raw_bytes, name=file_name)
-                    return super().to_internal_value(data)
+                    new_data = ContentFile(raw_bytes, name=file_name)
+                    return super().to_internal_value(new_data)
                 except serializers.ValidationError:
                     raise
                 except Exception as e:
@@ -179,22 +207,36 @@ class ProductSerializer(serializers.ModelSerializer):
         for item in ingredients_list:
             if isinstance(item, dict) and 'image' in item:
                 image_val = item['image']
-                if isinstance(image_val, str) and image_val.startswith('data:'):
-                    try:
-                        format_part, imgstr = image_val.split(';base64,')
-                        mime_type = format_part.split(':')[-1]
-                        ext = mime_type.split('/')[-1]
-                        ext_map = {'jpeg': 'jpg', 'svg+xml': 'svg'}
-                        ext = ext_map.get(ext, ext)
-                        raw_bytes = base64.b64decode(imgstr)
-                        file_name = f"ingredient_{uuid.uuid4()}.{ext}"
-                        saved_path = default_storage.save(
-                            f"ingredients/{file_name}",
-                            ContentFile(raw_bytes)
-                        )
-                        item['image'] = saved_path
-                    except Exception as e:
-                        print(f"Error processing ingredient blend image: {e}")
+                if isinstance(image_val, str):
+                    import urllib.parse
+                    current_data = image_val
+                    for _ in range(3):
+                        if current_data.startswith('data:'):
+                            break
+                        if current_data.lower().startswith('data%'):
+                            try:
+                                current_data = urllib.parse.unquote(current_data)
+                            except Exception:
+                                break
+                        else:
+                            break
+
+                    if current_data.startswith('data:'):
+                        try:
+                            format_part, imgstr = current_data.split(';base64,')
+                            mime_type = format_part.split(':')[-1]
+                            ext = mime_type.split('/')[-1]
+                            ext_map = {'jpeg': 'jpg', 'svg+xml': 'svg', 'webp': 'webp'}
+                            ext = ext_map.get(ext, ext)
+                            raw_bytes = base64.b64decode(imgstr)
+                            file_name = f"ingredient_{uuid.uuid4()}.{ext}"
+                            saved_path = default_storage.save(
+                                f"ingredients/{file_name}",
+                                ContentFile(raw_bytes)
+                            )
+                            item['image'] = saved_path
+                        except Exception as e:
+                            print(f"Error processing ingredient blend image: {e}")
             processed.append(item)
         return processed
 

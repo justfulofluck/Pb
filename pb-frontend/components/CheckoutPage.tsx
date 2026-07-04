@@ -4,6 +4,7 @@ import { CartItem } from '../types';
 import { API_BASE_URL } from '../config';
 import { triggerRewardNotification } from './RewardNotification';
 import { useToast } from './Toast';
+import confetti from 'canvas-confetti';
 
 interface CheckoutPageProps {
   items: CartItem[];
@@ -42,7 +43,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
 
   const [savedAddress, setSavedAddress] = useState<any>(null);
   const [useSavedAddress, setUseSavedAddress] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod'>('online');
+  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod' | 'special_cod'>('online');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -113,11 +114,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
   const mrpTotal = items.reduce((sum, item) => sum + ((item.originalPrice || item.price) * item.quantity), 0);
   const mrpDiscount = mrpTotal - subtotal;
   const shipping = 0;
+  const specialCodFee = paymentMethod === 'special_cod' ? 5000 : 0;
 
   // 10 points = 1 Rupee discount
   const maxRedeemablePoints = Math.min(userPoints, Math.floor(subtotal * 10));
   const potentialDiscount = usePoints ? maxRedeemablePoints / 10 : 0;
-  const total = subtotal + shipping - potentialDiscount;
+  const total = subtotal + shipping + specialCodFee - potentialDiscount;
 
   const togglePoints = () => {
     setUsePoints(!usePoints);
@@ -231,6 +233,32 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
           }
           if (checkAuth) await checkAuth();
           
+          if (paymentMethod === 'special_cod') {
+            const duration = 3 * 1000;
+            const end = Date.now() + duration;
+
+            (function frame() {
+              confetti({
+                particleCount: 5,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: ['#0b3d2e', '#ffaa00', '#ffffff', '#8a2be2']
+              });
+              confetti({
+                particleCount: 5,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: ['#0b3d2e', '#ffaa00', '#ffffff', '#8a2be2']
+              });
+
+              if (Date.now() < end) {
+                requestAnimationFrame(frame);
+              }
+            }());
+          }
+
           setIsSuccess(true);
           setTimeout(() => {
             onOrderSuccess();
@@ -419,19 +447,26 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
               <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm flex-shrink-0">3</span>
               <h3 className="text-xl sm:text-2xl font-normal uppercase tracking-wide [word-spacing:0.05em] relative top-[4px] leading-none">Payment Method</h3>
             </div>
-            <div className="grid md:grid-cols-2 gap-4">
-              <label className={`flex items-center gap-3 p-5 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'online' ? 'border-[#0b3d2e] bg-[#0b3d2e]/5' : 'border-slate-100 hover:border-slate-200'}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <label className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'online' ? 'border-[#0b3d2e] bg-[#0b3d2e]/5' : 'border-slate-100 hover:border-slate-200'}`}>
                 <input type="radio" name="paymentMethod" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} className="w-4 h-4 text-[#0b3d2e] focus:ring-[#0b3d2e] accent-[#0b3d2e]" />
                 <div className="flex flex-col">
                   <span className="font-black uppercase text-slate-900">Pay Online</span>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">UPI, Cards</span>
+                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest">UPI, Cards</span>
                 </div>
               </label>
-              <label className={`flex items-center gap-3 p-5 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-[#0b3d2e] bg-[#0b3d2e]/5' : 'border-slate-100 hover:border-slate-200'}`}>
+              <label className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-[#0b3d2e] bg-[#0b3d2e]/5' : 'border-slate-100 hover:border-slate-200'}`}>
                 <input type="radio" name="paymentMethod" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="w-4 h-4 text-[#0b3d2e] focus:ring-[#0b3d2e] accent-[#0b3d2e]" />
                 <div className="flex flex-col">
                   <span className="font-black uppercase text-slate-900">Cash on Delivery</span>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pay when you receive</span>
+                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pay when you receive</span>
+                </div>
+              </label>
+              <label className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'special_cod' ? 'border-purple-600 bg-purple-50' : 'border-slate-100 hover:border-slate-200'}`}>
+                <input type="radio" name="paymentMethod" value="special_cod" checked={paymentMethod === 'special_cod'} onChange={() => setPaymentMethod('special_cod')} className="w-4 h-4 text-purple-600 focus:ring-purple-600 accent-purple-600" />
+                <div className="flex flex-col">
+                  <span className="font-black uppercase text-purple-900">Special COD</span>
+                  <span className="text-[9px] sm:text-[10px] font-bold text-purple-600 uppercase tracking-widest">+₹5000 Premium</span>
                 </div>
               </label>
             </div>
@@ -485,6 +520,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
               <span>Shipping</span>
               <span>{shipping === 0 ? 'Free' : `₹${shipping}`}</span>
             </div>
+
+            {paymentMethod === 'special_cod' && (
+              <div className="flex justify-between text-purple-600 font-bold text-sm">
+                <span>Special COD Fee</span>
+                <span>₹5000.00</span>
+              </div>
+            )}
 
             {potentialDiscount > 0 && (
               <div className="flex justify-between text-green-600 font-bold text-sm">

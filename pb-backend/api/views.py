@@ -653,6 +653,10 @@ class OrderViewSet(viewsets.ModelViewSet):
             # Calculate Shipping (tax is included in product price)
             shipping = 0  # Free shipping requirement
 
+            special_cod_fee = 0
+            if payment_method == "special_cod":
+                special_cod_fee = 5000
+
             # Process points redemption if requested
             points_discount = 0
             points_deducted = 0
@@ -663,14 +667,14 @@ class OrderViewSet(viewsets.ModelViewSet):
                     points_deducted = max_redeemable
 
             # New total including shipping, less points discount
-            final_total = total_amount + shipping - points_discount
+            final_total = total_amount + shipping + special_cod_fee - points_discount
 
             # Store points_deducted on order (actual deduction happens after payment)
             order.points_deducted = points_deducted
             order.total_amount = final_total
             order.save()
 
-            if payment_method == "cod":
+            if payment_method in ["cod", "special_cod"]:
                 if order.points_deducted > 0 and request.user.is_authenticated:
                     from .utils import deduct_points
                     deduct_points(
