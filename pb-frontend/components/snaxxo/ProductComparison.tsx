@@ -11,12 +11,12 @@ const ProductComparison: React.FC<ProductComparisonProps> = ({ product }) => {
     const getOthersImage = () => {
         const cat = product.category?.toLowerCase() || '';
         if (cat.includes('muesli')) {
-            return 'project_images/muesli-pouch.png';
+            return '/assets/muesli-display.jpg';
         }
         if (cat.includes('oat')) {
-            return 'project_images/oats-pouch.png';
+            return '/assets/oats-display.jpg';
         }
-        return 'project_images/peanut-butter-jar.png';
+        return '/assets/peanut-butter-display.jpg';
     };
 
     const comparisonRows = [

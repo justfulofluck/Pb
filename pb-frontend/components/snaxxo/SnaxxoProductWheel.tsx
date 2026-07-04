@@ -88,7 +88,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
         slider.style.position = "relative";
         slider.style.width = "100%";
         slider.style.maxWidth = "none";
-        slider.style.overflow = "hidden";
+        slider.style.overflow = "visible";
 
         viewport.style.position = "relative";
         viewport.style.width = "100%";
@@ -384,7 +384,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
     }
 
     return (
-        <section className="product-slider-section bg-whiteboard texture-overlay texture-speckles py-[60px] overflow-hidden">
+        <section className="product-slider-section bg-whiteboard texture-overlay texture-speckles py-[60px] pb-[200px]">
             {/* Desktop Header */}
             <div className="hidden lg:flex flex-col items-center justify-center text-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 relative z-10">
                 <div className="bg-[#0b3d2e] texture-overlay texture-speckles text-white font-black text-[10px] sm:text-xs md:text-sm uppercase tracking-widest px-3 py-1 md:px-4 md:py-1.5 rounded-sm -rotate-3 mb-1 inline-block shadow-sm z-10" style={{ transformOrigin: 'center' }}>
@@ -460,10 +460,10 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                                             <h3 className="text-[#0b3d2e] !text-[1.2rem] sm:!text-[1.8rem] md:!text-[2.2rem] mb-2 sm:mb-4 cursor-default uppercase tracking-normal leading-[1.2] pointer-events-auto !inline-block">
                                                 {product.name}
                                             </h3>
-                                            <div className="flex items-baseline gap-2 mb-4 sm:mb-6 pointer-events-auto">
+                                            <div className="flex flex-col items-center mb-4 sm:mb-6 pointer-events-auto">
                                                 <span className="font-black text-[#0b3d2e] text-2xl sm:text-3xl lg:text-4xl text-shadow-sm">₹{product.price}</span>
-                                                {product.originalPrice && product.originalPrice > product.price && (
-                                                    <span className="font-bold text-slate-400 text-sm sm:text-base lg:text-lg line-through">₹{product.originalPrice}</span>
+                                                {product.original_price && product.original_price > product.price && (
+                                                    <span className="font-bold text-gray-900 text-[17px] line-through">₹{product.original_price}</span>
                                                 )}
                                             </div>
                                             <button

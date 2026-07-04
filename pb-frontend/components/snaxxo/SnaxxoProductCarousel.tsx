@@ -166,8 +166,8 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                 style={{ scrollBehavior: isDragging ? 'auto' : 'smooth' }}
             >
                 {favoriteProducts.map((product) => {
-                    const discount = product.originalPrice && product.originalPrice > product.price
-                        ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+                    const discount = product.original_price && product.original_price > product.price
+                        ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
                         : null;
                     const isWishlisted = wishlistIds.has(String(product.id));
 
@@ -216,10 +216,10 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                                 {product.name}
                             </h3>
 
-                            <div className="flex items-center gap-1 mb-3">
+                            <div className="flex flex-col items-center mb-3">
                                 <span className="font-black text-lg text-[#0b3d2e]">₹{product.price}</span>
-                                {product.originalPrice && product.originalPrice > product.price && (
-                                    <span className="text-slate-400 line-through text-[9px] font-bold">₹{product.originalPrice}</span>
+                                {product.original_price && product.original_price > product.price && (
+                                    <span className="text-gray-900 line-through text-[17px] font-bold">₹{product.original_price}</span>
                                 )}
                             </div>
 
