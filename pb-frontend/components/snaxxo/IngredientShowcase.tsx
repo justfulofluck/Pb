@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { getMediaUrl } from '@/utils/mediaHelper';
 
@@ -107,6 +107,37 @@ const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
         items = PRODUCT_INGREDIENTS_MAP[productId.toString()];
     }
 
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [isDown, setIsDown] = useState(false);
+    const startXRef = useRef(0);
+    const scrollLeftRef = useRef(0);
+
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        const el = scrollRef.current;
+        if (!el) return;
+        setIsDown(true);
+        startXRef.current = e.pageX - el.offsetLeft;
+        scrollLeftRef.current = el.scrollLeft;
+    };
+
+    const handleMouseLeave = () => {
+        setIsDown(false);
+    };
+
+    const handleMouseUp = () => {
+        setIsDown(false);
+    };
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!isDown) return;
+        const el = scrollRef.current;
+        if (!el) return;
+        e.preventDefault();
+        const x = e.pageX - el.offsetLeft;
+        const walk = (x - startXRef.current) * 1.5;
+        el.scrollLeft = scrollLeftRef.current - walk;
+    };
+
     return (
         <section className="py-[60px] md:py-24 bg-[#f2f2ec] font-satoshi flex flex-col items-center overflow-hidden w-full">
             <div className="flex justify-center w-full mb-16 px-4 md:px-12">
@@ -129,14 +160,22 @@ const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
                 .ingredient-scroll-hide::-webkit-scrollbar { display: none; }
             `}</style>
             <div
-                className="ingredient-scroll-hide w-full overflow-x-auto pb-12 scroll-smooth snap-x snap-mandatory"
+                ref={scrollRef}
+                onMouseDown={handleMouseDown}
+                onMouseLeave={handleMouseLeave}
+                onMouseUp={handleMouseUp}
+                onMouseMove={handleMouseMove}
+                className="ingredient-scroll-hide w-full overflow-x-auto pb-12 select-none"
                 style={{
                     scrollbarWidth: 'none',
                     msOverflowStyle: 'none',
-                    WebkitOverflowScrolling: 'touch'
+                    WebkitOverflowScrolling: 'touch',
+                    scrollSnapType: isDown ? 'none' : 'x mandatory',
+                    scrollBehavior: isDown ? 'auto' : 'smooth',
+                    cursor: isDown ? 'grabbing' : 'grab'
                 }}
             >
-                <div className={`flex gap-4 md:gap-10 items-start justify-start ${items.length <= 6 ? 'md:justify-center' : 'md:justify-start'} min-w-max px-4 md:px-12`}>
+                <div className={`flex gap-4 md:gap-10 items-start justify-start ${items.length <= 6 ? 'md:justify-center' : 'md:justify-start'} min-w-max px-4 md:px-12 pointer-events-none`}>
                     {items.map((item, idx) => (
                         <motion.div
                             key={idx}
@@ -144,17 +183,17 @@ const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
                             whileInView={{ opacity: 1, scale: 1 }}
                             transition={{ delay: idx * 0.05 }}
                             viewport={{ once: true }}
-                            className="flex flex-col items-center text-center min-w-[120px] md:min-w-[160px] group snap-center"
+                            className="flex flex-col items-center text-center min-w-[120px] md:min-w-[160px] group snap-center pointer-events-none"
                         >
-                            <div className="w-36 h-36 md:w-56 md:h-56 mb-4 group-hover:scale-105 transition-transform duration-500 relative flex items-center justify-center p-6">
+                            <div className="w-36 h-36 md:w-56 md:h-56 mb-4 group-hover:scale-105 transition-transform duration-500 relative flex items-center justify-center p-6 pointer-events-none">
                                 <img
                                     src={getMediaUrl(item.image)}
                                     alt={item.name}
-                                    className="w-full h-full object-contain"
+                                    className="w-full h-full object-contain pointer-events-none"
                                     style={{ borderRadius: '50%' }}
                                 />
                             </div>
-                            <span className="text-[16px] font-bold text-[#2d3e40] leading-tight max-w-[110px] md:max-w-[200px] tracking-wide uppercase">
+                            <span className="text-[16px] font-bold text-[#2d3e40] leading-tight max-w-[110px] md:max-w-[200px] tracking-wide uppercase pointer-events-none select-none">
                                 {item.name}
                             </span>
                         </motion.div>
