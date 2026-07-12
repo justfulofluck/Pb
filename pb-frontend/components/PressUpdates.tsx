@@ -7,11 +7,18 @@ interface PressUpdatesProps {
 }
 
 const STATIC_PRESS_UPDATES: PressUpdate[] = [
-  { id: 1, mediaHouse: 'Forbes', logo: 'https://ui-avatars.com/api/?name=Forbes&background=0b3d2e&color=fff&rounded=true&font-size=0.3', quote: "PinoBite is completely changing the healthy snacking game in India with their premium quality.", date: "2023-10-01" },
-  { id: 2, mediaHouse: 'Vogue', logo: 'https://ui-avatars.com/api/?name=Vogue&background=fcc02a&color=fff&rounded=true&font-size=0.3', quote: "The most aesthetically pleasing and delicious peanut butter we've ever tasted.", date: "2023-10-15" },
-  { id: 3, mediaHouse: 'GQ', logo: 'https://ui-avatars.com/api/?name=GQ&background=000&color=fff&rounded=true&font-size=0.3', quote: "A must-have staple for fitness enthusiasts who don't want to compromise on taste.", date: "2023-11-01" },
-  { id: 4, mediaHouse: 'Elle', logo: 'https://ui-avatars.com/api/?name=Elle&background=e91e63&color=fff&rounded=true&font-size=0.3', quote: "We are obsessed with their dark chocolate variant. It's healthy indulgence at its best.", date: "2023-11-15" },
-  { id: 5, mediaHouse: 'TechCrunch', logo: 'https://ui-avatars.com/api/?name=TC&background=4caf50&color=fff&rounded=true&font-size=0.3', quote: "An innovative D2C brand that's scaling rapidly thanks to unmatched product quality.", date: "2023-12-01" },
+  { id: 1, mediaHouse: 'Business Standard', logo: '/logos/press/business-standard-logo.svg', quote: "Business Standard highlighted PinoBite's commitment to premium ingredients and its growing presence in India's healthy snacking market.", date: "2024" },
+  { id: 2, mediaHouse: 'ANI (Asian News International)', logo: '/logos/press/ani-logo.svg', quote: "ANI covered PinoBite's expansion and its mission to provide healthier food choices to Indian consumers.", date: "2024" },
+  { id: 3, mediaHouse: 'News18', logo: '/logos/press/news18-logo.svg', quote: "News18 recognized PinoBite as a rapidly growing premium food brand focused on nutrition and quality.", date: "2024" },
+  { id: 4, mediaHouse: 'The Tribune', logo: '/logos/press/the-tribune-logo.svg', quote: "The Tribune featured PinoBite's premium peanut butter products and consumer-first approach.", date: "2024" },
+  { id: 5, mediaHouse: 'Lokmat English', logo: '/logos/press/lokmat-english-logo.svg', quote: "Lokmat English highlighted PinoBite's growing popularity among health-conscious consumers.", date: "2024" },
+  { id: 6, mediaHouse: 'Gujarat Samachar', logo: '/logos/press/gujarat-samachar-logo.png', quote: "Gujarat Samachar is one of Gujarat's most trusted newspapers, known for strong regional business and consumer coverage.", date: "2024" },
+  { id: 7, mediaHouse: 'Divya Bhaskar', logo: '/logos/press/divya-bhaskar-logo.png', quote: "Divya Bhaskar reaches millions of readers across Gujarat and regularly features regional business success stories.", date: "2024" },
+  { id: 8, mediaHouse: 'Sandesh', logo: '/logos/press/sandesh-logo.png', quote: "Sandesh is among Gujarat's leading newspapers with extensive coverage of business, lifestyle, and local brands.", date: "2024" },
+  { id: 9, mediaHouse: 'TV9 Gujarati', logo: '/logos/press/tv9-gujarati-logo.svg', quote: "TV9 Gujarati covers regional business developments, startups, and consumer-focused stories across Gujarat.", date: "2024" },
+  { id: 10, mediaHouse: 'ABP Asmita', logo: '/logos/press/abp-asmita-logo.png', quote: "ABP Asmita is one of Gujarat's leading television news channels, trusted for regional news and business coverage.", date: "2024" },
+  { id: 11, mediaHouse: 'VTV Gujarati', logo: '/logos/press/vtv-gujarati-logo.png', quote: "VTV Gujarati is a prominent regional news platform covering business, innovation, and consumer trends.", date: "2024" },
+  { id: 12, mediaHouse: 'India Global Live', logo: '/logos/press/india-global-live-logo.png', quote: "India Global Live featured PinoBite's vision of making premium nutrition accessible to Indian consumers.", date: "2024" },
 ];
 
 const PressUpdates: React.FC<PressUpdatesProps> = ({ pressUpdates: _ignored }) => {
@@ -85,7 +92,7 @@ const PressUpdates: React.FC<PressUpdatesProps> = ({ pressUpdates: _ignored }) =
       {/* Header - Constrained */}
       <div className="max-w-7xl mx-auto px-4 text-center mb-16">
         <span className="font-handdrawn text-3xl text-primary transform -rotate-2 inline-block mb-2">
-          Viral Hit Group
+          As Seen In
         </span>
         <h2 className="text-5xl md:text-6xl font-black text-slate-900 uppercase tracking-tight leading-none">
           OMG Stop The Press!
@@ -116,8 +123,9 @@ const PressUpdates: React.FC<PressUpdatesProps> = ({ pressUpdates: _ignored }) =
                 <div className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center mb-6 border border-slate-100 shadow-sm overflow-hidden flex-shrink-0">
                   <img
                     src={item.logo}
-                    alt={item.mediaHouse}
+                    alt={`${item.mediaHouse} logo`}
                     className="w-16 h-16 object-contain"
+                    loading="lazy"
                   />
                 </div>
 
