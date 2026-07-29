@@ -1,10 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { CartItem } from '../types';
 import { API_BASE_URL } from '../config';
 import { triggerRewardNotification } from './RewardNotification';
 import { useToast } from './Toast';
 import confetti from 'canvas-confetti';
+import Header from './Header';
+import Footer from './Footer';
+import BorderGlow from './BorderGlow';
 
 interface CheckoutPageProps {
   items: CartItem[];
@@ -462,13 +464,23 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
                   <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pay when you receive</span>
                 </div>
               </label>
-              <label className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'special_cod' ? 'border-purple-600 bg-purple-50' : 'border-slate-100 hover:border-slate-200'}`}>
-                <input type="radio" name="paymentMethod" value="special_cod" checked={paymentMethod === 'special_cod'} onChange={() => setPaymentMethod('special_cod')} className="w-4 h-4 text-purple-600 focus:ring-purple-600 accent-purple-600" />
-                <div className="flex flex-col">
-                  <span className="font-black uppercase text-purple-900">Special COD</span>
-                  <span className="text-[9px] sm:text-[10px] font-bold text-purple-600 uppercase tracking-widest">+₹5000 Premium</span>
-                </div>
-              </label>
+              <div className="relative cursor-pointer rounded-2xl h-full shadow-sm">
+                <BorderGlow
+                  borderRadius={16}
+                  glowRadius={80}
+                  colors={['#c084fc', '#f472b6', '#38bdf8']}
+                  backgroundColor={paymentMethod === 'special_cod' ? '#faf5ff' : '#ffffff'}
+                  className={paymentMethod === 'special_cod' ? 'ring-2 ring-purple-600' : 'ring-2 ring-slate-100 hover:ring-slate-200'}
+                >
+                  <label className="flex items-center gap-3 p-4 rounded-2xl w-full h-full cursor-pointer transition-all">
+                    <input type="radio" name="paymentMethod" value="special_cod" checked={paymentMethod === 'special_cod'} onChange={() => setPaymentMethod('special_cod')} className="w-4 h-4 text-purple-600 focus:ring-purple-600 accent-purple-600" />
+                    <div className="flex flex-col">
+                      <span className="font-black uppercase text-purple-900">Special COD</span>
+                      <span className="text-[9px] sm:text-[10px] font-bold text-purple-600 uppercase tracking-widest">+₹5000 Premium</span>
+                    </div>
+                  </label>
+                </BorderGlow>
+              </div>
             </div>
           </section>
 

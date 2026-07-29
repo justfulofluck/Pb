@@ -358,6 +358,69 @@ class BlogPostViewSet(viewsets.ModelViewSet):
             return BlogPost.objects.filter(is_active=True).order_by("-id")
         return BlogPost.objects.all().order_by("-id")
 
+    def _handle_usage_recipes(self, post, request):
+        usage_recipes = request.data.get('usage_recipes', None)
+        if usage_recipes is None:
+            return
+
+        import base64
+        import uuid
+        import json
+        from django.core.files.base import ContentFile
+        from django.core.files.storage import default_storage
+
+        new_recipes = []
+        if isinstance(usage_recipes, str):
+            try:
+                usage_recipes = json.loads(usage_recipes)
+            except json.JSONDecodeError:
+                usage_recipes = []
+
+        if not isinstance(usage_recipes, list):
+            return
+
+        for idx, recipe_data in enumerate(usage_recipes):
+            if not isinstance(recipe_data, dict):
+                continue
+            
+            image_data = recipe_data.get('image', '')
+            if image_data and isinstance(image_data, str) and image_data.startswith('data:'):
+                try:
+                    format_part, img_str = image_data.split(';base64,')
+                    ext = format_part.split('/')[-1]
+                    if ext == 'jpeg':
+                        ext = 'jpg'
+                    decoded = base64.b64decode(img_str)
+                    file_name = f"blog/recipes/recipe_{post.id}_{uuid.uuid4().hex[:8]}.{ext}"
+                    path = default_storage.save(file_name, ContentFile(decoded))
+                    recipe_data['image'] = f"/media/{path}"
+                except Exception as e:
+                    print(f"Error saving blog usage recipe image: {e}")
+            elif image_data and isinstance(image_data, str) and not image_data.startswith('data:'):
+                clean_path = image_data
+                if clean_path.startswith('/media/'):
+                    clean_path = clean_path[7:]
+                elif clean_path.startswith('http'):
+                    from urllib.parse import urlparse
+                    parsed = urlparse(clean_path)
+                    clean_path = parsed.path
+                    if clean_path.startswith('/media/'):
+                        clean_path = clean_path[7:]
+                recipe_data['image'] = f"/media/{clean_path}" if not clean_path.startswith('/media/') else clean_path
+                
+            new_recipes.append(recipe_data)
+
+        post.usage_recipes = new_recipes
+        post.save(update_fields=['usage_recipes'])
+
+    def perform_update(self, serializer):
+        super().perform_update(serializer)
+        self._handle_usage_recipes(serializer.instance, self.request)
+
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        self._handle_usage_recipes(serializer.instance, self.request)
+
 
 class StoryViewSet(viewsets.ModelViewSet):
     queryset = Story.objects.all()

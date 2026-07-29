@@ -90,11 +90,10 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
 
               {/* Heading */}
               <h2
-                className="leading-[1.05] uppercase mb-4 sm:mb-6"
+                className="font-anton leading-[1.05] uppercase mb-4 sm:mb-6 tracking-wide"
                 style={{
                   color: '#ffffff',
-                  fontFamily: 'var(--font-bombi, "Gochi Hand", cursive)',
-                  fontSize: 'clamp(2.5rem, 8vw, 4.5rem)'
+                  fontSize: 'clamp(3rem, 10vw, 80px)'
                 }}
               >
                 WE SERVE<br className="hidden md:block" />{' '}

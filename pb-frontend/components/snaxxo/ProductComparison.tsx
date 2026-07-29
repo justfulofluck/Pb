@@ -16,7 +16,7 @@ const ProductComparison: React.FC<ProductComparisonProps> = ({ product }) => {
         if (cat.includes('oat')) {
             return '/assets/oats-display.jpg';
         }
-        return '/assets/peanut-butter-display.jpg';
+        return '/assets/bottle.png';
     };
 
     const comparisonRows = [
@@ -67,7 +67,7 @@ const ProductComparison: React.FC<ProductComparisonProps> = ({ product }) => {
                         </div>
 
                         <div className="w-1/2 flex justify-center">
-                            <div className="h-32 md:h-48 pb-2">
+                            <div className="h-28 md:h-40 pb-2">
                                 <img
                                     src={getMediaUrl(getOthersImage())}
                                     alt="Others"
@@ -142,7 +142,7 @@ const ProductComparison: React.FC<ProductComparisonProps> = ({ product }) => {
                             <img
                                 src={getMediaUrl(getOthersImage())}
                                 alt="Others"
-                                className="h-20 object-contain mb-3 brightness-95 opacity-80"
+                                className="h-16 object-contain mb-3 brightness-95 opacity-80"
                             />
                         </div>
                         <div className="w-1/2 bg-[#1f3a47] pt-6 pb-4 px-2 flex flex-col items-center z-10 border-b-2 border-[#1f3a47]">

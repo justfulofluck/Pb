@@ -61,7 +61,7 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeCli
   };
 
   return (
-    <div className="bg-surface text-on-surface font-body min-h-screen animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="bg-whiteboard texture-overlay texture-speckles text-on-surface font-body min-h-screen animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Progress Bar */}
       <div className="fixed top-0 left-0 w-full h-1 bg-surface-container-low z-50">
         <div className="h-full bg-primary w-full origin-left transition-transform duration-1000"></div>
@@ -100,14 +100,16 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeCli
         </header>
 
         {/* Image Bleed */}
-        <div className="mb-24 -mx-4 md:-mx-20 relative group">
-          <img 
-            className="w-full h-[400px] md:h-[600px] object-cover rounded-3xl shadow-2xl transition-transform duration-700 group-hover:scale-[1.01]" 
-            src={getMediaUrl(post.image)} 
-            alt={post.title}
-          />
-          <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-black/10"></div>
-        </div>
+        {getMediaUrl(post.image) && (
+          <div className="mb-24 -mx-4 md:-mx-20 relative group">
+            <img 
+              className="w-full h-[400px] md:h-[600px] object-cover rounded-3xl shadow-2xl transition-transform duration-700 group-hover:scale-[1.01]" 
+              src={getMediaUrl(post.image)} 
+              alt={post.title}
+            />
+            <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-black/10"></div>
+          </div>
+        )}
 
         {/* Intro Section & Key Points Grid */}
         <div className="mb-24">
@@ -132,20 +134,23 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeCli
         </div>
 
         {/* Secondary Image & History/Intro Content */}
-        {post.secondary_image && (
-          <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
-            <div className="order-2 md:order-1">
-              <img src={getMediaUrl(post.secondary_image)} alt="Process" className="w-full rounded-3xl shadow-xl aspect-[4/5] object-cover" />
+        <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
+          {post.secondary_image && getMediaUrl(post.secondary_image) && (
+            <div className="md:w-1/3 flex items-start order-2 md:order-1">
+              <div className="w-full relative group">
+                <img src={getMediaUrl(post.secondary_image)} alt="Process" className="w-full rounded-3xl shadow-xl aspect-[4/5] object-cover" />
+                <div className="absolute inset-0 rounded-3xl ring-1 ring-inset ring-black/10"></div>
+              </div>
             </div>
-            <div className="order-1 md:order-2 space-y-6">
-              <span className="text-xs font-black uppercase tracking-[0.3em] text-primary">The Heritage</span>
-              <h2 className="text-3xl font-black text-on-background uppercase leading-none">Rooted in Tradition</h2>
-              <p className="text-lg text-on-surface-variant leading-relaxed">
-                {post.excerpt}
-              </p>
-            </div>
+          )}
+          <div className="order-1 md:order-2 space-y-6">
+            <span className="text-xs font-black uppercase tracking-[0.3em] text-primary">The Heritage</span>
+            <h2 className="text-3xl font-black text-on-background uppercase leading-none">Rooted in Tradition</h2>
+            <p className="text-lg text-on-surface-variant leading-relaxed">
+              {post.excerpt}
+            </p>
           </div>
-        )}
+        </div>
 
         {/* Featured Quote Section */}
         {post.featured_quote && (
@@ -186,11 +191,14 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeCli
                 ))}
               </div>
             </div>
-            {post.tertiary_image && (
-              <div className="relative group">
-                <img src={getMediaUrl(post.tertiary_image)} alt="Benefits" className="w-full rounded-[2.5rem] shadow-2xl grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700" />
-                <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-primary rounded-full flex items-center justify-center text-white p-6 text-center text-[10px] font-black uppercase tracking-widest shadow-xl rotate-12 group-hover:rotate-0 transition-transform">
-                  Power Packed
+            {post.tertiary_image && getMediaUrl(post.tertiary_image) && (
+              <div className="w-full md:w-1/2 flex items-center justify-center p-8">
+                <div className="w-full max-w-md relative group perspective-1000">
+                  <img src={getMediaUrl(post.tertiary_image)} alt="Benefits" className="w-full rounded-[2.5rem] shadow-2xl grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700" />
+                  <div className="absolute inset-0 rounded-[2.5rem] ring-1 ring-inset ring-black/10"></div>
+                  <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-primary rounded-full flex items-center justify-center text-white p-6 text-center text-[10px] font-black uppercase tracking-widest shadow-xl rotate-12 group-hover:rotate-0 transition-transform">
+                    Power Packed
+                  </div>
                 </div>
               </div>
             )}
@@ -222,8 +230,12 @@ const BlogDetailPage: React.FC<BlogDetailPageProps> = ({ post, onBack, onHomeCli
             <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
               {post.usage_recipes.map((recipe, idx) => (
                 <div key={idx} className="flex flex-col items-center text-center group cursor-pointer">
-                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-surface-container shadow-xl mb-6 group-hover:border-primary transition-colors duration-500 ring-8 ring-transparent group-hover:ring-primary/10">
-                    <img src={getMediaUrl(recipe.image)} alt={recipe.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <div className="w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-4 border-surface-container shadow-xl mb-6 group-hover:border-primary transition-colors duration-500 ring-8 ring-transparent group-hover:ring-primary/10 bg-slate-100 flex items-center justify-center">
+                    {getMediaUrl(recipe.image) ? (
+                      <img src={getMediaUrl(recipe.image)} alt={recipe.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    ) : (
+                      <span className="material-symbols-outlined text-4xl text-slate-300">restaurant</span>
+                    )}
                   </div>
                   <h4 className="text-sm font-black uppercase tracking-tight mb-2 group-hover:text-primary transition-colors">{recipe.title}</h4>
                   <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-60 leading-relaxed px-4">

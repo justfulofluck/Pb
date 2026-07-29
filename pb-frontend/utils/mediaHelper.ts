@@ -26,8 +26,26 @@ export const getMediaUrl = (path: string | null | undefined): string | undefined
   // Handle data URLs (both raw, URL encoded, or with /media/ prepended)
   const tryDecodeDataUrl = (str: string): string | null => {
     let current = str.replace(/[\r\n\s]+/g, '');
+    
+    // Quick validation to prevent broken base64 images from rendering
+    if (current === 'data:;base64,=' || current === 'data:,' || current === 'data:;base64,') {
+      return null;
+    }
+
+    const validateDataUrl = (data: string) => {
+      if (data === 'data:;base64,=' || data === 'data:,' || data === 'data:;base64,') return null;
+      if (data.startsWith('data:')) {
+        // If it's a data URL but very short, it's likely broken
+        if (data.length < 20 && data.includes('base64')) return null;
+        return data;
+      }
+      return null;
+    };
+
     for (let i = 0; i < 3; i++) {
-      if (current.startsWith('data:')) return current.replace(/[\r\n\s]+/g, '');
+      const valid = validateDataUrl(current);
+      if (valid) return valid;
+      
       const lower = current.toLowerCase();
       if (lower.startsWith('data%')) {
         try { current = decodeURIComponent(current); } catch { break; }
@@ -35,11 +53,14 @@ export const getMediaUrl = (path: string | null | undefined): string | undefined
         break;
       }
     }
-    if (current.startsWith('data:')) return current.replace(/[\r\n\s]+/g, '');
+    
+    const valid = validateDataUrl(current);
+    if (valid) return valid;
     
     try {
       const decoded = decodeURIComponent(str);
-      if (decoded.startsWith('data:')) return decoded.replace(/[\r\n\s]+/g, '');
+      const validDecoded = validateDataUrl(decoded.replace(/[\r\n\s]+/g, ''));
+      if (validDecoded) return validDecoded;
     } catch { /* ignore */ }
     return null;
   };

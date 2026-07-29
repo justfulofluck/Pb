@@ -10,13 +10,12 @@ const STATIC_PRESS_UPDATES: PressUpdate[] = [
   { id: 1, mediaHouse: 'Business Standard', logo: '/logos/press/business-standard-logo.svg', quote: "Business Standard highlighted PinoBite's commitment to premium ingredients and its growing presence in India's healthy snacking market.", date: "2024" },
   { id: 2, mediaHouse: 'ANI (Asian News International)', logo: '/logos/press/ani-logo.svg', quote: "ANI covered PinoBite's expansion and its mission to provide healthier food choices to Indian consumers.", date: "2024" },
   { id: 3, mediaHouse: 'News18', logo: '/logos/press/news18-logo.svg', quote: "News18 recognized PinoBite as a rapidly growing premium food brand focused on nutrition and quality.", date: "2024" },
-  { id: 4, mediaHouse: 'The Tribune', logo: '/logos/press/the-tribune-logo.svg', quote: "The Tribune featured PinoBite's premium peanut butter products and consumer-first approach.", date: "2024" },
-  { id: 5, mediaHouse: 'Lokmat English', logo: '/logos/press/lokmat-english-logo.svg', quote: "Lokmat English highlighted PinoBite's growing popularity among health-conscious consumers.", date: "2024" },
-  { id: 6, mediaHouse: 'Gujarat Samachar', logo: '/logos/press/gujarat-samachar-logo.png', quote: "Gujarat Samachar is one of Gujarat's most trusted newspapers, known for strong regional business and consumer coverage.", date: "2024" },
+  { id: 4, mediaHouse: 'The Tribune', logo: '/logos/press/the-tribune-logo.png', quote: "The Tribune featured PinoBite's premium peanut butter products and consumer-first approach.", date: "2024" },
+  { id: 6, mediaHouse: 'Gujarat Samachar', logo: '/logos/press/gujarat-samachar-logo.svg', quote: "Gujarat Samachar is one of Gujarat's most trusted newspapers, known for strong regional business and consumer coverage.", date: "2024" },
   { id: 7, mediaHouse: 'Divya Bhaskar', logo: '/logos/press/divya-bhaskar-logo.png', quote: "Divya Bhaskar reaches millions of readers across Gujarat and regularly features regional business success stories.", date: "2024" },
-  { id: 8, mediaHouse: 'Sandesh', logo: '/logos/press/sandesh-logo.png', quote: "Sandesh is among Gujarat's leading newspapers with extensive coverage of business, lifestyle, and local brands.", date: "2024" },
+  { id: 8, mediaHouse: 'Sandesh', logo: '/logos/press/sandesh-logo.webp', quote: "Sandesh is among Gujarat's leading newspapers with extensive coverage of business, lifestyle, and local brands.", date: "2024" },
   { id: 9, mediaHouse: 'TV9 Gujarati', logo: '/logos/press/tv9-gujarati-logo.svg', quote: "TV9 Gujarati covers regional business developments, startups, and consumer-focused stories across Gujarat.", date: "2024" },
-  { id: 10, mediaHouse: 'ABP Asmita', logo: '/logos/press/abp-asmita-logo.png', quote: "ABP Asmita is one of Gujarat's leading television news channels, trusted for regional news and business coverage.", date: "2024" },
+  { id: 10, mediaHouse: 'ABP Asmita', logo: '/logos/press/abp-asmita-logo.svg', quote: "ABP Asmita is one of Gujarat's leading television news channels, trusted for regional news and business coverage.", date: "2024" },
   { id: 11, mediaHouse: 'VTV Gujarati', logo: '/logos/press/vtv-gujarati-logo.png', quote: "VTV Gujarati is a prominent regional news platform covering business, innovation, and consumer trends.", date: "2024" },
   { id: 12, mediaHouse: 'India Global Live', logo: '/logos/press/india-global-live-logo.png', quote: "India Global Live featured PinoBite's vision of making premium nutrition accessible to Indian consumers.", date: "2024" },
 ];
@@ -92,10 +91,10 @@ const PressUpdates: React.FC<PressUpdatesProps> = ({ pressUpdates: _ignored }) =
       {/* Header - Constrained */}
       <div className="max-w-7xl mx-auto px-4 text-center mb-16">
         <span className="font-handdrawn text-3xl text-primary transform -rotate-2 inline-block mb-2">
-          As Seen In
+          Trusted by the Media
         </span>
         <h2 className="text-5xl md:text-6xl font-black text-slate-900 uppercase tracking-tight leading-none">
-          OMG Stop The Press!
+          Coverage That Speaks for Itself
         </h2>
       </div>
 
@@ -119,12 +118,11 @@ const PressUpdates: React.FC<PressUpdatesProps> = ({ pressUpdates: _ignored }) =
                   "
                 </span>
 
-                {/* Media House Logo */}
-                <div className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center mb-6 border border-slate-100 shadow-sm overflow-hidden flex-shrink-0">
+                <div className="h-10 sm:h-12 flex items-center justify-center mb-6 flex-shrink-0 w-full">
                   <img
                     src={item.logo}
                     alt={`${item.mediaHouse} logo`}
-                    className="w-16 h-16 object-contain"
+                    className="h-full w-auto max-w-[80%] object-contain opacity-90 hover:opacity-100 transition-opacity"
                     loading="lazy"
                   />
                 </div>

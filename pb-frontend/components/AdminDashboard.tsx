@@ -40,9 +40,9 @@ interface AdminDashboardProps {
   onAddAnnouncement: (a: Announcement) => void;
   onDeleteAnnouncement: (id: number) => void;
   onUpdateAnnouncement: (a: Announcement) => void;
-  pressUpdates: PressUpdate[];
-  onAddPressUpdate: (up: Partial<PressUpdate>) => void;
-  onDeletePressUpdate: (id: string) => void;
+  pressUpdates?: PressUpdate[];
+  onAddPressUpdate?: (up: Partial<PressUpdate>) => void;
+  onDeletePressUpdate?: (id: string) => void;
   customers: Customer[];
   onToggleCustomerActive: (id: string) => void;
   onDeleteCustomer: (id: string) => void;
@@ -97,9 +97,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onAddAnnouncement,
   onDeleteAnnouncement,
   onUpdateAnnouncement,
-  pressUpdates,
-  onAddPressUpdate,
-  onDeletePressUpdate,
+  pressUpdates = [],
+  onAddPressUpdate = () => {},
+  onDeletePressUpdate = () => {},
   customers,
   onToggleCustomerActive,
   onDeleteCustomer

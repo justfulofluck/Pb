@@ -142,10 +142,10 @@ const YouMightAlsoLike: React.FC<YouMightAlsoLikeProps> = ({
       {/* Section Heading */}
       <div className="text-center mb-12">
         <h2
-          className="text-[2rem] md:text-[2.6rem] lg:text-[3rem] uppercase tracking-wide"
+          className="font-anton uppercase tracking-wide"
           style={{
-            fontFamily: 'var(--font-bombi, "Anton", sans-serif)',
             color: '#1a1a1a',
+            fontSize: 'clamp(3rem, 10vw, 80px)',
           }}
         >
           You Might Also Like
@@ -161,7 +161,7 @@ const YouMightAlsoLike: React.FC<YouMightAlsoLikeProps> = ({
           onMouseLeave={handleMouseLeave}
           onMouseUp={handleMouseUp}
           onMouseMove={handleMouseMove}
-          className="flex gap-5 sm:gap-8 md:gap-16 lg:gap-20 overflow-x-auto pb-4 scroll-smooth select-none ymall-scroll"
+          className="flex gap-5 sm:gap-8 md:gap-16 lg:gap-20 overflow-x-auto pb-4 select-none ymall-scroll"
           style={{
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',

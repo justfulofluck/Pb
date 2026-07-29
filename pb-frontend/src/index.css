@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Bayon&family=Gabarito:wght@400;500;700;800&family=Luckiest+Guy&family=Poppins:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Gochi+Hand&display=swap');
 @import url('https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,300,400&display=swap');
 @import "tailwindcss";
-@import "./legacy-vibe.css" layer(base);
 
 @theme {
   --font-anton: "Anton", sans-serif;

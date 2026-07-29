@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
 import HeroSliderVersion2 from './components/herosliderverson2';
 import CategoryList from './components/CategoryList';
-import ProductGrid from './components/ProductGrid';
 import LatestProductShowcase from './components/LatestProductShowcase';
 import ComparisonTable from './components/ComparisonTable';
 import Testimonials from './components/Testimonials';
 import Newsletter from './components/Newsletter';
 import SnaxxoFooter from './components/snaxxo/SnaxxoFooter';
 const CartDrawer = React.lazy(() => import('./components/CartDrawer'));
-import ProductModal from './components/ProductModal';
 const AuthModal = React.lazy(() => import('./components/AuthModal'));
 const ProductPage = React.lazy(() => import('./components/ProductPage'));
 const ShopPage = React.lazy(() => import('./components/ShopPage'));
@@ -42,7 +39,6 @@ const EventModal = React.lazy(() => import('./components/EventModal'));
 import StoryCarousel from './components/StoryCarousel';
 import { adminApiFetch } from './utils/adminApi';
 import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category, Announcement, PressUpdate, Customer } from './types';
-import SnaxxoLanding from './components/snaxxo/SnaxxoLanding';
 const SnaxxoProductWheel = React.lazy(() => import('./components/snaxxo/SnaxxoProductWheel'));
 import PressUpdates from './components/PressUpdates';
 import MobileBottomNav from './components/MobileBottomNav';
@@ -53,12 +49,6 @@ const INITIAL_REVIEWS: Review[] = [];
 const INITIAL_EVENTS: EventBlog[] = [];
 const INITIAL_SLIDES: HeroSlide[] = [];
 const INITIAL_CATEGORIES: Category[] = [];
-
-const CURRENT_USER = {
-  name: "Alex Fueler",
-  role: "Pro Member",
-  avatar: "https://ui-avatars.com/api/?name=Alex+Fueler&background=008a45&color=fff"
-};
 
 type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey' | 'privacy-policy' | 'terms-and-conditions' | 'refund-policy' | 'shipping-policy' | 'visitor-form' | 'distributor' | 'shared-wishlist' | 'not-found';
 
@@ -913,7 +903,7 @@ const AppContent: React.FC = () => {
 
   const handleUpdateEvent = async (updatedEvent: EventBlog) => {
     try {
-      const response = await adminApiFetch(`${API_BASE_URL}/api/products/${updatedProduct.id}/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/events/${updatedEvent.id}/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1019,22 +1009,6 @@ const AppContent: React.FC = () => {
       }
     } catch (err) {
       console.error("Failed to add slide caught:", err);
-    }
-  };
-
-  const handleAddRewardRule = async (newRule: Omit<RewardRule, 'id'>) => {
-    try {
-      const response = await adminApiFetch(`${API_BASE_URL}/api/reward-rules/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRule),
-      });
-      if (response.ok) {
-        const createdRule = await response.json();
-        setRewardRules(prev => [...prev, createdRule]);
-      }
-    } catch (err) {
-      console.error("Failed to add reward rule:", err);
     }
   };
 
@@ -1166,7 +1140,7 @@ const AppContent: React.FC = () => {
 
   const handleUpdateAnnouncement = async (updatedA: Announcement) => {
     try {
-      const response = await adminApiFetch(`${API_BASE_URL}/api/events/${updatedEvent.id}/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/announcements/${updatedA.id}/`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1577,9 +1551,6 @@ const AppContent: React.FC = () => {
         onAddAnnouncement={handleAddAnnouncement}
         onUpdateAnnouncement={handleUpdateAnnouncement}
         onDeleteAnnouncement={handleDeleteAnnouncement}
-        pressUpdates={pressUpdates}
-        onAddPressUpdate={handleAddPressUpdate}
-        onDeletePressUpdate={handleDeletePressUpdate}
         customers={customersQuery.data || []}
         onToggleCustomerActive={handleToggleCustomerActive}
         onDeleteCustomer={handleDeleteCustomer}
@@ -1671,18 +1642,6 @@ const AppContent: React.FC = () => {
                     onProductClick={navigateToProduct}
                     isLoading={isLoading}
                     onShopClick={navigateToShop}
-                    onHomeClick={goHome}
-                    onFAQClick={navigateToFAQ}
-
-                    onBlogsClick={navigateToBlogs}
-                    onEventBlogsClick={navigateToEventBlogs}
-                    onAdminClick={navigateToAdmin}
-                    onJourneyClick={navigateToJourney}
-                    onPrivacyClick={navigateToPrivacy}
-                    onTermsClick={navigateToTerms}
-                    onRefundClick={navigateToRefund}
-                    onShippingClick={navigateToShipping}
-                    onDistributorClick={navigateToDistributor}
                   />
                 </div>
               )}

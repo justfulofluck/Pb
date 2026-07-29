@@ -397,18 +397,18 @@ const ProductPage: React.FC<ProductPageProps> = ({
         )}
         <div className="w-layout-blockcontainer container product-page-hero w-container !pt-2 md:!pt-6 !mt-0 relative z-10">
           <div className="content-wrapper product-page-hero">
-            <div className="heading-text-box pdp-h1 mt-0 pt-0 px-6 md:px-12 lg:px-16 mb-[-50px] lg:mb-[-4rem]">
-              <h1 ref={titleRef} style={{ color: '#fff', textShadow: '0 4px 20px rgba(0,0,0,0.2)', lineHeight: '1.1', fontSize: 'clamp(2.2rem, 10vw, 120px)' }} className="!font-anton font-bold uppercase tracking-wide [word-spacing:0.15em] md:[word-spacing:0.05em]">
+            <div className="heading-text-box pdp-h1 mt-0 pt-0 px-6 md:px-12 lg:px-16 mb-[-50px] lg:mb-[-4rem] w-full flex justify-center text-center mx-auto">
+              <h1 ref={titleRef} style={{ color: '#fff', textShadow: '0 4px 20px rgba(0,0,0,0.2)', lineHeight: '1.1', fontSize: 'clamp(2.2rem, 10vw, 120px)' }} className="!font-anton font-bold uppercase tracking-wide [word-spacing:0.15em] md:[word-spacing:0.05em] text-center mx-auto">
                 {product.name}
               </h1>
             </div>
-            <div className="product-page-hero-bottom-content flex flex-col lg:flex-row items-center lg:items-end justify-between relative px-2 md:px-0 mt-[-1rem] md:mt-0 lg:pb-35">
+            <div className="product-page-hero-bottom-content flex flex-col lg:flex-row items-center lg:items-end justify-between relative px-2 md:px-0 mt-[-1rem] md:mt-0 pb-16 lg:pb-32 z-20">
               <div className="content-block pdp-01 w-full lg:w-[22%] order-2 lg:order-1 mt-2 lg:mt-[-40px] flex flex-col items-center lg:items-start">
                 <div className="hidden md:block text-box pdp-description text-center lg:text-left mx-auto lg:mx-0 px-2 sm:px-4 md:px-0" data-snaxxo-animate>
                   <div className="pdp-ingredients-popup-container flex justify-center lg:justify-start">
-                    <a onClick={(e) => { e.preventDefault(); setShowIngredients(true); onPopupToggle?.(true); }} style={{ borderColor: '#ffffff', cursor: 'pointer' }} className="pdp-nutrition-popup-toggle w-inline-block hover:bg-white/10 transition-colors py-2 px-4 border rounded-full">
-                      <p style={{ color: '#ffffff' }} className="paragraph no-margin !text-[10px] sm:!text-xs uppercase tracking-widest font-bold">Nutrition &amp; Ingredients</p>
-                      <div className="pdp-plus w-embed ml-2 w-3 h-3 sm:w-4 sm:h-4">
+                    <a onClick={(e) => { e.preventDefault(); setShowIngredients(true); onPopupToggle?.(true); }} style={{ borderColor: '#ffffff', cursor: 'pointer' }} className="pdp-nutrition-popup-toggle inline-flex items-center justify-center gap-2 hover:bg-white/10 transition-colors py-2 px-4 border rounded-full">
+                      <span style={{ color: '#ffffff' }} className="paragraph no-margin !text-[10px] sm:!text-xs uppercase tracking-widest font-bold">Nutrition &amp; Ingredients</span>
+                      <div className="pdp-plus w-embed w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" style={{ width: 'inherit', height: 'inherit' }} fill="#ffffff" viewBox="0 0 256 256">
                           <path d="M228,128a12,12,0,0,1-12,12H140v76a12,12,0,0,1-24,0V140H40a12,12,0,0,1,0-24h76V40a12,12,0,0,1,24,0v76h76A12,12,0,0,1,228,128Z" />
                         </svg>
@@ -594,9 +594,9 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
 
 
-      <section className="section overflow-hidden" style={{ backgroundColor: '#f2f2ec' }}>
-        <div className="w-layout-blockcontainer container product-page-intro w-container">
-          <div className="content-wrapper product-page-intro">
+      <section className="section overflow-hidden flex flex-col items-center w-full" style={{ backgroundColor: '#f2f2ec' }}>
+        <div className="w-layout-blockcontainer container product-page-intro w-container mx-auto">
+          <div className="content-wrapper product-page-intro w-full">
 
           </div>
           <div className="content-wrapper intro-pdf w-full overflow-hidden">
@@ -630,7 +630,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
             </div>
 
             {/* Desktop layout: image center + 4 corner text blocks */}
-            <div ref={statsSectionRef} className="hidden md:block relative w-full" style={{ minHeight: '640px' }}>
+            <div ref={statsSectionRef} className="hidden md:block relative w-full max-w-[1100px] mx-auto" style={{ minHeight: '640px' }}>
 
               {/* Center Image */}
               <div className="absolute inset-0 flex justify-center items-center" style={{ zIndex: 1 }}>
@@ -695,36 +695,40 @@ const ProductPage: React.FC<ProductPageProps> = ({
               {/* At 1920px: text right/left edges at ~14.5%, image edges at ~38% (left) and ~62% (right) */}
               {/* At 640px height: top text center ~20%, bottom text center ~80%, image occupies ~10-90% */}
 
-              {/* TOP-LEFT arrow: gentle wide S — leans outward then sweeps in */}
-              <div style={{ position: 'absolute', left: '15%', top: '15%', width: '23%', height: '22%', pointerEvents: 'none', zIndex: 3 }}>
-                <svg viewBox="0 0 100 100" fill="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                  <path d="M 0,0 C 70,-25 30,125 100,100" stroke={bgColor} strokeWidth="1.8" strokeLinecap="round" fill="none" />
-                  <rect x="-5" y="-5" width="10" height="10" fill={bgColor} transform="rotate(45 0 0)" />
+              {/* TOP-LEFT arrow */}
+              <div style={{ position: 'absolute', left: '18%', top: '22%', width: '18%', height: '16%', pointerEvents: 'none', zIndex: 3 }}>
+                <svg viewBox="0 0 100 100" fill="none" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                  <path d="M 0,0 C 60,0 40,100 100,100" stroke={bgColor} strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke" />
                 </svg>
+                <div style={{ position: 'absolute', top: '-4px', left: '-4px', width: '8px', height: '8px', backgroundColor: bgColor, transform: 'rotate(45deg)' }} />
+                <div style={{ position: 'absolute', bottom: '-3px', right: '-3px', width: '6px', height: '6px', backgroundColor: bgColor, borderRadius: '50%' }} />
               </div>
 
-              {/* BOTTOM-LEFT arrow: tight early S — curves quickly then stretches flat */}
-              <div style={{ position: 'absolute', left: '15%', bottom: '15%', width: '23%', height: '22%', pointerEvents: 'none', zIndex: 3 }}>
-                <svg viewBox="0 0 100 100" fill="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                  <path d="M 0,100 C 20,140 80,-30 100,0" stroke={bgColor} strokeWidth="1.8" strokeLinecap="round" fill="none" />
-                  <rect x="-5" y="95" width="10" height="10" fill={bgColor} transform="rotate(45 0 100)" />
+              {/* BOTTOM-LEFT arrow */}
+              <div style={{ position: 'absolute', left: '18%', bottom: '22%', width: '18%', height: '16%', pointerEvents: 'none', zIndex: 3 }}>
+                <svg viewBox="0 0 100 100" fill="none" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                  <path d="M 0,100 C 60,100 40,0 100,0" stroke={bgColor} strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke" />
                 </svg>
+                <div style={{ position: 'absolute', bottom: '-4px', left: '-4px', width: '8px', height: '8px', backgroundColor: bgColor, transform: 'rotate(45deg)' }} />
+                <div style={{ position: 'absolute', top: '-3px', right: '-3px', width: '6px', height: '6px', backgroundColor: bgColor, borderRadius: '50%' }} />
               </div>
 
-              {/* TOP-RIGHT arrow: elongated S — starts nearly flat then plunges down */}
-              <div style={{ position: 'absolute', right: '15%', top: '15%', width: '23%', height: '22%', pointerEvents: 'none', zIndex: 3 }}>
-                <svg viewBox="0 0 100 100" fill="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                  <path d="M 100,0 C 30,-30 70,125 0,100" stroke={bgColor} strokeWidth="1.8" strokeLinecap="round" fill="none" />
-                  <rect x="95" y="-5" width="10" height="10" fill={bgColor} transform="rotate(45 100 0)" />
+              {/* TOP-RIGHT arrow */}
+              <div style={{ position: 'absolute', right: '18%', top: '22%', width: '18%', height: '16%', pointerEvents: 'none', zIndex: 3 }}>
+                <svg viewBox="0 0 100 100" fill="none" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                  <path d="M 100,0 C 40,0 60,100 0,100" stroke={bgColor} strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke" />
                 </svg>
+                <div style={{ position: 'absolute', top: '-4px', right: '-4px', width: '8px', height: '8px', backgroundColor: bgColor, transform: 'rotate(45deg)' }} />
+                <div style={{ position: 'absolute', bottom: '-3px', left: '-3px', width: '6px', height: '6px', backgroundColor: bgColor, borderRadius: '50%' }} />
               </div>
 
-              {/* BOTTOM-RIGHT arrow: wide swooping S — lazy wide arc with late curve */}
-              <div style={{ position: 'absolute', right: '15%', bottom: '15%', width: '23%', height: '22%', pointerEvents: 'none', zIndex: 3 }}>
-                <svg viewBox="0 0 100 100" fill="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                  <path d="M 100,100 C 30,140 70,-50 0,0" stroke={bgColor} strokeWidth="1.8" strokeLinecap="round" fill="none" />
-                  <rect x="95" y="95" width="10" height="10" fill={bgColor} transform="rotate(45 100 100)" />
+              {/* BOTTOM-RIGHT arrow */}
+              <div style={{ position: 'absolute', right: '18%', bottom: '22%', width: '18%', height: '16%', pointerEvents: 'none', zIndex: 3 }}>
+                <svg viewBox="0 0 100 100" fill="none" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                  <path d="M 100,100 C 40,100 60,0 0,0" stroke={bgColor} strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke" />
                 </svg>
+                <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', width: '8px', height: '8px', backgroundColor: bgColor, transform: 'rotate(45deg)' }} />
+                <div style={{ position: 'absolute', top: '-3px', left: '-3px', width: '6px', height: '6px', backgroundColor: bgColor, borderRadius: '50%' }} />
               </div>
 
             </div>
@@ -735,48 +739,37 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 const displayBenefits = filtered.length > 0 ? filtered : ["100% Roasted Peanuts", "High Protein Power", "Rich In Dietary Fiber", "Zero Trans Fat"];
 
                 const icons = [
-                  // High Fiber / Plant
+                  // 100% Roasted Peanuts (Flame/Fire)
+                  <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.66 11.2c-.23-.3-.51-.56-.77-.82-.67-.6-1.43-1.03-2.07-1.66C13.33 7.26 13 4.85 13.95 3c-.95.23-1.78.75-2.49 1.32-2.59 2.08-3.61 5.75-2.39 8.9.04.1.08.2.08.33 0 .22-.15.42-.35.5-.22.1-.46.04-.64-.12-.06-.05-.11-.1-.15-.17-1.1-1.43-1.28-3.48-.53-5.12C5.89 10.02 5 12.3 5.14 14.47c.04.5.1 1 .27 1.5.14.6.4 1.2.72 1.73 1.04 1.73 2.87 2.97 4.84 3.22 2.1.27 4.35-.12 5.96-1.6 1.8-1.66 2.49-4.32 1.5-6.6l-.1-.26c-.19-.46-.42-.88-.67-1.26z"/>
+                  </svg>,
+                  // High Protein Power (Lightning Bolt)
+                  <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
+                  </svg>,
+                  // Rich In Dietary Fiber (Plant)
                   <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2C11.5 4 9.5 6 9 8.5C8.5 7.5 7.5 7 6.5 7C5 7 4 8.5 5 10C6 11.5 8 11.5 9.5 10.5C9.5 12.5 8 14 7.5 16C7 15 6 14.5 5 14.5C3.5 14.5 2.5 16 3.5 17.5C4.5 19 6.5 19 8 18C8.5 20.5 7.5 21.5 7 22H9C10.5 20.5 11.5 18 12 15C12.5 18 13.5 20.5 15 22H17C16.5 21.5 15.5 20.5 16 18C17.5 19 19.5 19 20.5 17.5C21.5 16 20.5 14.5 19 14.5C18 14.5 17 15 16.5 16C16 14 14.5 12.5 14.5 10.5C16 11.5 18 11.5 19 10C20 8.5 19 7 17.5 7C16.5 7 15.5 7.5 15 8.5C14.5 6 12.5 4 12 2Z" />
                   </svg>,
-                  // All Natural / Leaves
+                  // Zero Trans Fat (Shield Check)
                   <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17 8C14.2 8 12 10.2 12 13C12 15.8 14.2 18 17 18C19.8 18 22 15.8 22 13C22 8 17 8 17 8ZM15.5 14.5C14.7 13.7 14.7 12.3 15.5 11.5C16.3 10.7 17.7 10.7 18.5 11.5L15.5 14.5Z" />
-                    <path d="M7 10C4.2 10 2 12.2 2 15C2 17.8 4.2 20 7 20C9.8 20 12 17.8 12 15C12 10 7 10 7 10ZM5.5 16.5C4.7 15.7 4.7 14.3 5.5 13.5C6.3 12.7 7.7 12.7 8.5 13.5L5.5 16.5Z" opacity="0.9" />
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
                   </svg>,
-                  // Zero Sugar / Cubes
-                  <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 14.5L8 12.5L12 14.5L8 16.5L4 14.5Z" />
-                    <path d="M4 14.5V18.5L8 20.5V16.5L4 14.5Z" opacity="0.8" />
-                    <path d="M8 16.5V20.5L12 18.5V14.5L8 16.5Z" opacity="0.9" />
-                    <path d="M10 8.5L14 6.5L18 8.5L14 10.5L10 8.5Z" />
-                    <path d="M10 8.5V12.5L14 14.5V10.5L10 8.5Z" opacity="0.8" />
-                    <path d="M14 10.5V14.5L18 12.5V8.5L14 10.5Z" opacity="0.9" />
-                    <path d="M16.5 2C14.6 2 13 3.6 13 5.5C13 7.4 14.6 9 16.5 9C18.4 9 20 7.4 20 5.5C20 3.6 18.4 2 16.5 2ZM18 6.5L17.3 7.2L16.5 6.4L15.7 7.2L15 6.5L15.8 5.7L15 5L15.7 4.3L16.5 5.1L17.3 4.3L18 5L17.2 5.7L18 6.5Z" fill="currentColor" />
-                  </svg>,
-                  // Keto / Drop
-                  <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 6C9.5 9 6 12 6 15C6 17.8 8.2 20 11 20C13.8 20 16 17.8 16 15C16 12 14.5 9 12 6ZM11 18C9.3 18 8 16.7 8 15C8 13.8 9.5 11.5 11 9.5V18Z" opacity="0.9" />
-                    <path d="M16 10C14.5 11.8 12.5 13.8 12.5 15.8C12.5 17.7 14 19.2 15.8 19.2C17.7 19.2 19.2 17.7 19.2 15.8C19.2 13.8 18.2 11.8 16 10Z" />
-                  </svg>,
-                  // Kosher / Dome
+                  // Extra fallback icon if needed
                   <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 4C7 4 3 8 3 13H21C21 8 17 4 12 4ZM12 2C12.6 2 13 2.4 13 3C13 3.6 12.6 4 12 4C11.4 4 11 3.6 11 3C11 2.4 11.4 2 12 2ZM2 14C2 14.6 2.4 15 3 15H21C21.6 15 22 14.6 22 14C22 13.4 21.6 13 21 13H3C2.4 13 2 13.4 2 14Z" />
-                    <path d="M12 6.5L13.2 9H16L13.8 10.5L14.6 13L12 11.5L9.4 13L10.2 10.5L8 9H10.8L12 6.5Z" fill={bgColor} stroke="currentColor" strokeWidth="0.5" />
                   </svg>
                 ];
 
                 return displayBenefits.map((benefit, idx) => (
-                  <div key={idx} className="sub-icon-block benefits">
-                    <div style={{ backgroundColor: bgColor }} className="benefit-icon-wrap">
-                      <div className="benefit-icon w-embed text-white">
+                  <div key={idx} className="flex flex-col items-center text-center w-28 md:w-36">
+                    <div style={{ backgroundColor: bgColor }} className="flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full mb-3 shadow-lg shrink-0">
+                      <div className="w-8 h-8 md:w-10 md:h-10 text-white flex items-center justify-center">
                         {icons[idx % icons.length]}
                       </div>
                     </div>
-                    <div style={{ color: bgColor }} className="benefit-text-box">
-                      <div className="benefit-text-box pdp">
-                        <div style={{ color: bgColor }} className="benefit-title-pdp">{benefit}</div>
-                      </div>
+                    <div style={{ color: bgColor }} className="font-satoshi font-bold text-[13px] md:text-[15px] leading-tight">
+                      {benefit}
                     </div>
                   </div>
                 ));
