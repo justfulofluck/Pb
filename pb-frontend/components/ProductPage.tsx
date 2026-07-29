@@ -696,7 +696,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               {/* At 640px height: top text center ~20%, bottom text center ~80%, image occupies ~10-90% */}
 
               {/* TOP-LEFT arrow */}
-              <div style={{ position: 'absolute', left: '18%', top: '22%', width: '18%', height: '16%', pointerEvents: 'none', zIndex: 3 }}>
+              <div style={{ position: 'absolute', left: '26%', top: '16%', width: '11%', height: '20%', pointerEvents: 'none', zIndex: 3 }}>
                 <svg viewBox="0 0 100 100" fill="none" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
                   <path d="M 0,0 C 60,0 40,100 100,100" stroke={bgColor} strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke" />
                 </svg>
@@ -705,7 +705,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               </div>
 
               {/* BOTTOM-LEFT arrow */}
-              <div style={{ position: 'absolute', left: '18%', bottom: '22%', width: '18%', height: '16%', pointerEvents: 'none', zIndex: 3 }}>
+              <div style={{ position: 'absolute', left: '26%', bottom: '16%', width: '11%', height: '20%', pointerEvents: 'none', zIndex: 3 }}>
                 <svg viewBox="0 0 100 100" fill="none" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
                   <path d="M 0,100 C 60,100 40,0 100,0" stroke={bgColor} strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke" />
                 </svg>
@@ -714,7 +714,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               </div>
 
               {/* TOP-RIGHT arrow */}
-              <div style={{ position: 'absolute', right: '18%', top: '22%', width: '18%', height: '16%', pointerEvents: 'none', zIndex: 3 }}>
+              <div style={{ position: 'absolute', right: '26%', top: '16%', width: '11%', height: '20%', pointerEvents: 'none', zIndex: 3 }}>
                 <svg viewBox="0 0 100 100" fill="none" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
                   <path d="M 100,0 C 40,0 60,100 0,100" stroke={bgColor} strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke" />
                 </svg>
@@ -723,7 +723,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               </div>
 
               {/* BOTTOM-RIGHT arrow */}
-              <div style={{ position: 'absolute', right: '18%', bottom: '22%', width: '18%', height: '16%', pointerEvents: 'none', zIndex: 3 }}>
+              <div style={{ position: 'absolute', right: '26%', bottom: '16%', width: '11%', height: '20%', pointerEvents: 'none', zIndex: 3 }}>
                 <svg viewBox="0 0 100 100" fill="none" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
                   <path d="M 100,100 C 40,100 60,0 0,0" stroke={bgColor} strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke" />
                 </svg>
