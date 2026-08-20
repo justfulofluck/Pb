@@ -8,72 +8,60 @@ interface NutritionDetailedSectionProps {
 }
 
 const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ product, onAddToCart, bgColor = '#a4eb14' }) => {
-  // Fixed colors matching the reference design
-  const limeGreen = bgColor; // Use the dynamic product color for the wave background
+  const limeGreen = bgColor;
   const darkGreen = '#004d25';
-  const tableHeaderBg = '#7c439f'; // Purple from screenshot
-  const peachBg = '#f2f2ec'; // Matches product page background
+  const peachBg = '#f2f2ec';
 
   return (
     <section
       className="relative w-full overflow-hidden"
       style={{ backgroundColor: peachBg, minHeight: '300px' }}
     >
-      {/* Mobile colored overlay so white text is always readable */}
+      <style>{`
+        @keyframes floatOrb1 { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-30px) scale(1.1); } }
+        @keyframes floatOrb2 { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(20px) scale(0.9); } }
+        @keyframes floatOrb3 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-15px,-20px); } }
+      `}</style>
+
+      {/* Mobile colored overlay */}
       <div
         className="block lg:hidden absolute inset-0 z-[0]"
+        style={{ backgroundColor: limeGreen }}
+      />
+
+      {/* Grain texture overlay */}
+      <div
+        className="absolute inset-0 z-[4] pointer-events-none opacity-[0.03]"
         style={{
-          backgroundColor: limeGreen,
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.4'/%3E%3C/svg%3E")`,
-          backgroundBlendMode: 'overlay',
-          opacity: 1
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
         }}
       />
-      {/* ── Layered organic green waves ── */}
-      {/* These sit at the bottom and create the organic flowing green shape */}
 
-      {/* Wave layer 1 — lightest, furthest back, highest reach */}
-      <svg
-        className="absolute bottom-0 left-0 w-full z-[1] pointer-events-none h-full opacity-[0.22] lg:opacity-[0.35]"
-        viewBox="0 0 1440 600"
-        preserveAspectRatio="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M0,120 C120,60 240,30 400,80 C560,130 640,180 800,140 C960,100 1100,40 1280,80 C1360,100 1400,120 1440,130 L1440,600 L0,600 Z"
-          fill={limeGreen}
-        />
+      {/* Wave layer 1 — lightest, furthest back */}
+      <svg className="absolute bottom-0 left-0 w-full z-[1] pointer-events-none h-full opacity-[0.18] lg:opacity-[0.25]" viewBox="0 0 1440 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="wg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor={limeGreen} /><stop offset="100%" stopColor={limeGreen} stopOpacity="0.5" /></linearGradient></defs>
+        <path d="M0,80 C160,20 320,60 480,100 C640,140 800,160 960,120 C1120,80 1280,40 1440,90 L1440,600 L0,600 Z" fill="url(#wg1)" />
       </svg>
 
-      {/* Wave layer 2 — medium, middle depth */}
-      <svg
-        className="absolute bottom-0 left-0 w-full z-[2] pointer-events-none h-full opacity-[0.4] lg:opacity-[0.6]"
-        viewBox="0 0 1440 600"
-        preserveAspectRatio="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M0,180 C100,100 220,70 380,120 C540,170 680,230 840,190 C1000,150 1140,80 1300,120 C1380,140 1420,160 1440,170 L1440,600 L0,600 Z"
-          fill={limeGreen}
-        />
+      {/* Wave layer 2 — medium */}
+      <svg className="absolute bottom-0 left-0 w-full z-[2] pointer-events-none h-full opacity-[0.35] lg:opacity-[0.55]" viewBox="0 0 1440 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="wg2" x1="0" y1="0" x2="1" y2="0.5"><stop offset="0%" stopColor={limeGreen} stopOpacity="0.9" /><stop offset="100%" stopColor={limeGreen} /></linearGradient></defs>
+        <path d="M0,160 C120,90 280,70 440,130 C600,190 720,240 900,190 C1080,140 1200,80 1360,130 C1420,150 1440,170 1440,170 L1440,600 L0,600 Z" fill="url(#wg2)" />
       </svg>
 
-      {/* Wave layer 3 — main solid wave */}
-      <svg
-        className="absolute bottom-0 left-0 w-full z-[3] pointer-events-none h-full opacity-[0.9] lg:opacity-100"
-        viewBox="0 0 1440 600"
-        preserveAspectRatio="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M0,240 C80,160 200,130 360,170 C520,210 700,270 880,230 C1060,190 1200,130 1340,170 C1400,190 1440,210 1440,210 L1440,600 L0,600 Z"
-          fill={limeGreen}
-        />
+      {/* Wave layer 3 — main solid */}
+      <svg className="absolute bottom-0 left-0 w-full z-[3] pointer-events-none h-full opacity-[0.85] lg:opacity-100" viewBox="0 0 1440 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,220 C100,150 240,120 400,170 C560,220 720,280 920,230 C1120,180 1260,120 1380,170 C1420,190 1440,200 1440,200 L1440,600 L0,600 Z" fill={limeGreen} />
       </svg>
+
+      {/* Floating decorative orbs (desktop only) */}
+      <div className="hidden lg:block absolute z-[5] pointer-events-none" style={{ top: '15%', left: '8%', width: '80px', height: '80px', borderRadius: '50%', background: `radial-gradient(circle, ${limeGreen}44, transparent)`, animation: 'floatOrb1 6s ease-in-out infinite' }} />
+      <div className="hidden lg:block absolute z-[5] pointer-events-none" style={{ bottom: '25%', right: '5%', width: '120px', height: '120px', borderRadius: '50%', background: `radial-gradient(circle, ${limeGreen}33, transparent)`, animation: 'floatOrb2 8s ease-in-out infinite' }} />
+      <div className="hidden lg:block absolute z-[5] pointer-events-none" style={{ top: '40%', right: '15%', width: '50px', height: '50px', borderRadius: '50%', background: `radial-gradient(circle, ${limeGreen}22, transparent)`, animation: 'floatOrb3 7s ease-in-out infinite' }} />
 
       {/* ── Content ── */}
       <div className="relative z-10 w-full">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-10 lg:px-14 pt-[60px] sm:pt-[140px] lg:pt-[220px] pb-[60px] sm:pb-16 md:pb-20">
+        <div className="max-w-[1300px] mx-auto px-4 sm:px-10 lg:px-16 pt-[60px] sm:pt-[140px] lg:pt-[200px] pb-[60px] sm:pb-20 md:pb-24">
 
           {/* Two-column grid — stacks on mobile */}
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">
@@ -87,13 +75,19 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
                 paddingTop: 'var(--left-col-pt)'
               } as React.CSSProperties}
             >
+              {/* Decorative accent line */}
+              <div className="hidden lg:flex items-center gap-3 mb-6">
+                <div style={{ width: '40px', height: '3px', background: '#fff', borderRadius: '2px', opacity: 0.6 }} />
+                <span className="text-white/60 text-[11px] font-bold uppercase tracking-[0.2em]" style={{ fontFamily: 'var(--font-satoshi, sans-serif)' }}>Nutrition Facts</span>
+              </div>
 
               {/* Heading */}
               <h2
                 className="font-anton leading-[1.05] uppercase mb-4 sm:mb-6 tracking-wide"
                 style={{
                   color: '#ffffff',
-                  fontSize: 'clamp(3rem, 10vw, 80px)'
+                  fontSize: 'clamp(3rem, 10vw, 85px)',
+                  textShadow: '0 4px 30px rgba(0,0,0,0.15)'
                 }}
               >
                 WE SERVE<br className="hidden md:block" />{' '}
@@ -103,8 +97,8 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
 
               {/* Body copy */}
               <p
-                className="text-[14px] md:text-[16px] leading-[1.6] font-bold mb-6 sm:mb-10 max-w-[420px]"
-                style={{ color: '#ffffff', fontFamily: 'var(--font-satoshi, sans-serif)' }}
+                className="text-[14px] md:text-[16px] leading-[1.7] font-medium mb-6 sm:mb-10 max-w-[420px]"
+                style={{ color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--font-satoshi, sans-serif)' }}
               >
                 Well, that can't stand true during the 1800s when audiences used to throw peanuts in theatres at the performers if they didn't like the performance. This act was known as peanut gallery!
               </p>
@@ -112,11 +106,12 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
               {/* Add to Cart button */}
               <button
                 onClick={(e) => { e.preventDefault(); onAddToCart(product); }}
-                className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-[#004d25] rounded-full pl-5 pr-3 py-2 sm:pl-6 sm:pr-4 sm:py-2.5 font-bold text-[11px] sm:text-[12px] tracking-[0.1em] uppercase transition-all duration-300 hover:scale-[1.03] shadow-sm w-fit border border-gray-100"
+                className="group inline-flex items-center gap-2 rounded-full pl-6 pr-4 py-3 sm:pl-7 sm:pr-5 sm:py-3.5 font-bold text-[12px] sm:text-[13px] tracking-[0.12em] uppercase transition-all duration-300 hover:scale-[1.04] shadow-lg hover:shadow-xl w-fit"
+                style={{ background: '#ffffff', color: darkGreen }}
               >
                 Add to Cart
-                <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[#004d25] ml-1 opacity-70">
-                  <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <span className="w-6 h-6 rounded-full flex items-center justify-center ml-1 transition-transform duration-300 group-hover:translate-x-0.5" style={{ background: `${limeGreen}22` }}>
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="9 18 15 12 9 6" />
                   </svg>
                 </span>
@@ -129,15 +124,16 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
               style={{ paddingLeft: '10px', paddingRight: '10px' }}
             >
               <div
-                className="rounded-[20px] overflow-hidden border-4 border-white shadow-xl"
+                className="rounded-[24px] overflow-hidden shadow-2xl"
+                style={{ border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(20px)', background: 'rgba(255,255,255,0.06)' }}
               >
                 {/* Header */}
                 <div
-                  className="px-4 py-4 sm:px-4 sm:py-4"
-                  style={{ backgroundColor: tableHeaderBg }}
+                  className="px-5 py-5 sm:px-6 sm:py-5"
+                  style={{ background: 'linear-gradient(135deg, #6B21A8 0%, #9333EA 50%, #7C3AED 100%)' }}
                 >
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end w-full mb-4 sm:mb-2">
-                    <h3 className="text-white text-[28px] sm:text-[36px] md:text-[40px] leading-[1.1] m-0 font-anton uppercase !tracking-[4px]">
+                    <h3 className="text-white text-[28px] sm:text-[36px] md:text-[40px] leading-[1.1] m-0 font-anton uppercase !tracking-[4px]" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>
                       Nutritional Information
                     </h3>
                     <p className="text-amber-300 text-[13px] md:text-[12px] font-semibold leading-normal mt-2 sm:mt-0 mb-0">
@@ -145,10 +141,10 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
                     </p>
                   </div>
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center w-full">
-                    <p className="text-white/80 text-[14px] md:text-[17px] font-medium leading-snug m-0 mb-2 sm:mb-0">
+                    <p className="text-white/70 text-[14px] md:text-[17px] font-medium leading-snug m-0 mb-2 sm:mb-0">
                       No. of servings per pack: 31 (Approx)
                     </p>
-                    <p className="text-white text-[14px] md:text-[17px] font-bold leading-snug m-0">
+                    <p className="text-white text-[14px] md:text-[17px] font-bold leading-snug m-0" style={{ background: 'rgba(255,255,255,0.15)', padding: '4px 14px', borderRadius: '20px' }}>
                       Serving Size: 32g (2 tbsp)
                     </p>
                   </div>
@@ -298,37 +294,47 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
                           { n: 'Potassium (mg)', v100: '3.4 mg', v32: '1 mg', r: '0 %', b: false },
                         ];
                       })().map((row: any, idx: number) => (
-                        <tr key={idx} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                        <tr key={idx} style={{ borderBottom: '1px solid #f0f0f0', background: idx % 2 === 0 ? '#ffffff' : '#faf9f7', transition: 'background 0.2s' }} className="hover:!bg-purple-50/40">
                           <td
                             className={`${row.b ? 'font-bold text-gray-800' : 'text-gray-500'}`}
                             style={{
-                              paddingTop: '5px',
-                              paddingBottom: '5px',
-                              paddingLeft: row.i ? '18px' : '8px',
+                              paddingTop: '7px',
+                              paddingBottom: '7px',
+                              paddingLeft: row.i ? '22px' : '12px',
                               paddingRight: '4px'
                             }}
                           >
                             {row.n}
                           </td>
-                          <td className="text-center" style={{ borderLeft: '1px dashed #e8e8e8', paddingTop: '5px', paddingBottom: '5px', paddingLeft: '4px', paddingRight: '4px' }}>{row.v100}</td>
-                          <td className="text-center" style={{ borderLeft: '1px dashed #e8e8e8', paddingTop: '5px', paddingBottom: '5px', paddingLeft: '4px', paddingRight: '4px' }}>{row.v32}</td>
-                          <td className="text-center" style={{ borderLeft: '1px dashed #e8e8e8', paddingTop: '5px', paddingBottom: '5px', paddingLeft: '4px', paddingRight: '4px' }}>{row.r}</td>
+                          <td className="text-center" style={{ borderLeft: '1px dashed #e8e8e8', paddingTop: '7px', paddingBottom: '7px', paddingLeft: '4px', paddingRight: '4px' }}>{row.v100}</td>
+                          <td className="text-center font-semibold text-gray-700" style={{ borderLeft: '1px dashed #e8e8e8', paddingTop: '7px', paddingBottom: '7px', paddingLeft: '4px', paddingRight: '4px' }}>{row.v32}</td>
+                          <td className="text-center" style={{ borderLeft: '1px dashed #e8e8e8', paddingTop: '7px', paddingBottom: '7px', paddingLeft: '4px', paddingRight: '4px' }}>{row.r}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
 
                   {/* Footnote */}
-                  <div className="px-4 sm:px-6 py-2 text-[8px] sm:text-[9px] md:text-[10px] text-gray-400 leading-snug" style={{ borderTop: '1px solid #eee' }}>
+                  <div className="px-4 sm:px-6 py-3 text-[8px] sm:text-[9px] md:text-[10px] text-gray-400 leading-snug" style={{ borderTop: '1px solid #eee', background: '#faf9f7' }}>
                     *as per RDA for Indians, ICMR-NIN, 2020 | ~%RDA values not estimated | ^%RDA values per serving calculated on the basis of 2000Kcal
                   </div>
                 </div>
               </div>
+
+
             </div>
 
           </div>
         </div>
       </div>
+
+      {/* Bottom wave transition — mirrors the top wave aesthetic */}
+      <svg className="absolute bottom-0 left-0 w-full z-[6] pointer-events-none" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style={{ height: '80px' }}>
+        <path d="M0,40 C180,100 360,110 540,80 C720,50 900,20 1080,50 C1200,70 1320,100 1440,80 L1440,120 L0,120 Z" fill={peachBg} />
+      </svg>
+      <svg className="absolute bottom-0 left-0 w-full z-[5] pointer-events-none" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style={{ height: '100px' }}>
+        <path d="M0,60 C200,110 400,100 600,70 C800,40 1000,30 1200,60 C1320,80 1400,90 1440,70 L1440,120 L0,120 Z" fill={peachBg} opacity="0.5" />
+      </svg>
     </section>
   );
 };

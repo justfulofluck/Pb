@@ -17,6 +17,9 @@ import NutritionDetailedSection from './snaxxo/NutritionDetailedSection';
 import YouMightAlsoLike from './snaxxo/YouMightAlsoLike';
 import { formatPrice } from '../utils/formatters';
 import { analytics } from '../utils/analytics';
+import { Silk } from './snaxxo/Silk';
+import ProductGalleryStrip from './snaxxo/ProductGalleryStrip';
+import ProductAccordionSection from './snaxxo/ProductAccordionSection';
 
 interface ProductPageProps {
   product: Product;
@@ -344,6 +347,11 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
   const getProductColor = (name: string) => {
     const lowerName = name.toLowerCase();
+    if (lowerName.includes('dark chocolate') || lowerName.includes('chocolate')) return '#4a2e15'; // Rich Dark Chocolate Brown
+    if (lowerName.includes('natural')) return '#188a67'; // Forest Green (Matches Footer)
+    if (lowerName.includes('mango')) return '#eab308'; // Golden Mango
+    if (lowerName.includes('american')) return '#1d4ed8'; // Vibrant American Blue
+    if (lowerName.includes('pineapple')) return '#d97706'; // Pineapple Gold
     if (lowerName.includes('chia') || lowerName.includes('strawberry')) return '#a62427'; // Dark Strawberry Red
     if (lowerName.includes('onion')) return 'hsla(259.4594594594595, 100.00%, 61.83%, 1.00)';
     if (lowerName.includes('ocean') || lowerName.includes('salty')) return 'hsla(211.11111111111114, 100.00%, 50.00%, 1.00)';
@@ -351,15 +359,33 @@ const ProductPage: React.FC<ProductPageProps> = ({
     if (lowerName.includes('pickle')) return 'hsla(145.89928057553956, 93.94%, 38.05%, 1.00)';
     if (lowerName.includes('chive')) return 'hsla(188.51851851851848, 99.11%, 42.59%, 1.00)';
     if (lowerName.includes('cheddar') || lowerName.includes('cheese')) return 'hsla(33.58974358974359, 98.23%, 47.15%, 1.00)';
-    if (lowerName.includes('peanut') || lowerName.includes('butter')) return '#FF6F00'; // Brand Orange
-    return 'hsla(259.4594594594595, 100.00%, 61.83%, 1.00)';
+    if (lowerName.includes('peanut') || lowerName.includes('butter')) return '#d97316'; // Warm Amber Peanut Butter
+    return '#d97316';
   };
 
   if (!product) return null;
 
-  const bgColor = (product?.themeColor && product.themeColor.trim() !== '')
-    ? product.themeColor
-    : getProductColor(product?.name || '');
+  const isTooDarkOrBlackColor = (colorStr?: string) => {
+    if (!colorStr || colorStr.trim() === '') return true;
+    try {
+      const c = new THREE.Color(colorStr as string);
+      const luminance = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+      return luminance < 0.08;
+    } catch {
+      return true;
+    }
+  };
+
+  const isNaturalProduct = (product?.name || '').toLowerCase().includes('natural') || (product?.slug || '').toLowerCase().includes('natural');
+  const isChocolateProduct = (product?.name || '').toLowerCase().includes('chocolate') || (product?.slug || '').toLowerCase().includes('chocolate');
+
+  const bgColor = isNaturalProduct
+    ? '#188a67'
+    : isChocolateProduct
+      ? '#7d4427'
+      : (product?.themeColor && !isTooDarkOrBlackColor(product.themeColor))
+        ? product.themeColor
+        : getProductColor(product?.name || '');
 
   // Create a very subtle version of the theme color for sections that are usually white
   const tintColor = bgColor?.startsWith('#')
@@ -380,21 +406,17 @@ const ProductPage: React.FC<ProductPageProps> = ({
     <div className="page-wrapper" style={{ opacity: 1, backgroundColor: tintColor }}>
 
       <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-[85vh] md:min-h-[95vh] flex flex-col items-center pt-4 md:pt-0 pb-20 md:pb-10 texture-blend relative">
-        {product.slug?.includes('dark-chocolate') && product.category?.toLowerCase().includes('peanut butter') && (
-          <>
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover z-0"
-              style={{ pointerEvents: 'none' }}
-            >
-              <source src="/videos/Sequence%2001.mp4" type="video/mp4" />
-            </video>
-            <div className="absolute inset-0 w-full h-full z-[1] bg-[#4a2e15]/60 pointer-events-none mix-blend-multiply"></div>
-          </>
-        )}
+        {/* Dynamic Silk WebGL Background Shader */}
+        <div className="absolute inset-0 w-full h-full z-0 pointer-events-none opacity-90">
+          <Silk
+            speed={5}
+            scale={1}
+            color={bgColor}
+            noiseIntensity={1.5}
+            rotation={0}
+          />
+        </div>
+
         <div className="w-layout-blockcontainer container product-page-hero w-container !pt-2 md:!pt-6 !mt-0 relative z-10">
           <div className="content-wrapper product-page-hero">
             <div className="heading-text-box pdp-h1 mt-0 pt-0 px-6 md:px-12 lg:px-16 mb-[-50px] lg:mb-[-4rem] w-full flex justify-center text-center mx-auto">
@@ -471,6 +493,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
               </div>
             </div>
           </div>
+
+
 
           {/* Updated Nutrition & Ingredients Popup - Mobile Bottom Drawer & Desktop Side Drawer */}
           <div
@@ -592,143 +616,264 @@ const ProductPage: React.FC<ProductPageProps> = ({
         </div>
       </section >
 
+      {/* Product Gallery Strip */}
+      <ProductGalleryStrip product={product} />
 
 
-      <section className="section overflow-hidden flex flex-col items-center w-full" style={{ backgroundColor: '#f2f2ec' }}>
+
+      <section className="section overflow-hidden flex flex-col items-center w-full relative" style={{ backgroundColor: '#f2f2ec' }}>
+        {/* Subtle radial glow behind center */}
+        <div className="hidden md:block absolute pointer-events-none" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '700px', height: '700px', borderRadius: '50%', background: `radial-gradient(circle, ${bgColor}08 0%, transparent 70%)` }} />
         <div className="w-layout-blockcontainer container product-page-intro w-container mx-auto">
           <div className="content-wrapper product-page-intro w-full">
 
           </div>
           <div className="content-wrapper intro-pdf w-full overflow-hidden">
 
-            {/* Mobile layout: stack */}
-            <div className="flex flex-col md:hidden items-center gap-4 px-4 pt-2 pb-2">
+            {/* Custom Glass Styles */}
+            <style>{`
+              .glass-card-framer {
+                background: rgba(255, 255, 255, 0.82);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                border: 1px solid rgba(255, 255, 255, 0.95);
+                box-shadow: 0 12px 32px -6px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.02);
+              }
+              .glass-card-framer:hover {
+                box-shadow: 0 22px 45px -8px rgba(0, 0, 0, 0.1), 0 0 24px ${bgColor}30;
+                border-color: ${bgColor}50;
+              }
+            `}</style>
 
-              {/* TOP TWO BLOCKS */}
-              <div className="w-full grid grid-cols-2 gap-4 px-2 relative z-10">
-                <div><h3 className="font-satoshi font-black text-[20px] sm:text-[22px] leading-[1.1] mb-1" style={{ color: bgColor }}>30g<br />Protein<br /><span className="text-[15px] sm:text-[16px]">Per 100g</span></h3><p className="font-satoshi text-[12px] sm:text-[13px] font-semibold leading-snug" style={{ color: '#000000' }}>Supports muscle recovery and keeps you energized all day.</p></div>
-                <div className="text-right"><h3 className="font-satoshi font-black text-[20px] sm:text-[22px] leading-[1.1] mb-1" style={{ color: bgColor }}>No Added<br />Sugar, Salt,<br />or Palm Oil</h3><p className="font-satoshi text-[12px] sm:text-[13px] font-semibold leading-snug" style={{ color: '#000000' }}>Purely roasted peanuts for clean and nutritious eating.</p></div>
+
+
+            {/* MOBILE LAYOUT */}
+            <div className="flex flex-col md:hidden items-center gap-5 relative z-10 px-2 py-4">
+              <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="glass-card-framer rounded-2xl p-5 relative overflow-hidden">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-md" style={{ backgroundColor: bgColor }}>
+                      💪
+                    </div>
+                    <div>
+                      <span className="text-2xl font-black leading-none block" style={{ color: bgColor }}>{proteinCount}g</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">PROTEIN / 100g</span>
+                    </div>
+                  </div>
+                  <p className="text-xs font-semibold text-gray-600 leading-relaxed">Supports muscle recovery and keeps you energized all day.</p>
+                </div>
+
+                <div className="glass-card-framer rounded-2xl p-5 relative overflow-hidden">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-md" style={{ backgroundColor: bgColor }}>
+                      🌿
+                    </div>
+                    <div>
+                      <span className="text-base font-black leading-tight block uppercase" style={{ color: bgColor }}>100% Clean</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">NO SUGAR / SALT</span>
+                    </div>
+                  </div>
+                  <p className="text-xs font-semibold text-gray-600 leading-relaxed">Purely roasted peanuts for clean and nutritious eating.</p>
+                </div>
               </div>
 
-              {/* CENTER IMAGE */}
-              <div className="w-full flex justify-center relative z-0 -mt-8 -mb-2">
-                {PRODUCT_HERO_MAP[product.name] ? (
-                  <img src={getMediaUrl(PRODUCT_HERO_MAP[product.name]!.mobile)} alt={product.name}
-                    className="w-full h-auto object-contain drop-shadow-2xl" style={{ maxWidth: '90%' }} />
-                ) : (
-                  <img src={getMediaUrl(product.image)} alt={product.name}
-                    className="w-full h-auto object-contain drop-shadow-2xl" style={{ maxWidth: '280px' }} />
-                )}
-              </div>
-
-              {/* BOTTOM TWO BLOCKS */}
-              <div className="w-full grid grid-cols-2 gap-4 px-2 pt-6 relative z-10">
-                <div><h3 className="font-satoshi font-black text-[20px] sm:text-[22px] leading-[1.1] mb-1 uppercase" style={{ color: bgColor }}>Rich in<br />Healthy Fats</h3><p className="font-satoshi text-[12px] sm:text-[13px] font-semibold leading-snug" style={{ color: '#000000' }}>Promotes heart health and overall well-being naturally.</p></div>
-                <div className="text-right"><h3 className="font-satoshi font-black text-[20px] sm:text-[22px] leading-[1.1] mb-1 uppercase" style={{ color: bgColor }}>The World's<br />Best Peanuts</h3><p className="font-satoshi text-[12px] sm:text-[13px] font-semibold leading-snug" style={{ color: '#000000' }}>Premium farm-fresh peanuts for rich flavor and perfect crunch.</p></div>
-              </div>
-
-            </div>
-
-            {/* Desktop layout: image center + 4 corner text blocks */}
-            <div ref={statsSectionRef} className="hidden md:block relative w-full max-w-[1100px] mx-auto" style={{ minHeight: '640px' }}>
-
-              {/* Center Image */}
-              <div className="absolute inset-0 flex justify-center items-center" style={{ zIndex: 1 }}>
+              {/* Center Product Display */}
+              <div className="w-full flex justify-center relative my-4">
+                <div className="absolute inset-0 rounded-full blur-2xl opacity-30" style={{ background: `radial-gradient(circle, ${bgColor} 0%, transparent 70%)` }} />
                 {PRODUCT_HERO_MAP[product.name] ? (
                   <img
-                    src={getMediaUrl(PRODUCT_HERO_MAP[product.name]!.desktop)}
+                    src={getMediaUrl(PRODUCT_HERO_MAP[product.name]!.mobile)}
                     alt={product.name}
-                    className="object-contain drop-shadow-2xl transition-transform duration-700 hover:scale-105"
-                    style={{ maxWidth: '70%', maxHeight: '640px', width: 'auto', height: 'auto' }}
+                    className="w-full h-auto object-contain drop-shadow-2xl relative z-10 scale-[1.3]"
+                    style={{ maxWidth: '95%', maxHeight: '400px' }}
                   />
                 ) : (
                   <img
                     src={getMediaUrl(product.image)}
                     alt={product.name}
-                    className="object-contain drop-shadow-2xl transition-transform duration-700 hover:scale-105"
-                    style={{ maxWidth: '520px', maxHeight: '580px', width: 'auto', height: 'auto' }}
+                    className="w-full h-auto object-contain drop-shadow-2xl relative z-10 scale-[1.3]"
+                    style={{ maxWidth: '340px' }}
                   />
                 )}
               </div>
 
-              {/* TOP-LEFT: 30g Protein — text only */}
-              <div className="absolute" style={{ top: '8%', left: '3%', maxWidth: '280px', zIndex: 2 }}>
-                <h3 className="font-satoshi font-black text-[22px] lg:text-[26px] leading-[1.15] mb-2 uppercase" style={{ color: bgColor }}>
-                  <span className="tabular-nums">{proteinCount}</span>g<br />Protein<br /><span className="text-[16px] lg:text-[18px]">Per 100g</span>
-                </h3>
-                <p className="font-satoshi font-semibold text-[14px] leading-snug" style={{ color: '#000000' }}>
-                  Supports muscle recovery and keeps you energized all day.
-                </p>
+              <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="glass-card-framer rounded-2xl p-5 relative overflow-hidden">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-md" style={{ backgroundColor: bgColor }}>
+                      ❤️
+                    </div>
+                    <div>
+                      <span className="text-base font-black leading-tight block uppercase" style={{ color: bgColor }}>Healthy Fats</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">ESSENTIAL OMEGAS</span>
+                    </div>
+                  </div>
+                  <p className="text-xs font-semibold text-gray-600 leading-relaxed">Promotes heart health and overall natural vitality.</p>
+                </div>
+
+                <div className="glass-card-framer rounded-2xl p-5 relative overflow-hidden">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-md" style={{ backgroundColor: bgColor }}>
+                      🥜
+                    </div>
+                    <div>
+                      <span className="text-base font-black leading-tight block uppercase" style={{ color: bgColor }}>Best Peanuts</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">FARM FRESH</span>
+                    </div>
+                  </div>
+                  <p className="text-xs font-semibold text-gray-600 leading-relaxed">Hand-selected peanuts for rich flavor and perfect crunch.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* DESKTOP SPOTLIGHT LAYOUT (Center Product + 4 Surrounding Glass Cards & SVG Pointers) */}
+            <div ref={statsSectionRef} className="hidden md:block relative w-full max-w-[1180px] mx-auto py-8" style={{ minHeight: '740px' }}>
+
+              {/* CENTRAL PRODUCT CONTAINER */}
+              <div className="absolute inset-0 flex justify-center items-center pointer-events-none" style={{ zIndex: 10 }}>
+                <div className="relative pointer-events-auto flex items-center justify-center" style={{ width: '620px', height: '700px' }}>
+
+                  {/* Multi-layered Static Aura Rings */}
+                  <div
+                    className="absolute rounded-full opacity-25"
+                    style={{ width: '640px', height: '640px', background: `radial-gradient(circle, ${bgColor} 0%, transparent 70%)` }}
+                  />
+                  <div
+                    className="absolute rounded-full border border-dashed border-white/80 opacity-50"
+                    style={{ width: '520px', height: '520px' }}
+                  />
+
+                  {/* Product Pack */}
+                  {PRODUCT_HERO_MAP[product.name] ? (
+                    <img
+                      src={getMediaUrl(PRODUCT_HERO_MAP[product.name]!.desktop)}
+                      alt={product.name}
+                      className="object-contain scale-[1.45] hover:scale-[1.52] transition-transform duration-700 cursor-pointer drop-shadow-[0_35px_50px_rgba(0,0,0,0.25)]"
+                      style={{ maxWidth: '580px', maxHeight: '680px', width: 'auto', height: 'auto' }}
+                    />
+                  ) : (
+                    <img
+                      src={getMediaUrl(product.image)}
+                      alt={product.name}
+                      className="object-contain scale-[1.45] hover:scale-[1.52] transition-transform duration-700 cursor-pointer drop-shadow-[0_35px_50px_rgba(0,0,0,0.25)]"
+                      style={{ maxWidth: '560px', maxHeight: '640px', width: 'auto', height: 'auto' }}
+                    />
+                  )}
+                </div>
               </div>
 
-              {/* TOP-RIGHT: No Added Sugar — text only */}
-              <div className="absolute text-right" style={{ top: '8%', right: '3%', maxWidth: '280px', zIndex: 2 }}>
-                <h3 className="font-satoshi font-black text-[22px] lg:text-[26px] leading-[1.15] mb-2 uppercase" style={{ color: bgColor }}>
-                  No Added Sugar, Salt,<br />or Palm Oil
-                </h3>
-                <p className="font-satoshi font-semibold text-[14px] leading-snug" style={{ color: '#000000' }}>
-                  Purely roasted peanuts for clean and nutritious eating.
-                </p>
+              {/* SVG POINTER CONNECTOR LINES (Static) */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible" style={{ zIndex: 5 }}>
+                <defs>
+                  <linearGradient id="lineGradLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor={bgColor} stopOpacity="0.8" />
+                    <stop offset="100%" stopColor={bgColor} stopOpacity="0.3" />
+                  </linearGradient>
+                  <linearGradient id="lineGradRight" x1="100%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor={bgColor} stopOpacity="0.8" />
+                    <stop offset="100%" stopColor={bgColor} stopOpacity="0.3" />
+                  </linearGradient>
+                </defs>
+
+                {/* TOP-LEFT CONNECTOR */}
+                <g>
+                  <path d="M 280 130 C 350 130, 390 170, 420 210" stroke="url(#lineGradLeft)" strokeWidth="2.5" fill="none" strokeDasharray="6 4" />
+                  <circle cx="420" cy="210" r="5" fill={bgColor} />
+                </g>
+
+                {/* BOTTOM-LEFT CONNECTOR */}
+                <g>
+                  <path d="M 280 530 C 350 530, 390 490, 420 470" stroke="url(#lineGradLeft)" strokeWidth="2.5" fill="none" strokeDasharray="6 4" />
+                  <circle cx="420" cy="470" r="5" fill={bgColor} />
+                </g>
+
+                {/* TOP-RIGHT CONNECTOR */}
+                <g>
+                  <path d="M 900 130 C 830 130, 790 170, 760 210" stroke="url(#lineGradRight)" strokeWidth="2.5" fill="none" strokeDasharray="6 4" />
+                  <circle cx="760" cy="210" r="5" fill={bgColor} />
+                </g>
+
+                {/* BOTTOM-RIGHT CONNECTOR */}
+                <g>
+                  <path d="M 900 530 C 830 530, 790 490, 760 470" stroke="url(#lineGradRight)" strokeWidth="2.5" fill="none" strokeDasharray="6 4" />
+                  <circle cx="760" cy="470" r="5" fill={bgColor} />
+                </g>
+              </svg>
+
+              {/* TOP-LEFT CARD: 30G PROTEIN */}
+              <div className="absolute transition-all duration-300 hover:-translate-y-1" style={{ top: '6%', left: '2%', width: '310px', zIndex: 20 }}>
+                <div className="glass-card-framer rounded-3xl p-6 relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-2 h-full" style={{ backgroundColor: bgColor }} />
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md" style={{ backgroundColor: `${bgColor}15`, color: bgColor }}>
+                      HIGH PROTEIN
+                    </span>
+                    <span className="text-2xl">💪</span>
+                  </div>
+                  <h3 className="font-satoshi font-black text-3xl lg:text-4xl leading-none mb-1" style={{ color: bgColor }}>
+                    <span className="tabular-nums">{proteinCount}g</span> <span className="text-sm font-extrabold text-gray-700 uppercase">/ 100g</span>
+                  </h3>
+                  <p className="font-satoshi font-semibold text-xs lg:text-sm text-gray-600 leading-relaxed mt-2">
+                    Supports muscle recovery, strength, and keeps you energized all day.
+                  </p>
+                </div>
               </div>
 
-              {/* BOTTOM-LEFT: Rich in Healthy Fats — text only */}
-              <div className="absolute" style={{ bottom: '8%', left: '3%', maxWidth: '280px', zIndex: 2 }}>
-                <h3 className="font-satoshi font-black text-[22px] lg:text-[26px] leading-[1.15] mb-2 uppercase" style={{ color: bgColor }}>
-                  Rich in<br />Healthy Fats
-                </h3>
-                <p className="font-satoshi font-semibold text-[14px] leading-snug" style={{ color: '#000000' }}>
-                  Promotes heart health and overall well-being naturally.
-                </p>
+              {/* TOP-RIGHT CARD: NO ADDED SUGAR */}
+              <div className="absolute transition-all duration-300 hover:-translate-y-1" style={{ top: '6%', right: '2%', width: '310px', zIndex: 20 }}>
+                <div className="glass-card-framer rounded-3xl p-6 relative overflow-hidden group text-right">
+                  <div className="absolute top-0 right-0 w-2 h-full" style={{ backgroundColor: bgColor }} />
+                  <div className="flex items-center justify-between mb-3 flex-row-reverse">
+                    <span className="text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md" style={{ backgroundColor: `${bgColor}15`, color: bgColor }}>
+                      100% CLEAN
+                    </span>
+                    <span className="text-2xl">🌿</span>
+                  </div>
+                  <h3 className="font-satoshi font-black text-xl lg:text-2xl leading-tight mb-1 uppercase" style={{ color: bgColor }}>
+                    No Added Sugar,<br />Salt, or Palm Oil
+                  </h3>
+                  <p className="font-satoshi font-semibold text-xs lg:text-sm text-gray-600 leading-relaxed mt-2">
+                    Purely roasted premium peanuts for clean, wholesome nutrition.
+                  </p>
+                </div>
               </div>
 
-              {/* BOTTOM-RIGHT: The World's Best Peanuts — text only */}
-              <div className="absolute text-right" style={{ bottom: '8%', right: '3%', maxWidth: '280px', zIndex: 2 }}>
-                <h3 className="font-satoshi font-black text-[22px] lg:text-[26px] leading-[1.15] mb-2 uppercase" style={{ color: bgColor }}>
-                  The World's Best<br />Peanuts
-                </h3>
-                <p className="font-satoshi font-semibold text-[14px] leading-snug" style={{ color: '#000000' }}>
-                  Premium farm-fresh peanuts for rich flavor and perfect crunch.
-                </p>
+              {/* BOTTOM-LEFT CARD: RICH IN HEALTHY FATS */}
+              <div className="absolute transition-all duration-300 hover:-translate-y-1" style={{ bottom: '6%', left: '2%', width: '310px', zIndex: 20 }}>
+                <div className="glass-card-framer rounded-3xl p-6 relative overflow-hidden group">
+                  <div className="absolute top-0 left-0 w-2 h-full" style={{ backgroundColor: bgColor }} />
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md" style={{ backgroundColor: `${bgColor}15`, color: bgColor }}>
+                      HEART HEALTH
+                    </span>
+                    <span className="text-2xl">❤️</span>
+                  </div>
+                  <h3 className="font-satoshi font-black text-xl lg:text-2xl leading-tight mb-1 uppercase" style={{ color: bgColor }}>
+                    Rich in<br />Healthy Fats
+                  </h3>
+                  <p className="font-satoshi font-semibold text-xs lg:text-sm text-gray-600 leading-relaxed mt-2">
+                    Packed with essential fatty acids promoting heart wellness & vitality.
+                  </p>
+                </div>
               </div>
 
-              {/* ARROWS — 4 individual divs, each spanning from text edge to image edge */}
-              {/* At 1920px: text right/left edges at ~14.5%, image edges at ~38% (left) and ~62% (right) */}
-              {/* At 640px height: top text center ~20%, bottom text center ~80%, image occupies ~10-90% */}
-
-              {/* TOP-LEFT arrow */}
-              <div style={{ position: 'absolute', left: '26%', top: '16%', width: '11%', height: '20%', pointerEvents: 'none', zIndex: 3 }}>
-                <svg viewBox="0 0 100 100" fill="none" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                  <path d="M 0,0 C 60,0 40,100 100,100" stroke={bgColor} strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke" />
-                </svg>
-                <div style={{ position: 'absolute', top: '-4px', left: '-4px', width: '8px', height: '8px', backgroundColor: bgColor, transform: 'rotate(45deg)' }} />
-                <div style={{ position: 'absolute', bottom: '-3px', right: '-3px', width: '6px', height: '6px', backgroundColor: bgColor, borderRadius: '50%' }} />
-              </div>
-
-              {/* BOTTOM-LEFT arrow */}
-              <div style={{ position: 'absolute', left: '26%', bottom: '16%', width: '11%', height: '20%', pointerEvents: 'none', zIndex: 3 }}>
-                <svg viewBox="0 0 100 100" fill="none" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                  <path d="M 0,100 C 60,100 40,0 100,0" stroke={bgColor} strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke" />
-                </svg>
-                <div style={{ position: 'absolute', bottom: '-4px', left: '-4px', width: '8px', height: '8px', backgroundColor: bgColor, transform: 'rotate(45deg)' }} />
-                <div style={{ position: 'absolute', top: '-3px', right: '-3px', width: '6px', height: '6px', backgroundColor: bgColor, borderRadius: '50%' }} />
-              </div>
-
-              {/* TOP-RIGHT arrow */}
-              <div style={{ position: 'absolute', right: '26%', top: '16%', width: '11%', height: '20%', pointerEvents: 'none', zIndex: 3 }}>
-                <svg viewBox="0 0 100 100" fill="none" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                  <path d="M 100,0 C 40,0 60,100 0,100" stroke={bgColor} strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke" />
-                </svg>
-                <div style={{ position: 'absolute', top: '-4px', right: '-4px', width: '8px', height: '8px', backgroundColor: bgColor, transform: 'rotate(45deg)' }} />
-                <div style={{ position: 'absolute', bottom: '-3px', left: '-3px', width: '6px', height: '6px', backgroundColor: bgColor, borderRadius: '50%' }} />
-              </div>
-
-              {/* BOTTOM-RIGHT arrow */}
-              <div style={{ position: 'absolute', right: '26%', bottom: '16%', width: '11%', height: '20%', pointerEvents: 'none', zIndex: 3 }}>
-                <svg viewBox="0 0 100 100" fill="none" preserveAspectRatio="none" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                  <path d="M 100,100 C 40,100 60,0 0,0" stroke={bgColor} strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke" />
-                </svg>
-                <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', width: '8px', height: '8px', backgroundColor: bgColor, transform: 'rotate(45deg)' }} />
-                <div style={{ position: 'absolute', top: '-3px', left: '-3px', width: '6px', height: '6px', backgroundColor: bgColor, borderRadius: '50%' }} />
+              {/* BOTTOM-RIGHT CARD: THE WORLD'S BEST PEANUTS */}
+              <div className="absolute transition-all duration-300 hover:-translate-y-1" style={{ bottom: '6%', right: '2%', width: '310px', zIndex: 20 }}>
+                <div className="glass-card-framer rounded-3xl p-6 relative overflow-hidden group text-right">
+                  <div className="absolute top-0 right-0 w-2 h-full" style={{ backgroundColor: bgColor }} />
+                  <div className="flex items-center justify-between mb-3 flex-row-reverse">
+                    <span className="text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md" style={{ backgroundColor: `${bgColor}15`, color: bgColor }}>
+                      FARM FRESH
+                    </span>
+                    <span className="text-2xl">🥜</span>
+                  </div>
+                  <h3 className="font-satoshi font-black text-xl lg:text-2xl leading-tight mb-1 uppercase" style={{ color: bgColor }}>
+                    The World's<br />Best Peanuts
+                  </h3>
+                  <p className="font-satoshi font-semibold text-xs lg:text-sm text-gray-600 leading-relaxed mt-2">
+                    Slow-roasted farm-fresh peanuts delivering rich, nutty crunch.
+                  </p>
+                </div>
               </div>
 
             </div>
@@ -762,13 +907,13 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 ];
 
                 return displayBenefits.map((benefit, idx) => (
-                  <div key={idx} className="flex flex-col items-center text-center w-28 md:w-36">
-                    <div style={{ backgroundColor: bgColor }} className="flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full mb-3 shadow-lg shrink-0">
+                  <div key={idx} className="flex flex-col items-center text-center w-28 md:w-36 group cursor-default">
+                    <div className="relative flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full mb-3 shrink-0 transition-transform duration-300 group-hover:scale-110" style={{ backgroundColor: bgColor, boxShadow: `0 8px 25px ${bgColor}40` }}>
                       <div className="w-8 h-8 md:w-10 md:h-10 text-white flex items-center justify-center">
                         {icons[idx % icons.length]}
                       </div>
                     </div>
-                    <div style={{ color: bgColor }} className="font-satoshi font-bold text-[13px] md:text-[15px] leading-tight">
+                    <div style={{ color: bgColor }} className="font-satoshi font-bold text-[13px] md:text-[15px] leading-tight transition-colors duration-300">
                       {benefit}
                     </div>
                   </div>
@@ -783,6 +928,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
       <SnaxxoProductComparison product={product} />
 
       <NutritionDetailedSection product={product} onAddToCart={onAddToCart} bgColor={bgColor} />
+
+      <ProductAccordionSection product={product} bgColor={bgColor} />
 
       {reviews.length > 0 && (
         <Testimonials reviews={reviews.filter(r => r.productId === product.id)} showHeading={false} />

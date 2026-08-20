@@ -5,15 +5,17 @@ interface MultiLayerWaveProps {
     fill?: string;
     className?: string;
     flipped?: boolean;
+    inverseBg?: string;
 }
 
-const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#0b3d2e", className, flipped = false }) => {
+const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#0b3d2e", className, flipped = false, inverseBg }) => {
     const layer1Ref = useRef<SVGGElement>(null);
     const bob1Ref = useRef<SVGGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [isInView, setIsInView] = useState(true);
 
     const pathData = "M0 100 C 150 20, 250 180, 400 100 C 550 20, 650 180, 800 100 L 800 500 L 0 500 Z";
+    const inversePathData = "M0 0 L 800 0 L 800 100 C 650 180, 550 20, 400 100 C 250 180, 150 20, 0 100 Z";
 
     // Track visibility - pause animation when off-screen
     useEffect(() => {
@@ -76,8 +78,14 @@ const MultiLayerWave: React.FC<MultiLayerWaveProps> = ({ fill = "#0b3d2e", class
                     <g ref={layer1Ref}>
                         {[0, 1, 2, 3, 4, 5, 6].map((i) => (
                             <g key={i} transform={`translate(${i * 800}, 0)`}>
-                                <path d={pathData} fill={fill} stroke={fill} strokeWidth="2" />
-                                <path d={pathData} fill="url(#noisePattern)" style={{ mixBlendMode: 'overlay' }} />
+                                {inverseBg ? (
+                                    <path d={inversePathData} fill={inverseBg} />
+                                ) : (
+                                    <>
+                                        <path d={pathData} fill={fill} stroke={fill} strokeWidth="2" />
+                                        <path d={pathData} fill="url(#noisePattern)" style={{ mixBlendMode: 'overlay' }} />
+                                    </>
+                                )}
                             </g>
                         ))}
                     </g>

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { motion, AnimatePresence } from 'framer-motion';
 import MultiLayerWave from './MultiLayerWave';
+import Silk from './Silk';
 
 
 interface SnaxxoFooterProps {
@@ -90,15 +91,24 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
     };
 
     return (
-        <>
-
-
-            {/* Wave Transition - Moved BEFORE the section to make it visible against bg */}
-            <div className="relative z-30 w-full overflow-hidden texture-overlay texture-speckles" style={{ height: '140px', marginBottom: '-1px' }}>
-                <MultiLayerWave fill="#0b3d2e" className="flex items-end h-full" />
+        <div className="relative w-full overflow-hidden">
+            {/* Silk WebGL Background Shader Spanning full height (wave + footer body) */}
+            <div className="absolute inset-0 w-full h-full z-0 pointer-events-none opacity-100">
+                <Silk
+                    speed={4}
+                    scale={1}
+                    color="#188a67"
+                    noiseIntensity={1.2}
+                    rotation={0}
+                />
             </div>
 
-            <section className="section bg-greenboard texture-overlay texture-speckles overflow-hidden relative z-20">
+            {/* Wave Transition - Cutout above wave reveals cream background */}
+            <div className="relative z-30 w-full overflow-hidden pointer-events-none" style={{ height: '140px', marginBottom: '-1px' }}>
+                <MultiLayerWave inverseBg="#fbf9f4" className="flex items-end h-full" />
+            </div>
+
+            <section className="section relative z-20 overflow-hidden bg-transparent">
                 <div className="!bg-transparent !mt-0 !max-w-7xl mx-auto px-4 !pt-10 pb-28 lg:!pb-10 font-satoshi relative z-10 w-full text-left items-start">
                     {/* Main Footer Content */}
                     <div className="flex flex-col md:flex-row gap-x-12 lg:gap-x-24 gap-y-12 items-start text-left w-full relative">
@@ -218,7 +228,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
                     </div>
                 </div>
             </section>
-        </>
+        </div>
     );
 };
 

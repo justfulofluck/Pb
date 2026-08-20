@@ -175,7 +175,7 @@ const IngredientShowcase: React.FC<IngredientShowcaseProps> = ({
                     cursor: isDown ? 'grabbing' : 'grab'
                 }}
             >
-                <div className={`flex gap-4 md:gap-10 items-start justify-start ${items.length <= 6 ? 'md:justify-center' : 'md:justify-start'} min-w-max px-4 md:px-12 pointer-events-none`}>
+                <div className="flex justify-center min-w-full w-max mx-auto gap-4 md:gap-10 items-start px-6 md:px-12 pointer-events-none">
                     {items.map((item, idx) => (
                         <motion.div
                             key={idx}

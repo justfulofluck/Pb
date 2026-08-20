@@ -266,7 +266,11 @@
   -webkit-background-clip: text !important;
   background-clip: text !important;
   color: transparent !important;
-  display: block;
+  display: inline-block;
+  padding: 0.05em 0.1em 0.15em 0.1em;
+  margin: -0.05em -0.1em -0.15em -0.1em;
+  vertical-align: baseline;
+  line-height: 1.25;
 }
 
 .texture-chalkboard-strong {

@@ -140,38 +140,34 @@ const YouMightAlsoLike: React.FC<YouMightAlsoLikeProps> = ({
       }}
     >
       {/* Section Heading */}
-      <div className="text-center mb-12">
+      <div className="text-center mb-8 md:mb-16">
         <h2
-          className="font-anton uppercase tracking-wide"
-          style={{
-            color: '#1a1a1a',
-            fontSize: 'clamp(3rem, 10vw, 80px)',
-          }}
+          className="font-normal tracking-normal [word-spacing:0.05em] leading-[1.1] !font-anton uppercase text-textured-any text-[40px] lg:text-[100px] lg:leading-[110px] lg:-mb-[12px] lg:pb-[12px] lg:font-bold"
+          style={{ backgroundColor: bgColor, textTransform: 'uppercase' }}
         >
           You Might Also Like
         </h2>
       </div>
 
       {/* Carousel Container */}
-      <div className="relative w-full">
-        {/* Scrollable Product Cards */}
-        <div
-          ref={scrollRef}
-          onMouseDown={handleMouseDown}
-          onMouseLeave={handleMouseLeave}
-          onMouseUp={handleMouseUp}
-          onMouseMove={handleMouseMove}
-          className="flex gap-5 sm:gap-8 md:gap-16 lg:gap-20 overflow-x-auto pb-4 select-none ymall-scroll"
-          style={{
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch',
-            cursor: isDown ? 'grabbing' : 'grab',
-          }}
-        >
-          <style>{`
-            .ymall-scroll::-webkit-scrollbar { display: none; }
-          `}</style>
+      <div className="relative w-full overflow-x-auto pb-4 select-none ymall-scroll"
+        ref={scrollRef}
+        onMouseDown={handleMouseDown}
+        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUp}
+        onMouseMove={handleMouseMove}
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          WebkitOverflowScrolling: 'touch',
+          cursor: isDown ? 'grabbing' : 'grab',
+        }}
+      >
+        <style>{`
+          .ymall-scroll::-webkit-scrollbar { display: none; }
+        `}</style>
+        {/* Centered Scrollable Track */}
+        <div className="flex justify-center min-w-full w-max mx-auto gap-5 sm:gap-8 md:gap-10 lg:gap-12 px-6">
 
           {relatedProducts.map((p) => {
             const imageUrl = getMediaUrl(p.image);

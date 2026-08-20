@@ -1623,178 +1623,187 @@ const AppContent: React.FC = () => {
         )
       }
 
-      <main className="animate-in fade-in duration-500">
-        <React.Suspense fallback={
-          <div className="min-h-screen flex items-center justify-center bg-white">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        }>
-          {currentView === 'home' && (
-            <>
-              {slides.length > 0 && <HeroSliderVersion2 slides={slides} />}
-              {products.length > 0 && <CategoryList onCategoryClick={navigateToShopCategory} products={products} />}
-              {stories.length > 0 && <StoryCarousel stories={[...stories].reverse().slice(0, 5)} products={products} onProductClick={navigateToProduct} onAddToCart={addToCart} />}
-              {products.length > 0 && (
-                <div className="snaxxo-wrapper relative w-full overflow-hidden bg-whiteboard-alt texture-overlay texture-speckles">
-                  <SnaxxoProductWheel
-                    products={products}
-                    onAddToCart={addToCart}
-                    onProductClick={navigateToProduct}
-                    isLoading={isLoading}
-                    onShopClick={navigateToShop}
+      <AnimatePresence mode="wait">
+        <motion.main
+          key={currentView + (currentView === 'product' ? (selectedProduct?.id || '') : '') + (currentView === 'blog-detail' ? (selectedBlogPost?.id || '') : '') + (currentView === 'event-detail' ? (selectedEvent?.id || '') : '')}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
+          className="w-full min-h-screen"
+        >
+          <React.Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-white">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          }>
+            {currentView === 'home' && (
+              <>
+                {slides.length > 0 && <HeroSliderVersion2 slides={slides} />}
+                {products.length > 0 && <CategoryList onCategoryClick={navigateToShopCategory} products={products} />}
+                {stories.length > 0 && <StoryCarousel stories={[...stories].reverse().slice(0, 5)} products={products} onProductClick={navigateToProduct} onAddToCart={addToCart} />}
+                {products.length > 0 && (
+                  <div className="snaxxo-wrapper relative w-full overflow-hidden bg-whiteboard-alt texture-overlay texture-speckles">
+                    <SnaxxoProductWheel
+                      products={products}
+                      onAddToCart={addToCart}
+                      onProductClick={navigateToProduct}
+                      isLoading={isLoading}
+                      onShopClick={navigateToShop}
+                    />
+                  </div>
+                )}
+                <LatestProductShowcase product={products[0]} />
+
+                <ComparisonTable />
+
+                {reviews.length > 0 && <Testimonials reviews={reviews} />}
+                {blogPosts.length > 0 && (
+                  <BlogSection
+                    posts={visibleBlogs}
+                    onPostClick={navigateToBlogDetail}
+                    onViewAllClick={navigateToBlogs}
                   />
-                </div>
-              )}
-              <LatestProductShowcase product={products[0]} />
+                )}
+                {events.length > 0 && (
+                  <EventsSection
+                    events={visibleEvents}
+                    onParticipateClick={() => setIsEventModalOpen(true)}
+                    onViewRecapsClick={navigateToEventBlogs}
+                  />
+                )}
+                <PressUpdates pressUpdates={[]} />
+                <Newsletter />
+              </>
+            )}
 
-              <ComparisonTable />
+            {currentView === 'distributor' && (
+              <DistributorPage onHomeClick={goHome} />
+            )}
 
-              {reviews.length > 0 && <Testimonials reviews={reviews} />}
-              {blogPosts.length > 0 && (
-                <BlogSection
-                  posts={visibleBlogs}
-                  onPostClick={navigateToBlogDetail}
-                  onViewAllClick={navigateToBlogs}
-                />
-              )}
-              {events.length > 0 && (
-                <EventsSection
-                  events={visibleEvents}
-                  onParticipateClick={() => setIsEventModalOpen(true)}
-                  onViewRecapsClick={navigateToEventBlogs}
-                />
-              )}
-              <PressUpdates pressUpdates={[]} />
-              <Newsletter />
-            </>
-          )}
+            {currentView === 'shared-wishlist' && sharedWishlistToken && (
+              <SharedWishlistPage
+                token={sharedWishlistToken}
+                onBack={goHome}
+                onAddToCart={addToCart}
+              />
+            )}
 
-          {currentView === 'distributor' && (
-            <DistributorPage onHomeClick={goHome} />
-          )}
+            {currentView === 'shop' && (
+              <ShopPage
+                onProductClick={navigateToProduct}
+                onAddToCart={addToCart}
+                searchQuery={globalSearchQuery}
+                selectedCategory={shopCategory}
+                onHomeClick={goHome}
+              />
+            )}
 
-          {currentView === 'shared-wishlist' && sharedWishlistToken && (
-            <SharedWishlistPage
-              token={sharedWishlistToken}
-              onBack={goHome}
-              onAddToCart={addToCart}
-            />
-          )}
+            {currentView === 'product' && selectedProduct && (
+              <ProductPage
+                product={selectedProduct}
+                products={products}
+                stories={stories}
+                onProductClick={navigateToProduct}
+                onShopClick={navigateToShop}
+                onAddToCart={addToCart}
+                onBack={navigateToShop}
+                reviews={reviews}
+                onAddReview={handleAddReview}
+                isLoggedIn={isLoggedIn}
+                onLoginClick={() => setIsAuthOpen(true)}
+                onPopupToggle={setIsNutritionOpen}
+                onHomeClick={goHome}
+              />
+            )}
 
-          {currentView === 'shop' && (
-            <ShopPage
-              onProductClick={navigateToProduct}
-              onAddToCart={addToCart}
-              searchQuery={globalSearchQuery}
-              selectedCategory={shopCategory}
-              onHomeClick={goHome}
-            />
-          )}
+            {currentView === 'checkout' && (
+              <CheckoutPage
+                items={cart}
+                onBack={navigateToShop}
+                onOrderSuccess={() => {
+                  setCart([]);
+                  goHome();
+                }}
+                onLoginRequired={() => {
+                  localStorage.setItem('redirect_after_login', 'checkout');
+                  setIsAuthOpen(true);
+                }}
+                checkAuth={checkAuth}
+              />
+            )}
 
-          {currentView === 'product' && selectedProduct && (
-            <ProductPage
-              product={selectedProduct}
-              products={products}
-              stories={stories}
-              onProductClick={navigateToProduct}
-              onShopClick={navigateToShop}
-              onAddToCart={addToCart}
-              onBack={navigateToShop}
-              reviews={reviews}
-              onAddReview={handleAddReview}
-              isLoggedIn={isLoggedIn}
-              onLoginClick={() => setIsAuthOpen(true)}
-              onPopupToggle={setIsNutritionOpen}
-              onHomeClick={goHome}
-            />
-          )}
+            {currentView === 'dashboard' && (
+              <Dashboard onLogout={handleLogout} onHomeClick={goHome} onAddToCart={addToCart} onProductClick={navigateToProduct} />
+            )}
 
-          {currentView === 'checkout' && (
-            <CheckoutPage
-              items={cart}
-              onBack={navigateToShop}
-              onOrderSuccess={() => {
-                setCart([]);
-                goHome();
-              }}
-              onLoginRequired={() => {
-                localStorage.setItem('redirect_after_login', 'checkout');
-                setIsAuthOpen(true);
-              }}
-              checkAuth={checkAuth}
-            />
-          )}
+            {currentView === 'faq' && (
+              <FAQPage onHomeClick={goHome} />
+            )}
 
-          {currentView === 'dashboard' && (
-            <Dashboard onLogout={handleLogout} onHomeClick={goHome} onAddToCart={addToCart} onProductClick={navigateToProduct} />
-          )}
+            {currentView === 'blogs' && (
+              <BlogsPage
+                posts={visibleBlogs}
+                onBlogClick={navigateToBlogDetail}
+                onHomeClick={goHome}
+              />
+            )}
 
-          {currentView === 'faq' && (
-            <FAQPage onHomeClick={goHome} />
-          )}
+            {currentView === 'blog-detail' && selectedBlogPost && (
+              <BlogDetailPage
+                post={selectedBlogPost}
+                onBack={navigateToBlogs}
+                onHomeClick={goHome}
+              />
+            )}
 
-          {currentView === 'blogs' && (
-            <BlogsPage
-              posts={visibleBlogs}
-              onBlogClick={navigateToBlogDetail}
-              onHomeClick={goHome}
-            />
-          )}
+            {currentView === 'event-blogs' && (
+              <EventBlogsPage
+                events={visibleEvents}
+                onEventClick={navigateToEventDetail}
+                onHomeClick={goHome}
+              />
+            )}
 
-          {currentView === 'blog-detail' && selectedBlogPost && (
-            <BlogDetailPage
-              post={selectedBlogPost}
-              onBack={navigateToBlogs}
-              onHomeClick={goHome}
-            />
-          )}
+            {currentView === 'event-detail' && selectedEvent && (
+              <EventDetailsPage
+                event={selectedEvent}
+                onBack={navigateToEventBlogs}
+                onHomeClick={goHome}
+                products={products}
+                onProductClick={navigateToProduct}
+                onAddToCart={addToCart}
+              />
+            )}
 
-          {currentView === 'event-blogs' && (
-            <EventBlogsPage
-              events={visibleEvents}
-              onEventClick={navigateToEventDetail}
-              onHomeClick={goHome}
-            />
-          )}
+            {currentView === 'journey' && (
+              <JourneyPage onShopClick={navigateToShop} onHomeClick={goHome} />
+            )}
 
-          {currentView === 'event-detail' && selectedEvent && (
-            <EventDetailsPage
-              event={selectedEvent}
-              onBack={navigateToEventBlogs}
-              onHomeClick={goHome}
-              products={products}
-              onProductClick={navigateToProduct}
-              onAddToCart={addToCart}
-            />
-          )}
+            {currentView === 'privacy-policy' && (
+              <PrivacyPolicyPage onHomeClick={goHome} />
+            )}
 
-          {currentView === 'journey' && (
-            <JourneyPage onShopClick={navigateToShop} onHomeClick={goHome} />
-          )}
+            {currentView === 'terms-and-conditions' && (
+              <TermsAndConditionsPage onHomeClick={goHome} />
+            )}
 
-          {currentView === 'privacy-policy' && (
-            <PrivacyPolicyPage onHomeClick={goHome} />
-          )}
+            {currentView === 'refund-policy' && (
+              <RefundPolicyPage onHomeClick={goHome} />
+            )}
 
-          {currentView === 'terms-and-conditions' && (
-            <TermsAndConditionsPage onHomeClick={goHome} />
-          )}
-
-          {currentView === 'refund-policy' && (
-            <RefundPolicyPage onHomeClick={goHome} />
-          )}
-
-          {currentView === 'shipping-policy' && (
-            <ShippingPolicyPage onHomeClick={goHome} />
-          )}
-          {currentView === 'visitor-form' && selectedFormId && (
-            <VisitorFormPage formId={selectedFormId} onHomeClick={goHome} />
-          )}
-          {currentView === 'not-found' && (
-            <NotFoundPage onHomeClick={goHome} />
-          )}
-        </React.Suspense>
-      </main>
+            {currentView === 'shipping-policy' && (
+              <ShippingPolicyPage onHomeClick={goHome} />
+            )}
+            {currentView === 'visitor-form' && selectedFormId && (
+              <VisitorFormPage formId={selectedFormId} onHomeClick={goHome} />
+            )}
+            {currentView === 'not-found' && (
+              <NotFoundPage onHomeClick={goHome} />
+            )}
+          </React.Suspense>
+        </motion.main>
+      </AnimatePresence>
 
       {
         currentView !== 'checkout' && currentView !== 'visitor-form' && currentView !== 'dashboard' && (
