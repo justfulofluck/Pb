@@ -1,6 +1,5 @@
 
 import React from 'react';
-import Breadcrumbs from './Breadcrumbs';
 
 interface PrivacyPolicyPageProps {
   onHomeClick: () => void;
@@ -10,9 +9,7 @@ const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onHomeClick }) =>
   return (
     <div className="bg-background-light min-h-screen pb-24 animate-in fade-in duration-500">
       <div className="bg-primary/5 pt-10 pb-20 px-4 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto mb-6">
-           <Breadcrumbs onHomeClick={onHomeClick} steps={[{ label: 'Privacy Policy' }]} />
-        </div>
+
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <span className="font-handdrawn text-3xl text-primary transform -rotate-2 inline-block mb-4">Your Trust Matters</span>
           <h1 className="text-5xl md:text-7xl font-black uppercase text-slate-900 tracking-tight mb-6">
@@ -29,7 +26,7 @@ const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onHomeClick }) =>
       <div className="max-w-4xl mx-auto px-6 py-16">
         <div className="bg-white rounded-[40px] shadow-xl border-2 border-slate-50 p-8 md:p-16 relative overflow-hidden prose prose-slate prose-lg max-w-none">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full pointer-events-none"></div>
-          
+
           <p>
             Welcome to <span className="font-bold">www.pinobite.trioriginayurveda.com</span> (“pinobite.trioriginayurveda.com” or “Website” or “We”). Safeguarding your privacy and ensuring the security of any personal information you provide is paramount to us.
           </p>
@@ -60,7 +57,7 @@ const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onHomeClick }) =>
           <p>
             When you access the site, you may provide, or we may collect information that specifically identifies you or any other individual. The following are the types of information we may collect:
           </p>
-          
+
           <h3 className="text-lg font-black uppercase text-slate-800">Personally Identifiable Information</h3>
           <p>
             Pinobite restricts the collection of information to ensure accurate service provision. The information we collect is typically basic and necessary for completing purchases or processing refunds. Examples include name, address, telephone number, date of birth, email address, item descriptions, language preference, IP address, computer operating system, and browser type and version.
@@ -89,7 +86,7 @@ const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onHomeClick }) =>
           <p>
             We utilise various technologies to collect information regarding your visit to our website. This includes the Uniform Resource Locator (URL) that directed you to our site, your Internet Protocol (IP) address, browser type, browser language, date and time of your request, and more.
           </p>
-          
+
           <h3 className="text-lg font-black uppercase text-slate-800">Web Beacons and Tracking Links</h3>
           <p>
             Web Beacons (also known as clear gifs and pixel tags), tracking links, and similar technologies consist of a few lines of code embedded on our website pages. They are often used in conjunction with cookies and are typically not visible to website users. Web Beacons may transmit information to third parties, such as our service providers, and may be employed to track customer response to specific advertisements and improve targeting.
@@ -163,7 +160,7 @@ const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onHomeClick }) =>
             <p>
               Once your return is received and inspected, we will notify you via email regarding the approval or rejection of your refund. If approved, the refund will be processed and applied to your original method of payment within a few days, as per the bank’s policy.
             </p>
-            
+
             <p className="mt-8 font-bold italic text-slate-600">
               For exchange requests, your item will be eligible for exchange only if it is defective or damaged upon receipt.
             </p>

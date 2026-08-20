@@ -1,8 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
-import Breadcrumbs from './Breadcrumbs';
 import { API_BASE_URL } from '../config';
+import { getMediaUrl } from '../utils/mediaHelper';
+import { useAuth } from '../hooks/useAuth';
+import { useToast } from './Toast';
 
 interface ShopPageProps {
   onProductClick: (p: Product) => void;
@@ -23,6 +24,9 @@ const ShopPage: React.FC<ShopPageProps> = ({
   const [categories, setCategories] = useState<string[]>([]);
   const [filter, setFilter] = useState(selectedCategory);
   const [isLoading, setIsLoading] = useState(true);
+  const [wishlistIds, setWishlistIds] = useState<Set<number>>(new Set());
+  const { user } = useAuth();
+  const { showToast } = useToast();
 
   // Sync internal filter with selectedCategory prop
   useEffect(() => {
@@ -30,6 +34,30 @@ const ShopPage: React.FC<ShopPageProps> = ({
       setFilter(selectedCategory);
     }
   }, [selectedCategory]);
+
+  // Fetch Wishlist
+  useEffect(() => {
+    const fetchWishlist = async () => {
+      if (!user) {
+        setWishlistIds(new Set());
+        return;
+      }
+      try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch(`${API_BASE_URL}/api/wishlist/`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const ids = new Set(data.map((item: any) => item.product));
+          setWishlistIds(ids as Set<number>);
+        }
+      } catch (error) {
+        console.error("Failed to fetch wishlist", error);
+      }
+    };
+    fetchWishlist();
+  }, [user]);
 
   // Fetch Categories
   useEffect(() => {
@@ -96,13 +124,11 @@ const ShopPage: React.FC<ShopPageProps> = ({
             ...p,
             id: String(p.id),
             price: parseFloat(p.price),
-            originalPrice: p.original_price ? parseFloat(p.original_price) : undefined,
             themeColor: p.theme_color,
             model3d: p.model_3d,
             orientation: p.orientation ? p.orientation.replace(/[Oo]/g, '0') : '0deg 0deg 0deg',
             benefits: p.benefits || [],
-            nutrients: p.nutrients || [],
-            gallery: p.gallery || []
+            nutrients: p.nutrients || []
           }));
           setProducts(mappedProducts);
         } else {
@@ -121,21 +147,15 @@ const ShopPage: React.FC<ShopPageProps> = ({
   const displayCategories = ['All', ...categories];
 
   return (
-    <div className="bg-[#f2f2ec] min-h-screen font-display">
+    <div className="bg-[#f2f2ec] min-h-screen font-satoshi">
       {/* Banner Area */}
       <div className="pt-6 md:pt-10 pb-6 px-4 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto mb-2 flex justify-center">
-          <Breadcrumbs
-            onHomeClick={onHomeClick}
-            steps={filter === 'All' ? [{ label: 'Shop' }] : [{ label: 'Shop', onClick: () => setFilter('All') }, { label: filter }]}
-            className="text-slate-400 !py-0"
-          />
-        </div>
-        <div className="max-w-4xl mx-auto relative z-10 text-center">
-          <h1 className="text-4xl md:text-8xl font-black uppercase tracking-tighter mb-2 text-[#008a45] font-garet">
-            {searchQuery ? `Results for "${searchQuery}"` : (filter === 'All' ? 'All  Products' : filter)}
+
+        <div className="max-w-4xl mx-auto relative z-10 text-center flex flex-col items-center">
+          <h1 className="font-normal uppercase tracking-normal [word-spacing:0.05em] mb-4 !font-anton text-textured-any bg-[#0b3d2e] inline-block leading-[1.1] text-[40px] lg:text-[100px] lg:leading-[110px] lg:-mb-[12px] lg:pb-[12px] lg:font-bold">
+            {searchQuery ? `Results for "${searchQuery}"`.toUpperCase() : (filter === 'All' ? 'All products' : filter).toUpperCase()}
           </h1>
-          <div className="w-32 h-1.5 bg-[#008a45] mx-auto mb-2"></div>
+          <div className="w-32 h-1.5 bg-[#0b3d2e] mb-2 texture-chalkboard-strong"></div>
         </div>
       </div>
 
@@ -146,9 +166,9 @@ const ShopPage: React.FC<ShopPageProps> = ({
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`px-10 py-3 rounded-full font-black text-xs tracking-widest transition-all uppercase shadow-md font-garet ${filter === cat
-                ? 'bg-[#008a45] text-white'
-                : 'bg-white text-slate-400 hover:text-[#008a45]'
+              className={`px-10 py-3 rounded-full font-normal text-base tracking-wide [word-spacing:0.02em] uppercase transition-all shadow-md !font-anton ${filter === cat
+                ? 'bg-[#0b3d2e] !text-white'
+                : 'bg-white !text-[#0b3d2e] hover:opacity-80'
                 }`}
             >
               {cat}
@@ -168,9 +188,6 @@ const ShopPage: React.FC<ShopPageProps> = ({
             ))
           ) : products.length > 0 ? (
             products.map((product) => {
-              const discount = product.originalPrice
-                ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-                : null;
 
               return (
                 <div
@@ -181,26 +198,48 @@ const ShopPage: React.FC<ShopPageProps> = ({
                   {/* Image Container */}
                   <div className="relative aspect-[4/5] w-full mb-6 transition-transform duration-500 group-hover:-translate-y-2">
 
-                    {/* Discount Badge - Top Left Circle */}
-                    {discount && (
-                      <div className="absolute top-0 left-0 z-20 w-14 h-14 bg-[#d32f2f] rounded-full flex flex-col items-center justify-center text-white leading-none shadow-lg">
-                        <span className="text-[14px] font-black">{discount}%</span>
-                        <span className="text-[8px] font-black uppercase">OFF</span>
-                      </div>
-                    )}
 
                     {/* Wishlist Heart - Top Right */}
                     <button
-                      className="absolute top-2 right-2 z-20 p-2 text-white/30 hover:text-red-500 transition-colors"
-                      onClick={(e) => { e.stopPropagation(); /* Handle wishlist */ }}
+                      className="absolute top-2 right-2 z-20 p-2 flex items-center justify-center transition-all duration-300 active:scale-90 group/heart"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (!user) {
+                          showToast('Please log in to save to your wishlist.', 'warning');
+                          return;
+                        }
+                        try {
+                          const token = localStorage.getItem('access_token');
+                          const response = await fetch(`${API_BASE_URL}/api/wishlist/toggle/`, {
+                            method: 'POST',
+                            headers: {
+                              'Authorization': `Bearer ${token}`,
+                              'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ product_id: product.id })
+                          });
+                          if (response.ok) {
+                            const data = await response.json();
+                            const newIds = new Set(wishlistIds);
+                            if (data.status === 'added') {
+                              newIds.add(product.id as any);
+                            } else {
+                              newIds.delete(product.id as any);
+                            }
+                            setWishlistIds(newIds);
+                          }
+                        } catch (error) {
+                          console.error("Failed to toggle wishlist", error);
+                        }
+                      }}
                     >
-                      <span className="material-symbols-outlined fill-1 text-2xl">favorite</span>
+                      <span className={`material-symbols-outlined text-[28px] drop-shadow-md transition-colors duration-300 ${wishlistIds.has(product.id as any) ? '!text-red-500 fill-1' : '!text-white/90 group-hover/heart:!text-red-400'}`} style={{ WebkitTextStroke: wishlistIds.has(product.id as any) ? '0px' : '1px rgba(0,0,0,0.2)' }}>favorite</span>
                     </button>
 
                     {/* Image */}
                     <div className="w-full h-full flex items-center justify-center relative">
                       <img
-                        src={product.image}
+                        src={getMediaUrl(product.image)}
                         className="max-w-full max-h-full object-contain drop-shadow-2xl transition-transform duration-700 ease-out group-hover:scale-105"
                         style={{ mixBlendMode: 'multiply' }}
                         alt={product.name}
@@ -209,8 +248,8 @@ const ShopPage: React.FC<ShopPageProps> = ({
                       {/* Sold Out Badge - Center Circle */}
                       {product.stock <= 0 && (
                         <div className="absolute inset-0 flex items-center justify-center z-10">
-                          <div className="w-20 h-20 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center border border-slate-100 shadow-xl">
-                            <span className="text-[10px] font-black uppercase tracking-tighter text-slate-800 text-center leading-tight">
+                          <div className="w-14 h-14 md:w-20 md:h-20 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center border border-slate-100 shadow-xl">
+                            <span className="text-[8px] md:text-[10px] font-black uppercase tracking-tighter text-slate-800 text-center leading-tight">
                               SOLD<br />OUT
                             </span>
                           </div>
@@ -232,34 +271,26 @@ const ShopPage: React.FC<ShopPageProps> = ({
                     </div>
 
                     {/* Title - Fixed min height for alignment */}
-                    <h3 className="text-sm md:text-lg font-bold uppercase tracking-tight text-[#228b44] mb-2 px-2 leading-tight group-hover:opacity-80 transition-all text-center min-h-[2.5rem] md:min-h-[3rem] flex items-center justify-center">
-                      {product.name}
+                    <h3 className="!text-[16px] md:!text-2xl font-normal uppercase tracking-wide [word-spacing:0.02em] text-textured-any bg-[#0b3d2e] mb-1 !px-4 md:!px-8 !leading-[1.25] group-hover:opacity-80 transition-all text-center min-h-[3rem] md:!min-h-[4rem] flex items-center justify-center !font-anton w-fit mx-auto">
+                      {product.name.toUpperCase()}
                     </h3>
 
                     {/* Bottom Section - Pushed to bottom for alignment */}
-                    <div className="mt-auto w-full">
+                    <div className="mt-auto w-full flex flex-col items-center">
                       {/* Price */}
-                      <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-                        <span className="text-base md:text-xl font-bold text-[#228b44]">Rs. {product.price.toFixed(2)}</span>
-                        {product.originalPrice && product.originalPrice > product.price && (
-                          <span className="text-xs md:text-sm font-medium text-slate-400 line-through">Rs. {product.originalPrice.toFixed(2)}</span>
-                        )}
+                      <div className="flex flex-wrap items-center justify-center gap-1.5 mb-3">
+                        <span className="text-lg md:text-2xl font-bold text-[#228b44]">Rs. {product.price.toFixed(2)}</span>
                       </div>
 
                       <button
-                        className="w-full bg-[#228b44] text-white py-2 md:py-3 rounded-md font-bold text-[10px] md:text-xs uppercase tracking-widest shadow-md hover:bg-slate-900 transition-all active:scale-95 flex items-center justify-center gap-2"
+                        className="shine-coin w-[95%] md:w-fit mx-auto btn-greenboard py-2.5 md:py-3 px-2 md:px-[50px] rounded-lg font-bold !text-[13px] md:!text-base uppercase tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center font-anton"
                         onClick={(e) => {
                           e.stopPropagation();
                           onAddToCart(product);
                         }}
                         disabled={product.stock <= 0}
                       >
-                        {product.stock <= 0 ? 'Out of Stock' : (
-                          <>
-                            ADD TO CART
-                            <i className="fa-solid fa-cart-shopping text-[10px] md:text-sm"></i>
-                          </>
-                        )}
+                        {product.stock <= 0 ? 'Out of Stock' : 'Add to Cart'}
                       </button>
                     </div>
                   </div>

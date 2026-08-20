@@ -14,6 +14,7 @@ from .views import (
     HeroSlideViewSet,
     OrderViewSet,
     UserViewSet,
+    CustomerViewSet,
     RegisterView,
     VisitorFormViewSet,
     VisitorSubmissionViewSet,
@@ -28,6 +29,10 @@ from .views import (
     RewardRuleViewSet,
     RewardTransactionViewSet,
     ProcessDriveVideoView,
+    WishlistViewSet,
+    RazorpayWebhookView,
+    SendFormOTPView,
+    VerifyFormOTPView,
 )
 
 router = DefaultRouter()
@@ -40,6 +45,7 @@ router.register(r"stories", StoryViewSet)
 router.register(r"hero-slides", HeroSlideViewSet)
 router.register(r"orders", OrderViewSet)
 router.register(r"users", UserViewSet)
+router.register(r"customers", CustomerViewSet, basename="customers")
 router.register(r"visitor-forms", VisitorFormViewSet)
 router.register(r"visitor-submissions", VisitorSubmissionViewSet)
 router.register(r"newsletter-subscribers", NewsletterSubscriberViewSet)
@@ -48,8 +54,19 @@ router.register(r"announcements", AnnouncementViewSet)
 router.register(r"distributor-applications", DistributorApplicationViewSet)
 router.register(r"reward-rules", RewardRuleViewSet)
 router.register(r"reward-transactions", RewardTransactionViewSet)
+router.register(r"wishlist", WishlistViewSet, basename="wishlist")
 
 urlpatterns = [
+    path(
+        "visitor-forms/<int:form_id>/send-otp/",
+        SendFormOTPView.as_view(),
+        name="visitor_form_send_otp",
+    ),
+    path(
+        "visitor-forms/<int:form_id>/verify-otp/",
+        VerifyFormOTPView.as_view(),
+        name="visitor_form_verify_otp",
+    ),
     path(
         "stories/process-drive-video/",
         ProcessDriveVideoView.as_view(),
@@ -81,6 +98,16 @@ urlpatterns = [
         "newsletter/unsubscribe/",
         NewsletterUnsubscribeView.as_view(),
         name="newsletter_unsubscribe",
+    ),
+    path(
+        "wishlist/shared/",
+        WishlistViewSet.as_view({"get": "get_shared"}),
+        name="wishlist_shared",
+    ),
+    path(
+        "razorpay/webhook/",
+        RazorpayWebhookView.as_view(),
+        name="razorpay_webhook",
     ),
 ]
 

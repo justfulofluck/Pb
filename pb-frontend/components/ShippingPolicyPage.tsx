@@ -1,6 +1,5 @@
 
 import React from 'react';
-import Breadcrumbs from './Breadcrumbs';
 
 interface ShippingPolicyPageProps {
   onHomeClick: () => void;
@@ -10,9 +9,7 @@ const ShippingPolicyPage: React.FC<ShippingPolicyPageProps> = ({ onHomeClick }) 
   return (
     <div className="bg-background-light min-h-screen pb-24 animate-in fade-in duration-500">
       <div className="bg-blue-50/50 pt-10 pb-20 px-4 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto mb-6">
-           <Breadcrumbs onHomeClick={onHomeClick} steps={[{ label: 'Shipping Policy' }]} />
-        </div>
+
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <span className="font-handdrawn text-3xl text-primary transform -rotate-2 inline-block mb-4">Fast & Reliable</span>
           <h1 className="text-5xl md:text-7xl font-black uppercase text-slate-900 tracking-tight mb-6">
@@ -29,7 +26,7 @@ const ShippingPolicyPage: React.FC<ShippingPolicyPageProps> = ({ onHomeClick }) 
       <div className="max-w-4xl mx-auto px-6 py-16">
         <div className="bg-white rounded-[40px] shadow-xl border-2 border-slate-50 p-8 md:p-16 relative overflow-hidden prose prose-slate prose-lg max-w-none">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full pointer-events-none"></div>
-          
+
           <p className="lead font-bold text-slate-900">
             Welcome to Pinobite! We strive to ensure your shopping experience is smooth and satisfactory. Below, you’ll find our comprehensive shipping policy, which covers everything from shipping destinations to customer support.
           </p>
@@ -82,18 +79,18 @@ const ShippingPolicyPage: React.FC<ShippingPolicyPageProps> = ({ onHomeClick }) 
             <h2 className="text-2xl font-black uppercase text-secondary mb-6 tracking-tight m-0">Customer Support</h2>
             <p className="text-slate-300 mb-8">For any questions or concerns regarding your order, please contact our customer support team:</p>
             <div className="grid md:grid-cols-2 gap-8 not-prose">
-               <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                     <span className="material-symbols-outlined text-secondary">mail</span>
-                     <a href="mailto:support@pinobite.com" className="font-bold hover:text-secondary transition-colors">support@pinobite.com</a>
-                  </div>
-               </div>
-               <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                     <span className="material-symbols-outlined text-secondary">schedule</span>
-                     <span className="font-bold text-sm">Mon - Fri: 9 AM – 6 PM IST</span>
-                  </div>
-               </div>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-secondary">mail</span>
+                  <a href="mailto:support@pinobite.com" className="font-bold hover:text-secondary transition-colors">support@pinobite.com</a>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-secondary">schedule</span>
+                  <span className="font-bold text-sm">Mon - Fri: 9 AM – 6 PM IST</span>
+                </div>
+              </div>
             </div>
             <p className="text-xs text-slate-500 mt-10 font-bold uppercase tracking-[0.2em]">Thank you for choosing Pinobite.</p>
           </div>

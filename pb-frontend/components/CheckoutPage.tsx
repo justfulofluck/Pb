@@ -1,8 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { CartItem } from '../types';
 import { API_BASE_URL } from '../config';
 import { triggerRewardNotification } from './RewardNotification';
+import { useToast } from './Toast';
+import confetti from 'canvas-confetti';
+import Header from './Header';
+import Footer from './Footer';
+import BorderGlow from './BorderGlow';
 
 interface CheckoutPageProps {
   items: CartItem[];
@@ -19,6 +23,7 @@ declare global {
 }
 
 const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSuccess, onLoginRequired, checkAuth }) => {
+  const { showToast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -40,6 +45,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
 
   const [savedAddress, setSavedAddress] = useState<any>(null);
   const [useSavedAddress, setUseSavedAddress] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cod' | 'special_cod'>('online');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -107,13 +113,15 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
   };
 
   const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = subtotal > 999 ? 0 : 50;
-  const tax = subtotal * 0.05; // 5% GST
-  
+  const mrpTotal = items.reduce((sum, item) => sum + ((item.originalPrice || item.price) * item.quantity), 0);
+  const mrpDiscount = mrpTotal - subtotal;
+  const shipping = 0;
+  const specialCodFee = paymentMethod === 'special_cod' ? 5000 : 0;
+
   // 10 points = 1 Rupee discount
   const maxRedeemablePoints = Math.min(userPoints, Math.floor(subtotal * 10));
   const potentialDiscount = usePoints ? maxRedeemablePoints / 10 : 0;
-  const total = subtotal + shipping + tax - potentialDiscount;
+  const total = subtotal + shipping + specialCodFee - potentialDiscount;
 
   const togglePoints = () => {
     setUsePoints(!usePoints);
@@ -142,29 +150,37 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
       });
 
       if (verifyResponse.ok) {
-        const verifyData = await verifyResponse.json();
-        
+        let verifyData = {};
+        try {
+          const contentType = verifyResponse.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            verifyData = await verifyResponse.json();
+          }
+        } catch (parseErr) {
+          console.error("Failed to parse verify response:", parseErr);
+        }
+
         // Trigger notification using backend data if available, fallback to calculation
         const earnedPoints = verifyData.points_earned !== undefined ? verifyData.points_earned : Math.floor(subtotal / 10);
         if (earnedPoints > 0) {
-            triggerRewardNotification(earnedPoints, `Order #${orderId} Verified!`);
+          triggerRewardNotification(earnedPoints, `Order #${orderId} Verified!`);
         }
-        
+
         // Refresh auth state to show new points in dashboard
         if (checkAuth) {
-            await checkAuth();
+          await checkAuth();
         }
-        
+
         setIsSuccess(true);
         setTimeout(() => {
           onOrderSuccess();
         }, 3000); // Wait 3 seconds to show success message
       } else {
-        alert("Payment verification failed. Please contact support.");
+        showToast("Payment verification failed. Please contact support.", 'error');
       }
     } catch (error) {
       console.error("Verification Error:", error);
-      alert("Payment verification failed. Please check your connection.");
+      showToast("Payment verification failed. Please check your connection.", 'error');
     } finally {
       setIsProcessing(false);
     }
@@ -205,20 +221,50 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
             state: formData.state
           },
           use_points: usePoints,
-          points_to_redeem: usePoints ? maxRedeemablePoints : 0
+          points_to_redeem: usePoints ? maxRedeemablePoints : 0,
+          payment_method: paymentMethod
         })
       });
 
       if (response.ok) {
         const data = await response.json();
 
-        if (data.razorpay_order_id.startsWith('order_mock_')) {
-          // Mock Payment Flow
-          handlePaymentSuccess({
-            razorpay_payment_id: 'pay_mock_123456',
-            razorpay_order_id: data.razorpay_order_id,
-            razorpay_signature: 'mock_signature'
-          }, data.order_id);
+        if (data.is_cod) {
+          if (data.points_earned > 0) {
+            triggerRewardNotification(data.points_earned, `Order #${data.order_id} Placed!`);
+          }
+          if (checkAuth) await checkAuth();
+          
+          if (paymentMethod === 'special_cod') {
+            const duration = 3 * 1000;
+            const end = Date.now() + duration;
+
+            (function frame() {
+              confetti({
+                particleCount: 5,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: ['#0b3d2e', '#ffaa00', '#ffffff', '#8a2be2']
+              });
+              confetti({
+                particleCount: 5,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: ['#0b3d2e', '#ffaa00', '#ffffff', '#8a2be2']
+              });
+
+              if (Date.now() < end) {
+                requestAnimationFrame(frame);
+              }
+            }());
+          }
+
+          setIsSuccess(true);
+          setTimeout(() => {
+            onOrderSuccess();
+          }, 3000);
           return;
         }
 
@@ -239,23 +285,46 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
           },
           theme: {
             color: "#0f172a"
+          },
+          config: {
+            display: {
+              hide: [
+                { method: "paylater" },
+                { method: "wallet" },
+                { method: "emi" },
+                { method: "netbanking" }
+              ],
+              preferences: {
+                show_default_blocks: true
+              }
+            }
           }
         };
 
         const rzp = new window.Razorpay(options);
         rzp.on('payment.failed', function (response: any) {
-          alert(response.error.description);
+          showToast(response.error.description, 'error');
           setIsProcessing(false);
         });
         rzp.open();
       } else {
-        const errData = await response.json();
-        alert(`Order creation failed: ${errData.error || 'Unknown error'}`);
+        let errData = {};
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            errData = await response.json();
+          } else {
+            errData = { error: 'Server returned an error. Please try again.' };
+          }
+        } catch (parseErr) {
+          errData = { error: `Server error (${response.status}). Please try again.` };
+        }
+        showToast(`Order creation failed: ${errData.error || 'Unknown error'}`, 'error');
         setIsProcessing(false);
       }
     } catch (error: any) {
       console.error("Order Creation Error:", error);
-      alert(error.message || "Failed to initiate order. Please try again.");
+      showToast(error.message || "Failed to initiate order. Please try again.", 'error');
       setIsProcessing(false);
     }
   };
@@ -280,7 +349,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
             <span className="material-symbols-outlined text-6xl">check</span>
           </div>
           <h2 className="text-4xl font-black uppercase text-slate-900 tracking-tighter leading-none">Order Placed!</h2>
-          <p className="font-handdrawn text-2xl text-primary italic">You're on your way to a healthier morning! 🚀</p>
+          <p className="font-satoshi text-2xl text-primary italic">You're on your way to a healthier morning! 🚀</p>
           <p className="text-slate-500 font-medium">We've sent a confirmation email with your order details. You'll be redirected to the home page shortly.</p>
         </div>
       </div>
@@ -295,7 +364,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
           className="flex items-center gap-2 text-slate-400 hover:text-primary font-bold text-xs tracking-widest uppercase transition-colors"
         >
           <span className="material-symbols-outlined text-sm">arrow_back</span>
-          Back to cart
+          Back to Products
         </button>
         <div className="flex items-center gap-2 font-extrabold text-primary">
           <span className="material-symbols-outlined">lock</span>
@@ -303,13 +372,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-12 gap-12 items-start">
+      <div className="flex flex-col lg:grid lg:grid-cols-12 gap-10 lg:gap-12 items-start">
         {/* Checkout Form */}
-        <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-10">
+        <form id="checkout-form" onSubmit={handleSubmit} className="lg:col-span-7 space-y-10 w-full">
           <section className="space-y-6">
             <div className="flex items-center gap-4">
-              <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm">1</span>
-              <h3 className="text-2xl font-black uppercase tracking-tight">Contact Information</h3>
+              <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm flex-shrink-0">1</span>
+              <h3 className="text-xl sm:text-2xl font-normal uppercase tracking-wide [word-spacing:0.05em] relative top-[4px] leading-none">Contact Information</h3>
             </div>
             <div className="grid gap-4">
               <input
@@ -334,10 +403,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
           </section>
 
           <section className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 items-start">
               <div className="flex items-center gap-4">
-                <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm">2</span>
-                <h3 className="text-2xl font-black uppercase tracking-tight">Shipping Address</h3>
+                <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm flex-shrink-0">2</span>
+                <h3 className="text-xl sm:text-2xl font-normal uppercase tracking-wide [word-spacing:0.05em] relative top-[4px] leading-none">Shipping Address</h3>
               </div>
               {savedAddress && (
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -375,47 +444,102 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
             )}
           </section>
 
-          <button
-            type="submit"
-            disabled={isProcessing}
-            className="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-          >
-            {isProcessing ? 'Processing...' : 'Complete Purchase'}
-            {!isProcessing && <span className="material-symbols-outlined">arrow_forward</span>}
-          </button>
+          <section className="space-y-6">
+            <div className="flex items-center gap-4">
+              <span className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-sm flex-shrink-0">3</span>
+              <h3 className="text-xl sm:text-2xl font-normal uppercase tracking-wide [word-spacing:0.05em] relative top-[4px] leading-none">Payment Method</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <label className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'online' ? 'border-[#0b3d2e] bg-[#0b3d2e]/5' : 'border-slate-100 hover:border-slate-200'}`}>
+                <input type="radio" name="paymentMethod" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} className="w-4 h-4 text-[#0b3d2e] focus:ring-[#0b3d2e] accent-[#0b3d2e]" />
+                <div className="flex flex-col">
+                  <span className="font-black uppercase text-slate-900">Pay Online</span>
+                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest">UPI, Cards</span>
+                </div>
+              </label>
+              <label className={`flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all ${paymentMethod === 'cod' ? 'border-[#0b3d2e] bg-[#0b3d2e]/5' : 'border-slate-100 hover:border-slate-200'}`}>
+                <input type="radio" name="paymentMethod" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="w-4 h-4 text-[#0b3d2e] focus:ring-[#0b3d2e] accent-[#0b3d2e]" />
+                <div className="flex flex-col">
+                  <span className="font-black uppercase text-slate-900">Cash on Delivery</span>
+                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pay when you receive</span>
+                </div>
+              </label>
+              <div className="relative cursor-pointer rounded-2xl h-full shadow-sm">
+                <BorderGlow
+                  borderRadius={16}
+                  glowRadius={80}
+                  colors={['#c084fc', '#f472b6', '#38bdf8']}
+                  backgroundColor={paymentMethod === 'special_cod' ? '#faf5ff' : '#ffffff'}
+                  className={paymentMethod === 'special_cod' ? 'ring-2 ring-purple-600' : 'ring-2 ring-slate-100 hover:ring-slate-200'}
+                >
+                  <label className="flex items-center gap-3 p-4 rounded-2xl w-full h-full cursor-pointer transition-all">
+                    <input type="radio" name="paymentMethod" value="special_cod" checked={paymentMethod === 'special_cod'} onChange={() => setPaymentMethod('special_cod')} className="w-4 h-4 text-purple-600 focus:ring-purple-600 accent-purple-600" />
+                    <div className="flex flex-col">
+                      <span className="font-black uppercase text-purple-900">Special COD</span>
+                      <span className="text-[9px] sm:text-[10px] font-bold text-purple-600 uppercase tracking-widest">+₹5000 Premium</span>
+                    </div>
+                  </label>
+                </BorderGlow>
+              </div>
+            </div>
+          </section>
+
         </form >
 
         {/* Order Summary */}
-        < div className="lg:col-span-5 bg-slate-50 p-8 rounded-3xl space-y-8 sticky top-8" >
-          <h3 className="text-xl font-black uppercase tracking-tight">Order Summary</h3>
+        <div className="lg:col-span-5 bg-white sm:bg-slate-50 p-6 sm:p-8 rounded-3xl space-y-8 lg:sticky lg:top-8 w-full border border-slate-100 sm:border-none shadow-sm sm:shadow-none">
+          <h3 className="text-xl font-normal uppercase tracking-wide [word-spacing:0.05em] relative top-[4px] leading-none">Order Summary</h3>
           <div className="space-y-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
             {items.map(item => (
-              <div key={item.id} className="flex gap-4">
-                <div className="w-16 h-16 bg-white rounded-xl overflow-hidden shadow-sm flex-shrink-0">
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+              <div key={item.id} className="flex gap-6 items-center">
+                <div className="w-24 h-24 bg-white rounded-2xl overflow-hidden shadow-sm flex-shrink-0 border border-slate-100 p-2">
+                  <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-bold text-slate-900 text-sm">{item.name}</h4>
-                  <p className="text-xs text-slate-500 mt-1">Qty: {item.quantity}</p>
+                <div className="flex-1 flex flex-col">
+                  <h4 className="font-black text-slate-900 text-lg leading-tight mb-1 tracking-tight">{item.name}</h4>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">
+                      Qty: {item.quantity}
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-black text-slate-900 text-base">₹{item.price * item.quantity}</span>
+                    {item.originalPrice && item.originalPrice > item.price && (
+                      <span className="text-slate-400 line-through text-xs font-bold">₹{item.originalPrice * item.quantity}</span>
+                    )}
+                  </div>
                 </div>
-                <p className="font-bold text-slate-900 text-sm">₹{item.price * item.quantity}</p>
               </div>
             ))}
           </div>
 
           <div className="border-t-2 border-slate-200 border-dashed pt-6 space-y-3">
             <div className="flex justify-between text-slate-500 font-medium text-sm">
+              <span>MRP Total</span>
+              <span>₹{mrpTotal.toFixed(2)}</span>
+            </div>
+            {mrpDiscount > 0 && (
+              <div className="flex justify-between text-green-600 font-bold text-sm">
+                <span>Discount on MRP</span>
+                <span>- ₹{mrpDiscount.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-slate-500 font-medium text-sm border-t border-slate-100 pt-2">
               <span>Subtotal</span>
-              <span>₹{subtotal}</span>
+              <span>₹{subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-slate-500 font-medium text-sm">
               <span>Shipping</span>
               <span>{shipping === 0 ? 'Free' : `₹${shipping}`}</span>
             </div>
-            <div className="flex justify-between text-slate-500 font-medium text-sm">
-              <span>Tax (5% GST)</span>
-              <span>₹{tax.toFixed(2)}</span>
-            </div>
+
+            {paymentMethod === 'special_cod' && (
+              <div className="flex justify-between text-purple-600 font-bold text-sm">
+                <span>Special COD Fee</span>
+                <span>₹5000.00</span>
+              </div>
+            )}
+
             {potentialDiscount > 0 && (
               <div className="flex justify-between text-green-600 font-bold text-sm">
                 <span>Loyalty Discount ({maxRedeemablePoints} Pts)</span>
@@ -440,7 +564,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{userPoints} Available</p>
                   </div>
                 </div>
-                <button 
+                <button
                   type="button"
                   onClick={togglePoints}
                   className={`w-12 h-6 rounded-full transition-all relative ${usePoints ? 'bg-primary' : 'bg-slate-300'}`}
@@ -455,6 +579,16 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ items, onBack, onOrderSucce
               )}
             </div>
           )}
+
+          <button
+            form="checkout-form"
+            type="submit"
+            disabled={isProcessing}
+            className="group w-full bg-slate-900 text-white hover:text-white py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-md hover:shadow-lg mt-8"
+          >
+            <span className="text-white group-hover:text-white">{isProcessing ? 'Processing...' : 'Complete Purchase'}</span>
+            {!isProcessing && <span className="material-symbols-outlined text-white group-hover:text-white">arrow_forward</span>}
+          </button>
         </div >
       </div >
 

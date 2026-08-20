@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distributor Application Received - Pinobite</title>
+</head>
+
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:Georgia, serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f5;">
+<tr>
+<td align="center">
+
+<table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;max-width:600px;">
+
+  <!-- Header -->
+  <tr>
+    <td align="center" style="background:#00843D;padding:50px 30px;">
+      <h1 style="margin:0;color:#ffffff;font-size:38px;font-weight:bold;">
+        WE'VE GOT YOUR DETAILS! ✅
+      </h1>
+      <p style="margin:15px 0 0;color:#d9f5e4;font-size:18px;">
+        Your distributor application is with us.
+      </p>
+    </td>
+  </tr>
+
+  <!-- Greeting -->
+  <tr>
+    <td style="padding:40px 40px 10px;">
+      <h2 style="margin:0;color:#1d1d1d;font-size:28px;">
+        Hey {{ application.full_name }} 👋
+      </h2>
+    </td>
+  </tr>
+
+  <!-- Intro -->
+  <tr>
+    <td style="padding:0 40px 20px;">
+      <p style="font-size:18px;line-height:1.8;color:#333333;">
+        Thank you for showing interest in becoming a Pinobite distributor!
+      </p>
+
+      <p style="font-size:18px;line-height:1.8;color:#333333;">
+        We've received your application and our team will review it shortly.
+        We'll reach out to you within the next few business days.
+      </p>
+    </td>
+  </tr>
+
+  <!-- Application Summary -->
+  <tr>
+    <td style="padding:0 40px;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0"
+      style="background:#f8f8f8;border-radius:10px;padding:25px;">
+        <tr>
+          <td>
+            <h3 style="margin-top:0;color:#00843D;font-size:22px;">
+              📋 Application Summary
+            </h3>
+
+            <p style="font-size:16px;color:#333333;margin:8px 0;">
+              <strong>Business Name:</strong> {{ application.business_name }}
+            </p>
+
+            <p style="font-size:16px;color:#333333;margin:8px 0;">
+              <strong>Contact Person:</strong> {{ application.full_name }}
+            </p>
+
+            <p style="font-size:16px;color:#333333;margin:8px 0;">
+              <strong>Phone Number:</strong> {{ application.phone_number }}
+            </p>
+
+            <p style="font-size:16px;color:#333333;margin:8px 0;">
+              <strong>Email:</strong> {{ application.email }}
+            </p>
+
+            <p style="font-size:16px;color:#333333;margin:8px 0;">
+              <strong>City:</strong> {{ application.city|default:"Not specified" }}
+            </p>
+
+            <p style="font-size:16px;color:#333333;margin:8px 0;">
+              <strong>Status:</strong> {{ application.status }}
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <!-- Message -->
+  <tr>
+    <td style="padding:30px 40px 10px;">
+      <p style="font-size:18px;line-height:1.8;color:#333333;">
+        While you wait, feel free to explore our product range and see
+        why customers love Pinobite.
+      </p>
+    </td>
+  </tr>
+
+  <!-- CTA -->
+  <tr>
+    <td align="center" style="padding:20px 40px 40px;">
+      <a href="https://pinobite.com"
+      style="background:#00843D;
+             color:#ffffff;
+             text-decoration:none;
+             padding:16px 40px;
+             border-radius:8px;
+             font-size:18px;
+             font-weight:bold;
+             display:inline-block;">
+        VISIT PINOBITE
+      </a>
+    </td>
+  </tr>
+
+  <!-- Footer -->
+  <tr>
+    <td align="center" style="padding:35px;background:#f7f7f7;">
+
+      <p style="font-size:18px;color:#333333;margin:0;">
+        We'll be in touch soon! 💚
+      </p>
+
+      <p style="font-size:16px;color:#666666;line-height:1.8;margin-top:15px;">
+        Questions? Reply to this email or reach out to us directly.
+      </p>
+
+      <p style="font-size:14px;color:#999999;margin-top:20px;">
+        Pinobite | Vadodara, India
+      </p>
+
+    </td>
+  </tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>

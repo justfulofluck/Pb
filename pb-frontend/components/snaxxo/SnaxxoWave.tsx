@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 
 interface SnaxxoWaveProps {
@@ -8,10 +8,31 @@ interface SnaxxoWaveProps {
 
 const SnaxxoWave: React.FC<SnaxxoWaveProps> = ({ className, fill = "#FF0000" }) => {
     const groupRef = useRef<SVGGElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [isInView, setIsInView] = useState(true);
+    const timelineRef = useRef<gsap.core.Tween | null>(null);
+
+    // Track visibility - pause animation when off-screen
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => setIsInView(entry.isIntersecting),
+            { threshold: 0.1 }
+        );
+        observer.observe(containerRef.current);
+        return () => observer.disconnect();
+    }, []);
 
     useEffect(() => {
         const group = groupRef.current;
         if (!group) return;
+        // Skip if not in view to save CPU
+        if (!isInView) {
+            if (timelineRef.current) {
+                timelineRef.current.pause();
+            }
+            return;
+        }
 
         // The user reference provided a specific starting matrix: matrix(1,0,0,1,215.17300415039062,33.5260009765625)
         // This dictates the starting position.
@@ -25,17 +46,23 @@ const SnaxxoWave: React.FC<SnaxxoWaveProps> = ({ className, fill = "#FF0000" }) 
         gsap.set(groupRef.current, { x: startX, y: startY });
 
         // Animate x by -360 units for a full loop
-        gsap.to(groupRef.current, {
+        timelineRef.current = gsap.to(groupRef.current, {
             x: startX - 360,
             duration: 4, // Adjust speed as needed (was 4s)
             ease: "none",
             repeat: -1
         });
 
-    }, []);
+        return () => {
+            if (timelineRef.current) {
+                timelineRef.current.kill();
+                timelineRef.current = null;
+            }
+        };
+    }, [isInView]);
 
     return (
-        <div className={`wave-lottie-animation ${className || ''}`}>
+        <div ref={containerRef} className={`wave-lottie-animation ${className || ''}`}>
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 375 36"

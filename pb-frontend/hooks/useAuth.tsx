@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode, useCallback, useMemo } from 'react';
 import { API_BASE_URL } from '../config';
 import { triggerRewardNotification } from '../components/RewardNotification';
 
@@ -36,7 +36,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const checkAuth = async () => {
+    const logout = useCallback(() => {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        setUser(null);
+    }, []);
+
+    const checkAuth = useCallback(async () => {
+        setIsLoading(true);
         const token = localStorage.getItem('access_token');
         if (!token) {
             setUser(null);
@@ -64,15 +71,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [logout]);
 
-    const login = (token: string, refresh: string) => {
+    const login = useCallback((token: string, refresh: string) => {
         localStorage.setItem('access_token', token);
         localStorage.setItem('refresh_token', refresh);
         checkAuth();
-    };
+    }, [checkAuth]);
 
-    const register = async (userData: any) => {
+    const register = useCallback(async (userData: any) => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/register/`, {
                 method: 'POST',
@@ -110,20 +117,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.error('Registration failed:', error);
             return false;
         }
-    };
+    }, [login]);
 
-    const logout = () => {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        setUser(null);
-    };
+
 
     useEffect(() => {
         checkAuth();
-    }, []);
+    }, [checkAuth]);
+
+    const value = useMemo(() => ({
+        user, isLoading, login, register, logout, checkAuth
+    }), [user, isLoading, login, register, logout, checkAuth]);
 
     return (
-        <AuthContext.Provider value={{ user, isLoading, login, register, logout, checkAuth }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );

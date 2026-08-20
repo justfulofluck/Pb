@@ -1,0 +1,160 @@
+import { API_BASE_URL } from '../config';
+
+/**
+ * Smart URL resolver for media assets.
+ * Handles:
+ * 1. Absolute URLs (starts with http/https)
+ * 2. Data URLs (Base64)
+ * 3. Relative paths from the API (prepends API_BASE_URL)
+ * 4. Empty/null values
+ */
+export const getMediaUrl = (path: string | null | undefined): string | undefined => {
+  if (!path || typeof path !== 'string') return undefined;
+  
+  let trimmedPath = path.trim();
+
+  // Strip leading slash or /media/ prefix if it was prepended to a base64 string
+  let testPath = trimmedPath;
+  if (testPath.startsWith('/media/')) {
+    testPath = testPath.slice(7);
+  } else if (testPath.startsWith('media/')) {
+    testPath = testPath.slice(6);
+  } else if (testPath.startsWith('/')) {
+    testPath = testPath.slice(1);
+  }
+
+  // Handle data URLs (both raw, URL encoded, or with /media/ prepended)
+  const tryDecodeDataUrl = (str: string): string | null => {
+    let current = str.replace(/[\r\n\s]+/g, '');
+    
+    // Quick validation to prevent broken base64 images from rendering
+    if (current === 'data:;base64,=' || current === 'data:,' || current === 'data:;base64,') {
+      return null;
+    }
+
+    const validateDataUrl = (data: string) => {
+      if (data === 'data:;base64,=' || data === 'data:,' || data === 'data:;base64,') return null;
+      if (data.startsWith('data:')) {
+        // If it's a data URL but very short, it's likely broken
+        if (data.length < 20 && data.includes('base64')) return null;
+        return data;
+      }
+      return null;
+    };
+
+    for (let i = 0; i < 3; i++) {
+      const valid = validateDataUrl(current);
+      if (valid) return valid;
+      
+      const lower = current.toLowerCase();
+      if (lower.startsWith('data%')) {
+        try { current = decodeURIComponent(current); } catch { break; }
+      } else {
+        break;
+      }
+    }
+    
+    const valid = validateDataUrl(current);
+    if (valid) return valid;
+    
+    try {
+      const decoded = decodeURIComponent(str);
+      const validDecoded = validateDataUrl(decoded.replace(/[\r\n\s]+/g, ''));
+      if (validDecoded) return validDecoded;
+    } catch { /* ignore */ }
+    return null;
+  };
+  const dataResult = tryDecodeDataUrl(testPath);
+  if (dataResult) return dataResult;
+
+  // 1. Handle absolute URLs — detect mistakenly stored data URLs and fix them
+  if (trimmedPath.startsWith('http')) {
+    const lowerTrimmed = trimmedPath.toLowerCase();
+    if (lowerTrimmed.includes('/media/data%') || lowerTrimmed.includes('/media/data:')) {
+      const mediaIndex = trimmedPath.indexOf('/media/');
+      if (mediaIndex !== -1) {
+        let encodedPart = trimmedPath.slice(mediaIndex + 7).replace(/[\r\n\s]+/g, '');
+        try {
+          for (let i = 0; i < 3; i++) {
+            if (encodedPart.includes('%25') || encodedPart.toLowerCase().includes('%3a')) {
+              encodedPart = decodeURIComponent(encodedPart);
+            }
+          }
+          return encodedPart.replace(/[\r\n\s]+/g, '');
+        } catch {
+          return encodedPart.replace(/[\r\n\s]+/g, '');
+        }
+      }
+    }
+
+    try {
+      const url = new URL(trimmedPath);
+      if (url.hostname === 'localhost') {
+        const correct = new URL(API_BASE_URL);
+        url.hostname = correct.hostname;
+        url.port = correct.port;
+        return url.toString();
+      }
+    } catch {
+      // invalid URL, fall through
+    }
+    return trimmedPath;
+  }
+
+  // 2. Handle raw SVG or XML (common in some fields)
+  if (trimmedPath.startsWith('<svg') || trimmedPath.startsWith('<?xml')) {
+    return trimmedPath;
+  }
+
+  // 3. SAFETY CHECK: Prevent 414 Request-URI Too Long
+  // If the path is extremely long but isn't an absolute URL or data URI,
+  // it's likely raw binary/base64 data accidentally being passed as a path.
+  if (trimmedPath.length > 1000) {
+    console.warn('getMediaUrl: Received an unusually long path. Potential 414 error prevented.', trimmedPath.substring(0, 50) + '...');
+    return undefined; 
+  }
+
+  // 4. Handle frontend assets (public folder)
+  if (trimmedPath.startsWith('/assets/') || trimmedPath.startsWith('/logos/') || trimmedPath.startsWith('/3D-assets/')) {
+    return trimmedPath;
+  }
+
+  // 5. Build relative path for backend media
+  let finalPath = trimmedPath.startsWith('/') ? trimmedPath : `/${trimmedPath}`;
+  
+  // Ensure /media/ prefix for DB-stored relative paths
+  if (!finalPath.startsWith('/media/') && 
+      !finalPath.startsWith('/assets/') && 
+      !finalPath.startsWith('/logos/') && 
+      !finalPath.startsWith('/3D-assets/')) {
+    finalPath = `/media${finalPath}`;
+  }
+
+  const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+  return `${baseUrl}${finalPath}`;
+};
+
+/**
+ * Returns a 3D model path based on the product name.
+ * Uses the fallback models stored in /public/3D-assets/
+ */
+export const getDynamic3DModel = (productName?: string): string => {
+  if (!productName) return '/3D-assets/AmericanNuts.glb';
+  
+  const name = productName.toLowerCase();
+  
+  if (name.includes('american')) return '/3D-assets/AmericanNuts.glb';
+  if (name.includes('dark') && name.includes('muesli')) return '/3D-assets/Dark-Chocolate-Berries-Almonds-Muesli.glb';
+  if (name.includes('dark') || name.includes('almond')) return '/3D-assets/Dark Chocolate with almond.glb';
+  if (name.includes('chocolate') && name.includes('muesli')) return '/3D-assets/Chocolate-Muesli.glb';
+  if (name.includes('coffee') || name.includes('mocha')) return '/3D-assets/Coffee-Mocha-Oats.glb';
+  if (name.includes('mango')) return '/3D-assets/mango-with-chia.glb';
+  if (name.includes('pineapple')) return '/3D-assets/pineapple.glb';
+  if (name.includes('strawberry')) return '/3D-assets/strawberry-with-chia.glb';
+  if (name.includes('natural') || name.includes('classic')) return '/3D-assets/natural.glb';
+  
+  if (name.includes('muesli')) return '/3D-assets/Chocolate-Muesli.glb';
+  if (name.includes('oat')) return '/3D-assets/Coffee-Mocha-Oats.glb';
+  
+  return '/3D-assets/AmericanNuts.glb';
+};

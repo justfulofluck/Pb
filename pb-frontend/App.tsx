@@ -1,45 +1,47 @@
-
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
+import HeroSliderVersion2 from './components/herosliderverson2';
 import CategoryList from './components/CategoryList';
-import ProductGrid from './components/ProductGrid';
 import LatestProductShowcase from './components/LatestProductShowcase';
 import ComparisonTable from './components/ComparisonTable';
 import Testimonials from './components/Testimonials';
 import Newsletter from './components/Newsletter';
 import SnaxxoFooter from './components/snaxxo/SnaxxoFooter';
-import CartDrawer from './components/CartDrawer';
-import ProductModal from './components/ProductModal';
-import AuthModal from './components/AuthModal';
-import ProductPage from './components/ProductPage';
-import ShopPage from './components/ShopPage';
-import CheckoutPage from './components/CheckoutPage';
-import Dashboard from './components/Dashboard';
-import FAQPage from './components/FAQPage';
-import BlogsPage from './components/BlogsPage';
-import DistributorPage from './components/DistributorPage';
+const CartDrawer = React.lazy(() => import('./components/CartDrawer'));
+const AuthModal = React.lazy(() => import('./components/AuthModal'));
+const ProductPage = React.lazy(() => import('./components/ProductPage'));
+const ShopPage = React.lazy(() => import('./components/ShopPage'));
+const CheckoutPage = React.lazy(() => import('./components/CheckoutPage'));
+const Dashboard = React.lazy(() => import('./components/Dashboard'));
+const FAQPage = React.lazy(() => import('./components/FAQPage'));
+const BlogsPage = React.lazy(() => import('./components/BlogsPage'));
+const DistributorPage = React.lazy(() => import('./components/DistributorPage'));
+const BlogDetailPage = React.lazy(() => import('./components/BlogDetailPage'));
+const EventBlogsPage = React.lazy(() => import('./components/EventBlogsPage'));
+const EventDetailsPage = React.lazy(() => import('./components/EventDetailsPage'));
+const AdminLoginPage = React.lazy(() => import('./components/AdminLoginPage'));
+const AdminDashboard = React.lazy(() => import('./components/AdminDashboard'));
+const VisitorFormPage = React.lazy(() => import('./components/VisitorFormPage'));
+const JourneyPage = React.lazy(() => import('./components/JourneyPage'));
+const PrivacyPolicyPage = React.lazy(() => import('./components/PrivacyPolicyPage'));
+const TermsAndConditionsPage = React.lazy(() => import('./components/TermsAndConditionsPage'));
+const RefundPolicyPage = React.lazy(() => import('./components/RefundPolicyPage'));
+const ShippingPolicyPage = React.lazy(() => import('./components/ShippingPolicyPage'));
+const SharedWishlistPage = React.lazy(() => import('./components/SharedWishlistPage'));
+const NotFoundPage = React.lazy(() => import('./components/NotFoundPage'));
+
+import RewardNotification from './components/RewardNotification';
+import { ToastProvider, useToast } from './components/Toast';
 import BlogSection from './components/BlogSection';
-import BlogDetailPage from './components/BlogDetailPage';
-import EventBlogsPage from './components/EventBlogsPage';
-import EventDetailsPage from './components/EventDetailsPage';
 import EventsSection from './components/EventsSection';
-import EventModal from './components/EventModal';
-import AdminLoginPage from './components/AdminLoginPage';
-import AdminDashboard from './components/AdminDashboard';
-import VisitorFormPage from './components/VisitorFormPage';
-import JourneyPage from './components/JourneyPage';
-import PrivacyPolicyPage from './components/PrivacyPolicyPage';
-import TermsAndConditionsPage from './components/TermsAndConditionsPage';
-import RefundPolicyPage from './components/RefundPolicyPage';
-import ShippingPolicyPage from './components/ShippingPolicyPage';
+const EventModal = React.lazy(() => import('./components/EventModal'));
 import StoryCarousel from './components/StoryCarousel';
-import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category, Announcement, PressUpdate } from './types';
-import SnaxxoLanding from './components/snaxxo/SnaxxoLanding';
-import SnaxxoProductWheel from './components/snaxxo/SnaxxoProductWheel';
+import { adminApiFetch } from './utils/adminApi';
+import { Product, CartItem, EventBlog, HeroSlide, Review, BlogPost, Story, VisitorForm, Category, Announcement, PressUpdate, Customer } from './types';
+const SnaxxoProductWheel = React.lazy(() => import('./components/snaxxo/SnaxxoProductWheel'));
 import PressUpdates from './components/PressUpdates';
 import MobileBottomNav from './components/MobileBottomNav';
-import RewardNotification from './components/RewardNotification';
 
 const INITIAL_PRODUCTS: Product[] = [];
 const INITIAL_STORIES: Story[] = [];
@@ -48,47 +50,197 @@ const INITIAL_EVENTS: EventBlog[] = [];
 const INITIAL_SLIDES: HeroSlide[] = [];
 const INITIAL_CATEGORIES: Category[] = [];
 
-const CURRENT_USER = {
-  name: "Alex Fueler",
-  role: "Pro Member",
-  avatar: "https://ui-avatars.com/api/?name=Alex+Fueler&background=008a45&color=fff"
-};
-
-type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey' | 'privacy-policy' | 'terms-and-conditions' | 'refund-policy' | 'shipping-policy' | 'visitor-form' | 'distributor';
+type View = 'home' | 'product' | 'shop' | 'checkout' | 'dashboard' | 'faq' | 'blogs' | 'blog-detail' | 'event-blogs' | 'event-detail' | 'admin-login' | 'admin-dashboard' | 'journey' | 'privacy-policy' | 'terms-and-conditions' | 'refund-policy' | 'shipping-policy' | 'visitor-form' | 'distributor' | 'shared-wishlist' | 'not-found';
 
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { API_BASE_URL } from './config';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+// --- Fetcher Functions ---
+const fetchProducts = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/products/`);
+  if (!res.ok) throw new Error('Failed to fetch products');
+  const productsData = await res.json();
+  const productsArray = Array.isArray(productsData) ? productsData : (productsData.results || []);
+  return productsArray.map((p: any) => ({
+    ...p,
+    id: String(p.id),
+    slug: p.slug || '',
+    price: parseFloat(p.price),
+    reviewCount: p.review_count || 0,
+    isTopRated: p.is_top_rated,
+    model3d: p.model_3d || null,
+    themeColor: p.theme_color,
+    orientation: p.orientation ? p.orientation.replace(/[Oo]/g, '0') : '0deg 0deg 0deg',
+    benefits: (p.benefits || []).filter((b: any) => b && String(b).trim() !== ""),
+    nutrients: p.nutrients || [],
+    nutrition: p.nutrients?.length ? Object.fromEntries(
+      p.nutrients.map((n: any) => [n.label?.toLowerCase().replace(/\s+/g, ''), n.value])
+    ) : undefined,
+    ingredients: p.ingredients || "",
+    ingredientsList: p.ingredients_list || [],
+    detailedNutrition: p.detailed_nutrition || [],
+    usageIdeas: (p.usage_ideas || []).map((idea: any) => ({
+      id: String(idea.id),
+      productId: String(idea.product),
+      title: idea.title,
+      description: idea.description,
+      image: idea.image || '',
+      order: idea.order || 0,
+    })),
+    mainIngredient: p.main_ingredient || (p.name?.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : p.name?.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : p.name?.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : p.name?.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : p.name?.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
+    mainIngredientImage: p.main_ingredient_image || (p.name?.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : p.name?.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
+  }));
+};
+
+const fetchCategories = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/categories/`);
+  if (!res.ok) throw new Error('Failed to fetch categories');
+  const data = await res.json();
+  const dataArray = Array.isArray(data) ? data : (data.results || []);
+  return dataArray.map((c: any) => ({ ...c, id: String(c.id) }));
+};
+
+const fetchAnnouncements = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/announcements/`);
+  if (!res.ok) throw new Error('Failed to fetch announcements');
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+};
+
+const fetchVisitorForms = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/visitor-forms/`);
+  if (!res.ok) throw new Error('Failed to fetch visitor forms');
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+};
+
+const fetchHeroSlides = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/hero-slides/`);
+  if (!res.ok) throw new Error('Failed to fetch hero slides');
+  const data = await res.json();
+  const dataArray = Array.isArray(data) ? data : (data.results || []);
+  return dataArray.map((s: any) => ({
+    ...s,
+    id: String(s.id),
+    ctaLink: s.cta_link,
+    secondaryCta: s.secondary_cta,
+    secondaryCtaLink: s.secondary_cta_link,
+    bgColor: s.bg_color,
+    accentColor: s.accent_color,
+    blobColor: s.blob_color,
+    backgroundImage: s.background_image,
+    productId: s.product_id,
+    transitionType: s.transition_type,
+    isActive: s.is_active,
+    order: s.order,
+    mobileImage: s.mobile_image,
+    displayDuration: s.display_duration
+  })).sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+};
+
+const fetchEvents = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/events/`);
+  if (!res.ok) throw new Error('Failed to fetch events');
+  const data = await res.json();
+  const dataArray = Array.isArray(data) ? data : (data.results || []);
+  return dataArray.map((e: any) => ({
+    ...e,
+    id: String(e.id),
+    fullStory: e.full_story || [],
+    featuredProducts: (e.featured_products || []).map(String),
+    gallery: e.gallery || [],
+    impactParticipants: e.impact_participants,
+    fuelBarsShared: e.fuel_bars_shared,
+    vibeEnergy: e.vibe_energy,
+    scheduledDate: e.scheduled_date,
+    isActive: e.is_active,
+  }));
+};
+
+const fetchBlogs = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/blog-posts/`);
+  if (!res.ok) throw new Error('Failed to fetch blogs');
+  const data = await res.json();
+  const dataArray = Array.isArray(data) ? data : (data.results || []);
+  return dataArray.map((b: any) => ({
+    ...b,
+    id: String(b.id),
+    slug: b.slug || '',
+    type: b.post_type,
+    content: Array.isArray(b.content) ? b.content.join('\n\n') : (b.content || ''),
+    tags: b.tags || [],
+    isActive: b.is_active,
+  }));
+};
+
+const fetchStories = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/stories/`);
+  if (!res.ok) throw new Error('Failed to fetch stories');
+  const data = await res.json();
+  const dataArray = Array.isArray(data) ? data : (data.results || []);
+  return dataArray.map((s: any) => ({
+    ...s,
+    id: String(s.id),
+    mediaUrl: s.media_url || s.mediaUrl,
+    posterUrl: s.poster_url || s.posterUrl,
+    mediaType: s.media_type || s.mediaType,
+    fullVideoUrl: s.full_video_url || s.fullVideoUrl,
+    originalDriveUrl: s.original_drive_url || s.originalDriveUrl,
+    productId: s.product_id ? String(s.product_id) : undefined
+  }));
+};
+
+const fetchReviews = async () => {
+  const res = await fetch(`${API_BASE_URL}/api/reviews/`);
+  if (!res.ok) throw new Error('Failed to fetch reviews');
+  const data = await res.json();
+  const dataArray = Array.isArray(data) ? data : (data.results || []);
+  return dataArray.map((r: any) => ({
+    ...r,
+    id: String(r.id),
+    productId: String(r.product_id_str || r.product),
+    userName: r.user_name,
+    userRole: r.user_role,
+  }));
+};
 
 const AppContent: React.FC = () => {
-  const { user, logout, checkAuth } = useAuth();
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
-  const [events, setEvents] = useState<EventBlog[]>(INITIAL_EVENTS);
-  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
-  const [slides, setSlides] = useState<HeroSlide[]>(INITIAL_SLIDES);
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
-  const [stories, setStories] = useState<Story[]>(INITIAL_STORIES);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [visitorForms, setVisitorForms] = useState<VisitorForm[]>([]);
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [pressUpdates, setPressUpdates] = useState<PressUpdate[]>(() => {
-    try {
-      const saved = localStorage.getItem('pinobite_press_updates');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
+  // --- Local State ---
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentView, setCurrentView] = useState<View>(() => {
+    const path = window.location.pathname;
+    // Determine initial view from URL path (refresh / direct access)
+    if (path.startsWith('/product/')) return 'product';
+    if (path.startsWith('/blog/')) return 'blog-detail';
+    if (path.startsWith('/blogs')) return 'blogs';
+    if (path.startsWith('/shop')) return 'shop';
+    if (path.startsWith('/dashboard')) return 'dashboard';
+    if (path.startsWith('/faq')) return 'faq';
+    if (path.startsWith('/distributor')) return 'distributor';
+    if (path.startsWith('/journey')) return 'journey';
+    if (path.startsWith('/checkout')) return 'checkout';
+    if (path.startsWith('/events')) return 'event-blogs';
+    if (path.startsWith('/event/')) return 'event-detail';
+    if (path.startsWith('/privacy-policy')) return 'privacy-policy';
+    if (path.startsWith('/terms-and-conditions')) return 'terms-and-conditions';
+    if (path.startsWith('/refund-policy')) return 'refund-policy';
+    if (path.startsWith('/shipping-policy')) return 'shipping-policy';
+    if (path.startsWith('/admin/login')) return 'admin-login';
+    if (path.startsWith('/admin')) return 'admin-dashboard';
+    if (path.startsWith('/forms/')) return 'visitor-form';
+    if (path.startsWith('/wishlist/shared/')) return 'shared-wishlist';
+    return window.history.state?.view || 'not-found';
   });
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventBlog | null>(null);
   const [selectedBlogPost, setSelectedBlogPost] = useState<BlogPost | null>(null);
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<View>(() => {
-    return window.history.state?.view || 'home';
-  });
+  const [sharedWishlistToken, setSharedWishlistToken] = useState<string | null>(null);
   const [globalSearchQuery, setGlobalSearchQuery] = useState(() => {
     return window.history.state?.query || '';
   });
@@ -97,82 +249,317 @@ const AppContent: React.FC = () => {
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNutritionOpen, setIsNutritionOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Handle URL routing for manual links
+  // --- External Hooks ---
+  const { user, logout, checkAuth, isLoading: isAuthLoading } = useAuth();
+  const { showToast } = useToast();
+  const queryClient = useQueryClient();
+
+  // --- TanStack Queries ---
+  const productsQuery = useQuery({ queryKey: ['products'], queryFn: fetchProducts, staleTime: 2 * 60 * 1000 });
+  const reviewsQuery = useQuery({ queryKey: ['reviews'], queryFn: fetchReviews, staleTime: 5 * 60 * 1000 });
+  const categoriesQuery = useQuery({ queryKey: ['categories'], queryFn: fetchCategories, staleTime: 2 * 60 * 1000 });
+  const announcementsQuery = useQuery({ queryKey: ['announcements'], queryFn: fetchAnnouncements, staleTime: 5 * 60 * 1000 });
+  const visitorFormsQuery = useQuery({ queryKey: ['visitor-forms'], queryFn: fetchVisitorForms, staleTime: 5 * 60 * 1000 });
+  const heroSlidesQuery = useQuery({ queryKey: ['hero-slides'], queryFn: fetchHeroSlides, staleTime: 5 * 60 * 1000 });
+  const eventsQuery = useQuery({ queryKey: ['events'], queryFn: fetchEvents, staleTime: 5 * 60 * 1000 });
+  const blogPostsQuery = useQuery({ queryKey: ['blog-posts'], queryFn: fetchBlogs, staleTime: 5 * 60 * 1000 });
+  const storiesQuery = useQuery({ queryKey: ['stories'], queryFn: fetchStories, staleTime: 5 * 60 * 1000 });
+
+  // Derived values
+  const products = productsQuery.data || INITIAL_PRODUCTS;
+  const reviews = reviewsQuery.data || INITIAL_REVIEWS;
+  const categories = categoriesQuery.data || INITIAL_CATEGORIES;
+  const announcements = announcementsQuery.data || [];
+  const visitorForms = visitorFormsQuery.data || [];
+  const slides = heroSlidesQuery.data || INITIAL_SLIDES;
+  const events = eventsQuery.data || INITIAL_EVENTS;
+  const blogPosts = blogPostsQuery.data || [];
+  const stories = storiesQuery.data || INITIAL_STORIES;
+
+  const customersQuery = useQuery({
+    queryKey: ['customers'],
+    queryFn: async () => {
+      const res = await adminApiFetch(`${API_BASE_URL}/api/customers/`);
+      if (!res.ok) throw new Error('Failed to fetch customers');
+      return res.json() as Promise<Customer[]>;
+    },
+    enabled: isAdminLoggedIn
+  });
+
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const isHydrated = React.useRef(false);
+
+  // Initial load from localStorage
+  useEffect(() => {
+    if (isHydrated.current) return;
+
+    try {
+      const saved = localStorage.getItem('pinobite_cart');
+      if (saved && products.length > 0) {
+        const minimizedCart = JSON.parse(saved);
+        const hydratedCart = minimizedCart.map((item: any) => {
+          const product = products.find(p => String(p.id) === String(item.id));
+          return product ? { ...product, ...item } : null;
+        }).filter(Boolean) as CartItem[];
+
+        if (hydratedCart.length > 0) {
+          setCart(hydratedCart);
+          isHydrated.current = true;
+        }
+      }
+    } catch (e) {
+      console.error('Initial hydration failed:', e);
+    }
+  }, [products]);
+
+  // Persist only ID and Quantity to save space
+  useEffect(() => {
+    if (cart.length === 0 && !isHydrated.current) return;
+    try {
+      const minimized = cart.map(item => ({
+        id: item.id,
+        quantity: item.quantity,
+        selectedSize: item.selectedSize,
+        selectedFlavour: item.selectedFlavour
+      }));
+      localStorage.setItem('pinobite_cart', JSON.stringify(minimized));
+    } catch (e) {
+      console.error('Failed to save cart:', e);
+    }
+  }, [cart]);
+
+  // Filter scheduled posts for public view
+  const visibleBlogs = blogPosts.filter(post => {
+    return post.isActive !== false;
+  });
+
+  const visibleEvents = events.filter(event => {
+    if (event.isActive === false) return false;
+    if (!event.scheduledDate) return true;  // No schedule = publish immediately
+    try {
+      const scheduled = new Date(event.scheduledDate);
+      scheduled.setUTCHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+      return scheduled <= today;
+    } catch {
+      return true;  // On parse error, show the event (fail open)
+    }
+  });
+
+
+
+  // App is loading until critical data is fetched
+  const isLoading = productsQuery.isLoading || categoriesQuery.isLoading;
+
+  // Handle URL routing for manual links / refresh / direct access
   useEffect(() => {
     const path = window.location.pathname;
-    if (path.startsWith('/forms/')) {
+    const params = new URLSearchParams(window.location.search);
+
+    // Helper: fetch product by slug from API
+    const fetchProductBySlug = (slug: string) => {
+      let mounted = true;
+      fetch(`${API_BASE_URL}/api/products/${slug}/`)
+        .then(res => res.json())
+        .then(fullProduct => {
+          if (!mounted) return;
+          const mapped = {
+            ...fullProduct,
+            id: String(fullProduct.id),
+            slug: fullProduct.slug || slug,
+            price: parseFloat(fullProduct.price),
+            themeColor: fullProduct.theme_color,
+            model3d: fullProduct.model_3d,
+            orientation: fullProduct.orientation ? fullProduct.orientation.replace(/[Oo]/g, '0') : '0deg 0deg -15deg',
+            benefits: (fullProduct.benefits || []).filter((b: any) => b && String(b).trim() !== ""),
+            nutrients: fullProduct.nutrients || [],
+            ingredients: fullProduct.ingredients || "",
+            ingredientsList: fullProduct.ingredients_list || [],
+            detailedNutrition: fullProduct.detailed_nutrition || [],
+            usageIdeas: (fullProduct.usage_ideas || []).map((idea: any) => ({
+              id: String(idea.id),
+              productId: String(idea.product),
+              title: idea.title,
+              description: idea.description,
+              image: idea.image || '',
+              order: idea.order || 0,
+            })),
+          };
+          setSelectedProduct(mapped as Product);
+          setCurrentView('product');
+          window.scrollTo(0, 0);
+        });
+      return mounted;
+    };
+
+    if (path === '/' || path === '') {
+      setCurrentView('home');
+    } else if (path.startsWith('/forms/')) {
       const formId = path.split('/forms/')[1];
-      if (formId) {
-        setSelectedFormId(formId);
-        setCurrentView('visitor-form');
+      if (formId) { setSelectedFormId(formId); setCurrentView('visitor-form'); }
+    } else if (path.startsWith('/wishlist/shared/')) {
+      const token = path.split('/wishlist/shared/')[1];
+      if (token) { setSharedWishlistToken(token); setCurrentView('shared-wishlist'); }
+    } else if (path.startsWith('/product/')) {
+      const slug = path.split('/product/')[1]?.split('/')[0]?.split('?')[0];
+      if (slug) {
+        const product = products.find(p => p.slug === slug);
+        if (product) {
+          setSelectedProduct(product);
+          setCurrentView('product');
+          window.scrollTo(0, 0);
+        } else {
+          fetchProductBySlug(slug);
+        }
       }
+    } else if (path.startsWith('/blog/')) {
+      const slug = path.split('/blog/')[1]?.split('/')[0]?.split('?')[0];
+      if (slug) {
+        const post = blogPosts.find(p => p.slug === slug);
+        if (post) {
+          setSelectedBlogPost(post);
+          setCurrentView('blog-detail');
+          window.scrollTo(0, 0);
+        }
+      }
+    } else if (path.startsWith('/blogs')) {
+      setCurrentView('blogs');
+    } else if (path.startsWith('/shop/')) {
+      const category = path.split('/shop/')[1]?.split('/')[0]?.split('?')[0];
+      const search = params.get('search');
+      if (search) { setGlobalSearchQuery(search); }
+      if (category) { setShopCategory(decodeURIComponent(category)); }
+      setCurrentView('shop');
+    } else if (path === '/shop') {
+      const search = params.get('search');
+      if (search) { setGlobalSearchQuery(search); }
+      setCurrentView('shop');
+    } else if (path.startsWith('/event/')) {
+      const eventId = path.split('/event/')[1]?.split('/')[0]?.split('?')[0];
+      if (eventId) {
+        const event = events.find(e => String(e.id) === String(eventId));
+        if (event) {
+          setSelectedEvent(event);
+          setCurrentView('event-detail');
+          window.scrollTo(0, 0);
+        }
+      }
+    } else if (path === '/events') {
+      setCurrentView('event-blogs');
+    } else if (path === '/dashboard') {
+      setCurrentView('dashboard');
+    } else if (path === '/faq') {
+      setCurrentView('faq');
+    } else if (path === '/distributor') {
+      setCurrentView('distributor');
+    } else if (path === '/journey') {
+      setCurrentView('journey');
+    } else if (path === '/checkout') {
+      setCurrentView('checkout');
+    } else if (path === '/privacy-policy') {
+      setCurrentView('privacy-policy');
+    } else if (path === '/terms-and-conditions') {
+      setCurrentView('terms-and-conditions');
+    } else if (path === '/refund-policy') {
+      setCurrentView('refund-policy');
+    } else if (path === '/shipping-policy') {
+      setCurrentView('shipping-policy');
+    } else if (path === '/admin/login') {
+      setCurrentView('admin-login');
+    } else if (path === '/admin') {
+      setCurrentView('admin-dashboard');
+    } else {
+      setCurrentView('not-found');
     }
+  }, []); // Run once on mount
+  
+  // Cleanup for product detail fetch
+  useEffect(() => {
+    return () => {
+      // Cleanup any pending state updates (handled by mounted flags)
+    };
   }, []);
 
   // Handle browser back/forward buttons and initial state restoration
   useEffect(() => {
     const syncState = async (state: any) => {
-      if (state && state.view) {
-        // Only update view if it's different to prevent redundant re-renders on data refresh
-        if (currentView !== state.view) {
-          setCurrentView(state.view);
-        }
+      let targetView = state?.view;
+      if (!targetView) {
+        const p = window.location.pathname;
+        if (p === '/' || p === '') targetView = 'home';
+        else if (p.startsWith('/product/')) targetView = 'product';
+        else if (p.startsWith('/shop')) targetView = 'shop';
+        else if (p.startsWith('/blog/')) targetView = 'blog-detail';
+        else if (p.startsWith('/blogs')) targetView = 'blogs';
+        else if (p.startsWith('/event/')) targetView = 'event-detail';
+        else if (p.startsWith('/events')) targetView = 'event-blogs';
+        else if (p.startsWith('/dashboard')) targetView = 'dashboard';
+        else if (p.startsWith('/checkout')) targetView = 'checkout';
+        else targetView = 'home';
+      }
 
-        if (state.productId) {
-          const p = products.find(prod => String(prod.id) === String(state.productId));
+      // 1. Sync View
+      setCurrentView(prev => {
+        if (prev !== targetView) {
+          return targetView;
+        }
+        return prev;
+      });
+
+      // 2. Sync Product (only if needed)
+      if (state.slug) {
+        const alreadyLoaded = selectedProduct &&
+          selectedProduct.slug === state.slug &&
+          (selectedProduct.benefits?.length || 0) > 0;
+
+        if (!alreadyLoaded) {
+          const p = products.find(prod => prod.slug === state.slug);
           if (p) {
             setSelectedProduct(p);
-            // Fetch full details
             try {
-              const res = await fetch(`${API_BASE_URL}/api/products/${p.id}/`);
+              const res = await fetch(`${API_BASE_URL}/api/products/${p.slug}/`);
               if (res.ok) {
                 const fullP = await res.json();
                 setSelectedProduct({
                   ...fullP,
                   id: String(fullP.id),
+                  slug: fullP.slug,
                   price: parseFloat(fullP.price),
-                  originalPrice: fullP.original_price ? parseFloat(fullP.original_price) : undefined,
                   themeColor: fullP.theme_color,
                   model3d: fullP.model_3d,
                   orientation: fullP.orientation ? fullP.orientation.replace(/[Oo]/g, '0') : '0deg 0deg -15deg',
-                  benefits: fullP.benefits || [],
+                  benefits: (fullP.benefits || []).filter((b: any) => b && String(b).trim() !== ""),
                   nutrients: fullP.nutrients || [],
-                  gallery: fullP.gallery || [],
-                  mainIngredient: fullP.main_ingredient || (fullP.name.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : fullP.name.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : fullP.name.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : fullP.name.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : fullP.name.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
-                  mainIngredientImage: fullP.main_ingredient_image || (fullP.name.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : fullP.name.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : fullP.name.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : fullP.name.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : fullP.name.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
+                  ingredients: fullP.ingredients || "",
+                  ingredientsList: fullP.ingredients_list || [],
+                  detailedNutrition: fullP.detailed_nutrition || [],
+                  usageIdeas: (fullP.usage_ideas || []).map((idea: any) => ({
+                    id: String(idea.id),
+                    productId: String(idea.product),
+                    title: idea.title,
+                    description: idea.description,
+                    image: idea.image || '',
+                    order: idea.order || 0,
+                  })),
+                  mainIngredient: fullP.main_ingredient || (fullP.name?.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : fullP.name?.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : fullP.name?.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : fullP.name?.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : fullP.name?.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
+                  mainIngredientImage: fullP.main_ingredient_image || (fullP.name?.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : fullP.name?.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : fullP.name?.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : fullP.name?.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : fullP.name?.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
                 });
               }
             } catch (e) { }
           }
         }
-        if (state.eventId) {
-          const e = events.find(ev => String(ev.id) === String(state.eventId));
-          if (e) setSelectedEvent(e);
-        }
-        if (state.blogId) {
-          const b = blogPosts.find(post => String(post.id) === String(state.blogId));
-          if (b) setSelectedBlogPost(b);
-        }
-        if (state.view === 'visitor-form' && state.formId) {
-          setSelectedFormId(state.formId);
-        }
-        if (state.view === 'shop') {
-          setShopCategory(state.category || 'All');
-          setGlobalSearchQuery(state.query || '');
-        }
+      }
 
-        // Clear selections if not in state
-        if (!state.productId) setSelectedProduct(null);
-        if (!state.eventId) setSelectedEvent(null);
-        if (!state.blogId) setSelectedBlogPost(null);
-      } else {
-        // Fallback to home if no state
-        setCurrentView('home');
-        setSelectedProduct(null);
-        setSelectedEvent(null);
-        setSelectedBlogPost(null);
+      // Minimal sync for others to avoid logic loops
+      if (state.eventId) {
+        const e = events.find(ev => String(ev.id) === String(state.eventId));
+        if (e && (!selectedEvent || selectedEvent.id !== e.id)) setSelectedEvent(e);
+      }
+      if (state.slug && !state.view?.startsWith('product')) {
+        const b = blogPosts.find(post => post.slug === state.slug);
+        if (b && (!selectedBlogPost || selectedBlogPost.slug !== b.slug)) setSelectedBlogPost(b);
       }
     };
 
@@ -182,15 +569,13 @@ const AppContent: React.FC = () => {
 
     window.addEventListener('popstate', handlePopState);
 
-    // Sync current state on mount or when data updates
-    if (window.history.state) {
+    // Run once on mount if we have a deep linked product or state
+    if (window.history.state && window.history.state.slug && !selectedProduct) {
       syncState(window.history.state);
-    } else {
-      window.history.replaceState({ view: 'home' }, '');
     }
 
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [products, events, blogPosts]);
+  }, [products, events, blogPosts]); // Depend on relevant query results
 
   useEffect(() => {
     setIsLoggedIn(!!user);
@@ -203,189 +588,43 @@ const AppContent: React.FC = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const handleAdminLogoutEvent = () => {
+      showToast("Session expired. Please log in again.", 'warning');
+      setIsAdminLoggedIn(false);
+      localStorage.removeItem('admin_access_token');
+      localStorage.removeItem('admin_refresh_token');
+      setCurrentView('home');
+      window.history.pushState({ view: 'home' }, '', '/');
+    };
+    window.addEventListener('admin:logout', handleAdminLogoutEvent);
+    return () => window.removeEventListener('admin:logout', handleAdminLogoutEvent);
+  }, [showToast]);
+
   // Redirect to home if user session expires while on dashboard
   useEffect(() => {
-    if (!user && !isLoading && currentView === 'dashboard') {
+    if (!user && !isAuthLoading && currentView === 'dashboard') {
       setCurrentView('home');
-      window.history.pushState({ view: 'home' }, '');
+      window.history.pushState({ view: 'home' }, '', '/');
     }
-  }, [user, isLoading, currentView]);
+  }, [user, isAuthLoading, currentView]);
 
-  useEffect(() => {
-    const fetchContent = async () => {
-      try {
-        const [eventsRes, blogsRes, storiesRes, productsRes, vFormsRes, categoriesRes, annRes, slidesRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/events/`),
-          fetch(`${API_BASE_URL}/api/blog-posts/`),
-          fetch(`${API_BASE_URL}/api/stories/`),
-          fetch(`${API_BASE_URL}/api/products/`),
-          fetch(`${API_BASE_URL}/api/visitor-forms/`),
-          fetch(`${API_BASE_URL}/api/categories/`),
-          fetch(`${API_BASE_URL}/api/announcements/`),
-          fetch(`${API_BASE_URL}/api/hero-slides/`)
-        ]);
-
-        if (slidesRes && slidesRes.ok) {
-          const slidesData = await slidesRes.json();
-          const mappedSlides = slidesData.map((s: any) => ({
-            id: String(s.id),
-            category: s.category,
-            headline: s.headline,
-            description: s.description,
-            image: s.image || '',
-            backgroundImage: s.background_image || s.backgroundImage || '',
-            cta: s.cta_button_text || s.cta,
-            bgColor: s.bg_color || s.bgColor,
-            accentColor: s.accent_color || s.accentColor,
-            blobColor: s.blob_color || s.blobColor,
-            isActive: s.is_active || s.isActive
-          }));
-          setSlides(mappedSlides);
-        }
-
-        if (annRes.ok) {
-          const annData = await annRes.json();
-          setAnnouncements(annData);
-        }
-
-        if (vFormsRes.ok) {
-          const vFormsData = await vFormsRes.json();
-          const mappedVForms = vFormsData.map((f: any) => ({
-            id: String(f.id),
-            title: f.title,
-            eventName: f.event_name,
-            status: f.status,
-            createdAt: f.created_at,
-            link: `${window.location.origin}/forms/${f.id}`,
-            submissions: f.submissions ? f.submissions.map((s: any) => ({
-              id: String(s.id),
-              name: s.name,
-              email: s.email,
-              phone: s.phone,
-              submittedAt: s.submitted_at
-            })) : []
-          }));
-          if (mappedVForms.length > 0) setVisitorForms(mappedVForms);
-        }
-
-        if (productsRes.ok) {
-          const productsData = await productsRes.json();
-          const mappedProducts = productsData.map((p: any) => ({
-            ...p,
-            id: String(p.id),
-            price: parseFloat(p.price),
-            originalPrice: p.original_price ? parseFloat(p.original_price) : undefined,
-            reviewCount: p.review_count || 0,
-            isTopRated: p.is_top_rated,
-            model3d: p.model_3d || null,
-            themeColor: p.theme_color,
-            orientation: p.orientation ? p.orientation.replace(/[Oo]/g, '0') : '0deg 0deg 0deg',
-            gallery: p.gallery || [],
-            benefits: p.benefits || [],
-            nutrients: p.nutrients || [],
-            mainIngredient: p.main_ingredient || (p.name.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : p.name.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : p.name.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : p.name.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : p.name.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
-            mainIngredientImage: p.main_ingredient_image || (p.name.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : p.name.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : p.name.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : p.name.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : p.name.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
-          }));
-          setProducts(mappedProducts);
-        }
-
-        if (eventsRes.ok) {
-          const eventsData = await eventsRes.json();
-          const mappedEvents = eventsData.map((e: any) => ({
-            ...e,
-            id: String(e.id),
-            fullStory: e.full_story || [],
-            featuredProducts: (e.featured_products || []).map(String),
-            gallery: e.gallery || [],
-          }));
-          if (mappedEvents.length > 0) setEvents(mappedEvents);
-        }
-
-        if (blogsRes.ok) {
-          const blogsData = await blogsRes.json();
-          const mappedBlogs = blogsData.map((b: any) => ({
-            ...b,
-            id: String(b.id),
-            type: b.post_type,
-            readTime: b.read_time,
-            content: Array.isArray(b.content) ? b.content.join('\n\n') : (b.content || ''),
-            tags: b.tags || [],
-          }));
-          if (mappedBlogs.length > 0) setBlogPosts(mappedBlogs);
-        }
-
-        if (storiesRes.ok) {
-          const storiesData = await storiesRes.json();
-          const mappedStories = storiesData.map((s: any) => ({
-            id: String(s.id),
-            mediaUrl: s.media_url,
-            originalDriveUrl: s.original_drive_url,
-            mediaType: s.media_type,
-            productId: String(s.product_id),
-          }));
-          setStories(mappedStories);
-        }
-
-        if (categoriesRes.ok) {
-          const categoriesData = await categoriesRes.json();
-          if (categoriesData.length > 0) setCategories(categoriesData);
-        }
-      } catch (error) {
-        console.error('Failed to fetch CMS content:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchContent();
-  }, []);
+  // CMS Content is now handled by useQuery hooks above.
 
   useEffect(() => {
     if (currentView === 'admin-dashboard') {
       const refreshAdminData = async () => {
-        const token = localStorage.getItem('admin_access_token');
-        if (!token) return;
-
         try {
           // Refresh Visitor Forms
-          const response = await fetch(`${API_BASE_URL}/api/visitor-forms/`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
+          const response = await adminApiFetch(`${API_BASE_URL}/api/visitor-forms/`);
           if (response.ok) {
-            const data = await response.json();
-            const mappedVForms = data.map((f: any) => ({
-              id: String(f.id),
-              title: f.title,
-              eventName: f.event_name,
-              status: f.status,
-              createdAt: f.created_at,
-              link: `${window.location.origin}/forms/${f.id}`,
-              submissions: f.submissions ? f.submissions.map((s: any) => ({
-                id: String(s.id),
-                name: s.name,
-                email: s.email,
-                phone: s.phone,
-                submittedAt: s.submitted_at,
-                addressDetails: s.address_details,
-                buyingSource: s.buying_source,
-                brandAwareness: s.brand_awareness,
-                currentUsage: s.current_usage,
-                flavorPreferences: s.flavor_preferences,
-                reviewedProduct: s.reviewed_product,
-                reviewContent: s.review_content,
-                marketingConsent: s.marketing_consent
-              })) : []
-            }));
-            setVisitorForms(mappedVForms);
+            queryClient.invalidateQueries({ queryKey: ['visitor-forms'] });
           }
 
           // Refresh Announcements
-          const annRes = await fetch(`${API_BASE_URL}/api/announcements/`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
+          const annRes = await adminApiFetch(`${API_BASE_URL}/api/announcements/`);
           if (annRes.ok) {
-            const annData = await annRes.json();
-            setAnnouncements(annData);
+            queryClient.invalidateQueries({ queryKey: ['announcements'] });
           }
         } catch (error) {
           console.error("Failed to refresh admin data:", error);
@@ -399,32 +638,57 @@ const AppContent: React.FC = () => {
     window.scrollTo(0, 0);
   }, [currentView, selectedProduct, selectedEvent, selectedBlogPost]);
 
+  // Dynamic page title for SEO
+  useEffect(() => {
+    const titles: Record<string, string> = {
+      home: 'PinoBite - Fuel Your Body Naturally',
+      shop: 'Shop | PinoBite',
+      product: selectedProduct ? `${selectedProduct.name} | PinoBite` : 'Product | PinoBite',
+      blogs: 'Blogs | PinoBite',
+      'blog-detail': selectedBlogPost ? `${selectedBlogPost.title} | PinoBite` : 'Blog | PinoBite',
+      'event-blogs': 'Events | PinoBite',
+      'event-detail': selectedEvent ? `${selectedEvent.title} | PinoBite` : 'Event | PinoBite',
+      dashboard: 'My Dashboard | PinoBite',
+      faq: 'FAQ | PinoBite',
+      distributor: 'Become a Distributor | PinoBite',
+      journey: 'Our Journey | PinoBite',
+      checkout: 'Checkout | PinoBite',
+      'privacy-policy': 'Privacy Policy | PinoBite',
+      'terms-and-conditions': 'Terms & Conditions | PinoBite',
+      'refund-policy': 'Refund Policy | PinoBite',
+      'shipping-policy': 'Shipping Policy | PinoBite',
+      'admin-login': 'Admin Login | PinoBite',
+      'admin-dashboard': 'Admin Dashboard | PinoBite',
+      'visitor-form': 'Visitor Form | PinoBite',
+      'shared-wishlist': 'Shared Wishlist | PinoBite',
+      'not-found': 'Page Not Found | PinoBite',
+    };
+    document.title = titles[currentView] || 'PinoBite';
+  }, [currentView, selectedProduct, selectedBlogPost, selectedEvent]);
+
   const handleAddProduct = async (newProduct: Product) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/products/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/products/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: newProduct.name,
           price: newProduct.price,
-          original_price: newProduct.originalPrice,
           rating: newProduct.rating,
           review_count: newProduct.reviewCount,
           image: newProduct.image,
-          gallery: newProduct.gallery,
-          description: newProduct.description,
           benefits: newProduct.benefits,
           nutrients: newProduct.nutrients,
+          ingredients: newProduct.ingredients,
+          ingredients_list: newProduct.ingredientsList,
+          detailed_nutrition: newProduct.detailedNutrition,
           is_top_rated: newProduct.isTopRated,
           category: newProduct.category,
           stock: newProduct.stock,
           model_3d: newProduct.model3d,
           theme_color: newProduct.themeColor,
-          orientation: newProduct.orientation
+          orientation: newProduct.orientation,
+          usage_ideas: newProduct.usageIdeas
         })
       });
       if (response.status === 401) {
@@ -432,24 +696,11 @@ const AppContent: React.FC = () => {
         return;
       }
       if (response.ok) {
-        const savedProduct = await response.json();
-        const mappedProduct = {
-          ...savedProduct,
-          id: String(savedProduct.id),
-          originalPrice: savedProduct.original_price,
-          reviewCount: savedProduct.review_count,
-          isTopRated: savedProduct.is_top_rated,
-          model3d: savedProduct.model_3d,
-          themeColor: savedProduct.theme_color,
-          orientation: savedProduct.orientation,
-          gallery: savedProduct.gallery || [],
-          benefits: savedProduct.benefits || [],
-          nutrients: savedProduct.nutrients || []
-        };
-        setProducts(prev => [mappedProduct, ...prev]);
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+        showToast("Product added successfully!", 'success');
       } else {
-        const errData = await response.json();
-        alert(`Failed to add product: ${errData.detail || 'Unknown error'}`);
+        const errData = await response.json().catch(() => ({}));
+        showToast(`Failed to add product: ${errData.detail || 'Unknown error'}`, 'error');
       }
     } catch (err) {
       console.error("Failed to add product", err);
@@ -458,30 +709,28 @@ const AppContent: React.FC = () => {
 
   const handleUpdateProduct = async (updatedProduct: Product) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/products/${updatedProduct.id}/`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+      const response = await adminApiFetch(`${API_BASE_URL}/api/products/${updatedProduct.id}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: updatedProduct.name,
           price: updatedProduct.price,
-          original_price: updatedProduct.originalPrice,
+          description: updatedProduct.description || '',
           rating: updatedProduct.rating,
           review_count: updatedProduct.reviewCount,
           image: updatedProduct.image,
-          gallery: updatedProduct.gallery,
-          description: updatedProduct.description,
           benefits: updatedProduct.benefits,
           nutrients: updatedProduct.nutrients,
+          ingredients: updatedProduct.ingredients,
+          ingredients_list: updatedProduct.ingredientsList,
+          detailed_nutrition: updatedProduct.detailedNutrition,
           is_top_rated: updatedProduct.isTopRated,
           category: updatedProduct.category,
           stock: updatedProduct.stock,
           model_3d: updatedProduct.model3d,
           theme_color: updatedProduct.themeColor,
-          orientation: updatedProduct.orientation
+          orientation: updatedProduct.orientation,
+          usage_ideas: updatedProduct.usageIdeas
         })
       });
       if (response.status === 401) {
@@ -489,23 +738,10 @@ const AppContent: React.FC = () => {
         return;
       }
       if (response.ok) {
-        const savedProduct = await response.json();
-        const mappedProduct = {
-          ...savedProduct,
-          id: String(savedProduct.id),
-          originalPrice: savedProduct.original_price,
-          reviewCount: savedProduct.review_count,
-          isTopRated: savedProduct.is_top_rated,
-          model3d: savedProduct.model_3d,
-          themeColor: savedProduct.theme_color,
-          orientation: savedProduct.orientation,
-          gallery: savedProduct.gallery || [],
-          benefits: savedProduct.benefits || [],
-          nutrients: savedProduct.nutrients || []
-        };
-        setProducts(prev => prev.map(p => p.id === mappedProduct.id ? mappedProduct : p));
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+        showToast("Product updated successfully!", 'success');
       } else {
-        alert("Failed to update product");
+        showToast("Failed to update product", 'error');
       }
     } catch (err) {
       console.error("Failed to update product", err);
@@ -514,19 +750,18 @@ const AppContent: React.FC = () => {
 
   const handleDeleteProduct = async (id: string) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/products/${id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/products/${id}/`, {
+        method: 'DELETE'
       });
       if (response.status === 401) {
         handleAdminLogout();
         return;
       }
       if (response.ok) {
-        setProducts(prev => prev.filter(p => p.id !== id));
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+        showToast("Product deleted successfully!", 'success');
       } else {
-        alert("Failed to delete product");
+        showToast("Failed to delete product", 'error');
       }
     } catch (err) {
       console.error("Failed to delete product", err);
@@ -534,52 +769,63 @@ const AppContent: React.FC = () => {
   };
   const handleAddVisitorForm = async (newForm: VisitorForm) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/visitor-forms/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/visitor-forms/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: newForm.title,
-          event_name: newForm.eventName,
-          status: newForm.status
+          event_name: newForm.event_name,
+          status: newForm.status,
+          form_schema: newForm.form_schema,
+          require_email_verification: newForm.require_email_verification
         })
       });
       if (response.ok) {
-        const savedForm = await response.json();
-        const mappedForm = {
-          id: String(savedForm.id),
-          title: savedForm.title,
-          eventName: savedForm.event_name,
-          status: savedForm.status,
-          createdAt: savedForm.created_at,
-          link: `${window.location.origin}/forms/${savedForm.id}`,
-          submissions: savedForm.submissions || []
-        };
-        setVisitorForms(prev => [mappedForm, ...prev]);
+        const created = await response.json();
+        queryClient.invalidateQueries({ queryKey: ['visitor-forms'] });
+        return created;
+      } else {
+        const err = await response.json().catch(() => ({}));
+        showToast(err.detail || 'Failed to create form', 'error');
       }
     } catch (err) {
       console.error("Failed to add visitor form", err);
+      showToast('Failed to create form', 'error');
+    }
+    return null;
+  };
+
+  const handleUpdateVisitorForm = async (id: string, data: Partial<VisitorForm>) => {
+    try {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/visitor-forms/${id}/`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['visitor-forms'] });
+        showToast('Form updated successfully!', 'success');
+      } else {
+        showToast('Failed to update form', 'error');
+      }
+    } catch (err) {
+      console.error("Failed to update visitor form", err);
     }
   };
 
   const handleDeleteVisitorForm = async (id: string) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/visitor-forms/${id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/visitor-forms/${id}/`, {
+        method: 'DELETE'
       });
       if (response.status === 401) {
         handleAdminLogout();
         return;
       }
       if (response.ok) {
-        setVisitorForms(prev => prev.filter(f => f.id !== id));
+        queryClient.invalidateQueries({ queryKey: ['visitor-forms'] });
       } else {
-        alert("Failed to delete form");
+        showToast("Failed to delete form", 'error');
       }
     } catch (err) {
       console.error("Failed to delete visitor form", err);
@@ -587,23 +833,18 @@ const AppContent: React.FC = () => {
   };
   const handleAddCategory = async (newCategory: Category) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/categories/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/categories/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCategory)
       });
       if (response.status === 401) {
-        alert("Session expired. Please log in again.");
+        showToast("Session expired. Please log in again.", 'warning');
         handleAdminLogout();
         return;
       }
       if (response.ok) {
-        const savedCategory = await response.json();
-        setCategories(prev => [...prev, savedCategory]);
+        queryClient.invalidateQueries({ queryKey: ['categories'] });
       }
     } catch (err) {
       console.error("Failed to add category", err);
@@ -612,18 +853,16 @@ const AppContent: React.FC = () => {
 
   const handleDeleteCategory = async (id: string) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/categories/${id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/categories/${id}/`, {
+        method: 'DELETE'
       });
       if (response.status === 401) {
-        alert("Session expired. Please log in again.");
+        showToast("Session expired. Please log in again.", 'warning');
         handleAdminLogout();
         return;
       }
       if (!response.ok) throw new Error('Failed to delete category');
-      setCategories(prev => prev.filter(c => c.id !== Number(id) && c.id !== String(id))); // Handle generic ID types
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
     } catch (err) {
       console.error("Failed to delete category", err);
     }
@@ -631,13 +870,9 @@ const AppContent: React.FC = () => {
 
   const handleAddEvent = async (newEvent: EventBlog) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/events/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/events/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: newEvent.title,
           location: newEvent.location,
@@ -646,34 +881,31 @@ const AppContent: React.FC = () => {
           full_story: newEvent.fullStory,
           gallery: newEvent.gallery,
           featured_products: newEvent.featuredProducts,
-          date: newEvent.date
+          date: newEvent.date,
+          impact_participants: newEvent.impactParticipants,
+          fuel_bars_shared: newEvent.fuelBarsShared,
+          vibe_energy: newEvent.vibeEnergy,
+          scheduled_date: newEvent.scheduledDate || null,
+          is_active: newEvent.isActive !== false
         })
       });
       if (response.ok) {
-        const savedEvent = await response.json();
-        const mappedEvent = {
-          ...savedEvent,
-          id: String(savedEvent.id),
-          fullStory: savedEvent.full_story || [],
-          featuredProducts: (savedEvent.featured_products || []).map(String),
-          gallery: savedEvent.gallery || []
-        };
-        setEvents(prev => [mappedEvent, ...prev]);
+        queryClient.invalidateQueries({ queryKey: ['events'] });
+        showToast("Event story published successfully!", 'success');
+      } else {
+        showToast("Failed to publish event story", 'error');
       }
     } catch (err) {
       console.error("Failed to add event", err);
+      showToast("An error occurred while publishing the event", 'error');
     }
   };
 
   const handleUpdateEvent = async (updatedEvent: EventBlog) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/events/${updatedEvent.id}/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/events/${updatedEvent.id}/`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: updatedEvent.title,
           location: updatedEvent.location,
@@ -682,74 +914,204 @@ const AppContent: React.FC = () => {
           full_story: updatedEvent.fullStory,
           gallery: updatedEvent.gallery,
           featured_products: updatedEvent.featuredProducts,
-          date: updatedEvent.date
+          date: updatedEvent.date,
+          impact_participants: updatedEvent.impactParticipants,
+          fuel_bars_shared: updatedEvent.fuelBarsShared,
+          vibe_energy: updatedEvent.vibeEnergy,
+          scheduled_date: updatedEvent.scheduledDate || null,
+          is_active: updatedEvent.isActive !== false
         })
       });
       if (response.ok) {
-        const savedEvent = await response.json();
-        const mappedEvent = {
-          ...savedEvent,
-          id: String(savedEvent.id),
-          fullStory: savedEvent.full_story || [],
-          featuredProducts: (savedEvent.featured_products || []).map(String),
-          gallery: savedEvent.gallery || []
-        };
-        setEvents(prev => prev.map(e => e.id === mappedEvent.id ? mappedEvent : e));
+        queryClient.invalidateQueries({ queryKey: ['events'] });
+        showToast("Event story updated successfully!", 'success');
+      } else {
+        showToast("Failed to update event story", 'error');
       }
     } catch (err) {
       console.error("Failed to update event", err);
+      showToast("An error occurred while updating the event", 'error');
     }
   };
 
   const handleDeleteEvent = async (id: string) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      await fetch(`${API_BASE_URL}/api/events/${id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/events/${id}/`, {
+        method: 'DELETE'
       });
-      setEvents(prev => prev.filter(e => e.id !== id));
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['events'] });
+        showToast("Event story deleted successfully!", 'success');
+      } else {
+        showToast("Failed to delete event story", 'error');
+      }
     } catch (err) {
       console.error("Failed to delete event", err);
+      showToast("An error occurred while deleting the event", 'error');
     }
   };
 
-  const handleUpdateSlides = (newSlides: HeroSlide[]) => {
-    setSlides(newSlides);
+  const handleToggleCustomerActive = async (id: string) => {
+    try {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/customers/${id}/toggle_active/`, {
+        method: 'POST'
+      });
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['customers'] });
+        showToast("Customer status updated", "success");
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const handleDeleteCustomer = async (id: string) => {
+    if (!window.confirm("Are you sure you want to permanently delete this customer?")) return;
+    try {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/customers/${id}/`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['customers'] });
+        showToast("Customer deleted successfully", "success");
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  const handleAddSlide = async (newSlide: HeroSlide) => {
+    try {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/hero-slides/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: newSlide.category,
+          headline: newSlide.headline,
+          image: newSlide.image,
+          cta: newSlide.cta,
+          cta_link: newSlide.ctaLink,
+          secondary_cta: newSlide.secondaryCta,
+          secondary_cta_link: newSlide.secondaryCtaLink,
+          bg_color: newSlide.bgColor,
+          accent_color: newSlide.accentColor,
+          blob_color: newSlide.blobColor,
+          background_image: newSlide.backgroundImage,
+          product_id: newSlide.productId,
+          transition_type: newSlide.transitionType,
+          is_active: newSlide.isActive,
+          order: newSlide.order || 0,
+          mobile_image: newSlide.mobileImage,
+          display_duration: newSlide.displayDuration || 5
+        })
+      });
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['hero-slides'] });
+        showToast("Slide added successfully!", 'success');
+      } else {
+        console.error("Failed to add slide response:", await response.text());
+      }
+    } catch (err) {
+      console.error("Failed to add slide caught:", err);
+    }
+  };
+
+  const handleUpdateSlide = async (updatedSlide: HeroSlide) => {
+    try {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/hero-slides/${updatedSlide.id}/`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: updatedSlide.category,
+          headline: updatedSlide.headline,
+          image: updatedSlide.image,
+          cta: updatedSlide.cta,
+          cta_link: updatedSlide.ctaLink,
+          secondary_cta: updatedSlide.secondaryCta,
+          secondary_cta_link: updatedSlide.secondaryCtaLink,
+          bg_color: updatedSlide.bgColor,
+          accent_color: updatedSlide.accentColor,
+          blob_color: updatedSlide.blobColor,
+          background_image: updatedSlide.backgroundImage,
+          product_id: updatedSlide.productId,
+          transition_type: updatedSlide.transitionType,
+          is_active: updatedSlide.isActive,
+          order: updatedSlide.order || 0,
+          mobile_image: updatedSlide.mobileImage,
+          display_duration: updatedSlide.displayDuration || 5
+        })
+      });
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['hero-slides'] });
+      } else {
+        console.error("Failed to update slide response:", await response.text());
+      }
+    } catch (err) {
+      console.error("Failed to update slide caught:", err);
+    }
+  };
+
+  const handleDeleteSlide = async (id: string) => {
+    try {
+      await adminApiFetch(`${API_BASE_URL}/api/hero-slides/${id}/`, { method: 'DELETE' });
+      queryClient.invalidateQueries({ queryKey: ['hero-slides'] });
+    } catch (err) {
+      console.error("Failed to delete slide", err);
+    }
+  };
+
+  const buildBlogFormData = (blog: BlogPost): FormData => {
+    const fd = new FormData();
+    fd.append('post_type', blog.type);
+    fd.append('title', blog.title);
+    fd.append('excerpt', blog.excerpt);
+    fd.append('date', blog.date ? new Date(blog.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+    fd.append('author', blog.author);
+    fd.append('content', blog.content);
+    fd.append('is_active', String(blog.isActive !== false));
+    fd.append('subtitle', blog.subtitle || '');
+    fd.append('intro_heading', blog.intro_heading || '');
+    fd.append('featured_quote', blog.featured_quote || '');
+    fd.append('tags', blog.tags ? blog.tags.join(',') : '');
+    fd.append('facts_list', JSON.stringify(blog.facts_list || []));
+    fd.append('key_points', JSON.stringify(blog.key_points || []));
+    fd.append('health_benefits', JSON.stringify(blog.health_benefits || []));
+    fd.append('usage_recipes', JSON.stringify(blog.usage_recipes || []));
+    return fd;
   };
 
   const handleAddBlog = async (newBlog: BlogPost) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/blog-posts/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const headers: Record<string, string> = {};
+      let body: BodyInit;
+      if (newBlog.imageFile) {
+        const fd = buildBlogFormData(newBlog);
+        fd.append('image', newBlog.imageFile);
+        body = fd;
+      } else {
+        headers['Content-Type'] = 'application/json';
+        body = JSON.stringify({
           post_type: newBlog.type,
           title: newBlog.title,
           excerpt: newBlog.excerpt,
           image: newBlog.image,
-          date: newBlog.date,
-          read_time: newBlog.readTime,
+          date: newBlog.date ? new Date(newBlog.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           author: newBlog.author,
           content: newBlog.content,
-          tags: newBlog.tags
-        })
+          tags: newBlog.tags,
+          is_active: newBlog.isActive !== false,
+          subtitle: newBlog.subtitle || null,
+          intro_heading: newBlog.intro_heading || null,
+          featured_quote: newBlog.featured_quote || null,
+          facts_list: newBlog.facts_list || [],
+          key_points: newBlog.key_points || [],
+          health_benefits: newBlog.health_benefits || [],
+          usage_recipes: newBlog.usage_recipes || []
+        });
+      }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/blog-posts/`, {
+        method: 'POST',
+        headers,
+        body
       });
       if (response.ok) {
-        const savedBlog = await response.json();
-        const mappedBlog = {
-          ...savedBlog,
-          id: String(savedBlog.id),
-          type: savedBlog.post_type,
-          readTime: savedBlog.read_time,
-          content: savedBlog.content || [],
-          tags: savedBlog.tags || []
-        };
-        setBlogPosts(prev => [mappedBlog, ...prev]);
+        queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
       }
     } catch (err) {
       console.error("Failed to add blog", err);
@@ -758,13 +1120,9 @@ const AppContent: React.FC = () => {
 
   const handleAddAnnouncement = async (newA: Announcement) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/announcements/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/announcements/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: newA.message,
           start_date: newA.start_date,
@@ -773,8 +1131,7 @@ const AppContent: React.FC = () => {
         })
       });
       if (response.ok) {
-        const saved = await response.json();
-        setAnnouncements(prev => [saved, ...prev]);
+        queryClient.invalidateQueries({ queryKey: ['announcements'] });
       }
     } catch (err) {
       console.error("Failed to add announcement", err);
@@ -783,13 +1140,9 @@ const AppContent: React.FC = () => {
 
   const handleUpdateAnnouncement = async (updatedA: Announcement) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/announcements/${updatedA.id}/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/announcements/${updatedA.id}/`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: updatedA.message,
           start_date: updatedA.start_date,
@@ -798,8 +1151,7 @@ const AppContent: React.FC = () => {
         })
       });
       if (response.ok) {
-        const saved = await response.json();
-        setAnnouncements(prev => prev.map(a => a.id === saved.id ? saved : a));
+        queryClient.invalidateQueries({ queryKey: ['announcements'] });
       }
     } catch (err) {
       console.error("Failed to update announcement", err);
@@ -808,70 +1160,53 @@ const AppContent: React.FC = () => {
 
   const handleDeleteAnnouncement = async (id: number) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/announcements/${id}/`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/announcements/${id}/`, {
+        method: 'DELETE'
       });
       if (response.ok) {
-        setAnnouncements(prev => prev.filter(a => String(a.id) !== String(id)));
+        queryClient.invalidateQueries({ queryKey: ['announcements'] });
       }
     } catch (err) {
       console.error("Failed to delete announcement", err);
     }
   };
 
-  // Press Updates Handlers (localStorage-based - no backend API yet)
-  const handleAddPressUpdate = (newPress: PressUpdate) => {
-    setPressUpdates(prev => {
-      const updated = [newPress, ...prev];
-      localStorage.setItem('pinobite_press_updates', JSON.stringify(updated));
-      return updated;
-    });
-  };
-
-  const handleDeletePressUpdate = (id: string) => {
-    setPressUpdates(prev => {
-      const updated = prev.filter(p => p.id !== id);
-      localStorage.setItem('pinobite_press_updates', JSON.stringify(updated));
-      return updated;
-    });
-  };
-
   const handleUpdateBlog = async (updatedBlog: BlogPost) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/blog-posts/${updatedBlog.id}/`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
+      const headers: Record<string, string> = {};
+      let body: BodyInit;
+      if (updatedBlog.imageFile) {
+        const fd = buildBlogFormData(updatedBlog);
+        fd.append('image', updatedBlog.imageFile);
+        body = fd;
+      } else {
+        headers['Content-Type'] = 'application/json';
+        body = JSON.stringify({
           post_type: updatedBlog.type,
           title: updatedBlog.title,
           excerpt: updatedBlog.excerpt,
           image: updatedBlog.image,
-          date: updatedBlog.date,
-          read_time: updatedBlog.readTime,
+          date: updatedBlog.date ? new Date(updatedBlog.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
           author: updatedBlog.author,
           content: updatedBlog.content,
-          tags: updatedBlog.tags
-        })
+          tags: updatedBlog.tags,
+          is_active: updatedBlog.isActive !== false,
+          subtitle: updatedBlog.subtitle || null,
+          intro_heading: updatedBlog.intro_heading || null,
+          featured_quote: updatedBlog.featured_quote || null,
+          facts_list: updatedBlog.facts_list || [],
+          key_points: updatedBlog.key_points || [],
+          health_benefits: updatedBlog.health_benefits || [],
+          usage_recipes: updatedBlog.usage_recipes || []
+        });
+      }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/blog-posts/${updatedBlog.id}/`, {
+        method: 'PUT',
+        headers,
+        body
       });
       if (response.ok) {
-        const savedBlog = await response.json();
-        const mappedBlog = {
-          ...savedBlog,
-          id: String(savedBlog.id),
-          type: savedBlog.post_type,
-          readTime: savedBlog.read_time,
-          content: savedBlog.content || [],
-          tags: savedBlog.tags || []
-        };
-        setBlogPosts(prev => prev.map(b => b.id === mappedBlog.id ? mappedBlog : b));
+        queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
       }
     } catch (err) {
       console.error("Failed to update blog", err);
@@ -880,18 +1215,11 @@ const AppContent: React.FC = () => {
 
   const handleDeleteBlog = async (id: string) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/blog-posts/${id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/blog-posts/${id}/`, {
+        method: 'DELETE'
       });
-      if (response.status === 401) {
-        alert("Session expired. Please log in again.");
-        handleAdminLogout();
-        return;
-      }
       if (response.ok) {
-        setBlogPosts(prev => prev.filter(b => b.id !== id));
+        queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
       }
     } catch (err) {
       console.error("Failed to delete blog", err);
@@ -899,58 +1227,52 @@ const AppContent: React.FC = () => {
   };
 
   const handleAddReview = (review: Review) => {
-    setReviews(prev => [review, ...prev]);
+    queryClient.invalidateQueries({ queryKey: ['reviews'] });
     // Refresh user's points to show on dashboard immediately
     checkAuth();
   };
 
   const handleAddStory = async (newStory: Story) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/stories/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/stories/`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           media_url: newStory.mediaUrl,
+          poster_url: newStory.posterUrl,
           media_type: newStory.mediaType,
           original_drive_url: newStory.originalDriveUrl,
+          full_video_url: newStory.fullVideoUrl,
           product_id: newStory.productId
         })
       });
       if (response.ok) {
-        const savedStory = await response.json();
-        const mappedStory = {
-          id: String(savedStory.id),
-          mediaUrl: savedStory.media_url,
-          originalDriveUrl: savedStory.original_drive_url,
-          mediaType: savedStory.media_type,
-          productId: String(savedStory.product_id)
-        };
-        setStories(prev => [...prev, mappedStory]);
-        alert("Story added successfully!");
+        queryClient.invalidateQueries({ queryKey: ['stories'] });
+        showToast("Story added successfully!", 'success');
       } else {
         const errorData = await response.json().catch(() => ({}));
-        alert(`Failed to add story: ${errorData.detail || errorData.error || response.statusText}`);
+        showToast(`Failed to add story: ${errorData.detail || errorData.error || response.statusText}`, 'error');
       }
     } catch (err) {
       console.error("Failed to add story", err);
-      alert("Error adding story. The image might be too large or the server is busy.");
+      showToast("Error adding story. The image might be too large or the server is busy.", 'error');
     }
   };
 
   const handleDeleteStory = async (id: string) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      await fetch(`${API_BASE_URL}/api/stories/${id}/`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await adminApiFetch(`${API_BASE_URL}/api/stories/${id}/`, {
+        method: 'DELETE'
       });
-      setStories(prev => prev.filter(s => s.id !== id));
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['stories'] });
+        showToast("Story deleted successfully!", 'success');
+      } else {
+        showToast("Failed to delete story", 'error');
+      }
     } catch (err) {
       console.error("Failed to delete story", err);
+      showToast("Error deleting story", 'error');
     }
   };
 
@@ -982,25 +1304,33 @@ const AppContent: React.FC = () => {
   const navigateToProduct = React.useCallback(async (product: Product) => {
     setSelectedProduct(product);
     setCurrentView('product');
-    window.history.pushState({ view: 'product', productId: product.id }, '');
+    window.history.pushState({ view: 'product', slug: product.slug }, '', `/product/${product.slug}`);
     window.scrollTo(0, 0);
-
     // Fetch full details since list view is now minimal
     try {
-      const response = await fetch(`${API_BASE_URL}/api/products/${product.id}/`);
+      const response = await fetch(`${API_BASE_URL}/api/products/${product.slug}/`);
       if (response.ok) {
         const fullProduct = await response.json();
         const mappedProduct = {
           ...fullProduct,
           id: String(fullProduct.id),
           price: parseFloat(fullProduct.price),
-          originalPrice: fullProduct.original_price ? parseFloat(fullProduct.original_price) : undefined,
           themeColor: fullProduct.theme_color,
           model3d: fullProduct.model_3d,
           orientation: fullProduct.orientation ? fullProduct.orientation.replace(/[Oo]/g, '0') : '0deg 0deg -15deg',
-          benefits: fullProduct.benefits || [],
+          benefits: (fullProduct.benefits || []).filter((b: any) => b && String(b).trim() !== ""),
           nutrients: fullProduct.nutrients || [],
-          gallery: fullProduct.gallery || [],
+          ingredients: fullProduct.ingredients || "",
+          ingredientsList: fullProduct.ingredients_list || [],
+          detailedNutrition: fullProduct.detailed_nutrition || [],
+          usageIdeas: (fullProduct.usage_ideas || []).map((idea: any) => ({
+            id: String(idea.id),
+            productId: String(idea.product),
+            title: idea.title,
+            description: idea.description,
+            image: idea.image || '',
+            order: idea.order || 0,
+          })),
           mainIngredient: fullProduct.main_ingredient || (fullProduct.name.toLowerCase().includes('peanut') ? "100% Roasted Peanuts" : fullProduct.name.toLowerCase().includes('almond') ? "Premium Roasted Almonds" : fullProduct.name.toLowerCase().includes('chocolate') ? "Dark Belgian Chocolate" : fullProduct.name.toLowerCase().includes('strawberry') ? "Fresh Strawberries" : fullProduct.name.toLowerCase().includes('chia') ? "Organic Chia Seeds" : "Premium Ingredients"),
           mainIngredientImage: fullProduct.main_ingredient_image || (fullProduct.name.toLowerCase().includes('peanut') ? "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=800&auto=format&fit=crop" : fullProduct.name.toLowerCase().includes('almond') ? "https://images.unsplash.com/photo-1508029091899-59990abc4b8d?q=80&w=800&auto=format&fit=crop" : fullProduct.name.toLowerCase().includes('chocolate') ? "https://images.unsplash.com/photo-1511381939415-322199ae53d5?q=80&w=800&auto=format&fit=crop" : fullProduct.name.toLowerCase().includes('strawberry') ? "https://images.unsplash.com/photo-1518635017498-87afc0455a43?q=80&w=800&auto=format&fit=crop" : fullProduct.name.toLowerCase().includes('chia') ? "https://images.unsplash.com/photo-1588600030303-920aa942828b?q=80&w=800&auto=format&fit=crop" : undefined)
         };
@@ -1018,7 +1348,7 @@ const AppContent: React.FC = () => {
     setGlobalSearchQuery('');
     setIsCartOpen(false);
     setIsAuthOpen(false);
-    window.history.pushState({ view: 'shop', category: 'All', query: '' }, '');
+    window.history.pushState({ view: 'shop', category: 'All', query: '' }, '', '/shop');
   }, []);
 
   const navigateToShopCategory = React.useCallback((category: string) => {
@@ -1026,7 +1356,7 @@ const AppContent: React.FC = () => {
     setCurrentView('shop');
     setGlobalSearchQuery('');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'shop', category, query: '' }, '');
+    window.history.pushState({ view: 'shop', category, query: '' }, '', `/shop/${category}`);
   }, []);
 
   const handleGlobalSearch = React.useCallback((query: string) => {
@@ -1034,66 +1364,72 @@ const AppContent: React.FC = () => {
     setShopCategory('All');
     setCurrentView('shop');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'shop', category: 'All', query }, '');
+    window.history.pushState({ view: 'shop', category: 'All', query }, '', `/shop?search=${encodeURIComponent(query)}`);
   }, []);
 
   const navigateToCheckout = React.useCallback(() => {
+    if (!isLoggedIn) {
+      localStorage.setItem('redirect_after_login', 'checkout');
+      setIsAuthOpen(true);
+      setIsCartOpen(false);
+      return;
+    }
     setCurrentView('checkout');
     setIsCartOpen(false);
     setSelectedProduct(null);
-    window.history.pushState({ view: 'checkout' }, '');
-  }, []);
+    window.history.pushState({ view: 'checkout' }, '', '/checkout');
+  }, [isLoggedIn]);
 
   const navigateToDashboard = React.useCallback(() => {
     setCurrentView('dashboard');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'dashboard' }, '');
+    window.history.pushState({ view: 'dashboard' }, '', '/dashboard');
   }, []);
 
   const navigateToFAQ = React.useCallback(() => {
     setCurrentView('faq');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'faq' }, '');
+    window.history.pushState({ view: 'faq' }, '', '/faq');
   }, []);
 
   const navigateToDistributor = React.useCallback(() => {
     setCurrentView('distributor');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'distributor' }, '');
+    window.history.pushState({ view: 'distributor' }, '', '/distributor');
   }, []);
 
   const navigateToBlogs = React.useCallback(() => {
     setCurrentView('blogs');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'blogs' }, '');
+    window.history.pushState({ view: 'blogs' }, '', '/blogs');
   }, []);
 
   const navigateToBlogDetail = React.useCallback((post: BlogPost) => {
     setSelectedBlogPost(post);
     setCurrentView('blog-detail');
-    window.history.pushState({ view: 'blog-detail', blogId: post.id }, '');
+    window.history.pushState({ view: 'blog-detail', slug: post.slug }, '', `/blog/${post.slug}`);
   }, []);
 
   const navigateToEventBlogs = React.useCallback(() => {
     setCurrentView('event-blogs');
     setSelectedProduct(null);
     setSelectedEvent(null);
-    window.history.pushState({ view: 'event-blogs' }, '');
+    window.history.pushState({ view: 'event-blogs' }, '', '/events');
   }, []);
 
   const navigateToEventDetail = React.useCallback((event: EventBlog) => {
     setSelectedEvent(event);
     setCurrentView('event-detail');
-    window.history.pushState({ view: 'event-detail', eventId: event.id }, '');
+    window.history.pushState({ view: 'event-detail', eventId: event.id }, '', `/event/${event.id}`);
   }, []);
 
   const navigateToAdmin = React.useCallback(() => {
     if (isAdminLoggedIn) {
       setCurrentView('admin-dashboard');
-      window.history.pushState({ view: 'admin-dashboard' }, '');
+      window.history.pushState({ view: 'admin-dashboard' }, '', '/admin');
     } else {
       setCurrentView('admin-login');
-      window.history.pushState({ view: 'admin-login' }, '');
+      window.history.pushState({ view: 'admin-login' }, '', '/admin/login');
     }
   }, [isAdminLoggedIn]);
 
@@ -1101,31 +1437,31 @@ const AppContent: React.FC = () => {
     setCurrentView('journey');
     setSelectedProduct(null);
     setSelectedEvent(null);
-    window.history.pushState({ view: 'journey' }, '');
+    window.history.pushState({ view: 'journey' }, '', '/journey');
   }, []);
 
   const navigateToPrivacy = React.useCallback(() => {
     setCurrentView('privacy-policy');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'privacy-policy' }, '');
+    window.history.pushState({ view: 'privacy-policy' }, '', '/privacy-policy');
   }, []);
 
   const navigateToTerms = React.useCallback(() => {
     setCurrentView('terms-and-conditions');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'terms-and-conditions' }, '');
+    window.history.pushState({ view: 'terms-and-conditions' }, '', '/terms-and-conditions');
   }, []);
 
   const navigateToRefund = React.useCallback(() => {
     setCurrentView('refund-policy');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'refund-policy' }, '');
+    window.history.pushState({ view: 'refund-policy' }, '', '/refund-policy');
   }, []);
 
   const navigateToShipping = React.useCallback(() => {
     setCurrentView('shipping-policy');
     setSelectedProduct(null);
-    window.history.pushState({ view: 'shipping-policy' }, '');
+    window.history.pushState({ view: 'shipping-policy' }, '', '/shipping-policy');
   }, []);
 
   const goHome = React.useCallback(() => {
@@ -1136,24 +1472,32 @@ const AppContent: React.FC = () => {
     setGlobalSearchQuery('');
     setIsCartOpen(false);
     setIsAuthOpen(false);
-    window.history.pushState({ view: 'home' }, '');
+    window.history.pushState({ view: 'home' }, '', '/');
   }, []);
 
   const handleLogin = () => {
-    // setIsLoggedIn is handled by useEffect
     setIsAuthOpen(false);
-    setCurrentView('dashboard');
+    const redirect = localStorage.getItem('redirect_after_login');
+    if (redirect === 'checkout') {
+      localStorage.removeItem('redirect_after_login');
+      setCurrentView('checkout');
+      window.history.pushState({ view: 'checkout' }, '', '/checkout');
+    } else {
+      setCurrentView('dashboard');
+      window.history.pushState({ view: 'dashboard' }, '', '/dashboard');
+    }
   };
 
   const handleLogout = () => {
     logout();
     setCurrentView('home');
+    window.history.pushState({ view: 'home' }, '', '/');
   };
 
   const handleAdminLogin = () => {
     setIsAdminLoggedIn(true);
     setCurrentView('admin-dashboard');
-    window.history.pushState({ view: 'admin-dashboard' }, '');
+    window.history.pushState({ view: 'admin-dashboard' }, '', '/admin');
   };
 
   const handleAdminLogout = () => {
@@ -1161,7 +1505,7 @@ const AppContent: React.FC = () => {
     localStorage.removeItem('admin_access_token');
     localStorage.removeItem('admin_refresh_token');
     setCurrentView('home');
-    window.history.pushState({ view: 'home' }, '');
+    window.history.pushState({ view: 'home' }, '', '/');
   };
 
   const clearCart = () => {
@@ -1186,9 +1530,12 @@ const AppContent: React.FC = () => {
         onDeleteCategory={handleDeleteCategory}
         events={events}
         onAddEvent={handleAddEvent}
+        onUpdateEvent={handleUpdateEvent}
         onDeleteEvent={handleDeleteEvent}
         slides={slides}
-        onUpdateSlides={handleUpdateSlides}
+        onAddSlide={handleAddSlide}
+        onUpdateSlide={handleUpdateSlide}
+        onDeleteSlide={handleDeleteSlide}
         blogPosts={blogPosts}
         onAddBlog={handleAddBlog}
         onUpdateBlog={handleUpdateBlog}
@@ -1198,237 +1545,285 @@ const AppContent: React.FC = () => {
         onDeleteStory={handleDeleteStory}
         visitorForms={visitorForms}
         onAddVisitorForm={handleAddVisitorForm}
+        onUpdateVisitorForm={handleUpdateVisitorForm}
         onDeleteVisitorForm={handleDeleteVisitorForm}
         announcements={announcements}
         onAddAnnouncement={handleAddAnnouncement}
         onUpdateAnnouncement={handleUpdateAnnouncement}
         onDeleteAnnouncement={handleDeleteAnnouncement}
-        pressUpdates={pressUpdates}
-        onAddPressUpdate={handleAddPressUpdate}
-        onDeletePressUpdate={handleDeletePressUpdate}
+        customers={customersQuery.data || []}
+        onToggleCustomerActive={handleToggleCustomerActive}
+        onDeleteCustomer={handleDeleteCustomer}
       />
     );
   }
 
   return (
-    <div className="min-h-screen selection:bg-primary/20 bg-background-light">
-      {currentView !== 'checkout' && currentView !== 'visitor-form' && (
-        <Navbar
-          cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
-          isLoggedIn={isLoggedIn}
-          onCartClick={() => setIsCartOpen(true)}
-          onAccountClick={() => isLoggedIn ? navigateToDashboard() : setIsAuthOpen(true)}
-          onLogoClick={goHome}
-          onProductsClick={() => navigateToShop()}
-          onCategoryClick={navigateToShopCategory}
-          onDashboardClick={() => navigateToDashboard()}
-          onStoriesClick={() => setCurrentView('blogs')}
-          onJourneyClick={() => setCurrentView('journey')}
-          onSearch={handleGlobalSearch}
-          products={products}
-          blogPosts={blogPosts}
-          events={events}
-          onProductClick={navigateToProduct}
-          onBlogClick={navigateToBlogDetail}
-          onEventClick={navigateToEventDetail}
-          categories={categories}
-          onMenuStateChange={setIsMenuOpen}
-          announcements={announcements
-            .filter(a => {
-              if (!a.is_active) return false;
-              const now = new Date();
-              const year = now.getFullYear();
-              const month = String(now.getMonth() + 1).padStart(2, '0');
-              const day = String(now.getDate()).padStart(2, '0');
-              const localTodayStr = `${year}-${month}-${day}`;
-              const startStr = a.start_date.split('T')[0];
-              const endStr = a.end_date.split('T')[0];
-              return localTodayStr >= startStr && localTodayStr <= endStr;
-            })
-            .map(a => a.message)}
-        />
-      )}
-
-      <main className="animate-in fade-in duration-500">
-        {currentView === 'home' && (
-          <>
-            <Hero onShopClick={navigateToShop} products={products} onProductClick={navigateToProduct} slides={slides} />
-            <CategoryList onCategoryClick={navigateToShopCategory} products={products} />
-            <StoryCarousel stories={[...stories].reverse().slice(0, 5)} products={products} onProductClick={navigateToProduct} onAddToCart={addToCart} />
-            <div className="snaxxo-wrapper relative w-full overflow-hidden bg-[#fcf6e5]">
-              <SnaxxoProductWheel
-                products={products}
-                onAddToCart={addToCart}
-                onProductClick={navigateToProduct}
-                isLoading={isLoading}
-                onShopClick={navigateToShop}
+    <div className={`min-h-screen selection:bg-primary/20 ${['dashboard', 'shop'].includes(currentView) ? 'bg-[#f2f2ec]' : 'bg-background-light'}`}>
+      {/* Full Page Premium Loading Screen */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            className="fixed inset-0 z-[10000] bg-white flex flex-col items-center justify-center"
+          >
+            <div className="relative w-32 h-32">
+              {/* Pulsing Logo */}
+              <motion.img
+                src="/logos/Pinobite-logo.png"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-full h-full object-contain"
+                alt="Pinobite Logo"
               />
             </div>
-            <LatestProductShowcase />
 
-            <ComparisonTable />
-
-            <Testimonials reviews={reviews} />
-            <BlogSection
-              posts={blogPosts}
-              onPostClick={navigateToBlogDetail}
-              onViewAllClick={navigateToBlogs}
-            />
-            <EventsSection
-              events={events}
-              onParticipateClick={() => setIsEventModalOpen(true)}
-              onViewRecapsClick={navigateToEventBlogs}
-            />
-            <PressUpdates pressUpdates={pressUpdates} />
-            <Newsletter />
-            <SnaxxoLanding
-              products={products.slice(-5).reverse()}
-              onAddToCart={addToCart}
-              onProductClick={navigateToProduct}
-              isLoading={isLoading}
-              onShopClick={navigateToShop}
-              onHomeClick={goHome}
-              onFAQClick={navigateToFAQ}
-
-              onBlogsClick={navigateToBlogs}
-              onEventBlogsClick={navigateToEventBlogs}
-              onAdminClick={navigateToAdmin}
-              onJourneyClick={navigateToJourney}
-              onPrivacyClick={navigateToPrivacy}
-              onTermsClick={navigateToTerms}
-              onRefundClick={navigateToRefund}
-              onShippingClick={navigateToShipping}
-              onDistributorClick={navigateToDistributor}
-            />
-          </>
+          </motion.div>
         )}
+      </AnimatePresence>
 
-        {currentView === 'distributor' && (
-          <DistributorPage onHomeClick={goHome} />
-        )}
-
-        {currentView === 'shop' && (
-          <ShopPage
-            onProductClick={navigateToProduct}
-            onAddToCart={addToCart}
-            searchQuery={globalSearchQuery}
-            selectedCategory={shopCategory}
-            onHomeClick={goHome}
-          />
-        )}
-
-        {currentView === 'product' && selectedProduct && (
-          <ProductPage
-            product={selectedProduct}
-            products={products}
-            stories={stories}
-            onProductClick={navigateToProduct}
-            onShopClick={navigateToShop}
-            onAddToCart={addToCart}
-            onBack={navigateToShop}
-            reviews={reviews}
-            onAddReview={handleAddReview}
+      {
+        currentView !== 'checkout' && currentView !== 'visitor-form' && (
+          <Navbar
+            cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
             isLoggedIn={isLoggedIn}
-            onLoginClick={() => setIsAuthOpen(true)}
-            onPopupToggle={setIsNutritionOpen}
-            onHomeClick={goHome}
-          />
-        )}
-
-        {currentView === 'checkout' && (
-          <CheckoutPage
-            items={cart}
-            onBack={() => setCurrentView('shop')}
-            onOrderSuccess={() => {
-              setCart([]);
-              setCurrentView('home');
-            }}
-            onLoginRequired={() => setIsAuthOpen(true)}
-            checkAuth={checkAuth}
-          />
-        )}
-
-        {currentView === 'dashboard' && (
-          <Dashboard onLogout={handleLogout} onHomeClick={goHome} />
-        )}
-
-        {currentView === 'faq' && (
-          <FAQPage onHomeClick={goHome} />
-        )}
-
-        {currentView === 'blogs' && (
-          <BlogsPage
-            posts={blogPosts}
+            onCartClick={() => setIsCartOpen(true)}
+            onAccountClick={() => isLoggedIn ? navigateToDashboard() : setIsAuthOpen(true)}
+            onLogoClick={goHome}
+            onProductsClick={() => navigateToShop()}
+            onCategoryClick={navigateToShopCategory}
+            onDashboardClick={() => navigateToDashboard()}
+            onStoriesClick={navigateToBlogs}
+            onJourneyClick={navigateToJourney}
+            onSearch={handleGlobalSearch}
+            products={products}
+            blogPosts={blogPosts}
+            events={visibleEvents}
+            onProductClick={navigateToProduct}
             onBlogClick={navigateToBlogDetail}
-            onHomeClick={goHome}
-          />
-        )}
-
-        {currentView === 'blog-detail' && selectedBlogPost && (
-          <BlogDetailPage
-            post={selectedBlogPost}
-            onBack={navigateToBlogs}
-            onHomeClick={goHome}
-          />
-        )}
-
-        {currentView === 'event-blogs' && (
-          <EventBlogsPage
-            events={events}
             onEventClick={navigateToEventDetail}
-            onHomeClick={goHome}
+            categories={categories}
+            onMenuStateChange={setIsMenuOpen}
+            announcements={(announcements || [])
+              .filter(a => {
+                if (!a || !a.is_active || !a.start_date || !a.end_date) return false;
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const localTodayStr = `${year}-${month}-${day}`;
+                const startStr = a.start_date.split('T')[0];
+                const endStr = a.end_date.split('T')[0];
+                return localTodayStr >= startStr && localTodayStr <= endStr;
+              })
+              .map(a => a.message)}
           />
-        )}
+        )
+      }
 
-        {currentView === 'event-detail' && selectedEvent && (
-          <EventDetailsPage
-            event={selectedEvent}
-            onBack={navigateToEventBlogs}
+      <AnimatePresence mode="wait">
+        <motion.main
+          key={currentView + (currentView === 'product' ? (selectedProduct?.id || '') : '') + (currentView === 'blog-detail' ? (selectedBlogPost?.id || '') : '') + (currentView === 'event-detail' ? (selectedEvent?.id || '') : '')}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
+          className="w-full min-h-screen"
+        >
+          <React.Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-white">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          }>
+            {currentView === 'home' && (
+              <>
+                {slides.length > 0 && <HeroSliderVersion2 slides={slides} />}
+                {products.length > 0 && <CategoryList onCategoryClick={navigateToShopCategory} products={products} />}
+                {stories.length > 0 && <StoryCarousel stories={[...stories].reverse().slice(0, 5)} products={products} onProductClick={navigateToProduct} onAddToCart={addToCart} />}
+                {products.length > 0 && (
+                  <div className="snaxxo-wrapper relative w-full overflow-hidden bg-whiteboard-alt texture-overlay texture-speckles">
+                    <SnaxxoProductWheel
+                      products={products}
+                      onAddToCart={addToCart}
+                      onProductClick={navigateToProduct}
+                      isLoading={isLoading}
+                      onShopClick={navigateToShop}
+                    />
+                  </div>
+                )}
+                <LatestProductShowcase product={products[0]} />
+
+                <ComparisonTable />
+
+                {reviews.length > 0 && <Testimonials reviews={reviews} />}
+                {blogPosts.length > 0 && (
+                  <BlogSection
+                    posts={visibleBlogs}
+                    onPostClick={navigateToBlogDetail}
+                    onViewAllClick={navigateToBlogs}
+                  />
+                )}
+                {events.length > 0 && (
+                  <EventsSection
+                    events={visibleEvents}
+                    onParticipateClick={() => setIsEventModalOpen(true)}
+                    onViewRecapsClick={navigateToEventBlogs}
+                  />
+                )}
+                <PressUpdates pressUpdates={[]} />
+                <Newsletter />
+              </>
+            )}
+
+            {currentView === 'distributor' && (
+              <DistributorPage onHomeClick={goHome} />
+            )}
+
+            {currentView === 'shared-wishlist' && sharedWishlistToken && (
+              <SharedWishlistPage
+                token={sharedWishlistToken}
+                onBack={goHome}
+                onAddToCart={addToCart}
+              />
+            )}
+
+            {currentView === 'shop' && (
+              <ShopPage
+                onProductClick={navigateToProduct}
+                onAddToCart={addToCart}
+                searchQuery={globalSearchQuery}
+                selectedCategory={shopCategory}
+                onHomeClick={goHome}
+              />
+            )}
+
+            {currentView === 'product' && selectedProduct && (
+              <ProductPage
+                product={selectedProduct}
+                products={products}
+                stories={stories}
+                onProductClick={navigateToProduct}
+                onShopClick={navigateToShop}
+                onAddToCart={addToCart}
+                onBack={navigateToShop}
+                reviews={reviews}
+                onAddReview={handleAddReview}
+                isLoggedIn={isLoggedIn}
+                onLoginClick={() => setIsAuthOpen(true)}
+                onPopupToggle={setIsNutritionOpen}
+                onHomeClick={goHome}
+              />
+            )}
+
+            {currentView === 'checkout' && (
+              <CheckoutPage
+                items={cart}
+                onBack={navigateToShop}
+                onOrderSuccess={() => {
+                  setCart([]);
+                  goHome();
+                }}
+                onLoginRequired={() => {
+                  localStorage.setItem('redirect_after_login', 'checkout');
+                  setIsAuthOpen(true);
+                }}
+                checkAuth={checkAuth}
+              />
+            )}
+
+            {currentView === 'dashboard' && (
+              <Dashboard onLogout={handleLogout} onHomeClick={goHome} onAddToCart={addToCart} onProductClick={navigateToProduct} />
+            )}
+
+            {currentView === 'faq' && (
+              <FAQPage onHomeClick={goHome} />
+            )}
+
+            {currentView === 'blogs' && (
+              <BlogsPage
+                posts={visibleBlogs}
+                onBlogClick={navigateToBlogDetail}
+                onHomeClick={goHome}
+              />
+            )}
+
+            {currentView === 'blog-detail' && selectedBlogPost && (
+              <BlogDetailPage
+                post={selectedBlogPost}
+                onBack={navigateToBlogs}
+                onHomeClick={goHome}
+              />
+            )}
+
+            {currentView === 'event-blogs' && (
+              <EventBlogsPage
+                events={visibleEvents}
+                onEventClick={navigateToEventDetail}
+                onHomeClick={goHome}
+              />
+            )}
+
+            {currentView === 'event-detail' && selectedEvent && (
+              <EventDetailsPage
+                event={selectedEvent}
+                onBack={navigateToEventBlogs}
+                onHomeClick={goHome}
+                products={products}
+                onProductClick={navigateToProduct}
+                onAddToCart={addToCart}
+              />
+            )}
+
+            {currentView === 'journey' && (
+              <JourneyPage onShopClick={navigateToShop} onHomeClick={goHome} />
+            )}
+
+            {currentView === 'privacy-policy' && (
+              <PrivacyPolicyPage onHomeClick={goHome} />
+            )}
+
+            {currentView === 'terms-and-conditions' && (
+              <TermsAndConditionsPage onHomeClick={goHome} />
+            )}
+
+            {currentView === 'refund-policy' && (
+              <RefundPolicyPage onHomeClick={goHome} />
+            )}
+
+            {currentView === 'shipping-policy' && (
+              <ShippingPolicyPage onHomeClick={goHome} />
+            )}
+            {currentView === 'visitor-form' && selectedFormId && (
+              <VisitorFormPage formId={selectedFormId} onHomeClick={goHome} />
+            )}
+            {currentView === 'not-found' && (
+              <NotFoundPage onHomeClick={goHome} />
+            )}
+          </React.Suspense>
+        </motion.main>
+      </AnimatePresence>
+
+      {
+        currentView !== 'checkout' && currentView !== 'visitor-form' && currentView !== 'dashboard' && (
+          <SnaxxoFooter
+            onShopClick={(cat) => cat ? navigateToShopCategory(cat) : navigateToShop()}
             onHomeClick={goHome}
+            onFAQClick={navigateToFAQ}
+
+            onBlogsClick={navigateToBlogs}
+            onEventBlogsClick={navigateToEventBlogs}
+            onAdminClick={navigateToAdmin}
+            onJourneyClick={navigateToJourney}
+            onPrivacyClick={navigateToPrivacy}
+            onTermsClick={navigateToTerms}
+            onRefundClick={navigateToRefund}
+            onShippingClick={navigateToShipping}
+            onDistributorClick={navigateToDistributor}
           />
-        )}
-
-        {currentView === 'journey' && (
-          <JourneyPage onShopClick={navigateToShop} onHomeClick={goHome} />
-        )}
-
-        {currentView === 'privacy-policy' && (
-          <PrivacyPolicyPage onHomeClick={goHome} />
-        )}
-
-        {currentView === 'terms-and-conditions' && (
-          <TermsAndConditionsPage onHomeClick={goHome} />
-        )}
-
-        {currentView === 'refund-policy' && (
-          <RefundPolicyPage onHomeClick={goHome} />
-        )}
-
-        {currentView === 'shipping-policy' && (
-          <ShippingPolicyPage onHomeClick={goHome} />
-        )}
-        {currentView === 'visitor-form' && selectedFormId && (
-          <VisitorFormPage formId={selectedFormId} onHomeClick={goHome} />
-        )}
-      </main>
-
-      {currentView !== 'checkout' && currentView !== 'visitor-form' && (
-        <SnaxxoFooter
-          onShopClick={(cat) => cat ? navigateToShopCategory(cat) : navigateToShop()}
-          onHomeClick={goHome}
-          onFAQClick={navigateToFAQ}
-
-          onBlogsClick={navigateToBlogs}
-          onEventBlogsClick={navigateToEventBlogs}
-          onAdminClick={navigateToAdmin}
-          onJourneyClick={navigateToJourney}
-          onPrivacyClick={navigateToPrivacy}
-          onTermsClick={navigateToTerms}
-          onRefundClick={navigateToRefund}
-          onShippingClick={navigateToShipping}
-          onDistributorClick={navigateToDistributor}
-        />
-      )}
+        )
+      }
 
 
 
@@ -1437,9 +1832,12 @@ const AppContent: React.FC = () => {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cart}
+        products={productsQuery.data || []}
         onRemove={removeFromCart}
         onUpdateQty={updateQuantity}
+        onAddToCart={addToCart}
         onCheckout={navigateToCheckout}
+        onShopClick={navigateToShop}
       />
 
       <AuthModal
@@ -1454,41 +1852,45 @@ const AppContent: React.FC = () => {
         events={events}
       />
 
-      {currentView !== 'admin-dashboard' && currentView !== 'admin-login' && currentView !== 'checkout' && currentView !== 'visitor-form' && (
-        <MobileBottomNav
-          currentView={currentView}
-          onHomeClick={goHome}
-          onShopClick={navigateToShop}
-          onCartClick={() => {
-            setIsCartOpen(true);
-            setIsAuthOpen(false);
-          }}
-          onAccountClick={() => {
-            if (isLoggedIn) {
-              navigateToDashboard();
+      {
+        currentView !== 'checkout' && currentView !== 'visitor-form' && !isLoading && (
+          <MobileBottomNav
+            currentView={currentView}
+            onHomeClick={goHome}
+            onShopClick={navigateToShop}
+            onCartClick={() => {
+              setIsCartOpen(true);
               setIsAuthOpen(false);
-              setIsCartOpen(false);
-            } else {
-              setIsAuthOpen(true);
-              setIsCartOpen(false);
-            }
-          }}
-          cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
-          isCartOpen={isCartOpen}
-          isAuthOpen={isAuthOpen}
-          isMenuOpen={isMenuOpen}
-          isHidden={isNutritionOpen}
-        />
-      )}
-    </div>
+            }}
+            onAccountClick={() => {
+              if (isLoggedIn) {
+                navigateToDashboard();
+                setIsAuthOpen(false);
+                setIsCartOpen(false);
+              } else {
+                setIsAuthOpen(true);
+                setIsCartOpen(false);
+              }
+            }}
+            cartCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
+            isCartOpen={isCartOpen}
+            isAuthOpen={isAuthOpen}
+            isMenuOpen={isMenuOpen}
+            isHidden={isNutritionOpen}
+          />
+        )
+      }
+    </div >
   );
 };
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ToastProvider>
   );
 };
 

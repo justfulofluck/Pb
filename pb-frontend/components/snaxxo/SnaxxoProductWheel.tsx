@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { Product } from '../../types';
+import { getMediaUrl } from '../../utils/mediaHelper';
 import SnaxxoProductCarousel from './SnaxxoProductCarousel';
 
 interface SnaxxoProductWheelProps {
@@ -31,6 +32,19 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
         }
         return items;
     }, [products]);
+
+    const [isInView, setIsInView] = React.useState(false);
+
+    // Track intersection
+    useEffect(() => {
+        if (!wrapperRef.current) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => setIsInView(entry.isIntersecting),
+            { threshold: 0.1 }
+        );
+        observer.observe(wrapperRef.current);
+        return () => observer.disconnect();
+    }, []);
 
     useEffect(() => {
         const slider = wrapperRef.current;
@@ -74,8 +88,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
         slider.style.position = "relative";
         slider.style.width = "100%";
         slider.style.maxWidth = "none";
-        slider.style.overflowX = "hidden";
-        slider.style.overflowY = "visible";
+        slider.style.overflow = "visible";
 
         viewport.style.position = "relative";
         viewport.style.width = "100%";
@@ -350,7 +363,9 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
             layout(false);
         };
         window.addEventListener('resize', refresh);
-        setTimeout(refresh, 100);
+        setTimeout(() => {
+            if (isInView) refresh();
+        }, 100);
         return () => {
             window.removeEventListener('resize', refresh);
             window.removeEventListener('keydown', onKeyDown);
@@ -358,7 +373,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
             wheel.removeEventListener('pointermove', onPointerMove as any);
             wheel.removeEventListener('pointerup', onPointerUp as any);
         };
-    }, [isLoading, displayProducts, products, onProductClick]);
+    }, [isLoading, displayProducts, products, onProductClick, isInView]);
 
     if (isLoading) {
         return (
@@ -369,23 +384,23 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
     }
 
     return (
-        <section className="product-slider-section bg-[#f2f2ec] py-12 md:py-24 overflow-visible">
+        <section className="product-slider-section bg-whiteboard texture-overlay texture-speckles py-[60px] pb-[200px]">
             {/* Desktop Header */}
             <div className="hidden lg:flex flex-col items-center justify-center text-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 relative z-10">
-                <div className="bg-[#008a45] text-white font-black text-[10px] sm:text-xs md:text-sm uppercase tracking-widest px-3 py-1 md:px-4 md:py-1.5 rounded-sm -rotate-3 mb-1 inline-block shadow-sm z-10" style={{ transformOrigin: 'center' }}>
+                <div className="bg-[#0b3d2e] texture-overlay texture-speckles text-white font-black text-[10px] sm:text-xs md:text-sm uppercase tracking-widest px-3 py-1 md:px-4 md:py-1.5 rounded-sm -rotate-3 mb-1 inline-block shadow-sm z-10" style={{ transformOrigin: 'center' }}>
                     Flavors you Love
                 </div>
-                <h2 className="text-5xl sm:text-6xl md:text-8xl lg:text-[100px] text-[#008a45] tracking-[0.05em] leading-tight sm:leading-none mb-1 relative z-0" style={{ fontFamily: '"Bebas Neue", sans-serif' }}>
-                    CUSTOMER'S FAVORITE
+                <h2 className="text-[40px] text-textured-green tracking-normal [word-spacing:0.05em] leading-[1.1] mb-1 relative z-0 !font-anton font-normal uppercase lg:text-[100px] lg:leading-[110px] lg:-mb-[12px] lg:pb-[12px] lg:font-bold">
+                    Customer's favorite
                 </h2>
-                <div className="w-24 md:w-32 h-2 md:h-2.5 bg-[#008a45] mb-4 rounded-full"></div>
+                <div className="w-24 md:w-32 h-2 md:h-2.5 bg-[#0b3d2e] mb-4 rounded-full"></div>
                 <div className="relative z-[300] w-full flex justify-center mt-2">
                     <button
                         onClick={() => {
                             if (onShopClick) onShopClick();
                             else window.scrollTo({ top: 0, behavior: 'smooth' });
                         }}
-                        className="bg-[#008a45] text-white px-6 py-2 md:px-8 md:py-2.5 rounded-full font-bold text-xs md:text-sm uppercase tracking-wider hover:bg-[#007038] transition-colors shadow flex items-center gap-1 hover:scale-105 active:scale-95 cursor-pointer pointer-events-auto"
+                        className="btn-greenboard text-white px-8 py-3 rounded-full font-bold text-xs md:text-sm uppercase tracking-widest transition-all shadow-md flex items-center gap-2 hover:scale-105 active:scale-95 cursor-pointer pointer-events-auto"
                     >
                         SHOP ALL
                     </button>
@@ -395,30 +410,31 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
             {/* Desktop Wheel */}
             <div className="hidden lg:block">
                 <div className="product-slider relative w-full" ref={wrapperRef}>
-                    <button
-                        className="product-prev z-[200] absolute left-2 sm:left-4 bg-[#008a45] hover:bg-[#007038] text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-100"
-                        style={{ top: '45%', transform: 'translateY(-50%)' }}
-                        onClick={() => goPrevRef.current?.()}
-                        aria-label="Previous product"
-                    >
-                        <span className="material-symbols-outlined text-lg sm:text-xl">chevron_left</span>
-                    </button>
-                    <button
-                        className="product-next z-[200] absolute right-2 sm:right-4 bg-[#008a45] hover:bg-[#007038] text-white rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
-                        style={{ top: '45%', transform: 'translateY(-50%)' }}
-                        onClick={() => goNextRef.current?.()}
-                        aria-label="Next product"
-                    >
-                        <span className="material-symbols-outlined text-lg sm:text-xl">chevron_right</span>
-                    </button>
+                    <div className="product-wheel-viewport relative w-full min-h-[400px] sm:min-h-[500px] lg:min-h-[700px] overflow-visible">
+                        {/* Navigation Arrows (Anchored to Viewport) */}
+                        <button
+                            className="btn-greenboard z-[300] !absolute left-4 sm:left-8 text-[#008a45] rounded-full w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95 pointer-events-auto"
+                            style={{ top: '45%', transform: 'translateY(-50%)' }}
+                            onClick={() => goPrevRef.current?.()}
+                            aria-label="Previous product"
+                        >
+                            <span className="material-symbols-outlined text-xl sm:text-2xl">chevron_left</span>
+                        </button>
+                        <button
+                            className="btn-greenboard z-[300] !absolute right-4 sm:right-8 text-[#008a45] rounded-full w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center shadow-2xl transition-all hover:scale-110 active:scale-95 pointer-events-auto"
+                            style={{ top: '45%', transform: 'translateY(-50%)' }}
+                            onClick={() => goNextRef.current?.()}
+                            aria-label="Next product"
+                        >
+                            <span className="material-symbols-outlined text-xl sm:text-2xl">chevron_right</span>
+                        </button>
 
-                    <div className="product-wheel-viewport relative w-full min-h-[400px] overflow-visible">
                         <div className="product-wheel absolute top-0 left-0 w-full h-full cursor-grab select-none" ref={wheelRef}>
                             {displayProducts.map((product, i) => (
                                 <div
                                     key={product.displayId}
                                     className="product-slide absolute top-[35%] md:top-[40%] left-1/2 z-[100] w-[250px] sm:w-[320px] md:w-[400px] lg:w-[450px]"
-                                    ref={el => slidesRef.current[i] = el}
+                                    ref={el => { slidesRef.current[i] = el; }}
                                     data-display-id={product.displayId}
                                 >
                                     <div className="product-slide-inner group">
@@ -426,7 +442,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                                             <div className="aspect-[4/5] cursor-pointer relative">
                                                 <img
                                                     loading="lazy"
-                                                    src={product.image}
+                                                    src={getMediaUrl(product.image)}
                                                     alt={product.name}
                                                     className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-700 group-hover:scale-105"
                                                     style={{ mixBlendMode: 'multiply' }}
@@ -441,19 +457,19 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
                                             )}
                                         </div>
                                         <div className="product-bottom-info-box mt-2 sm:mt-4 flex flex-col items-center text-center px-4 pointer-events-none">
-                                            <h3 className="font-black text-lg sm:text-xl text-slate-900 mb-1 cursor-pointer hover:text-[#008a45] transition-colors uppercase tracking-tight leading-tight pointer-events-auto">
+                                            <h3 className="text-[#0b3d2e] !text-[1.2rem] sm:!text-[1.8rem] md:!text-[2.2rem] mb-2 sm:mb-4 cursor-default uppercase tracking-normal leading-[1.2] pointer-events-auto !inline-block">
                                                 {product.name}
                                             </h3>
-                                            <div className="flex items-baseline gap-2 mb-2 sm:mb-3 pointer-events-auto">
-                                                <span className="font-black text-slate-900 text-2xl sm:text-3xl">₹{product.price}</span>
-                                                {product.originalPrice && product.originalPrice > product.price && (
-                                                    <span className="font-bold text-slate-400 text-base sm:text-lg line-through">₹{product.originalPrice}</span>
+                                            <div className="flex flex-col items-center mb-4 sm:mb-6 pointer-events-auto">
+                                                <span className="font-black text-[#0b3d2e] text-2xl sm:text-3xl lg:text-4xl text-shadow-sm">₹{product.price}</span>
+                                                {product.original_price && product.original_price > product.price && (
+                                                    <span className="font-bold text-gray-900 text-[17px] line-through">₹{product.original_price}</span>
                                                 )}
                                             </div>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
                                                 disabled={product.stock <= 0}
-                                                className="pointer-events-auto bg-[#008a45] text-white px-5 py-2 sm:px-6 sm:py-2.5 rounded-lg font-bold text-[10px] sm:text-xs uppercase tracking-wider shadow-md hover:shadow-lg hover:bg-[#007038] hover:-translate-y-0.5 transition-all active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-1.5"
+                                                className="btn-greenboard pointer-events-auto text-white px-8 py-3.5 sm:px-11 sm:py-4.5 mb-8 sm:mb-12 rounded-full font-black text-xs sm:text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-1.5"
                                             >
                                                 <span className="material-symbols-outlined text-sm">add</span>
                                                 {product.stock <= 0 ? 'Sold Out' : 'Order'}
@@ -475,4 +491,4 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
     );
 };
 
-export default SnaxxoProductWheel;
+export default React.memo(SnaxxoProductWheel);

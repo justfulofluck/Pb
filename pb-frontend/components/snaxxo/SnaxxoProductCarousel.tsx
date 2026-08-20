@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Product } from '../../types';
+import { useAuth } from '../../hooks/useAuth';
+import { useToast } from '../Toast';
+import { getMediaUrl } from '../../utils/mediaHelper';
+import { API_BASE_URL } from '../../config';
 
 interface SnaxxoProductCarouselProps {
     products: Product[];
@@ -21,6 +25,67 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
     const [startX, setStartX] = React.useState(0);
     const [scrollLeft, setScrollLeft] = React.useState(0);
     const [dragDistance, setDragDistance] = React.useState(0);
+    const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
+    const { user } = useAuth();
+    const { showToast } = useToast();
+
+    // Fetch Wishlist
+    useEffect(() => {
+        const fetchWishlist = async () => {
+            if (!user) {
+                setWishlistIds(new Set());
+                return;
+            }
+            try {
+                const token = localStorage.getItem('access_token');
+                const response = await fetch(`${API_BASE_URL}/api/wishlist/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    const ids = new Set<string>(data.map((item: any) => String(item.product)));
+                    setWishlistIds(ids);
+                }
+            } catch (error) {
+                console.error("Failed to fetch wishlist", error);
+            }
+        };
+        fetchWishlist();
+    }, [user]);
+
+    const toggleWishlist = async (e: React.MouseEvent, productId: string) => {
+        e.stopPropagation();
+        if (!user) {
+            showToast('Please log in to save to your wishlist.', 'warning');
+            return;
+        }
+        try {
+            const token = localStorage.getItem('access_token');
+            const response = await fetch(`${API_BASE_URL}/api/wishlist/toggle/`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ product_id: productId })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                const newIds = new Set(wishlistIds);
+                if (data.status === 'added') {
+                    newIds.add(productId);
+                    showToast('Added to wishlist!', 'success');
+                } else {
+                    newIds.delete(productId);
+                    showToast('Removed from wishlist', 'info');
+                }
+                setWishlistIds(newIds);
+            }
+        } catch (error) {
+            console.error("Failed to toggle wishlist", error);
+            showToast('Failed to update wishlist', 'error');
+        }
+    };
 
     const handleMouseDown = (e: React.MouseEvent) => {
         if (!scrollRef.current) return;
@@ -67,23 +132,23 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
         : products.slice(0, 6);
 
     return (
-        <section className="bg-[#f2f2ec] relative overflow-hidden pb-12 w-full lg:hidden">
-            <div className="pt-12 pb-16 relative">
+        <section className="bg-whiteboard texture-overlay texture-speckles relative overflow-hidden pb-4 w-full lg:hidden">
+            <div className="pt-6 pb-6 relative">
                 <div className="flex flex-col items-center justify-center relative z-10 px-4">
-                    <h2 className="text-[#008a45] font-black text-5xl md:text-8xl uppercase tracking-[0.05em] text-center" style={{ fontFamily: '"Bebas Neue", sans-serif' }}>
-                        Customer's Favorite
+                    <h2 className="text-textured-green font-normal uppercase tracking-wide [word-spacing:0.05em] !font-anton text-center">
+                        Customer's<br />Favorite
                     </h2>
-                    <div className="w-16 md:w-24 h-1.5 md:h-2 bg-[#008a45] mt-1 rounded-full"></div>
-                    <p className="font-handdrawn text-3xl md:text-1xl text-slate-500 mt-2 text-center">
+                    <div className="w-16 md:w-24 h-1.5 md:h-2 bg-[#0b3d2e] mt-2 rounded-full mb-2"></div>
+                    <p className="font-handdrawn text-2xl md:text-3xl text-[#0b3d2e]/70 mt-3 text-center mb-2">
                         Join 100k+ happy healthy eaters! 🥳
                     </p>
-                    <div className="mt-6">
+                    <div className="mt-6 mb-12">
                         <button
                             onClick={() => {
                                 if (onShopClick) onShopClick();
                                 else window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
-                            className="bg-[#008a45] text-white px-8 py-3 rounded-full font-bold text-sm uppercase tracking-wider hover:bg-[#007038] shadow-lg active:scale-95 transition-all flex items-center gap-2"
+                            className="btn-greenboard text-white px-6 py-2.5 rounded-full font-bold text-xs uppercase tracking-widest transition-all shadow-md active:scale-95"
                         >
                             SHOP ALL
                         </button>
@@ -97,71 +162,76 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                 onMouseLeave={handleMouseLeave}
                 onMouseUp={handleMouseUp}
                 onMouseMove={handleMouseMove}
-                className={`relative z-20 px-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory flex gap-6 pb-12 ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'}`}
+                className={`relative z-20 px-4 overflow-x-auto hide-scrollbar snap-x snap-mandatory flex gap-6 pb-4 ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'}`}
                 style={{ scrollBehavior: isDragging ? 'auto' : 'smooth' }}
             >
-                {favoriteProducts.map((product) => (
-                    <div
-                        key={product.id}
-                        className="min-w-[260px] md:min-w-[300px] snap-center flex flex-col items-center relative group active:scale-[0.98] transition-all duration-300"
-                    >
-                        <div className="absolute top-0 left-0 right-0 flex justify-between items-start z-10">
-                            <div className="bg-[#ef4444] text-white text-[10px] font-black px-2.5 py-1 rounded-sm uppercase tracking-wider -rotate-2">
-                                15% OFF
+                {favoriteProducts.map((product) => {
+                    const discount = product.original_price && product.original_price > product.price
+                        ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
+                        : null;
+                    const isWishlisted = wishlistIds.has(String(product.id));
+
+                    return (
+                        <div
+                            key={product.id}
+                            className="min-w-[260px] md:min-w-[300px] snap-center flex flex-col items-center relative group active:scale-[0.98] transition-all duration-300"
+                        >
+                            <div className="absolute top-0 left-0 right-0 flex justify-between items-start z-10">
+                                {discount ? (
+                                    <div className="bg-[#008a45] text-white text-[8px] font-black px-2 py-0.5 rounded-sm uppercase tracking-wider -rotate-2">
+                                        {discount}% OFF
+                                    </div>
+                                ) : <div />}
+                                <button
+                                    onClick={(e) => toggleWishlist(e, String(product.id))}
+                                    className={`bg-white/80 backdrop-blur-sm p-1.5 rounded-full transition-colors shadow-sm ${isWishlisted ? 'text-red-500' : 'text-[#008a45] hover:text-red-500'}`}
+                                >
+                                    <span className={`material-symbols-outlined text-[20px] ${isWishlisted ? 'fill-1' : ''}`}>favorite</span>
+                                </button>
                             </div>
-                            <button
-                                onClick={(e) => e.stopPropagation()}
-                                className="bg-white/80 backdrop-blur-sm p-1.5 rounded-full text-[#008a45] hover:text-red-500 transition-colors shadow-sm"
+
+                            <div
+                                className="w-full aspect-square mb-4 cursor-pointer flex items-center justify-center p-2 mt-6"
+                                onClick={(e) => handleProductClick(e, product)}
                             >
-                                <span className="material-symbols-outlined text-[20px] fill-1">favorite</span>
+                                <img
+                                    src={getMediaUrl(product.image)}
+                                    alt={product.name}
+                                    className="w-full h-full object-contain pointer-events-none transition-transform duration-500 group-hover:scale-105"
+                                    style={{ mixBlendMode: 'multiply' }}
+                                    draggable={false}
+                                />
+                            </div>
+
+                            <div className="flex gap-0.5 mb-2 text-[#f9bc15]">
+                                {[...Array(5)].map((_, i) => (
+                                    <span key={i} className={`material-symbols-outlined text-[22px] ${i < Math.floor(product.rating || 5) ? 'fill-1' : ''}`}>
+                                        {i < Math.floor(product.rating || 5) ? 'star' : 'star_outline'}
+                                    </span>
+                                ))}
+                                <span className="text-[12px] text-slate-500 font-bold ml-1 self-center">({product.reviewCount || 0} reviews)</span>
+                            </div>
+
+                            <h3 className="text-[#0b3d2e] !text-[1.4rem] text-center mb-1.5 px-2 line-clamp-2 min-h-[3.5rem] uppercase tracking-normal leading-[1.2] cursor-default w-full overflow-hidden flex-shrink-0 font-anton">
+                                {product.name}
+                            </h3>
+
+                            <div className="flex flex-col items-center mb-3">
+                                <span className="font-black text-lg text-[#0b3d2e]">₹{product.price}</span>
+                                {product.original_price && product.original_price > product.price && (
+                                    <span className="text-gray-900 line-through text-[17px] font-bold">₹{product.original_price}</span>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
+                                className="shine-coin btn-greenboard text-white w-[85%] mx-auto py-3.5 rounded-full font-black text-[12px] uppercase tracking-widest transition-all shadow-lg active:scale-95 mt-auto flex items-center justify-center gap-1.5"
+                            >
+                                {product.stock <= 0 ? 'SOLD OUT' : 'Add to Cart'}
                             </button>
                         </div>
-
-                        <div
-                            className="w-full aspect-square mb-4 cursor-pointer flex items-center justify-center p-2 mt-6"
-                            onClick={(e) => handleProductClick(e, product)}
-                        >
-                            <img
-                                src={product.image}
-                                alt={product.name}
-                                className="w-full h-full object-contain pointer-events-none transition-transform duration-500 group-hover:scale-105"
-                                style={{ mixBlendMode: 'multiply' }}
-                                draggable={false}
-                            />
-                        </div>
-
-                        <div className="flex gap-0.5 mb-2 text-[#f9bc15]">
-                            {[...Array(5)].map((_, i) => (
-                                <span key={i} className={`material-symbols-outlined text-[16px] ${i < Math.floor(product.rating || 5) ? 'fill-1' : ''}`}>
-                                    {i < Math.floor(product.rating || 5) ? 'star' : 'star_outline'}
-                                </span>
-                            ))}
-                            <span className="text-[10px] text-slate-500 font-bold ml-1 self-center">({product.reviewCount || 0} reviews)</span>
-                        </div>
-
-                        <h3
-                            className="font-extrabold text-center text-slate-900 mb-1 px-1 line-clamp-2 h-[2.8rem] uppercase tracking-tight text-sm leading-[1.3] cursor-pointer hover:text-[#008a45] transition-colors"
-                            onClick={(e) => handleProductClick(e, product)}
-                        >
-                            {product.name}
-                        </h3>
-
-                        <div className="flex items-center gap-2 mb-5">
-                            <span className="font-black text-xl text-slate-900">₹{product.price}</span>
-                            {product.originalPrice && product.originalPrice > product.price && (
-                                <span className="text-slate-400 line-through text-xs font-bold">₹{product.originalPrice}</span>
-                            )}
-                        </div>
-
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
-                            className="bg-[#008a45] text-white w-full py-3.5 rounded-full font-black text-[12px] uppercase tracking-widest shadow-lg hover:bg-[#007038] transition-all hover:scale-[1.02] active:scale-[0.98] mt-auto flex items-center justify-center gap-1.5"
-                        >
-                            <span className="material-symbols-outlined text-sm">add</span>
-                            ADD TO CART
-                        </button>
-                    </div>
-                ))}
+                    );
+                })}
                 <div className="min-w-[10px] h-full invisible"></div>
             </div>
         </section>

@@ -1,129 +1,201 @@
-import React, { useState, useEffect } from 'react';
-import { VisitorForm } from '../types';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Model } from 'survey-core';
+import { Survey } from 'survey-react-ui';
+import 'survey-core/survey-core.min.css';
 import { API_BASE_URL } from '../config';
+
+const surveyFormStyles = `
+@media (max-width: 640px) {
+  .sd-body { padding: 0 8px !important; }
+  .sd-page { padding: 12px 0 !important; }
+  .sd-question { padding: 8px 0 !important; }
+  .sd-question__title { font-size: 14px !important; }
+  .sd-title { font-size: 18px !important; }
+  .sd-description { font-size: 13px !important; }
+  .sd-input, .sd-select, .sd-dropdown, .sd-textarea { font-size: 16px !important; padding: 12px 14px !important; }
+  .sd-btn { padding: 14px 20px !important; font-size: 14px !important; min-height: 48px !important; width: 100% !important; }
+  .sd-navigation { flex-direction: column !important; gap: 8px !important; }
+  .sd-progress { height: 6px !important; }
+  .sd-progress__text { font-size: 11px !important; }
+  .sd-radio, .sd-checkbox { font-size: 15px !important; }
+  .sd-custom-html-card { padding: 16px !important; margin-bottom: 16px !important; }
+  .sd-custom-html-card h3 { font-size: 17px !important; }
+  .sd-custom-html-card p, .sd-custom-html-card li { font-size: 13px !important; }
+}
+@media (max-width: 380px) {
+  .sd-question__title { font-size: 13px !important; }
+  .sd-input, .sd-select, .sd-dropdown, .sd-textarea { padding: 10px 12px !important; }
+}
+`;
 
 interface VisitorFormPageProps {
     formId: string;
     onHomeClick: () => void;
 }
 
+type Step = 'email' | 'otp' | 'form' | 'submitted';
+
 const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }) => {
-    const [form, setForm] = useState<VisitorForm | null>(null);
-    const [products, setProducts] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [step, setStep] = useState<Step>('email');
+    const [email, setEmail] = useState('');
+    const [otp, setOtp] = useState('');
+    const [otpSent, setOtpSent] = useState(false);
+    const [resendTimer, setResendTimer] = useState(0);
+    const [stepError, setStepError] = useState<string | null>(null);
+    const [sendingOtp, setSendingOtp] = useState(false);
+    const [verifyingOtp, setVerifyingOtp] = useState(false);
+    const [survey, setSurvey] = useState<Model | null>(null);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [submitted, setSubmitted] = useState(false);
-
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        addressDetails: '',
-        buyingSource: '',
-        brandAwareness: '', // 'yes' or 'no'
-        currentUsage: 'No', // 'No' or 'Yes - [Brand]'
-        currentUsageBrand: '',
-        flavorPreferences: [] as string[],
-        reviewedProduct: '',
-        reviewContent: '',
-        marketingConsent: false
-    });
+    const [formMeta, setFormMeta] = useState<{ title: string; event_name: string } | null>(null);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const formDataRef = useRef<any>(null);
 
     useEffect(() => {
-        const fetchInitialData = async () => {
+        const init = async () => {
             try {
-                const [formRes, productsRes] = await Promise.all([
-                    fetch(`${API_BASE_URL}/api/visitor-forms/${formId}/`),
-                    fetch(`${API_BASE_URL}/api/products/`)
-                ]);
-
-                if (formRes.ok) {
-                    const data = await formRes.json();
-                    setForm({
-                        id: String(data.id),
-                        title: data.title,
-                        eventName: data.event_name,
-                        status: data.status,
-                        createdAt: data.created_at,
-                        link: '',
-                        submissions: []
-                    });
+                const res = await fetch(`${API_BASE_URL}/api/visitor-forms/${formId}/`);
+                if (!res.ok) { setError('Form not found or unavailable.'); return; }
+                const data = await res.json();
+                formDataRef.current = data;
+                setFormMeta({ title: data.title, event_name: data.event_name });
+                const schema = data.form_schema;
+                const hasElements = schema?.elements?.length > 0 || schema?.pages?.some((p: any) => p.elements?.length > 0);
+                if (!schema || !hasElements) { setError('This form has no fields configured yet.'); return; }
+                if (!data.require_email_verification) {
+                    loadFormDirect();
                 } else {
-                    setError('Form not found or unavailable.');
+                    setStep('email');
                 }
-
-                if (productsRes.ok) {
-                    const productsData = await productsRes.json();
-                    setProducts(productsData);
-                }
-            } catch (err) {
-                setError('Failed to load form. Please check your connection.');
-            } finally {
-                setLoading(false);
-            }
+            } catch { setError('Failed to load form. Please check your connection.'); }
+            finally { setInitialLoading(false); }
         };
-        fetchInitialData();
+        init();
+        return () => { if (timerRef.current) clearInterval(timerRef.current); };
     }, [formId]);
 
-    const handleFlavorChange = (flavor: string) => {
-        setFormData(prev => {
-            const newFlavors = prev.flavorPreferences.includes(flavor)
-                ? prev.flavorPreferences.filter(f => f !== flavor)
-                : [...prev.flavorPreferences, flavor];
-            return { ...prev, flavorPreferences: newFlavors };
-        });
+    const loadFormDirect = () => {
+        const data = formDataRef.current;
+        if (!data) return;
+        const schema = JSON.parse(JSON.stringify(data.form_schema));
+        const fillEmail = (els: any[]) => {
+            els.forEach((el: any) => {
+                if (el.name === 'email' && email) {
+                    el.defaultValue = email;
+                    el.readOnly = true;
+                }
+                if (el.elements) fillEmail(el.elements);
+            });
+        };
+        if (schema.pages) schema.pages.forEach((p: any) => fillEmail(p.elements || []));
+        else fillEmail(schema.elements || []);
+        const model = new Model(schema);
+        model.onComplete.add(handleComplete);
+        setSurvey(model);
+        setStep('form');
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!form) return;
+    const startResendTimer = () => {
+        setResendTimer(30);
+        if (timerRef.current) clearInterval(timerRef.current);
+        timerRef.current = setInterval(() => {
+            setResendTimer(prev => {
+                if (prev <= 1) {
+                    if (timerRef.current) clearInterval(timerRef.current);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    };
 
-        if (formData.flavorPreferences.length === 0) {
-            alert("Please select at least one flavor you would like to try.");
+    const handleSendOTP = async () => {
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setStepError('Please enter a valid email address.');
             return;
         }
+        setSendingOtp(true);
+        setStepError(null);
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/visitor-forms/${formId}/send-otp/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
+            if (res.ok) {
+                setOtpSent(true);
+                setStep('otp');
+                startResendTimer();
+            } else {
+                const data = await res.json();
+                setStepError(data.error || 'Failed to send OTP. Please try again.');
+            }
+        } catch {
+            setStepError('Network error. Please try again.');
+        } finally {
+            setSendingOtp(false);
+        }
+    };
 
-        if (!formData.marketingConsent) {
-            alert("You must agree to receive updates to proceed.");
+    const handleResendOTP = () => {
+        if (resendTimer > 0) return;
+        handleSendOTP();
+    };
+
+    const handleVerifyOTP = async () => {
+        if (!otp || otp.length !== 6) {
+            setStepError('Please enter the 6-digit OTP.');
             return;
         }
+        setVerifyingOtp(true);
+        setStepError(null);
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/visitor-forms/${formId}/verify-otp/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, otp }),
+            });
+            if (res.ok) {
+                loadFormDirect();
+            } else {
+                const data = await res.json();
+                setStepError(data.error || 'Invalid or expired OTP.');
+            }
+        } catch {
+            setStepError('Network error. Please try again.');
+        } finally {
+            setVerifyingOtp(false);
+        }
+    };
 
-        setIsSubmitting(true);
+    const handleComplete = useCallback(async (sender: Model) => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/visitor-submissions/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    form: form.id,
-                    name: formData.name,
-                    email: formData.email,
-                    phone: formData.phone,
-                    address_details: formData.addressDetails,
-                    buying_source: formData.buyingSource,
-                    brand_awareness: formData.brandAwareness === 'yes',
-                    current_usage: formData.currentUsage === 'Yes' ? `Yes - ${formData.currentUsageBrand}` : 'No',
-                    flavor_preferences: formData.flavorPreferences.join(', '),
-                    reviewed_product: formData.reviewedProduct,
-                    review_content: formData.reviewContent,
-                    marketing_consent: formData.marketingConsent
-                })
+                    form: formId,
+                    submission_data: sender.data,
+                }),
             });
-
             if (response.ok) {
                 setSubmitted(true);
+                setTimeout(() => {
+                    window.location.href = 'https://pinobite.com';
+                }, 2000);
             } else {
-                alert("Failed to submit. Please try again.");
+                setError('Failed to submit. Please try again.');
             }
-        } catch (err) {
-            console.error(err);
-            alert("An error occurred.");
-        } finally {
-            setIsSubmitting(false);
+        } catch {
+            setError('An error occurred while submitting.');
         }
-    };
+    }, [formId]);
 
-    if (loading) {
+    // -- RENDER --
+
+    if (initialLoading) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -131,13 +203,13 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
         );
     }
 
-    if (error || !form) {
+    if (error) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
                 <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md w-full">
                     <span className="material-symbols-outlined text-4xl text-red-500 mb-4">error</span>
                     <h2 className="text-xl font-black uppercase text-slate-800 mb-2">Form Exempt</h2>
-                    <p className="text-slate-500 mb-6">{error || 'This form is no longer accepting submissions.'}</p>
+                    <p className="text-slate-500 mb-6">{error}</p>
                     <button onClick={onHomeClick} className="px-6 py-2 bg-slate-100 font-bold text-slate-600 rounded-xl hover:bg-slate-200">
                         Go Home
                     </button>
@@ -155,7 +227,7 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
                     </div>
                     <h2 className="text-2xl font-black uppercase text-slate-800 mb-2">You're In!</h2>
                     <p className="text-slate-500 mb-8">
-                        Thank you for registering for <b>{form.eventName}</b>. We have received your details.
+                        Thank you for registering for <b>{formMeta?.event_name}</b>. We have received your details.
                     </p>
                 </div>
             </div>
@@ -163,8 +235,8 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 font-display">
-            {/* Simple Header */}
+        <div className="min-h-screen bg-slate-50 font-satoshi">
+            <style>{surveyFormStyles}</style>
             <header className="h-20 bg-white shadow-sm flex items-center justify-center p-4">
                 <img
                     src="/logos/Pinobite-logo.png"
@@ -173,136 +245,123 @@ const VisitorFormPage: React.FC<VisitorFormPageProps> = ({ formId, onHomeClick }
                     onClick={onHomeClick}
                 />
             </header>
-
-            <div className="max-w-xl mx-auto p-6 md:p-12">
-                <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
-                    <div className="bg-slate-900 p-8 text-center relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-full bg-primary/10 opacity-50"></div>
-                        <div className="relative z-10">
-                            <p className="text-primary font-black uppercase tracking-widest text-xs mb-2">{form.eventName}</p>
-                            <h1 className="text-2xl md:text-3xl font-black text-white uppercase leading-tight">{form.title}</h1>
-                        </div>
-                    </div>
-
-                    <div className="p-8">
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Full Name <span className="text-red-500">*</span></label>
-                                <input required type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-slate-50 focus:bg-white transition-colors placeholder:text-slate-300 placeholder:font-normal" placeholder="Enter your full name" />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Email Address <span className="text-red-500">*</span></label>
-                                <input required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-slate-50 focus:bg-white transition-colors placeholder:text-slate-300 placeholder:font-normal" placeholder="Enter your email address" />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Phone Number <span className="text-red-500">*</span></label>
-                                <input required type="tel" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-slate-50 focus:bg-white transition-colors placeholder:text-slate-300 placeholder:font-normal" placeholder="Enter phone number" />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-500">City, Pincode <span className="text-red-500">*</span></label>
-                                <input required type="text" value={formData.addressDetails} onChange={e => setFormData({ ...formData, addressDetails: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-slate-50 focus:bg-white transition-colors placeholder:text-slate-300 placeholder:font-normal" placeholder="Enter city or pircode" />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Where do you usually buy nutrition products? <span className="text-red-500">*</span></label>
-                                <select required value={formData.buyingSource} onChange={e => setFormData({ ...formData, buyingSource: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-slate-50 focus:bg-white transition-colors">
-                                    <option value="">Select Option...</option>
-                                    <option value="Amazon">Amazon</option>
-                                    <option value="Flipkart">Flipkart</option>
-                                    <option value="Local store">Local store</option>
-                                    <option value="Brand website">Brand website</option>
-                                    <option value="Gym trainer">Gym trainer</option>
-                                </select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Have you heard about Pinobite before? <span className="text-red-500">*</span></label>
-                                <div className="flex gap-4">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input type="radio" name="brandAwareness" value="yes" checked={formData.brandAwareness === 'yes'} onChange={e => setFormData({ ...formData, brandAwareness: e.target.value })} className="w-5 h-5 text-primary focus:ring-primary" required />
-                                        <span className="font-bold text-slate-700">Yes</span>
-                                    </label>
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input type="radio" name="brandAwareness" value="no" checked={formData.brandAwareness === 'no'} onChange={e => setFormData({ ...formData, brandAwareness: e.target.value })} className="w-5 h-5 text-primary focus:ring-primary" required />
-                                        <span className="font-bold text-slate-700">No</span>
-                                    </label>
+            <div className="max-w-2xl mx-auto p-4 md:p-12">
+                <div className="bg-white rounded-2xl md:rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+                    {(step === 'form' || step === 'submitted') && formMeta ? (
+                        <>
+                            <div className="bg-slate-900 p-6 md:p-8 text-center relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-full h-full bg-primary/10 opacity-50"></div>
+                                <div className="relative z-10">
+                                    <p className="text-primary font-black uppercase tracking-widest text-xs mb-2">{formMeta.event_name}</p>
+                                    <h1 className="text-xl md:text-3xl font-black text-white uppercase leading-tight">{formMeta.title}</h1>
                                 </div>
                             </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Do you currently consume peanut butter? <span className="text-red-500">*</span></label>
-                                <div className="flex flex-col gap-2">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input type="radio" name="currentUsage" value="No" checked={formData.currentUsage === 'No'} onChange={e => setFormData({ ...formData, currentUsage: e.target.value })} className="w-5 h-5 text-primary focus:ring-primary" required />
-                                        <span className="font-bold text-slate-700">No</span>
-                                    </label>
-                                    <div className="flex items-center gap-2">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input type="radio" name="currentUsage" value="Yes" checked={formData.currentUsage === 'Yes'} onChange={e => setFormData({ ...formData, currentUsage: e.target.value })} className="w-5 h-5 text-primary focus:ring-primary" required />
-                                            <span className="font-bold text-slate-700">Yes – Daily</span>
-                                        </label>
-                                        {formData.currentUsage === 'Yes' && (
-                                            <input type="text" placeholder="Specify brand *" value={formData.currentUsageBrand} onChange={e => setFormData({ ...formData, currentUsageBrand: e.target.value })} className="px-3 py-1 rounded-lg border border-slate-200 text-sm font-bold w-full placeholder:text-slate-300 placeholder:font-normal" required />
-                                        )}
+                            <div className="p-4 md:p-8">
+                                {loading ? (
+                                    <div className="flex justify-center py-12">
+                                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                ) : survey ? (
+                                    <Survey model={survey} />
+                                ) : null}
+                            </div>
+                        </>
+                    ) : (
+                        <div className="p-8 md:p-12">
+                            {step === 'email' && (
+                                <div>
+                                    <div className="text-center mb-8">
+                                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <span className="material-symbols-outlined text-3xl text-primary">mail_lock</span>
+                                        </div>
+                                        <h2 className="text-2xl font-black text-slate-800 mb-2">Verify Your Email</h2>
+                                        <p className="text-slate-500 text-sm">Enter your email to receive a verification code and access the form.</p>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-1.5">Email Address</label>
+                                            <input
+                                                type="email"
+                                                value={email}
+                                                onChange={e => { setEmail(e.target.value); setStepError(null); }}
+                                                placeholder="you@example.com"
+                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-slate-800 text-base transition-all"
+                                                onKeyDown={e => e.key === 'Enter' && handleSendOTP()}
+                                            />
+                                        </div>
+                                        {stepError && <p className="text-red-500 text-sm">{stepError}</p>}
+                                        <button
+                                            onClick={handleSendOTP}
+                                            disabled={sendingOtp}
+                                            className="w-full py-3.5 bg-primary text-white font-black rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all uppercase tracking-widest text-sm"
+                                        >
+                                            {sendingOtp ? (
+                                                <span className="flex items-center justify-center gap-2">
+                                                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                                    Sending...
+                                                </span>
+                                            ) : 'Send Verification OTP'}
+                                        </button>
                                     </div>
                                 </div>
-                            </div>
+                            )}
 
-                            <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Which flavor would you like to try? <span className="text-red-500">*</span></label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {(products.length > 0 ? products.map(p => p.name) : ['Classic Creamy', 'Crunchy', 'Chocolate', 'Mango Chia', 'High Protein']).map(flavor => (
-                                        <label key={flavor} className="flex items-center gap-2 cursor-pointer">
-                                            <input type="checkbox" checked={formData.flavorPreferences.includes(flavor)} onChange={() => handleFlavorChange(flavor)} className="w-5 h-5 text-primary rounded focus:ring-primary" />
-                                            <span className="font-bold text-slate-700">{flavor}</span>
-                                        </label>
-                                    ))}
+                            {step === 'otp' && (
+                                <div>
+                                    <div className="text-center mb-8">
+                                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <span className="material-symbols-outlined text-3xl text-primary">pin</span>
+                                        </div>
+                                        <h2 className="text-2xl font-black text-slate-800 mb-2">Enter OTP</h2>
+                                        <p className="text-slate-500 text-sm">
+                                            A 6-digit code has been sent to <strong className="text-slate-700">{email}</strong>
+                                        </p>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-1.5">OTP Code</label>
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                maxLength={6}
+                                                value={otp}
+                                                onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 6)); setStepError(null); }}
+                                                placeholder="000000"
+                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-slate-800 text-center text-2xl tracking-[8px] font-bold transition-all"
+                                                onKeyDown={e => e.key === 'Enter' && handleVerifyOTP()}
+                                            />
+                                        </div>
+                                        {stepError && <p className="text-red-500 text-sm text-center">{stepError}</p>}
+                                        <button
+                                            onClick={handleVerifyOTP}
+                                            disabled={verifyingOtp || otp.length !== 6}
+                                            className="w-full py-3.5 bg-primary text-white font-black rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all uppercase tracking-widest text-sm"
+                                        >
+                                            {verifyingOtp ? (
+                                                <span className="flex items-center justify-center gap-2">
+                                                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                                    Verifying...
+                                                </span>
+                                            ) : 'Verify OTP'}
+                                        </button>
+                                        <div className="text-center">
+                                            {resendTimer > 0 ? (
+                                                <p className="text-slate-400 text-sm">Resend in {resendTimer}s</p>
+                                            ) : (
+                                                <button
+                                                    onClick={handleResendOTP}
+                                                    disabled={sendingOtp}
+                                                    className="text-primary font-bold text-sm hover:underline disabled:opacity-50"
+                                                >
+                                                    Resend OTP
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div className="p-4 bg-slate-50 rounded-xl space-y-4 border border-slate-100">
-                                <h4 className="text-sm font-black uppercase text-slate-800">Review Product</h4>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Product Selection <span className="text-red-500">*</span></label>
-                                    <select required value={formData.reviewedProduct} onChange={e => setFormData({ ...formData, reviewedProduct: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-white transition-colors">
-                                        <option value="">Select Product...</option>
-                                        {(products.length > 0 ? products : [{ name: 'Classic Creamy' }, { name: 'Crunchy' }, { name: 'Chocolate' }, { name: 'Mango Chia' }, { name: 'High Protein' }]).map(p => (
-                                            <option key={p.name} value={p.name}>{p.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Product Review <span className="text-red-500">*</span></label>
-                                    <textarea required value={formData.reviewContent} onChange={e => setFormData({ ...formData, reviewContent: e.target.value })} rows={3} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-slate-800 focus:ring-primary focus:border-primary bg-white transition-colors" placeholder="Write your review..." />
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <label className="flex items-start gap-3 cursor-pointer">
-                                    <input type="checkbox" checked={formData.marketingConsent} onChange={e => setFormData({ ...formData, marketingConsent: e.target.checked })} className="w-5 h-5 text-primary rounded focus:ring-primary mt-1" required />
-                                    <span className="text-sm font-bold text-slate-600">I agree to receive offers & updates from Pinobite on WhatsApp/SMS. <span className="text-red-500">*</span></span>
-                                </label>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={isSubmitting || submitted}
-                                className={`w-full py-4 rounded-xl font-black uppercase tracking-widest shadow-lg transition-all ${(isSubmitting || submitted)
-                                    ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                                    : 'bg-primary text-white hover:shadow-primary/30 hover:-translate-y-1'
-                                    }`}
-                            >
-                                {isSubmitting ? 'Submitting...' : 'Confirm Registration'}
-                            </button>
-
-                            <p className="text-xs text-center text-slate-400 mt-4">
-                                By registering, you agree to share your contact details with Pinobite Global for event coordination.
-                            </p>
-                        </form>
-                    </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

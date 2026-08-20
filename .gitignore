@@ -10,7 +10,8 @@ pb-backend/venv/
 *.sqlite3
 media/
 staticfiles/
-*.pkl
+pb-backend/frontend_build/
+pb-backend/gunicorn.pid
 
 # Node
 node_modules/
@@ -19,6 +20,9 @@ build/
 pb-frontend/node_modules/
 pb-frontend/dist/
 .DS_Store
+pb-frontend/.htaccess
+.check-status
+pw.txt
 
 # Vite
 .vite/
@@ -28,10 +32,13 @@ pb-frontend/.vite/
 migration/
 db.sqlite3
 
-# Environment
-.env
-.check-status
-pw.txt
+# Docker
+.dockerignore
+docker-compose.yml
+Dockerfile
+Dockerfile.prod
+nginx.conf
+nginx-prod.conf
 
 # IDE
 .vscode/
@@ -39,5 +46,16 @@ pw.txt
 *.swp
 *.swo
 
-# OS
-Thumbs.db
+# Debug & Temp
+*.txt
+*.pkl
+*.pdf
+
+# Agent / IDE
+.opencode/
+.vscode/
+
+# Generated / Dumps
+pb-backend/db_dump.json
+pb-frontend/webflow_assets/
+pb-frontend/src/vendor/webflow.*.js

@@ -42,12 +42,12 @@ const Newsletter: React.FC = () => {
   };
 
   return (
-    <section className="py-24 bg-[#f2f2ec] px-4 md:px-6">
+    <section className="py-[60px] bg-whiteboard texture-overlay texture-speckles px-4 md:px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-[#008a45] rounded-[40px] py-16 md:py-24 px-8 md:px-12 text-white overflow-hidden relative shadow-2xl">
+        <div className="bg-greenboard texture-overlay texture-speckles rounded-[40px] py-16 md:py-24 px-8 md:px-12 text-white overflow-hidden relative shadow-2xl">
           <div className="max-w-4xl mx-auto text-center relative z-10">
-            <h2 className="text-[2.2rem] sm:text-4xl md:text-7xl font-black mb-6 uppercase tracking-tight font-garet leading-tight md:leading-tight">
-              NUTS ABOUT HEALTH? <br className="lg:block hidden" /> JOIN OUR NEWSLETTER
+            <h2 className="text-[2.2rem] sm:text-4xl md:text-7xl font-normal mb-6 uppercase tracking-normal [word-spacing:0.05em] !font-anton leading-[1.1] md:leading-[1.1] lg:text-[100px] lg:leading-[110px] lg:-mb-[12px] lg:pb-[12px] lg:font-bold">
+              Nuts about health?<br />Join our newsletter
             </h2>
             <p className="text-base md:text-xl mb-12 opacity-90 max-w-2xl mx-auto font-medium px-4 md:px-0">
               Get exclusive recipes, health tips and 10% off your first order!
@@ -55,7 +55,7 @@ const Newsletter: React.FC = () => {
 
             <form className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto" onSubmit={handleSubmit}>
               <input
-                className="flex-1 px-8 py-5 rounded-3xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-secondary/50 transition-all border-none font-bold"
+                className="flex-1 px-8 py-5 rounded-3xl bg-[#082a20] text-white placeholder-white/50 focus:outline-none focus:ring-4 focus:ring-secondary/30 transition-all border border-white/20 font-bold font-satoshi"
                 placeholder="Enter your email"
                 type="email"
                 value={email}
@@ -63,10 +63,13 @@ const Newsletter: React.FC = () => {
                 disabled={status === 'loading'}
               />
               <button
-                className={`bg-secondary text-slate-900 px-10 py-5 rounded-3xl font-black uppercase hover:shadow-xl hover:-translate-y-1 transition-all active:scale-95 ${status === 'loading' ? 'opacity-70 cursor-not-allowed' : ''}`}
+                className={`px-10 py-5 rounded-3xl font-bold uppercase active:scale-95 font-satoshi relative overflow-hidden bg-[#0c4535] text-white border border-white/30 shadow-lg hover:border-white/60 transition-all ${status === 'loading' ? 'opacity-70 cursor-not-allowed' : ''}`}
                 disabled={status === 'loading'}
               >
-                {status === 'loading' ? 'SUBSCRIBING...' : 'SUBSCRIBE'}
+                <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.8\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3CfeColorMatrix type=\'saturate\' values=\'0\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\' opacity=\'0.4\'/%3E%3C/svg%3E")' }}></div>
+                <span className="relative z-10">
+                  {status === 'loading' ? 'SUBSCRIBING...' : 'SUBSCRIBE'}
+                </span>
               </button>
             </form>
 
@@ -78,8 +81,8 @@ const Newsletter: React.FC = () => {
           </div>
 
           {/* Decorative Elements */}
-          <span className="absolute top-[-20px] left-[-20px] font-handdrawn text-9xl opacity-10 rotate-12 select-none pointer-events-none">YUM!</span>
-          <span className="absolute bottom-[-20px] right-[-20px] font-handdrawn text-9xl opacity-10 -rotate-12 select-none pointer-events-none">FREE!</span>
+          <span className="absolute top-[-20px] left-[-20px] font-anton text-9xl opacity-10 rotate-12 select-none pointer-events-none">YUM!</span>
+          <span className="absolute bottom-[-20px] right-[-20px] font-anton text-9xl opacity-10 -rotate-12 select-none pointer-events-none">FREE!</span>
 
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>

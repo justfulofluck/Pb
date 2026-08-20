@@ -44,7 +44,7 @@ const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddRevie
 
             if (response.ok) {
                 const data = await response.json();
-                
+
                 const newReview: Review = {
                     id: String(data.id),
                     productId: data.product,
@@ -81,7 +81,7 @@ const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddRevie
     };
 
     return (
-        <section className="section py-20 bg-[#f2f2ec]">
+        <section className="section py-10 bg-[#f2f2ec]">
             <div className="container max-w-4xl mx-auto px-4">
                 <div className="bg-white rounded-[2rem] p-8 md:p-12 shadow-sm border border-slate-100 relative overflow-hidden">
                     {showSuccess && (
@@ -96,7 +96,7 @@ const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddRevie
 
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                         <div>
-                            <h2 className="text-4xl md:text-5xl font-black text-slate-900 uppercase leading-[0.9] mb-2 font-bebas">
+                            <h2 className="text-4xl md:text-5xl font-black text-slate-900 uppercase leading-[1] mb-2 font-anton">
                                 Share Your <br /> Experience
                             </h2>
                             <p className="text-slate-500 font-bold">We'd love to hear what you think of our snacks!</p>
@@ -114,10 +114,10 @@ const SnaxxoAddReview: React.FC<SnaxxoAddReviewProps> = ({ productId, onAddRevie
                                 <span className="material-symbols-outlined text-slate-400 text-3xl">lock</span>
                             </div>
                             <h3 className="text-xl font-black uppercase text-slate-900 mb-2">Login to Review</h3>
-                            <p className="text-slate-500 font-bold mb-6 max-w-xs">Only verified customers can subimt their experience with this product.</p>
+                            <p className="text-slate-500 font-bold mb-6 max-w-xs">Only verified customers can submit their experience with this product.</p>
                             <button
                                 onClick={onLoginClick}
-                                className="px-10 py-4 bg-slate-950 text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-colors shadow-lg"
+                                className="px-10 py-4 bg-slate-950 !text-white rounded-xl font-black uppercase tracking-widest text-xs hover:bg-slate-800 transition-colors shadow-lg"
                             >
                                 Login / Register
                             </button>

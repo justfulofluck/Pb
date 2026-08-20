@@ -37,15 +37,31 @@ const BenefitHighlights: React.FC = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    const [isInView, setIsInView] = useState(false);
+    const runnerRef = useRef<Matter.Runner | null>(null);
+    const engineRef = useRef<Matter.Engine | null>(null);
+
+    // Track intersection
     useEffect(() => {
         if (!containerRef.current) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => setIsInView(entry.isIntersecting),
+            { threshold: 0.1 }
+        );
+        observer.observe(containerRef.current);
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        if (!containerRef.current || !isInView) return;
 
         const { Engine, Runner, Bodies, Composite, Mouse, MouseConstraint, Events, Body } = Matter;
 
         const engine = Engine.create();
+        engineRef.current = engine;
         const world = engine.world;
 
-        // Start with zero gravity (badges float in place)
+        // Start with zero gravity
         engine.gravity.y = 0;
 
         const width = containerRef.current.clientWidth || window.innerWidth;
@@ -74,12 +90,13 @@ const BenefitHighlights: React.FC = () => {
         };
 
         const groundBodies: Matter.Body[] = [];
-        const segments = 60;
+        // REDUCED segments from 60 to 20 for memory efficiency
+        const segments = 20;
         for (let i = 0; i <= segments; i++) {
             const xNorm = i / segments;
             const x = xNorm * width;
             const y = getWaveY(xNorm);
-            groundBodies.push(Bodies.circle(x, y, 30, { isStatic: true, friction: 0.8 }));
+            groundBodies.push(Bodies.circle(x, y, 40, { isStatic: true, friction: 0.8 }));
         }
         groundBodies.push(Bodies.rectangle(width / 2, height + 100, width * 2, 300, { isStatic: true }));
 
@@ -103,78 +120,62 @@ const BenefitHighlights: React.FC = () => {
                 angle: benefit.rotation * (Math.PI / 180),
                 chamfer: { radius: 8 }
             });
-            // Freeze velocity so it floats until gravity kicks in
             Body.setVelocity(body, { x: 0, y: 0 });
-
             return { body, benefit };
         });
 
         Composite.add(world, badgeBodies.map(b => b.body));
 
-        // --- Mouse interaction (desktop) ---
+        // --- Mouse/Touch interaction ---
         const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        let hasTouchListeners = false;
+        let touchCleanup: (() => void) | null = null;
 
         if (!isTouchDevice) {
             const mouse = Mouse.create(containerRef.current);
             const mouseConstraint = MouseConstraint.create(engine, {
                 mouse: mouse,
-                constraint: {
-                    stiffness: 0.08,
-                    damping: 0.1,
-                    render: { visible: false }
-                }
+                constraint: { stiffness: 0.08, damping: 0.1, render: { visible: false } }
             });
             Composite.add(world, mouseConstraint);
         } else {
-            // Touch drag support for mobile
             let dragBody: Matter.Body | null = null;
-
             const getTouchPos = (e: TouchEvent) => {
                 const rect = containerRef.current!.getBoundingClientRect();
                 const touch = e.touches[0] || e.changedTouches[0];
                 return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
             };
-
             const onTouchStart = (e: TouchEvent) => {
                 const pos = getTouchPos(e);
-                // Find closest body to touch point
                 for (const { body } of badgeBodies) {
                     const dx = body.position.x - pos.x;
                     const dy = body.position.y - pos.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 120) {
+                    if (Math.sqrt(dx * dx + dy * dy) < 120) {
                         dragBody = body;
                         break;
                     }
                 }
             };
-
             const onTouchMove = (e: TouchEvent) => {
                 if (!dragBody) return;
                 e.preventDefault();
-                const pos = getTouchPos(e);
-                Body.setPosition(dragBody, pos);
+                Body.setPosition(dragBody, getTouchPos(e));
                 Body.setVelocity(dragBody, { x: 0, y: 0 });
             };
-
-            const onTouchEnd = () => {
-                dragBody = null;
-            };
+            const onTouchEnd = () => { dragBody = null; };
 
             containerRef.current.addEventListener('touchstart', onTouchStart, { passive: true });
             containerRef.current.addEventListener('touchmove', onTouchMove, { passive: false });
             containerRef.current.addEventListener('touchend', onTouchEnd, { passive: true });
-        }
-
-        // Clamp velocity
-        Events.on(engine, 'beforeUpdate', () => {
-            badgeBodies.forEach(({ body }) => {
-                const maxSpeed = 15;
-                if (body.speed > maxSpeed) {
-                    Body.setSpeed(body, maxSpeed);
+            hasTouchListeners = true;
+            touchCleanup = () => {
+                if (containerRef.current) {
+                    containerRef.current.removeEventListener('touchstart', onTouchStart);
+                    containerRef.current.removeEventListener('touchmove', onTouchMove);
+                    containerRef.current.removeEventListener('touchend', onTouchEnd);
                 }
-            });
-        });
+            };
+        }
 
         // Sync physics to DOM
         Events.on(engine, 'afterUpdate', () => {
@@ -189,64 +190,62 @@ const BenefitHighlights: React.FC = () => {
         });
 
         const runner = Runner.create();
-        Runner.run(runner, engine);
+        runnerRef.current = runner;
+        // The Runner will be started by the isInView useEffect below to prevent off-screen processing
 
-        // --- 3 SECOND DELAY: then enable gravity ---
+        // --- 2 SECOND DELAY: then enable gravity ---
         const dropTimeout = setTimeout(() => {
-            engine.gravity.y = 1;
-            // Give each badge a tiny nudge so they start moving
-            badgeBodies.forEach(({ body }) => {
-                Body.applyForce(body, body.position, { x: 0, y: 0.01 });
-            });
-        }, 3000);
+            if (engineRef.current) {
+                engineRef.current.gravity.y = 1;
+                badgeBodies.forEach(({ body }) => {
+                    Body.applyForce(body, body.position, { x: 0, y: 0.01 });
+                });
+            }
+        }, 2000);
 
-        // --- GYROSCOPE support (mobile: tilt device to move gravity) ---
+        // --- GYROSCOPE support ---
         let gyroHandler: ((e: DeviceOrientationEvent) => void) | null = null;
+        let gyroTimeoutRef: ReturnType<typeof setTimeout> | null = null;
 
         if (isTouchDevice) {
             gyroHandler = (e: DeviceOrientationEvent) => {
-                const gamma = e.gamma || 0; // left-right tilt (-90..90)
-                const beta = e.beta || 0;   // front-back tilt (-180..180)
-
-                // Map tilt to gravity direction
-                // gamma: positive = tilted right, negative = tilted left
-                // beta: ~90 is upright, <90 is tilted forward, >90 is tilted back
-                const gravityX = gamma / 30; // Normalize, cap at ~3
-                const gravityY = Math.max(0.2, (beta - 20) / 40); // Always some downward pull
-
+                const gravityX = (e.gamma || 0) / 30;
+                const gravityY = Math.max(0.2, ((e.beta || 0) - 20) / 40);
                 engine.gravity.x = Math.max(-3, Math.min(3, gravityX));
                 engine.gravity.y = Math.max(0.2, Math.min(3, gravityY));
             };
-
-            // Request permission on iOS 13+
             const requestGyro = async () => {
                 if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
                     try {
                         const perm = await (DeviceOrientationEvent as any).requestPermission();
-                        if (perm === 'granted') {
-                            window.addEventListener('deviceorientation', gyroHandler!);
-                        }
-                    } catch {
-                        // Permission denied, fallback to no gyro
-                    }
+                        if (perm === 'granted') window.addEventListener('deviceorientation', gyroHandler!);
+                    } catch { }
                 } else {
                     window.addEventListener('deviceorientation', gyroHandler!);
                 }
             };
-
-            // Only start gyro after the 3s drop delay
-            setTimeout(requestGyro, 3000);
+            gyroTimeoutRef = setTimeout(requestGyro, 2000);
         }
 
         return () => {
+            if (hasTouchListeners && touchCleanup) touchCleanup();
             clearTimeout(dropTimeout);
-            if (gyroHandler) {
-                window.removeEventListener('deviceorientation', gyroHandler);
-            }
+            if (gyroTimeoutRef) clearTimeout(gyroTimeoutRef);
+            if (gyroHandler) window.removeEventListener('deviceorientation', gyroHandler);
             Runner.stop(runner);
             Engine.clear(engine);
         };
-    }, [scale]);
+    }, [scale, isInView]);
+
+    // Handle Play/Pause based on view visibility
+    useEffect(() => {
+        if (!runnerRef.current || !engineRef.current) return;
+        if (isInView) {
+            Runner.run(runnerRef.current, engineRef.current);
+        } else {
+            Runner.stop(runnerRef.current);
+        }
+    }, [isInView]);
 
     const renderShape = (benefit: typeof BASE_BENEFITS[0]) => {
         switch (benefit.shape) {
@@ -291,6 +290,7 @@ const BenefitHighlights: React.FC = () => {
 
     return (
         <section
+            className="bg-whiteboard texture-overlay texture-speckles"
             style={{ position: 'relative', overflow: 'hidden', minHeight: sectionHeight, display: 'flex', alignItems: 'center' }}
         >
             {/* Physics container */}

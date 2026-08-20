@@ -1,8 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category, Announcement, DistributorApplication, PressUpdate, RewardRule, RewardTransaction } from '../types';
+import { Product, EventBlog, HeroSlide, BlogPost, Story, VisitorForm, Order, Category, Announcement, DistributorApplication, PressUpdate, RewardRule, RewardTransaction, UsageIdea, Customer } from '../types';
 import { API_BASE_URL } from '../config';
-import { jsPDF } from "jspdf";
+import { adminApiFetch, adminApiFetchWithFallback } from '../utils/adminApi';
+// import { jsPDF } from "jspdf"; // Removed deprecated dependency
 import ConfirmationModal from './ConfirmationModal';
+import { useToast } from './Toast';
+import TiptapEditor from './TiptapEditor';
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -16,9 +19,12 @@ interface AdminDashboardProps {
   onDeleteCategory: (id: string) => void; // Added prop
   events: EventBlog[];
   onAddEvent: (e: EventBlog) => void;
+  onUpdateEvent: (e: EventBlog) => void;
   onDeleteEvent: (id: string) => void;
   slides: HeroSlide[];
-  onUpdateSlides: (s: HeroSlide[]) => void;
+  onAddSlide: (s: HeroSlide) => void;
+  onUpdateSlide: (s: HeroSlide) => void;
+  onDeleteSlide: (id: string) => void;
   blogPosts: BlogPost[];
   onAddBlog: (b: BlogPost) => void;
   onUpdateBlog: (b: BlogPost) => void;
@@ -27,15 +33,19 @@ interface AdminDashboardProps {
   onAddStory: (s: Story) => void;
   onDeleteStory: (id: string) => void;
   visitorForms: VisitorForm[];
-  onAddVisitorForm: (f: VisitorForm) => void;
+  onAddVisitorForm: (f: VisitorForm) => Promise<any>;
+  onUpdateVisitorForm: (id: string, data: Partial<VisitorForm>) => Promise<void>;
   onDeleteVisitorForm: (id: string) => void;
   announcements: Announcement[];
   onAddAnnouncement: (a: Announcement) => void;
   onDeleteAnnouncement: (id: number) => void;
   onUpdateAnnouncement: (a: Announcement) => void;
-  pressUpdates: PressUpdate[];
-  onAddPressUpdate: (p: PressUpdate) => void;
-  onDeletePressUpdate: (id: string) => void;
+  pressUpdates?: PressUpdate[];
+  onAddPressUpdate?: (up: Partial<PressUpdate>) => void;
+  onDeletePressUpdate?: (id: string) => void;
+  customers: Customer[];
+  onToggleCustomerActive: (id: string) => void;
+  onDeleteCustomer: (id: string) => void;
 }
 
 // Removed INITIAL_ORDERS mock data
@@ -66,9 +76,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onDeleteCategory,
   events,
   onAddEvent,
+  onUpdateEvent,
   onDeleteEvent,
   slides,
-  onUpdateSlides,
+  onAddSlide,
+  onUpdateSlide,
+  onDeleteSlide,
   blogPosts,
   onAddBlog,
   onUpdateBlog,
@@ -78,17 +91,29 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onDeleteStory,
   visitorForms,
   onAddVisitorForm,
+  onUpdateVisitorForm,
   onDeleteVisitorForm,
   announcements,
   onAddAnnouncement,
   onDeleteAnnouncement,
   onUpdateAnnouncement,
-  pressUpdates,
-  onAddPressUpdate,
-  onDeletePressUpdate
+  pressUpdates = [],
+  onAddPressUpdate = () => {},
+  onDeletePressUpdate = () => {},
+  customers,
+  onToggleCustomerActive,
+  onDeleteCustomer
 }) => {
+  const getMediaUrl = (url: string | undefined) => {
+    if (!url) return '';
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    return `${API_BASE_URL}${url}`;
+  };
+
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
   const [productView, setProductView] = useState<'list' | 'add' | 'categories'>('list');
+  const [previewMode, setPreviewMode] = useState<'pc' | 'mobile'>('pc');
   const [eventView, setEventView] = useState<'list' | 'add'>('list');
   const [blogView, setBlogView] = useState<'list' | 'form'>('list');
   const [uiView, setUiView] = useState<'hero' | 'stories' | 'press'>('hero');
@@ -103,7 +128,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [orderSearchQuery, setOrderSearchQuery] = useState('');
 
-  const adminEmail = localStorage.getItem('admin_email') || 'admin@pinobite.global';
+  const adminEmail = localStorage.getItem('admin_email') || 'admin@pinobite.com';
   const adminInitials = adminEmail.substring(0, 2).toUpperCase();
 
   // Distributor Applications State
@@ -113,6 +138,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Rewards State
   const [rewardRules, setRewardRules] = useState<RewardRule[]>([]);
   const [rewardTransactions, setRewardTransactions] = useState<RewardTransaction[]>([]);
+
+  // Profile & Security Modal State
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
+  const [profileForm, setProfileForm] = useState({ first_name: '', last_name: '' });
+  const [passwordForm, setPasswordForm] = useState({ current_password: '', new_password: '', confirm_password: '' });
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  // Customer Management State
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+
+  // Product Management State
+  const [productSearchQuery, setProductSearchQuery] = useState('');
 
   const storyFileInputRef = useRef<HTMLInputElement>(null);
   const pressLogoInputRef = useRef<HTMLInputElement>(null);
@@ -139,7 +177,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handlePressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!pressForm.logo || !pressForm.quote || !pressForm.mediaHouse) {
-      alert('Please fill in the logo, media house name, and quote.');
+      showToast('Please fill in the logo, media house name, and quote.', 'warning');
       return;
     }
     const newPress: PressUpdate = {
@@ -154,12 +192,66 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   // Visitor Forms State
-  // visitorForms is now passed via props
-  const [visitorFormView, setVisitorFormView] = useState<'list' | 'create' | 'details'>('list');
+  const [visitorFormView, setVisitorFormView] = useState<'list' | 'create' | 'details' | 'edit'>('list');
   const [selectedVisitorForm, setSelectedVisitorForm] = useState<VisitorForm | null>(null);
-  const [newFormData, setNewFormData] = useState({ title: '', eventName: '' });
   const [visitorSubmissionPage, setVisitorSubmissionPage] = useState(1);
   const VISITOR_SUBMISSIONS_PER_PAGE = 6;
+
+  type BuilderField = {
+    id: string;
+    type: string;
+    title: string;
+    name: string;
+    isRequired: boolean;
+    placeholder: string;
+    choices: string[];
+    rateCount: number;
+    rateMax: number;
+    rateMin: number;
+  };
+
+  const defaultFieldTitle = (type: string) => {
+    const names: Record<string, string> = {
+      text: 'Short Text', email: 'Email', tel: 'Phone', textarea: 'Long Text',
+      select: 'Dropdown', checkbox: 'Checkboxes', radio: 'Multiple Choice',
+      date: 'Date', rating: 'Rating', file: 'File Upload'
+    };
+    return names[type] || 'Question';
+  };
+
+  const createField = (type: string, index: number): BuilderField => ({
+    id: `fld_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+    type,
+    title: defaultFieldTitle(type),
+    name: `question${index}`,
+    isRequired: false,
+    placeholder: '',
+    choices: ['Option 1', 'Option 2'],
+    rateCount: 5,
+    rateMax: 5,
+    rateMin: 1,
+  });
+
+  const [builderFields, setBuilderFields] = useState<BuilderField[]>([]);
+  const [builderTitle, setBuilderTitle] = useState('');
+  const [builderEventName, setBuilderEventName] = useState('');
+  const [builderStatus, setBuilderStatus] = useState<'Draft' | 'Published'>('Draft');
+  const [builderRequireEmail, setBuilderRequireEmail] = useState(false);
+  const [showFieldPicker, setShowFieldPicker] = useState(false);
+  const [previewSchema, setPreviewSchema] = useState<any>(null);
+
+  const fieldTypes = [
+    { type: 'text', icon: 'short_text', label: 'Short Text' },
+    { type: 'email', icon: 'mail', label: 'Email' },
+    { type: 'tel', icon: 'phone', label: 'Phone' },
+    { type: 'textarea', icon: 'notes', label: 'Long Text' },
+    { type: 'select', icon: 'arrow_drop_down_circle', label: 'Dropdown' },
+    { type: 'checkbox', icon: 'check_box', label: 'Checkboxes' },
+    { type: 'radio', icon: 'radio_button_checked', label: 'Multiple Choice' },
+    { type: 'date', icon: 'calendar_today', label: 'Date' },
+    { type: 'rating', icon: 'star', label: 'Rating' },
+    { type: 'file', icon: 'upload_file', label: 'File Upload' },
+  ];
 
   // Announcements state
   const [announcementForm, setAnnouncementForm] = useState<Partial<Announcement>>({
@@ -175,13 +267,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   useEffect(() => {
     const fetchAdminData = async () => {
       try {
-        const token = localStorage.getItem('access_token') || localStorage.getItem('admin_access_token');
-        if (!token) return;
-
         // Fetch Orders
-        const ordersRes = await fetch(`${API_BASE_URL}/api/orders/`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const ordersRes = await adminApiFetchWithFallback(`${API_BASE_URL}/api/orders/`);
         if (ordersRes.ok) {
           const data = await ordersRes.json();
           if (Array.isArray(data)) {
@@ -191,9 +278,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         }
 
         // Fetch Distributor Applications
-        const distRes = await fetch(`${API_BASE_URL}/api/distributor-applications/`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const distRes = await adminApiFetchWithFallback(`${API_BASE_URL}/api/distributor-applications/`);
         if (distRes.ok) {
           const data = await distRes.json();
           if (Array.isArray(data)) {
@@ -201,9 +286,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }
         }
         // Fetch Reward Rules
-        const rewardRulesRes = await fetch(`${API_BASE_URL}/api/reward-rules/`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const rewardRulesRes = await adminApiFetchWithFallback(`${API_BASE_URL}/api/reward-rules/`);
         if (rewardRulesRes.ok) {
           const data = await rewardRulesRes.json();
           if (Array.isArray(data)) {
@@ -212,9 +295,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         }
 
         // Fetch Reward Transactions
-        const rewardTransRes = await fetch(`${API_BASE_URL}/api/reward-transactions/`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const rewardTransRes = await adminApiFetchWithFallback(`${API_BASE_URL}/api/reward-transactions/`);
         if (rewardTransRes.ok) {
           const data = await rewardTransRes.json();
           if (Array.isArray(data)) {
@@ -231,9 +312,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     return () => clearInterval(interval);
   }, []);
 
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+
   // Compute Notifications
   const notifications = React.useMemo(() => {
     const list: any[] = [];
+    const now = Date.now();
+    const yesterday = now - TWENTY_FOUR_HOURS;
 
     // 1. Pending Orders
     orders.filter(o => o.status === 'PENDING').forEach(o => {
@@ -248,20 +333,52 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       });
     });
 
-    // 2. Low Stock Alerts
+    // 2. Low Stock Alerts (stable time = won't re-trigger as "new" every render)
     products.filter(p => p.stock < 10).forEach(p => {
       list.push({
         id: `stock-${p.id}`,
         title: "Low Stock Alert",
         desc: `${p.name} is below 10 units (${p.stock} left)`,
-        time: Date.now() - 1000, // Show as current
+        time: 0, // Always visible, never "new" (no blue dot)
         icon: "warning",
         color: "bg-red-100 text-red-600",
         tab: 'products'
       });
     });
 
-    // 3. Pending Distributor Applications
+    // 3. New Blog Posts (last 24h)
+    (blogPosts || []).forEach(p => {
+      const created = (p as any).created_at;
+      if (created) {
+        const t = new Date(created).getTime();
+        if (t > yesterday) {
+          list.push({
+            id: `blog-${p.id}`,
+            title: "New Blog Published",
+            desc: p.title || 'Untitled',
+            time: t,
+            icon: "article",
+            color: "bg-blue-100 text-blue-600",
+            tab: 'blogs'
+          });
+        }
+      }
+    });
+
+    // 4. New Products (last 24h — uses id recency as proxy since no created_at field)
+    products.slice().reverse().slice(0, 5).forEach(p => {
+      list.push({
+        id: `product-notif-${p.id}`,
+        title: "Product Updated",
+        desc: `${p.name} — ${p.stock} in stock`,
+        time: now - 2000,
+        icon: "inventory_2",
+        color: "bg-emerald-100 text-emerald-600",
+        tab: 'products'
+      });
+    });
+
+    // 5. Pending Distributor Applications
     distributorApplications.filter(a => a.status === 'Pending').forEach(a => {
       list.push({
         id: `dist-${a.id}`,
@@ -274,14 +391,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       });
     });
 
-    // 4. Recent Visitor Submissions
+    // 6. Recent Visitor Submissions
     (visitorForms || []).forEach(f => {
       (f.submissions || []).slice(-3).forEach(s => {
         list.push({
           id: `sub-${s.id}`,
           title: "New Visitor Submission",
-          desc: `${s.name} submitted ${f.title}`,
-          time: new Date(s.submittedAt || Date.now()).getTime(),
+          desc: `${(s.submission_data?.name || s.submission_data?.email || 'Someone')} submitted ${f.title}`,
+          time: new Date(s.submitted_at || Date.now()).getTime(),
           icon: "qr_code_scanner",
           color: "bg-purple-100 text-purple-600",
           tab: 'visitor-forms'
@@ -290,7 +407,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     });
 
     return list.sort((a, b) => b.time - a.time).slice(0, 10);
-  }, [orders, products, distributorApplications, visitorForms]);
+  }, [orders, products, blogPosts, distributorApplications, visitorForms]);
 
   const hasUnreadNotifications = notifications.some(n => n.time > notificationsLastClear);
 
@@ -308,9 +425,95 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     localStorage.setItem('admin_notifications_last_clear', String(now));
   };
 
+  const openProfileModal = async () => {
+    setShowProfileModal(true);
+    setProfileLoading(true);
+    try {
+      const res = await adminApiFetchWithFallback(`${API_BASE_URL}/api/users/me/`);
+      if (res.ok) {
+        const data = await res.json();
+        setProfileForm({ first_name: data.first_name || '', last_name: data.last_name || '' });
+      }
+    } catch (err) {
+      console.error('Failed to load profile', err);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await adminApiFetchWithFallback(`${API_BASE_URL}/api/users/update_profile/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileForm)
+      });
+      if (res.ok) {
+        showToast('Profile updated successfully', 'success');
+        setShowProfileModal(false);
+      } else {
+        const err = await res.json();
+        showToast(Object.values(err).flat().join(', ') || 'Failed to update profile', 'warning');
+      }
+    } catch (err) {
+      showToast('Failed to update profile', 'warning');
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (passwordForm.new_password !== passwordForm.confirm_password) {
+      showToast('Passwords do not match', 'warning');
+      return;
+    }
+    if (passwordForm.new_password.length < 6) {
+      showToast('Password must be at least 6 characters', 'warning');
+      return;
+    }
+    try {
+      const res = await adminApiFetchWithFallback(`${API_BASE_URL}/api/users/change_password/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          current_password: passwordForm.current_password,
+          new_password: passwordForm.new_password
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('Password changed successfully', 'success');
+        setPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
+        setShowSecurityModal(false);
+      } else {
+        showToast(data.error || 'Failed to change password', 'warning');
+      }
+    } catch (err) {
+      showToast('Failed to change password', 'warning');
+    }
+  };
+
   // Slide Management State
   const [editingSlide, setEditingSlide] = useState<HeroSlide | null>(null);
   const [isSlideModalOpen, setIsSlideModalOpen] = useState(false);
+  const [slideForm, setSlideForm] = useState<Partial<HeroSlide>>({
+    category: '',
+    headline: '',
+    image: '',
+    cta: 'SHOP NOW',
+    ctaLink: '/shop',
+    secondaryCta: '',
+    secondaryCtaLink: '',
+    bgColor: COLOR_THEMES[0].bgColor,
+    accentColor: COLOR_THEMES[0].accentColor,
+    blobColor: COLOR_THEMES[0].blobColor,
+    backgroundImage: '',
+    productId: '',
+    transitionType: 'fade',
+    mobileImage: '',
+    displayDuration: 5,
+    isActive: true
+  });
 
   // Story Form State
   const [newStoryForm, setNewStoryForm] = useState<Partial<Story>>({
@@ -319,73 +522,29 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     productId: ''
   });
 
-  // Blog Management State
-  const [editingBlogPost, setEditingBlogPost] = useState<BlogPost | null>(null);
-  const [blogForm, setBlogForm] = useState<Partial<BlogPost>>({
-    title: '',
-    type: 'Recipe',
-    excerpt: '',
-    image: '',
-    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    readTime: '',
-    author: '',
-    content: ''
-  });
-
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-
-  // Product Form State
-  const [productForm, setProductForm] = useState<Partial<Product>>({
-    name: '',
-    price: 0,
-    category: '',
-    stock: 100,
-    description: '',
-    image: '',
-    gallery: [],
-    rating: 5,
-    reviewCount: 0,
-    benefits: [],
-    nutrients: [],
-    ingredients: '',
-    nutrition: {
-      calories: '',
-      protein: '',
-      carbs: '',
-      fat: ''
-    },
-    model3d: '',
-    themeColor: '#FF6F00', // Default to a brand color if none selected
-    orientation: '0deg 0deg 0deg',
-    originalPrice: 0
-  });
-
-  // Event Form State
-  const [eventForm, setEventForm] = useState<Partial<EventBlog>>({
-    title: '',
-    date: '',
-    location: '',
-    image: '',
-    summary: '',
-    fullStory: [{ heading: '', content: '' }],
-    gallery: [],
-    featuredProducts: []
-  });
-
-  // Slide Form State
-  const [slideForm, setSlideForm] = useState<Partial<HeroSlide>>({
-    category: '',
-    headline: '',
-    description: '',
-    image: '',
-    cta: 'SHOP NOW',
-    bgColor: COLOR_THEMES[0].bgColor,
-    accentColor: COLOR_THEMES[0].accentColor,
-    blobColor: COLOR_THEMES[0].blobColor,
-    isActive: true
-  });
-
-  const [newCategory, setNewCategory] = useState('');
+   // Blog Management State
+   const [editingBlogPost, setEditingBlogPost] = useState<BlogPost | null>(null);
+   const [blogImageFile, setBlogImageFile] = useState<File | null>(null);
+   const [blogForm, setBlogForm] = useState<Partial<BlogPost>>({
+     title: '',
+     type: 'Recipe',
+     excerpt: '',
+     image: '',
+     date: new Date().toISOString().split('T')[0],
+     author: '',
+     content: '',
+     slug: '',
+     readTime: '0 min read',
+     subtitle: '',
+     intro_heading: '',
+     featured_quote: '',
+     facts_list: [],
+     key_points: [] as { title: string; desc: string }[],
+     health_benefits: [] as { title: string; desc: string }[],
+     usage_recipes: [] as { title: string; desc: string; image: string }[],
+     tags: [],
+     isActive: true
+   });
 
   // Story Handlers
   const [isProcessingDriveVideo, setIsProcessingDriveVideo] = useState(false);
@@ -393,7 +552,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleAddStory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStoryForm.mediaUrl || !newStoryForm.productId) {
-      alert("Please provide a Google Drive URL and select a product.");
+      showToast("Please provide a Google Drive URL and select a product.", 'warning');
       return;
     }
 
@@ -410,9 +569,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       const newStory: Story = {
         id: `s-${Date.now()}`,
-        mediaUrl: data.mediaUrl, // This path is now the new 5s GIF!
-        originalDriveUrl: newStoryForm.mediaUrl, // Keep original video URL
-        mediaType: 'image', // MUST be image since it's a .gif file, video tag won't play gifs
+        mediaUrl: data.mediaUrl,
+        posterUrl: data.posterUrl,
+        fullVideoUrl: data.fullVideoUrl,
+        originalDriveUrl: newStoryForm.mediaUrl,
+        mediaType: data.mediaType || 'video', // Dynamically set from backend response (now returns 'video')
         productId: newStoryForm.productId
       };
 
@@ -420,7 +581,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setNewStoryForm({ mediaUrl: '', mediaType: 'image', productId: '' });
     } catch (error) {
       console.error(error);
-      alert("Error processing your Google Drive URL. Ensure it's a public link.");
+      showToast("Error processing your Google Drive URL. Ensure it's a public link.", 'error');
     } finally {
       setIsProcessingDriveVideo(false);
     }
@@ -430,44 +591,49 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     onDeleteStory(id);
   };
 
-  const openAddProduct = () => {
-    setEditingProduct(null);
-    setProductForm({
-      name: '',
-      price: 0,
-      category: '',
-      stock: 100,
-      description: '',
-      image: '',
-      gallery: [],
-      rating: 5,
-      reviewCount: 0,
-      benefits: [],
-      nutrients: [],
-      ingredients: '',
-      nutrition: {
-        calories: '',
-        protein: '',
-        carbs: '',
-        fat: ''
-      },
-      model3d: '',
-      themeColor: '#FF6F00',
-      orientation: '0deg 0deg 0deg',
-      originalPrice: 0
-    });
-    setProductView('add');
-  };
+   const openAddProduct = () => {
+     setEditingProduct(null);
+     setProductForm({
+       name: '',
+       price: 0,
+       category: '',
+       stock: 100,
+       image: '',
+       slug: '',
+       rating: 5,
+       reviewCount: 0,
+       benefits: [],
+       nutrients: [] as { label: string; value: string }[],
+       ingredients: '',
+       ingredientsList: [],
+       detailedNutrition: [] as { n: string; v100: string; v32: string; r: string; b?: boolean; i?: boolean }[],
+       nutrition: {
+         calories: '',
+         protein: '',
+         carbs: '',
+         fat: ''
+       },
+       model3d: '',
+       themeColor: '#FF6F00',
+       orientation: '0deg 0deg 0deg',
+       usageIdeas: []
+     });
+     setProductView('add');
+   };
 
-  const openEditProduct = (product: Product) => {
-    setEditingProduct(product);
-    setProductForm({
-      ...product,
-      themeColor: product.themeColor || '#FF6F00',
-      orientation: product.orientation || '0deg 0deg 0deg'
-    });
-    setProductView('add');
-  };
+   const openEditProduct = (product: Product) => {
+     setEditingProduct(product);
+     setProductForm({
+       ...product,
+       themeColor: product.themeColor || '#FF6F00',
+       orientation: product.orientation || '0deg 0deg 0deg',
+       usageIdeas: product.usageIdeas || [],
+       ingredientsList: product.ingredientsList || [],
+       detailedNutrition: product.detailedNutrition || [] as { n: string; v100: string; v32: string; r: string; b?: boolean; i?: boolean }[],
+       nutrients: product.nutrients || [] as { label: string; value: string }[]
+     });
+     setProductView('add');
+   };
 
   const updateBenefit = (index: number, value: string) => {
     const newBenefits = [...(productForm.benefits || [])];
@@ -483,67 +649,151 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setProductForm(prev => ({ ...prev, benefits: prev.benefits?.filter((_, i) => i !== index) }));
   };
 
-  // Handlers for Products
-  const handleProductSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!productForm.image) {
-      alert("Please upload a featured image.");
-      return;
-    }
-
-    if (editingProduct) {
-      const updatedProduct: Product = {
-        ...editingProduct,
-        ...productForm as Product,
-        id: editingProduct.id // Keep original ID
-      };
-      onUpdateProduct(updatedProduct);
-    } else {
-      const newProduct: Product = {
-        id: Date.now().toString(),
-        name: productForm.name || 'New Product',
-        price: Number(productForm.price) || 0,
-        category: productForm.category || 'Uncategorized',
-        stock: Number(productForm.stock) || 0,
-        description: productForm.description || '',
-        image: productForm.image || '',
-        gallery: productForm.gallery || [],
-        rating: 5,
-        reviewCount: 0,
-        benefits: productForm.benefits || [],
-        nutrients: productForm.nutrients || [],
-        ...productForm as Product
-      };
-      onAddProduct(newProduct);
-    }
-
-    setProductView('list');
-    setEditingProduct(null);
-    setProductForm({
-      name: '',
-      price: 0,
-      category: '',
-      stock: 100,
-      description: '',
-      image: '',
-      gallery: [],
-      rating: 5,
-      reviewCount: 0,
-      benefits: [],
-      nutrients: [],
-      ingredients: '',
-      nutrition: {
-        calories: '',
-        protein: '',
-        carbs: '',
-        fat: ''
-      },
-      model3d: '',
-      themeColor: '#FF6F00',
-      orientation: '0deg 0deg 0deg',
-      originalPrice: 0
-    });
+  const addUsageIdea = () => {
+    setProductForm(prev => ({
+      ...prev,
+      usageIdeas: [...(prev.usageIdeas || []), { id: `new-${Date.now()}`, productId: prev.id || '', title: '', description: '', image: '', order: (prev.usageIdeas?.length || 0) }]
+    }));
   };
+
+  const removeUsageIdea = (index: number) => {
+    setProductForm(prev => ({
+      ...prev,
+      usageIdeas: prev.usageIdeas?.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateUsageIdea = (index: number, field: keyof UsageIdea, value: any) => {
+    const newIdeas = [...(productForm.usageIdeas || [])];
+    newIdeas[index] = { ...newIdeas[index], [field]: value };
+    setProductForm(prev => ({ ...prev, usageIdeas: newIdeas }));
+  };
+
+  const handleUsageIdeaImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateUsageIdea(index, 'image', reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+
+  const addIngredientItem = () => {
+    setProductForm(prev => ({
+      ...prev,
+      ingredientsList: [...(prev.ingredientsList || []), { name: '', image: '' }]
+    }));
+  };
+
+  const removeIngredientItem = (index: number) => {
+    setProductForm(prev => ({
+      ...prev,
+      ingredientsList: prev.ingredientsList?.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateIngredientItem = (index: number, field: 'name' | 'image', value: string) => {
+    const newList = [...(productForm.ingredientsList || [])];
+    newList[index] = { ...newList[index], [field]: value };
+    setProductForm(prev => ({ ...prev, ingredientsList: newList }));
+  };
+
+  const handleIngredientImageUpload = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateIngredientItem(index, 'image', reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handlers for Products
+   const handleProductSubmit = (e: React.FormEvent) => {
+     e.preventDefault();
+     if (!productForm.image) {
+       showToast("Please upload a featured image.", 'warning');
+       return;
+     }
+
+     // Generate slug from name if not provided
+     const slug = productForm.slug || 
+       productForm.name.toLowerCase()
+         .replace(/[^\w\s-]/g, '')
+         .replace(/[\s_-]+/g, '-')
+         .replace(/^-+|-+$/g, '');
+
+     const sanitizedOrientation = (productForm.orientation || '0deg 0deg 0deg')
+       .replace(/[Oo]/g, '0')
+       .trim();
+
+     if (editingProduct) {
+       const { nutrition, ...rest } = productForm;
+       const updatedProduct: Product = {
+         ...editingProduct,
+         ...rest as Product,
+         orientation: sanitizedOrientation,
+         id: editingProduct.id
+       };
+       onUpdateProduct(updatedProduct);
+     } else {
+       const { nutrition, ...rest } = productForm;
+       const nutrients = nutrition ? [
+         { label: 'Calories', value: nutrition.calories || '' },
+         { label: 'Protein', value: nutrition.protein || '' },
+         { label: 'Carbs', value: nutrition.carbs || '' },
+         { label: 'Fat', value: nutrition.fat || '' }
+       ].filter(n => n.value) : [];
+       const newProduct: Product = {
+         id: Date.now().toString(),
+         slug: slug,
+         name: rest.name || 'New Product',
+         price: Number(rest.price) || 0,
+         category: rest.category || 'Uncategorized',
+         stock: Number(rest.stock) || 0,
+         image: rest.image || '',
+         rating: 5,
+         reviewCount: 0,
+         benefits: rest.benefits || [],
+         nutrients,
+         ...rest as Product,
+         orientation: sanitizedOrientation
+       };
+       onAddProduct(newProduct);
+     }
+
+     setProductView('list');
+     setEditingProduct(null);
+     setProductForm({
+       name: '',
+       price: 0,
+       category: '',
+       stock: 100,
+       image: '',
+       slug: '',
+       rating: 5,
+       reviewCount: 0,
+       benefits: [],
+       nutrients: [] as { label: string; value: string }[],
+       ingredients: '',
+       ingredientsList: [],
+       detailedNutrition: [] as { n: string; v100: string; v32: string; r: string; b?: boolean; i?: boolean }[],
+       nutrition: {
+         calories: '',
+         protein: '',
+         carbs: '',
+         fat: ''
+       },
+       model3d: '',
+       themeColor: '#FF6F00',
+       orientation: '0deg 0deg 0deg',
+       usageIdeas: []
+     });
+   };
 
   const handleStockUpdate = (product: Product, newStock: number) => {
     onUpdateProduct({ ...product, stock: Math.max(0, newStock) });
@@ -552,164 +802,139 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Handlers for Blog
   const openAddBlog = () => {
     setEditingBlogPost(null);
+    setBlogImageFile(null);
     setBlogForm({
       title: '',
       type: 'Recipe',
       excerpt: '',
       image: '',
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      readTime: '',
+      date: new Date().toISOString().split('T')[0],
       author: '',
-      content: ''
+      content: '',
+      subtitle: '',
+      intro_heading: '',
+      featured_quote: '',
+      facts_list: [],
+      key_points: [],
+      health_benefits: [],
+      usage_recipes: [],
+      isActive: true
     });
     setBlogView('form');
   };
 
   const openEditBlog = (post: BlogPost) => {
     setEditingBlogPost(post);
+    setBlogImageFile(null);
     const content = Array.isArray(post.content) ? post.content.join('\n\n') : (post.content || '');
-    setBlogForm({ ...post, content });
+    setBlogForm({
+      ...post,
+      content,
+      subtitle: post.subtitle || '',
+      intro_heading: post.intro_heading || '',
+      featured_quote: post.featured_quote || '',
+      facts_list: post.facts_list || [],
+      key_points: post.key_points || [],
+      health_benefits: post.health_benefits || [],
+      usage_recipes: post.usage_recipes || []
+    });
     setBlogView('form');
   };
 
-  const handleBlogSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+   const handleBlogSubmit = (e: React.FormEvent) => {
+     e.preventDefault();
 
-    if (!blogForm.image) {
-      alert("Please upload a cover image.");
-      return;
-    }
+     if (!blogForm.image) {
+       showToast("Please upload a cover image.", 'warning');
+       return;
+     }
 
-    const postData: BlogPost = {
-      id: editingBlogPost ? editingBlogPost.id : Date.now().toString(),
-      title: blogForm.title || 'Untitled Post',
-      type: (blogForm.type as any) || 'Recipe',
-      excerpt: blogForm.excerpt || '',
-      image: blogForm.image || '',
-      date: blogForm.date || new Date().toDateString(),
-      readTime: blogForm.readTime || '5 min read',
-      author: blogForm.author || 'Admin',
-      content: blogForm.content || ''
-    };
+     // Generate slug from title if not provided
+     const slug = blogForm.slug || 
+       blogForm.title.toLowerCase()
+         .replace(/[^\w\s-]/g, '')
+         .replace(/[\s_-]+/g, '-')
+         .replace(/^-+|-+$/g, '');
 
-    if (editingBlogPost) {
-      onUpdateBlog(postData);
-    } else {
-      onAddBlog(postData);
-    }
-    setBlogView('list');
-  };
+     // Calculate read time (rough estimate: 200 words per minute)
+     const wordCount = blogForm.content.trim().split(/\s+/).filter(Boolean).length;
+     const readTime = blogForm.readTime || 
+       (wordCount === 0 ? '0 min read' : `${Math.max(1, Math.round(wordCount / 200))} min read`);
+
+     const postData: BlogPost = {
+       id: editingBlogPost ? editingBlogPost.id : Date.now().toString(),
+       slug: slug,
+       title: blogForm.title || 'Untitled Post',
+       type: (blogForm.type as any) || 'Recipe',
+       excerpt: blogForm.excerpt || '',
+       image: blogForm.image || '',
+       date: blogForm.date || new Date().toISOString().split('T')[0],
+       readTime: readTime,
+       author: blogForm.author || 'Admin',
+       content: blogForm.content || '',
+       subtitle: blogForm.subtitle || '',
+       intro_heading: blogForm.intro_heading || '',
+       featured_quote: blogForm.featured_quote || '',
+       facts_list: blogForm.facts_list || [],
+       key_points: blogForm.key_points || [],
+       health_benefits: blogForm.health_benefits || [],
+       usage_recipes: blogForm.usage_recipes || [],
+       tags: blogForm.tags || [],
+       isActive: blogForm.isActive !== false
+     };
+
+     if (blogImageFile) {
+       postData.imageFile = blogImageFile;
+     }
+
+     if (editingBlogPost) {
+       onUpdateBlog(postData);
+     } else {
+       onAddBlog(postData);
+     }
+     setBlogImageFile(null);
+     setBlogView('list');
+   };
 
   const handleBlogImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setBlogForm(prev => ({ ...prev, image: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      setBlogImageFile(file);
+      setBlogForm(prev => ({ ...prev, image: URL.createObjectURL(file) }));
     }
   };
 
-  const updateBlogContent = (index: number, value: string) => {
-    const newContent = [...(blogForm.content || [])];
-    newContent[index] = value;
-    setBlogForm(prev => ({ ...prev, content: newContent }));
-  };
 
-  const addBlogParagraph = () => {
-    setBlogForm(prev => ({ ...prev, content: [...(prev.content || []), ''] }));
-  };
 
-  const removeBlogParagraph = (index: number) => {
-    setBlogForm(prev => ({ ...prev, content: prev.content?.filter((_, i) => i !== index) }));
-  };
-
-  // Handlers for Slides
-  const handleSlideSubmit = async (e: React.FormEvent) => {
+  const handleSlideSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const token = localStorage.getItem('admin_access_token');
-    
-    // Ensure all backend required fields are present
-    const payload = {
-        category: slideForm.category || 'New Category',
-        headline: slideForm.headline || 'New Headline',
-        description: slideForm.description || '',
-        image: slideForm.image || '',
-        background_image: slideForm.backgroundImage || '',
-        cta: slideForm.cta || 'SHOP NOW',
-        bg_color: slideForm.bgColor || COLOR_THEMES[0].bgColor,
-        accent_color: slideForm.accentColor || COLOR_THEMES[0].accentColor,
-        blob_color: slideForm.blobColor || COLOR_THEMES[0].blobColor,
-        is_active: slideForm.isActive ?? true
-    };
 
-    if (editingSlide && editingSlide.id && !editingSlide.id.toString().includes('New')) {
+    if (editingSlide) {
       // Update existing
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/hero-slides/${editingSlide.id}/`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          const updatedD = await res.json();
-          const mappedS = {
-            id: String(updatedD.id),
-            category: updatedD.category,
-            headline: updatedD.headline,
-            description: updatedD.description,
-            image: updatedD.image,
-            backgroundImage: updatedD.background_image || updatedD.backgroundImage || '',
-            cta: updatedD.cta,
-            bgColor: updatedD.bg_color,
-            accentColor: updatedD.accent_color,
-            blobColor: updatedD.blob_color,
-            isActive: updatedD.is_active
-          };
-          onUpdateSlides(slides.map(s => s.id === editingSlide.id ? mappedS : s));
-        } else {
-          const errorData = await res.json();
-          console.error('Slide update failed:', errorData);
-          alert('Failed to update slide: ' + JSON.stringify(errorData));
-        }
-      } catch (err) { 
-        console.error(err);
-        alert('An error occurred while updating the slide.');
-      }
+      onUpdateSlide({ ...editingSlide, ...slideForm } as HeroSlide);
     } else {
       // Add new
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/hero-slides/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          const newD = await res.json();
-          const mappedS = {
-            id: String(newD.id),
-            category: newD.category,
-            headline: newD.headline,
-            description: newD.description,
-            image: newD.image,
-            backgroundImage: newD.background_image || newD.backgroundImage || '',
-            cta: newD.cta,
-            bgColor: newD.bg_color,
-            accentColor: newD.accent_color,
-            blobColor: newD.blob_color,
-            isActive: newD.is_active
-          };
-          onUpdateSlides([...slides, mappedS]);
-        } else {
-          const errorData = await res.json();
-          console.error('Slide creation failed:', errorData);
-          alert('Failed to create slide: ' + JSON.stringify(errorData));
-        }
-      } catch (err) { 
-        console.error(err);
-        alert('An error occurred while creating the slide.');
-      }
+      const newSlide: HeroSlide = {
+        id: Date.now().toString(),
+        category: slideForm.category || 'New Category',
+        headline: slideForm.headline || 'New Headline',
+        image: slideForm.image || 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==',
+        cta: slideForm.cta || 'SHOP NOW',
+        ctaLink: slideForm.ctaLink || '/shop',
+        secondaryCta: slideForm.secondaryCta || '',
+        secondaryCtaLink: slideForm.secondaryCtaLink || '',
+        bgColor: slideForm.bgColor || COLOR_THEMES[0].bgColor,
+        accentColor: slideForm.accentColor || COLOR_THEMES[0].accentColor,
+        blobColor: slideForm.blobColor || COLOR_THEMES[0].blobColor,
+        backgroundImage: slideForm.backgroundImage || '',
+        productId: slideForm.productId || '',
+        transitionType: slideForm.transitionType || 'fade',
+        mobileImage: slideForm.mobileImage || '',
+        displayDuration: slideForm.displayDuration || 5,
+        isActive: slideForm.isActive ?? true,
+        order: slides.length > 0 ? Math.max(...slides.map(s => s.order || 0)) + 1 : 0
+      };
+      onAddSlide(newSlide);
     }
     closeSlideModal();
   };
@@ -719,13 +944,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setSlideForm({
       category: '',
       headline: '',
-      description: '',
       image: '',
       backgroundImage: '',
       cta: 'SHOP NOW',
+      ctaLink: '/shop',
+      secondaryCta: '',
+      secondaryCtaLink: '',
       bgColor: COLOR_THEMES[0].bgColor,
       accentColor: COLOR_THEMES[0].accentColor,
       blobColor: COLOR_THEMES[0].blobColor,
+      backgroundImage: '',
+      productId: '',
+      transitionType: 'fade',
+      mobileImage: '',
+      displayDuration: 5,
       isActive: true
     });
     setIsSlideModalOpen(true);
@@ -744,48 +976,30 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const deleteSlide = async (id: string) => {
     if (confirm('Are you sure you want to delete this slide?')) {
-      const token = localStorage.getItem('admin_access_token');
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/hero-slides/${id}/`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (res.ok) {
-          onUpdateSlides(slides.filter(s => s.id !== id));
-        } else {
-          alert('Failed to delete slide.');
-        }
-      } catch (err) { 
-        console.error(err);
-        alert('An error occurred while deleting the slide.');
-      }
+      onDeleteSlide(id);
     }
   };
 
-  const toggleSlideStatus = async (id: string) => {
+  const toggleSlideStatus = (id: string) => {
     const slide = slides.find(s => s.id === id);
-    if (!slide) return;
-    const token = localStorage.getItem('admin_access_token');
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/hero-slides/${id}/`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ is_active: !slide.isActive })
-      });
-      if (res.ok) {
-        onUpdateSlides(slides.map(s => s.id === id ? { ...s, isActive: !s.isActive } : s));
-      }
-    } catch (err) { console.error(err); }
+    if (slide) {
+      onUpdateSlide({ ...slide, isActive: !slide.isActive });
+    }
   };
 
   const moveSlide = (index: number, direction: 'up' | 'down') => {
-    const newSlides = [...slides];
-    if (direction === 'up' && index > 0) {
-      [newSlides[index], newSlides[index - 1]] = [newSlides[index - 1], newSlides[index]];
-    } else if (direction === 'down' && index < newSlides.length - 1) {
-      [newSlides[index], newSlides[index + 1]] = [newSlides[index + 1], newSlides[index]];
-    }
-    onUpdateSlides(newSlides);
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= slides.length) return;
+
+    const currentSlide = slides[index];
+    const targetSlide = slides[targetIndex];
+
+    // Swap orders
+    const currentOrder = currentSlide.order || 0;
+    const targetOrder = targetSlide.order || 0;
+
+    onUpdateSlide({ ...currentSlide, order: targetOrder });
+    onUpdateSlide({ ...targetSlide, order: currentOrder });
   };
 
   const handleSlideImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -799,33 +1013,148 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  const handleSlideBgImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMobileSlideImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       const reader = new FileReader();
       reader.onloadend = () => {
-        setSlideForm(prev => ({ ...prev, backgroundImage: reader.result as string }));
+        setSlideForm(prev => ({ ...prev, mobileImage: reader.result as string }));
       };
       reader.readAsDataURL(file);
     }
   };
 
-  // Handlers for Visitor Forms
-  const handleCreateForm = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newId = `vf - ${Date.now()} `;
-    const newForm: VisitorForm = {
-      id: newId,
-      title: newFormData.title,
-      eventName: newFormData.eventName,
-      status: 'Published',
-      link: `https://pinobite.global/forms/${newId}`,
-      createdAt: new Date().toISOString(),
-      submissions: []
+  // Form Builder helpers
+  const buildSurveySchema = (fields: BuilderField[]): any => {
+    const typeMap: Record<string, string> = {
+      text: 'text', email: 'text', tel: 'text', textarea: 'comment',
+      select: 'dropdown', checkbox: 'checkbox', radio: 'radiogroup',
+      date: 'text', rating: 'rating', file: 'file',
     };
-    onAddVisitorForm(newForm);
-    setVisitorFormView('list');
-    setNewFormData({ title: '', eventName: '' });
+    const inputTypeMap: Record<string, string> = {
+      email: 'email', tel: 'tel', date: 'date',
+    };
+    const elements = fields.map((f, i) => {
+      const el: any = {
+        type: typeMap[f.type] || 'text',
+        name: f.name || `question${i + 1}`,
+        title: f.title || f.type,
+        isRequired: f.isRequired,
+      };
+      if (inputTypeMap[f.type]) el.inputType = inputTypeMap[f.type];
+      if (f.placeholder) el.placeholder = f.placeholder;
+      if (['dropdown', 'checkbox', 'radiogroup'].includes(el.type)) {
+        el.choices = f.choices.length > 0 ? f.choices : ['Option 1'];
+      }
+      if (el.type === 'rating') {
+        el.rateCount = f.rateCount || 5;
+        el.rateMax = f.rateMax || 5;
+        el.rateMin = f.rateMin || 1;
+      }
+      if (f.type === 'file') {
+        el.allowMultiple = false;
+        el.maxSize = 0;
+      }
+      return el;
+    });
+    return { elements };
+  };
+
+  // Handlers for Visitor Forms
+  const handleSaveForm = async () => {
+    if (!builderTitle.trim()) {
+      showToast('Please enter a form title.', 'warning');
+      return;
+    }
+    if (builderFields.length === 0) {
+      showToast('Please add at least one field.', 'warning');
+      return;
+    }
+    const schema = buildSurveySchema(builderFields);
+    if (visitorFormView === 'edit' && selectedVisitorForm) {
+      await onUpdateVisitorForm(selectedVisitorForm.id, {
+        title: builderTitle,
+        event_name: builderEventName,
+        status: builderStatus,
+        form_schema: schema,
+        require_email_verification: builderRequireEmail,
+      });
+      setVisitorFormView('details');
+    } else {
+      const result = await onAddVisitorForm({
+        id: '',
+        title: builderTitle,
+        event_name: builderEventName,
+        status: builderStatus,
+        form_schema: schema,
+        require_email_verification: builderRequireEmail,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        submissions: [],
+      });
+      setVisitorFormView('list');
+    }
+    resetBuilder();
+  };
+
+  const resetBuilder = () => {
+    setBuilderFields([]);
+    setBuilderTitle('');
+    setBuilderEventName('');
+    setBuilderStatus('Draft');
+    setBuilderRequireEmail(false);
+    setPreviewSchema(null);
+  };
+
+  const handleEditForm = (form: VisitorForm) => {
+    setSelectedVisitorForm(form);
+    setBuilderTitle(form.title);
+    setBuilderEventName(form.event_name);
+    setBuilderStatus(form.status);
+    setBuilderRequireEmail(form.require_email_verification ?? false);
+    const fields: BuilderField[] = (form.form_schema?.elements || []).map((el: any, i: number) => ({
+      id: `fld_${i}`,
+      type: el.inputType === 'email' ? 'email' : el.inputType === 'tel' ? 'tel' : el.inputType === 'date' ? 'date' : el.type === 'comment' ? 'textarea' : el.type === 'dropdown' ? 'select' : el.type === 'radiogroup' ? 'radio' : el.type,
+      title: el.title || '',
+      name: el.name || `question${i + 1}`,
+      isRequired: el.isRequired || false,
+      placeholder: el.placeholder || '',
+      choices: el.choices || [],
+      rateCount: el.rateCount || 5,
+      rateMax: el.rateMax || 5,
+      rateMin: el.rateMin || 1,
+    }));
+    setBuilderFields(fields);
+    setVisitorFormView('edit');
+  };
+
+  const handleAddField = (type: string) => {
+    setBuilderFields(prev => [...prev, createField(type, prev.length + 1)]);
+    setShowFieldPicker(false);
+  };
+
+  const handleRemoveField = (id: string) => {
+    setBuilderFields(prev => prev.filter(f => f.id !== id));
+  };
+
+  const handleFieldMove = (id: string, direction: 'up' | 'down') => {
+    setBuilderFields(prev => {
+      const idx = prev.findIndex(f => f.id === id);
+      if (idx === -1) return prev;
+      const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (newIdx < 0 || newIdx >= prev.length) return prev;
+      const arr = [...prev];
+      [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+      return arr;
+    });
+  };
+
+  const handleFieldChange = (id: string, key: string, value: any) => {
+    setBuilderFields(prev => prev.map(f => f.id === id ? { ...f, [key]: value } : f));
+  };
+
+  const handlePreview = () => {
+    setPreviewSchema(buildSurveySchema(builderFields));
   };
 
   const downloadQRCode = async (dataUrl: string, filename: string) => {
@@ -842,46 +1171,33 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error downloading QR code:', error);
-      alert('Failed to download QR code');
+      showToast('Failed to download QR code', 'error');
     }
   };
 
   const handleExportCSV = () => {
     if (!selectedVisitorForm) return;
 
-    const headers = [
-      'Name',
-      'Email',
-      'Phone',
-      'Address/City',
-      'Buying Source',
-      'Brand Awareness',
-      'Current Usage',
-      'Flavor Preferences',
-      'Reviewed Product',
-      'Review Content',
-      'Marketing Consent',
-      'Submitted At'
-    ];
+    const schema = selectedVisitorForm.form_schema;
+    const allElements = schema?.pages
+      ? schema.pages.flatMap((p: any) => p.elements || [])
+      : schema?.elements || [];
+    const headers = allElements.map((el: any) => el.title || el.name);
+    headers.push('Submitted At');
 
-    const rows = selectedVisitorForm.submissions.map(sub => [
-      sub.name,
-      sub.email,
-      sub.phone,
-      sub.addressDetails || '',
-      sub.buyingSource || '',
-      sub.brandAwareness ? 'Yes' : 'No',
-      sub.currentUsage || '',
-      sub.flavorPreferences || '',
-      sub.reviewedProduct || '',
-      sub.reviewContent || '',
-      sub.marketingConsent ? 'Agreed' : 'Not Agreed',
-      new Date(sub.submittedAt || Date.now()).toLocaleString()
-    ]);
+    const rows = selectedVisitorForm.submissions.map(sub => {
+      const data = sub.submission_data || {};
+      const row = allElements.map((el: any) => {
+        const val = data[el.name];
+        return Array.isArray(val) ? val.join(', ') : String(val ?? '');
+      });
+      row.push(new Date(sub.submitted_at || Date.now()).toLocaleString());
+      return row;
+    });
 
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')) // Quote cells and escape existing quotes
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -924,13 +1240,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Handlers for Rewards
   const handleToggleRewardRule = async (rule: RewardRule) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/reward-rules/${rule.id}/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/reward-rules/${rule.id}/`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_enabled: !rule.is_enabled })
       });
       if (response.ok) {
@@ -943,13 +1255,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const handleUpdateRewardPoints = async (rule: RewardRule, newPoints: number) => {
     try {
-      const token = localStorage.getItem('admin_access_token');
-      const response = await fetch(`${API_BASE_URL}/api/reward-rules/${rule.id}/`, {
+      const response = await adminApiFetch(`${API_BASE_URL}/api/reward-rules/${rule.id}/`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ points: newPoints })
       });
       if (response.ok) {
@@ -972,27 +1280,74 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   // Handlers for Events
+  const openAddEvent = () => {
+    setEditingEvent(null);
+    setEventForm({
+      title: '',
+      date: new Date().toISOString().split('T')[0],
+      location: '',
+      image: '',
+      summary: '',
+      fullStory: [{ heading: '', content: '' }],
+      gallery: [],
+      featuredProducts: [],
+      impactParticipants: '',
+      fuelBarsShared: '',
+      vibeEnergy: '',
+      scheduledDate: ''
+    });
+    setEventView('add');
+  };
+
+  const openEditEvent = (event: EventBlog) => {
+    setEditingEvent(event);
+    setEventForm({
+      ...event,
+      date: event.date || '',
+      impactParticipants: event.impactParticipants || '',
+      fuelBarsShared: event.fuelBarsShared || '',
+      vibeEnergy: event.vibeEnergy || '',
+      scheduledDate: event.scheduledDate || ''
+    });
+    setEventView('add');
+  };
+
   const handleEventSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!eventForm.image) {
-      alert("Please upload a cover image.");
+      showToast("Please upload a cover image.", 'warning');
       return;
     }
 
-    const newEvent: EventBlog = {
-      id: Date.now().toString(),
-      title: eventForm.title || 'New Event',
-      date: eventForm.date || new Date().toDateString(),
-      location: eventForm.location || 'Online',
-      image: eventForm.image || '',
-      summary: eventForm.summary || '',
-      fullStory: eventForm.fullStory?.filter(s => s.heading && s.content) || [],
-      gallery: eventForm.gallery || [],
-      featuredProducts: []
-    };
-    onAddEvent(newEvent);
+    if (editingEvent) {
+      const updatedEvent: EventBlog = {
+        ...editingEvent,
+        ...eventForm as EventBlog,
+        id: editingEvent.id,
+        fullStory: eventForm.fullStory?.filter(s => s.heading && s.content) || []
+      };
+      onUpdateEvent(updatedEvent);
+    } else {
+      const newEvent: EventBlog = {
+        id: Date.now().toString(),
+        title: eventForm.title || 'New Event',
+        date: eventForm.date || new Date().toDateString(),
+        location: eventForm.location || 'Online',
+        image: eventForm.image || '',
+        summary: eventForm.summary || '',
+        fullStory: eventForm.fullStory?.filter(s => s.heading && s.content) || [],
+        gallery: eventForm.gallery || [],
+        featuredProducts: eventForm.featuredProducts || [],
+        impactParticipants: eventForm.impactParticipants || '',
+        fuelBarsShared: eventForm.fuelBarsShared || '',
+        vibeEnergy: eventForm.vibeEnergy || '',
+        scheduledDate: eventForm.scheduledDate || ''
+      };
+      onAddEvent(newEvent);
+    }
     setEventView('list');
-    setEventForm({ title: '', date: '', location: '', image: '', summary: '', fullStory: [{ heading: '', content: '' }], gallery: [], featuredProducts: [] });
+    setEditingEvent(null);
+    setEventForm({ title: '', date: '', location: '', image: '', summary: '', fullStory: [{ heading: '', content: '' }], gallery: [], featuredProducts: [], impactParticipants: '', fuelBarsShared: '', vibeEnergy: '', scheduledDate: '' });
   };
 
   const handleEventImageUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'gallery') => {
@@ -1085,74 +1440,49 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleDownloadInvoice = () => {
     if (!viewingOrder) return;
 
-    const doc = new jsPDF();
+    const invoiceText = `
+===============================================
+          PINOBITE HEALTH FOODS
+        Invoice #${viewingOrder.id}
+===============================================
 
-    // Brand
-    doc.setFontSize(22);
-    doc.setTextColor(0, 138, 69); // Pinobite Green
-    doc.text("PINOBITE GLOBAL", 20, 20);
+Date: ${new Date(viewingOrder.created_at).toLocaleDateString()}
+Customer: ${viewingOrder.user_name || 'N/A'}
+Email: ${viewingOrder.user_email || 'N/A'}
 
-    // Invoice Label
-    doc.setFontSize(16);
-    doc.setTextColor(0, 0, 0);
-    doc.text("INVOICE", 150, 20);
+-----------------------------------------------
+ITEMS
+-----------------------------------------------
+${viewingOrder.items.map(item =>
+      `${item.product_name} x${item.quantity} = ₹${item.price * item.quantity}`
+    ).join('\n')}
 
-    // Order Details
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Order ID: ${viewingOrder.id}`, 20, 40);
-    doc.text(`Date: ${new Date(viewingOrder.created_at).toLocaleDateString()}`, 20, 46);
-    doc.text(`Status: ${viewingOrder.status}`, 20, 52);
-    doc.text(`Payment: ${viewingOrder.razorpay_payment_id ? 'Paid' : 'Pending'}`, 20, 58);
+-----------------------------------------------
+SUBTOTAL:      ₹${viewingOrder.total_amount}
+SHIPPING:      ₹0
+TOTAL:        ₹${viewingOrder.total_amount}
+===============================================
 
-    // Customer Details
-    doc.text(`Customer: ${viewingOrder.user_name}`, 150, 40);
-    doc.text(viewingOrder.shipping_address || 'No Address', 150, 46);
+Payment Status: ${viewingOrder.razorpay_payment_id ? 'PAID' : 'PENDING'}
+Payment ID: ${viewingOrder.razorpay_payment_id || 'N/A'}
 
-    // Divider
-    doc.setDrawColor(220, 220, 220);
-    doc.line(20, 65, 190, 65);
+Shipping Address:
+${viewingOrder.first_name} ${viewingOrder.last_name}
+${viewingOrder.address || ''}
+${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}
 
-    // Table Header
-    doc.setFontSize(11);
-    doc.setTextColor(0);
-    doc.text("Item Description", 20, 75);
-    doc.text("Qty", 130, 75);
-    doc.text("Price", 160, 75);
+===============================================
+    Thank you for choosing Pinobite!
+    www.pinobite.com
+===============================================
+    `;
 
-    // Divider
-    doc.line(20, 80, 190, 80);
-
-    // Table Body
-    let y = 90;
-    doc.setFontSize(10);
-    doc.setTextColor(60);
-
-    viewingOrder.items.forEach((item) => {
-      doc.text(item.product_name, 20, y);
-      doc.text(item.quantity.toString(), 130, y);
-      doc.text(`Rs. ${item.price}`, 160, y);
-      y += 10;
-    });
-
-    // Divider
-    doc.line(20, y, 190, y);
-    y += 10;
-
-    // Total
-    doc.setFontSize(14);
-    doc.setTextColor(0);
-    doc.text("Total Amount:", 110, y + 5);
-    doc.setTextColor(0, 138, 69);
-    doc.text(`Rs. ${viewingOrder.total_amount.toLocaleString()}`, 160, y + 5);
-
-    // Footer
-    doc.setFontSize(9);
-    doc.setTextColor(150);
-    doc.text("Thank you for your business!", 20, y + 30);
-    doc.text("This is a computer generated invoice.", 20, y + 35);
-
-    doc.save(`Invoice-${viewingOrder.id}.pdf`);
+    const blob = new Blob([invoiceText], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `Invoice-${viewingOrder.id}.txt`;
+    link.click();
+    showToast('Invoice downloaded!', 'success');
   };
 
   // Update Status Logic
@@ -1160,14 +1490,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleStatusUpdate = async (newStatus: string) => {
     if (!viewingOrder) return;
     try {
-      const token = localStorage.getItem('access_token') || localStorage.getItem('admin_access_token');
-      if (!token) return;
-      const response = await fetch(`${API_BASE_URL}/api/orders/${viewingOrder.id}/`, {
+      const response = await adminApiFetchWithFallback(`${API_BASE_URL}/api/orders/${viewingOrder.id}/`, {
         method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
       if (response.ok) {
@@ -1182,7 +1507,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       }
     } catch (error) {
       console.error("Failed to update status", error);
-      alert("Failed to update status");
+      showToast("Failed to update status", 'error');
     }
   };
 
@@ -1194,6 +1519,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     order.user_name?.toLowerCase().includes(orderSearchQuery.toLowerCase())
   );
 
+  const filteredCustomers = (customers || []).filter(customer =>
+    customer.username.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+    customer.email.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+    customer.first_name?.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+    customer.last_name?.toLowerCase().includes(customerSearchQuery.toLowerCase()) ||
+    customer.id.toString().includes(customerSearchQuery)
+  );
+
   const getPageTitle = () => {
     switch (activeTab) {
       case 'overview': return 'Command Center';
@@ -1201,28 +1534,29 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       case 'blogs': return 'Blog Manager';
       case 'events': return 'Event Stories';
       case 'ui-settings': return 'Site Customization';
-      case 'visitor-forms': return 'Pinobit Event Visitor Form';
+      case 'visitor-forms': return 'Form Builder';
       case 'announcements': return 'Dynamic Announcements';
       case 'rewards': return 'Loyalty & Rewards';
+      case 'customers': return 'Customer Management';
       default: return activeTab.replace('-', ' ');
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex font-display">
+    <div className="fixed inset-0 bg-zenvira-bg flex font-poppins text-zenvira-text overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-20 lg:w-64 bg-slate-900 text-white flex flex-col flex-shrink-0 transition-all duration-300">
-        <div className="p-4 border-b border-slate-800 h-20 flex items-center justify-center">
+      <aside className="w-20 lg:w-64 bg-white text-zenvira-text flex flex-col flex-shrink-0 border-r border-zenvira-border/10 transition-all duration-300">
+        <div className="p-4 border-b border-zenvira-border/10 h-20 flex items-center justify-center">
           <button
             onClick={onBackToSite}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-primary text-white rounded-xl transition-all duration-300 group"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zenvira-bg hover:bg-zenvira-accent hover:text-white text-zenvira-text border border-zenvira-border/15 rounded-full transition-all duration-300 group"
           >
             <span className="material-symbols-outlined text-xl group-hover:-translate-x-1 transition-transform">arrow_back</span>
             <span className="font-bold text-sm hidden lg:block uppercase tracking-wider">Go to Site</span>
           </button>
         </div>
 
-        <nav className="flex-1 py-6 space-y-1">
+        <nav className="flex-1 overflow-y-auto custom-scroll py-6 space-y-1 min-h-0">
           {[
             { id: 'overview', icon: 'dashboard', label: 'Overview' },
             { id: 'products', icon: 'inventory_2', label: 'Products & Stock' },
@@ -1233,44 +1567,45 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             { id: 'announcements', icon: 'campaign', label: 'Announcements' },
             { id: 'distributors', icon: 'handshake', label: 'Distributors' },
             { id: 'rewards', icon: 'military_tech', label: 'Rewards & Loyalty' },
+            { id: 'customers', icon: 'group', label: 'Customers' },
             { id: 'visitor-forms', icon: 'qr_code_scanner', label: 'Visitor Forms' },
           ].map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center gap-4 px-6 py-4 transition-colors relative ${activeTab === item.id
-                ? 'text-white bg-slate-800'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                ? 'text-zenvira-accent bg-zenvira-accent/10'
+                : 'text-zenvira-secondary hover:text-zenvira-text hover:bg-zenvira-bg/50'
                 }`}
             >
               <span className="material-symbols-outlined">{item.icon}</span>
               <span className="font-bold text-sm hidden lg:block">{item.label}</span>
               {activeTab === item.id && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-zenvira-accent"></div>
               )}
             </button>
           ))}
         </nav>
 
-        <div className="p-4 border-t border-slate-800/50">
-          <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/30">
+        <div className="p-4 border-t border-zenvira-border/10">
+          <div className="bg-zenvira-bg/50 rounded-2xl p-4 border border-zenvira-border/10">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center font-black text-white shadow-lg shadow-primary/20 flex-shrink-0">
+              <div className="w-10 h-10 rounded-full bg-zenvira-accent flex items-center justify-center font-bold text-white shadow-md shadow-zenvira-accent/25 flex-shrink-0">
                 {adminInitials}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Signed in as</p>
-                <p className="text-xs font-bold text-white truncate" title={adminEmail}>{adminEmail}</p>
+                <p className="text-[9px] font-bold uppercase tracking-wider text-zenvira-secondary mb-0.5">Signed in as</p>
+                <p className="text-xs font-bold text-zenvira-text truncate" title={adminEmail}>{adminEmail}</p>
               </div>
             </div>
-            <div className="flex items-center justify-between pt-3 border-t border-slate-700/50">
-              <span className="text-[10px] font-black uppercase tracking-widest text-primary/80 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+            <div className="flex items-center justify-between pt-3 border-t border-zenvira-border/10">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-zenvira-accent flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-zenvira-accent animate-pulse"></span>
                 Super Admin
               </span>
               <button
                 onClick={onLogout}
-                className="w-8 h-8 rounded-lg bg-slate-700/50 text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-all flex items-center justify-center group"
+                className="w-8 h-8 rounded-lg bg-white border border-zenvira-border/10 text-zenvira-secondary hover:text-red-600 hover:bg-red-50 hover:border-red-100 transition-all flex items-center justify-center group"
                 title="Logout"
               >
                 <span className="material-symbols-outlined text-lg group-hover:translate-x-0.5 transition-transform">logout</span>
@@ -1281,10 +1616,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col h-full overflow-hidden min-h-0">
         {/* Top Header */}
-        <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-8 flex-shrink-0 relative z-30">
-          <h2 className="text-2xl font-black uppercase text-slate-800">
+        <header className="h-20 bg-white border-b border-zenvira-border/10 flex items-center justify-between px-8 flex-shrink-0 relative z-30">
+          <h2 className="text-3xl font-bayon font-normal uppercase text-zenvira-text tracking-wide">
             {getPageTitle()}
           </h2>
           <div className="flex items-center gap-4 relative">
@@ -1360,13 +1695,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <p className="font-black text-slate-900 truncate text-sm">{adminEmail}</p>
                 </div>
                 <div className="p-2 space-y-1">
-                  <button className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-bold text-slate-600 flex items-center gap-3 transition-colors">
+                  <button onClick={() => { setShowSettings(false); openProfileModal(); }} className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-bold text-slate-600 flex items-center gap-3 transition-colors">
                     <span className="material-symbols-outlined text-lg">person</span> Profile Settings
                   </button>
-                  <button className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-bold text-slate-600 flex items-center gap-3 transition-colors">
-                    <span className="material-symbols-outlined text-lg">tune</span> System Preferences
-                  </button>
-                  <button className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-bold text-slate-600 flex items-center gap-3 transition-colors">
+                  <button onClick={() => { setShowSettings(false); setShowSecurityModal(true); }} className="w-full text-left px-4 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-bold text-slate-600 flex items-center gap-3 transition-colors">
                     <span className="material-symbols-outlined text-lg">security</span> Security
                   </button>
                 </div>
@@ -1381,7 +1713,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
         </header>
 
         {/* Scrollable Area */}
-        <div className="flex-1 overflow-y-auto p-8 custom-scroll" onClick={() => { setShowNotifications(false); setShowSettings(false); }}>
+        <div className="flex-1 overflow-y-auto p-8 relative" style={{ height: 'calc(100vh - 5rem)' }} onClick={() => { setShowNotifications(false); setShowSettings(false); }}>
 
           {/* ----- SITE UI SETTINGS TAB ----- */}
           {activeTab === 'ui-settings' && (
@@ -1426,30 +1758,29 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <div key={slide.id} className="bg-white rounded-3xl border border-slate-200 overflow-hidden flex shadow-sm hover:shadow-md transition-shadow group">
                         <div className={`w-48 ${slide.bgColor} flex items-center justify-center p-4 relative overflow-hidden`}>
                           <div className={`absolute -bottom-4 -right-4 w-20 h-20 rounded-full blur-2xl opacity-40 ${slide.blobColor}`}></div>
-                          <img src={slide.image} className="w-full h-auto object-contain drop-shadow-lg z-10" alt="Preview" />
+                          <img src={getMediaUrl(slide.image)} className="w-full h-auto object-contain drop-shadow-lg z-10" alt="Preview" />
                         </div>
-                        <div className="flex-1 p-6 flex flex-col">
-                          <div className="flex justify-between items-start mb-2">
+                        <div className="flex-1 p-8 flex flex-col">
+                          <div className="flex justify-between items-start mb-4">
                             <div>
-                              <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${slide.accentColor}`}>{slide.category}</span>
-                              <h4 className="font-black uppercase text-xl leading-tight mt-1">{slide.headline}</h4>
+                              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 block mb-1">{slide.category || 'Slide Label'}</span>
+                              <h4 className="font-anton uppercase text-3xl leading-[1.25] text-slate-900 tracking-tight">{slide.headline || 'Asset Preview'}</h4>
                             </div>
-                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button onClick={() => moveSlide(index, 'up')} disabled={index === 0} className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-400 flex items-center justify-center disabled:opacity-30"><span className="material-symbols-outlined text-sm">keyboard_arrow_up</span></button>
-                              <button onClick={() => moveSlide(index, 'down')} disabled={index === slides.length - 1} className="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-400 flex items-center justify-center disabled:opacity-30"><span className="material-symbols-outlined text-sm">keyboard_arrow_down</span></button>
+                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => moveSlide(index, 'up')} disabled={index === 0} className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 flex items-center justify-center disabled:opacity-30 transition-all shadow-sm"><span className="material-symbols-outlined text-lg">keyboard_arrow_up</span></button>
+                              <button onClick={() => moveSlide(index, 'down')} disabled={index === slides.length - 1} className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-400 flex items-center justify-center disabled:opacity-30 transition-all shadow-sm"><span className="material-symbols-outlined text-lg">keyboard_arrow_down</span></button>
                             </div>
                           </div>
-                          <p className="text-sm text-slate-500 line-clamp-2 flex-1 mb-4">{slide.description}</p>
-                          <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                            <div className="flex items-center gap-4">
-                              <button onClick={() => toggleSlideStatus(slide.id)} className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${slide.isActive ? 'text-green-500' : 'text-slate-400'}`}>
-                                <span className="material-symbols-outlined text-lg">{slide.isActive ? 'check_circle' : 'circle'}</span>
+                          <div className="flex items-center justify-between pt-6 border-t border-slate-50 mt-auto">
+                            <div className="flex items-center gap-6">
+                              <button onClick={() => toggleSlideStatus(slide.id)} className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${slide.isActive ? 'text-green-500' : 'text-slate-400 hover:text-slate-600'}`}>
+                                <span className="material-symbols-outlined text-xl">{slide.isActive ? 'check_circle' : 'radio_button_unchecked'}</span>
                                 {slide.isActive ? 'Active' : 'Hidden'}
                               </button>
                             </div>
-                            <div className="flex gap-2">
-                              <button onClick={() => deleteSlide(slide.id)} className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"><span className="material-symbols-outlined text-lg">delete</span></button>
-                              <button onClick={() => openEditSlideModal(slide)} className="bg-slate-900 text-white px-6 py-2.5 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-primary transition-colors">Edit Content</button>
+                            <div className="flex gap-3">
+                              <button onClick={() => { if (confirm('Permanently delete this slide?')) deleteSlide(slide.id); }} className="w-12 h-12 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"><span className="material-symbols-outlined">delete</span></button>
+                              <button onClick={() => openEditSlideModal(slide)} className="bg-slate-900 text-white px-8 h-12 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-primary transition-all shadow-lg hover:-translate-y-0.5">Manage Slide</button>
                             </div>
                           </div>
                         </div>
@@ -1492,47 +1823,60 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </form>
 
                     {/* Story Preview Area */}
-                    {newStoryForm.mediaUrl && (
-                      <div className="mt-8 border-t border-slate-100 pt-6">
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Live Preview</h4>
-                        <div className="w-[160px] h-[280px] rounded-[18px] overflow-hidden relative shadow-lg">
-                          {newStoryForm.mediaType === 'video' ? (
-                            <video src={newStoryForm.mediaUrl} className="w-full h-full object-cover" autoPlay muted loop />
-                          ) : (
-                            <img src={newStoryForm.mediaUrl} className="w-full h-full object-cover" alt="Preview" />
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                          {(() => {
-                            const p = products.find(prod => prod.id === newStoryForm.productId);
-                            if (!p) {
+                    {newStoryForm.mediaUrl && (() => {
+                      const driveFileId = (() => {
+                        // Improved regex to handle /file/d/ID/view, id=ID, and other common formats
+                        const match = newStoryForm.mediaUrl?.match(/(?:\/d\/|id=)([a-zA-Z0-9_-]{10,})/);
+                        return match ? match[1] : null;
+                      })();
+
+                      const previewSrc = driveFileId
+                        ? `https://lh3.googleusercontent.com/u/0/d/${driveFileId}=w400-h800-p` // More reliable preview URL
+                        : newStoryForm.mediaUrl;
+
+                      return (
+                        <div className="mt-8 border-t border-slate-100 pt-6">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Live Preview</h4>
+                          <div className="w-[160px] h-[280px] rounded-[18px] overflow-hidden relative shadow-lg">
+                            <img src={getMediaUrl(previewSrc)} className="w-full h-full object-cover" alt="Preview" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
+                                <span className="material-symbols-outlined text-white text-lg">play_arrow</span>
+                              </div>
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                            {(() => {
+                              const p = products.find(prod => prod.id === newStoryForm.productId);
+                              if (!p) {
+                                return (
+                                  <div className="absolute bottom-2 left-2 right-2">
+                                    <p className="text-[8px] font-bold text-white uppercase truncate">Product will link here</p>
+                                  </div>
+                                );
+                              }
                               return (
-                                <div className="absolute bottom-2 left-2 right-2">
-                                  <p className="text-[8px] font-bold text-white uppercase truncate">Product will link here</p>
-                                </div>
-                              );
-                            }
-                            return (
-                              <div className="absolute bottom-4 left-2 right-2 bg-white rounded-xl p-2.5 shadow-lg flex items-center gap-3 border border-slate-100">
-                                <div className="w-16 h-16 rounded-lg flex-shrink-0 flex items-center justify-center">
-                                  <img src={p.image} className="w-14 h-14 object-contain" alt="P" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <h4 className="text-[11px] font-bold text-slate-900 leading-[1.2] line-clamp-2">
-                                    {p.name.split('(')[0] || p.name}
-                                  </h4>
-                                  <div className="flex items-center gap-2 mt-0">
-                                    <span className="text-[12px] font-black text-slate-900">₹{p.price.toLocaleString()}</span>
-                                    {p.originalPrice && (
-                                      <span className="text-[9px] text-slate-400 line-through decoration-slate-300">₹{p.originalPrice.toLocaleString()}</span>
-                                    )}
+                                <div className="absolute bottom-4 left-2 right-2 bg-white rounded-xl p-2.5 shadow-lg flex items-center gap-3 border border-slate-100">
+                                  <div className="w-16 h-16 rounded-lg flex-shrink-0 flex items-center justify-center">
+                                    <img src={getMediaUrl(p.image)} className="w-14 h-14 object-contain" alt="P" />
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="text-[11px] font-bold text-slate-900 leading-[1.2] line-clamp-2">
+                                      {p.name.split('(')[0] || p.name}
+                                    </h4>
+                                    <div className="flex items-center gap-2 mt-0">
+                                      <span className="text-[12px] font-black text-slate-900">₹{p.price.toLocaleString()}</span>
+                                      {p.originalPrice && (
+                                        <span className="text-[9px] text-slate-400 line-through decoration-slate-300">₹{p.originalPrice.toLocaleString()}</span>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            );
-                          })()}
+                              );
+                            })()}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -1540,16 +1884,25 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       const p = products.find(prod => prod.id === story.productId);
                       return (
                         <div key={story.id} className="relative aspect-[9/16] bg-slate-200 rounded-2xl overflow-hidden group border-2 border-transparent hover:border-primary transition-all">
-                          {story.mediaType === 'video' ? (
-                            <video src={story.mediaUrl} className="w-full h-full object-cover" muted loop />
-                          ) : (
-                            <img src={story.mediaUrl} className="w-full h-full object-cover" alt="Story" />
-                          )}
+                           {story.mediaType === 'video' ? (
+                             <video
+                               src={getMediaUrl(story.mediaUrl)}
+                               poster={story.posterUrl ? getMediaUrl(story.posterUrl) : undefined}
+                               className="w-full h-full object-cover"
+                               muted
+                               loop
+                               autoPlay
+                               playsInline
+                               preload="auto"
+                             />
+                           ) : (
+                             <img src={getMediaUrl(story.mediaUrl)} className="w-full h-full object-cover" alt="Story" />
+                           )}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                           {p && (
                             <div className="absolute bottom-2 left-2 right-2 bg-white rounded-xl p-1.5 shadow-lg flex items-center gap-2 border border-slate-50">
                               <div className="w-9 h-9 rounded-lg bg-white flex-shrink-0 overflow-hidden flex items-center justify-center border border-slate-50">
-                                <img src={p.image} className="w-8 h-8 object-contain" alt="P" />
+                                <img src={getMediaUrl(p.image)} className="w-8 h-8 object-contain" alt="P" />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <h4 className="text-[8px] font-bold text-slate-900 leading-[1.1] line-clamp-2">
@@ -1610,7 +1963,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             </button>
                             {pressForm.logo && (
                               <div className="w-12 h-12 rounded-xl border border-slate-200 overflow-hidden flex-shrink-0">
-                                <img src={pressForm.logo} className="w-full h-full object-contain" alt="Logo preview" />
+                                <img src={getMediaUrl(pressForm.logo)} className="w-full h-full object-contain" alt="Logo preview" />
                               </div>
                             )}
                           </div>
@@ -1672,7 +2025,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         </button>
                         <div className="flex items-start gap-4">
                           <div className="w-14 h-14 rounded-xl border border-slate-100 overflow-hidden flex-shrink-0 flex items-center justify-center bg-white shadow-sm">
-                            <img src={item.logo} className="w-12 h-12 object-contain" alt={item.mediaHouse} />
+                            <img src={getMediaUrl(item.logo)} className="w-12 h-12 object-contain" alt={item.mediaHouse} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <span className="text-[10px] font-black uppercase tracking-[0.15em] text-primary">{item.mediaHouse}</span>
@@ -1696,7 +2049,6 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
-          {/* ----- VISITOR FORMS TAB ----- */}
           {/* ----- DISTRIBUTORS TAB ----- */}
           {activeTab === 'distributors' && (
             <div className="space-y-6 animate-in fade-in duration-300">
@@ -1782,409 +2134,741 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           {activeTab === 'visitor-forms' && (
             <div className="space-y-6 animate-in fade-in duration-300">
 
+              {/* Analytics Cards */}
+              <div className="grid md:grid-cols-4 gap-4">
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Forms</p>
+                  <p className="text-3xl font-black text-slate-900 mt-2">{visitorForms.length}</p>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Submissions</p>
+                  <p className="text-3xl font-black text-primary mt-2">{visitorForms.reduce((acc, f) => acc + (f.submissions?.length || 0), 0)}</p>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Published</p>
+                  <p className="text-3xl font-black text-green-600 mt-2">{visitorForms.filter(f => f.status === 'Published').length}</p>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Draft</p>
+                  <p className="text-3xl font-black text-orange-500 mt-2">{visitorForms.filter(f => f.status === 'Draft').length}</p>
+                </div>
+              </div>
+
               {/* Toolbar */}
               <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
                 <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
                   <button
-                    onClick={() => { setVisitorFormView('list'); setSelectedVisitorForm(null); }}
+                    onClick={() => { setVisitorFormView('list'); setSelectedVisitorForm(null); resetBuilder(); }}
                     className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${visitorFormView === 'list' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     All Forms
                   </button>
                   <button
-                    onClick={() => { setVisitorFormView('create'); setSelectedVisitorForm(null); }}
-                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${visitorFormView === 'create' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                    onClick={() => { setVisitorFormView('create'); setSelectedVisitorForm(null); resetBuilder(); }}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${visitorFormView === 'create' || visitorFormView === 'edit' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
                   >
-                    Create New Form
+                    {visitorFormView === 'edit' ? 'Editing...' : 'Create New Form'}
                   </button>
                 </div>
               </div>
 
-              {/* View: Create Form */}
-              {visitorFormView === 'create' && (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-2xl mx-auto">
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-                      <span className="material-symbols-outlined text-2xl">qr_code_2</span>
+              {/* View: Form Builder (Create/Edit) */}
+              {(visitorFormView === 'create' || visitorFormView === 'edit') && (
+                <div className="grid lg:grid-cols-3 gap-6">
+                  {/* Builder Panel */}
+                  <div className="lg:col-span-2 space-y-6">
+                    {/* Form Meta */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+                      <h3 className="font-black uppercase text-slate-900 text-lg">
+                        {visitorFormView === 'edit' ? 'Edit Form' : 'Create New Form'}
+                      </h3>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Form Title</label>
+                          <input type="text" value={builderTitle} onChange={e => setBuilderTitle(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary"
+                            placeholder="e.g. Event Registration" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Event Name</label>
+                          <input type="text" value={builderEventName} onChange={e => setBuilderEventName(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary"
+                            placeholder="e.g. Yoga at the Park" />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="builderStatus" value="Draft" checked={builderStatus === 'Draft'}
+                            onChange={() => setBuilderStatus('Draft')} className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-bold text-slate-600">Draft</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" name="builderStatus" value="Published" checked={builderStatus === 'Published'}
+                            onChange={() => setBuilderStatus('Published')} className="w-4 h-4 text-primary" />
+                          <span className="text-sm font-bold text-slate-600">Published</span>
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
+                        <button
+                          onClick={() => setBuilderRequireEmail(!builderRequireEmail)}
+                          className={`relative w-11 h-6 rounded-full transition-all duration-200 ${builderRequireEmail ? 'bg-primary' : 'bg-slate-300'}`}
+                        >
+                          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${builderRequireEmail ? 'translate-x-5' : ''}`} />
+                        </button>
+                        <div>
+                          <label className="text-sm font-bold text-slate-700 cursor-pointer" onClick={() => setBuilderRequireEmail(!builderRequireEmail)}>
+                            Require Email Verification
+                          </label>
+                          <p className="text-xs text-slate-400">Users must verify via OTP before filling this form</p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-2xl font-black uppercase text-slate-900">Create Visitor Form</h3>
-                      <p className="text-sm text-slate-500 font-medium">Generate a QR code for quick event check-ins.</p>
+
+                    {/* Fields List */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-black uppercase text-slate-900 text-sm">Form Fields ({builderFields.length})</h4>
+                        <div className="relative">
+                          <button onClick={() => setShowFieldPicker(!showFieldPicker)}
+                            className="px-4 py-2 bg-primary text-white text-xs font-black uppercase tracking-widest rounded-xl hover:shadow-lg transition-all flex items-center gap-1">
+                            <span className="material-symbols-outlined text-sm">add</span> Add Field
+                          </button>
+                          {showFieldPicker && (
+                            <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border border-slate-200 p-3 z-50 w-64 grid grid-cols-2 gap-2">
+                              {fieldTypes.map(ft => (
+                                <button key={ft.type} onClick={() => handleAddField(ft.type)}
+                                  className="flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-slate-50 text-slate-600 hover:text-primary transition-colors">
+                                  <span className="material-symbols-outlined text-xl">{ft.icon}</span>
+                                  <span className="text-[10px] font-bold uppercase">{ft.label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {builderFields.length === 0 ? (
+                        <div className="p-12 text-center text-slate-400 font-medium border-2 border-dashed border-slate-200 rounded-xl">
+                          No fields yet. Click "Add Field" to start building your form.
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {builderFields.map((field, index) => (
+                            <div key={field.id} className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-black text-slate-400 bg-slate-200 px-2 py-0.5 rounded">{index + 1}</span>
+                                  <span className="text-xs font-black uppercase text-primary">{field.type}</span>
+                                  <span className="text-sm font-bold text-slate-700">{field.title}</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <button onClick={() => handleFieldMove(field.id, 'up')} disabled={index === 0}
+                                    className="p-1 rounded hover:bg-slate-200 text-slate-400 disabled:opacity-30">
+                                    <span className="material-symbols-outlined text-sm">keyboard_arrow_up</span>
+                                  </button>
+                                  <button onClick={() => handleFieldMove(field.id, 'down')} disabled={index === builderFields.length - 1}
+                                    className="p-1 rounded hover:bg-slate-200 text-slate-400 disabled:opacity-30">
+                                    <span className="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+                                  </button>
+                                  <button onClick={() => handleRemoveField(field.id)}
+                                    className="p-1 rounded hover:bg-red-50 text-red-400">
+                                    <span className="material-symbols-outlined text-sm">delete</span>
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-black uppercase text-slate-400">Label</label>
+                                  <input type="text" value={field.title} onChange={e => handleFieldChange(field.id, 'title', e.target.value)}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary bg-white" />
+                                </div>
+                                {field.type !== 'checkbox' && field.type !== 'radio' && field.type !== 'rating' && field.type !== 'date' && field.type !== 'file' && (
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-400">Placeholder</label>
+                                    <input type="text" value={field.placeholder} onChange={e => handleFieldChange(field.id, 'placeholder', e.target.value)}
+                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary bg-white" />
+                                  </div>
+                                )}
+                                <div className="space-y-1">
+                                  <label className="text-[10px] font-black uppercase text-slate-400">Required</label>
+                                  <label className="flex items-center gap-2 cursor-pointer mt-2">
+                                    <input type="checkbox" checked={field.isRequired} onChange={e => handleFieldChange(field.id, 'isRequired', e.target.checked)}
+                                      className="w-4 h-4 text-primary rounded" />
+                                    <span className="text-sm font-bold text-slate-600">{field.isRequired ? 'Yes' : 'No'}</span>
+                                  </label>
+                                </div>
+                              </div>
+                              {(field.type === 'select' || field.type === 'checkbox' || field.type === 'radio') && (
+                                <div className="mt-3 space-y-1">
+                                  <label className="text-[10px] font-black uppercase text-slate-400">Options (one per line)</label>
+                                  <textarea value={field.choices.join('\n')} onChange={e => handleFieldChange(field.id, 'choices', e.target.value.split('\n').filter(Boolean))}
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary bg-white"
+                                    rows={3} placeholder="Option 1&#10;Option 2&#10;Option 3" />
+                                </div>
+                              )}
+                              {field.type === 'rating' && (
+                                <div className="mt-3 grid grid-cols-3 gap-3">
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-400">Max Rating</label>
+                                    <input type="number" min={2} max={10} value={field.rateMax} onChange={e => handleFieldChange(field.id, 'rateMax', parseInt(e.target.value) || 5)}
+                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary bg-white" />
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-400">Min Rating</label>
+                                    <input type="number" min={1} max={5} value={field.rateMin} onChange={e => handleFieldChange(field.id, 'rateMin', parseInt(e.target.value) || 1)}
+                                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary bg-white" />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
+
+                    {/* Preview */}
+                    {previewSchema && (
+                      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                        <h4 className="font-black uppercase text-slate-900 text-sm mb-4">Preview</h4>
+                        <p className="text-xs text-slate-400 mb-4">This is how your form will look to visitors.</p>
+                        <div className="bg-slate-50 rounded-xl p-4">
+                          <pre className="text-xs text-slate-600 overflow-auto max-h-60">
+                            {JSON.stringify(previewSchema, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <form onSubmit={handleCreateForm} className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-500">Form Title</label>
-                      <input required type="text" value={newFormData.title} onChange={e => setNewFormData({ ...newFormData, title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Morning Yoga Registration" />
+                  {/* Actions Panel */}
+                  <div className="space-y-4">
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+                      <h4 className="font-black uppercase text-slate-900 text-sm">Actions</h4>
+                      <button onClick={handlePreview}
+                        className="w-full py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-lg">visibility</span> Preview Schema
+                      </button>
+                      <button onClick={handleSaveForm}
+                        className="w-full py-3 bg-primary text-white font-black uppercase tracking-widest rounded-xl hover:shadow-lg transition-all">
+                        {visitorFormView === 'edit' ? 'Update Form' : 'Save Form'}
+                      </button>
+                      <button onClick={() => { setVisitorFormView('list'); setSelectedVisitorForm(null); resetBuilder(); }}
+                        className="w-full py-3 text-slate-500 font-bold rounded-xl hover:bg-slate-50 transition-colors">
+                        Cancel
+                      </button>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-500">Event Name</label>
-                      <input required type="text" value={newFormData.eventName} onChange={e => setNewFormData({ ...newFormData, eventName: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Yoga at the Park" />
+                  </div>
+                </div>
+            )}
+
+            {/* View: Form List */}
+            {visitorFormView === 'list' && (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {(visitorForms || []).map(form => (
+                  <div key={form.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
+                    <div className="p-6 border-b border-slate-50 flex justify-between items-start">
+                      <div>
+                        <h4 className="font-black text-lg text-slate-900 mb-1">{form.title}</h4>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{form.event_name}</p>
+                      </div>
+                      <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-wider ${form.status === 'Published' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>{form.status}</span>
+                    </div>
+                    <div className="p-6 grid grid-cols-2 gap-4">
+                      <div className="text-center p-3 bg-slate-50 rounded-xl">
+                        <p className="text-2xl font-black text-primary">{(form.submissions || []).length}</p>
+                        <p className="text-[10px] uppercase font-bold text-slate-400">Submissions</p>
+                      </div>
+                      <button
+                        onClick={() => { setSelectedVisitorForm(form); setVisitorFormView('details'); }}
+                        className="flex flex-col items-center justify-center p-3 bg-slate-900 text-white rounded-xl hover:bg-primary transition-colors"
+                      >
+                        <span className="material-symbols-outlined mb-1">visibility</span>
+                        <span className="text-[10px] uppercase font-bold">View Details</span>
+                      </button>
+                    </div>
+                    <div className="px-6 pb-4 flex gap-2">
+                      <button
+                        onClick={() => handleEditForm(form)}
+                        className="flex-1 py-2 bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-colors"
+                      >
+                        Edit Form
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  onClick={() => { setVisitorFormView('create'); resetBuilder(); }}
+                  className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-400 hover:border-primary hover:text-primary transition-colors min-h-[200px]"
+                >
+                  <span className="material-symbols-outlined text-4xl mb-2">add_circle</span>
+                  <span className="font-bold uppercase tracking-widest text-sm">Create New Form</span>
+                </button>
+              </div>
+            )}
+
+            {/* View: Form Details */}
+            {visitorFormView === 'details' && selectedVisitorForm && (
+              <div className="space-y-8 animate-in fade-in duration-300">
+                <button
+                  onClick={() => { setVisitorFormView('list'); setSelectedVisitorForm(null); }}
+                  className="flex items-center gap-2 text-slate-400 hover:text-slate-900 font-bold text-xs uppercase tracking-widest transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">arrow_back</span> Back to Forms
+                </button>
+
+                <div className="grid lg:grid-cols-3 gap-8">
+                  {/* QR Code Panel */}
+                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col items-center text-center h-fit">
+                    <h3 className="font-black text-xl text-slate-900 mb-2">{selectedVisitorForm.title}</h3>
+                    <p className="text-sm text-slate-500 font-medium mb-8">{selectedVisitorForm.event_name}</p>
+
+                    <div className="bg-white p-4 rounded-xl border-2 border-slate-900 mb-8">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`https://pinobite.com/forms/${selectedVisitorForm.id}`)}`}
+                        alt="QR Code"
+                        className="w-48 h-48"
+                      />
                     </div>
 
-                    <div className="pt-4 flex gap-4 justify-end">
-                      <button type="button" onClick={() => setVisitorFormView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
-                      <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Publish Form</button>
+                    <button
+                      onClick={() => downloadQRCode(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(`https://pinobite.com/forms/${selectedVisitorForm.id}`)}`, `${selectedVisitorForm.id}-qr.png`)}
+                      className="w-full py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 mb-4"
+                    >
+                      <span className="material-symbols-outlined text-lg">download</span>
+                      Download QR Code
+                    </button>
+
+                    <div className="w-full bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-center justify-between gap-2">
+                      <p className="text-xs text-slate-500 truncate font-mono">{`https://pinobite.com/forms/${selectedVisitorForm.id}`}</p>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(`https://pinobite.com/forms/${selectedVisitorForm.id}`);
+                          showToast("Link copied to clipboard!", 'success');
+                        }}
+                        className="text-primary hover:text-primary/80"
+                        title="Copy Link"
+                      >
+                        <span className="material-symbols-outlined text-sm">content_copy</span>
+                      </button>
+                    </div>
+
+                    <button onClick={() => handleEditForm(selectedVisitorForm)}
+                      className="mt-4 w-full py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-sm">edit</span> Edit Form
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        onDeleteVisitorForm(selectedVisitorForm.id);
+                        setSelectedVisitorForm(null);
+                        setVisitorFormView('list');
+                      }}
+                      className="mt-4 text-red-500 text-xs font-bold uppercase tracking-widest hover:underline"
+                    >
+                      Delete Form
+                    </button>
+                  </div>
+
+                  {/* Submissions Panel */}
+                  <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                    <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                      <div>
+                        <h4 className="font-black uppercase text-slate-900">Visitor Submissions</h4>
+                        <p className="text-xs text-slate-500 font-medium mt-1">Total: {(selectedVisitorForm.submissions || []).length}</p>
+                      </div>
+                      <button onClick={handleExportCSV} className="text-primary font-bold text-xs uppercase tracking-widest hover:underline flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm">download</span> Export CSV
+                      </button>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead className="bg-slate-50 border-b border-slate-100">
+                          <tr>
+                            <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Submission</th>
+                            <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest text-right">Time</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                          {(selectedVisitorForm.submissions || []).length > 0 ? (
+                            (selectedVisitorForm.submissions || [])
+                              .slice((visitorSubmissionPage - 1) * VISITOR_SUBMISSIONS_PER_PAGE, visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE)
+                              .map((sub, i) => (
+                                <tr key={i} className="hover:bg-slate-50/50">
+                                  <td className="p-4">
+                                    <p className="font-bold text-slate-900 text-sm">{sub.submission_data?.name || sub.submission_data?.email || `Submission #${i + 1}`}</p>
+                                    {sub.submission_data?.email && <p className="text-xs text-slate-400 mt-0.5">{sub.submission_data.email}</p>}
+                                  </td>
+                                  <td className="p-4 text-right">
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+                                      {new Date(sub.submitted_at || Date.now()).toLocaleDateString()}
+                                    </p>
+                                  </td>
+                                </tr>
+                              ))
+                          ) : (
+                            <tr>
+                              <td colSpan={2} className="p-12 text-center text-slate-400 font-medium">
+                                No submissions yet. Share the QR code to get started!
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {(selectedVisitorForm.submissions || []).length > VISITOR_SUBMISSIONS_PER_PAGE && (
+                      <div className="p-4 border-t border-slate-50 flex items-center justify-between bg-white">
+                        <p className="text-xs text-slate-500 font-bold">
+                          Showing {(visitorSubmissionPage - 1) * VISITOR_SUBMISSIONS_PER_PAGE + 1} - {Math.min(visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE, (selectedVisitorForm.submissions || []).length)} of {(selectedVisitorForm.submissions || []).length}
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            disabled={visitorSubmissionPage === 1}
+                            onClick={() => setVisitorSubmissionPage(p => p - 1)}
+                            className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Previous
+                          </button>
+                          <button
+                            disabled={visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE >= (selectedVisitorForm.submissions || []).length}
+                            onClick={() => setVisitorSubmissionPage(p => p + 1)}
+                            className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
+          )}
+
+          {/* ----- BLOG MANAGER TAB ----- */}
+          {activeTab === 'blogs' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              {/* Toolbar */}
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
+                  <button
+                    onClick={() => setBlogView('list')}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${blogView === 'list' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    All Posts
+                  </button>
+                  <button
+                    onClick={openAddBlog}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${blogView === 'form' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Create New Post
+                  </button>
+                </div>
+              </div>
+
+              {/* View: List */}
+              {blogView === 'list' && (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[...blogPosts].reverse().map(post => (
+                    <div key={post.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col group">
+                      <div className="h-48 overflow-hidden relative">
+                        <img src={getMediaUrl(post.image)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={post.title} />
+                        <div className="absolute top-4 left-4">
+                          <span className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-900 w-fit">
+                            {post.type}
+                          </span>
+                        </div>
+                        <div className="absolute top-4 right-4 flex gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onUpdateBlog({ ...post, isActive: post.isActive === false });
+                              showToast(`Post ${post.isActive === false ? 'shown' : 'hidden'}`, 'info');
+                            }}
+                            className={`w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform ${post.isActive === false ? 'bg-amber-500 text-white' : 'bg-white text-slate-400'}`}
+                            title={post.isActive === false ? "Show Post" : "Hide Post"}
+                          >
+                            <span className="material-symbols-outlined text-lg">{post.isActive === false ? 'visibility' : 'visibility_off'}</span>
+                          </button>
+                          <button onClick={(e) => { e.stopPropagation(); onDeleteBlog(post.id); }} className="w-8 h-8 rounded-full bg-white text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                            <span className="material-symbols-outlined text-lg">delete</span>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="p-6 flex-1 flex flex-col">
+                        {post.isActive === false && (
+                          <div className="bg-amber-50 text-amber-700 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-sm">visibility_off</span>
+                            Hidden from Live Site
+                          </div>
+                        )}
+                        <div className="flex items-center mb-2">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{post.date}</span>
+                        </div>
+                        <h4 className="font-black uppercase text-lg mb-2 leading-tight line-clamp-2 text-primary">{post.title}</h4>
+                        <p className="text-sm text-slate-600 line-clamp-2 mb-4 flex-1">{post.excerpt}</p>
+                        <div className="flex items-center justify-between pt-4 border-t border-slate-50">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-slate-100 overflow-hidden"><img src={`https://ui-avatars.com/api/?name=${post.author}&background=random`} alt={post.author} className="w-full h-full object-cover" /></div>
+                            <span className="text-xs font-bold text-slate-600">{post.author}</span>
+                          </div>
+                          <button onClick={() => openEditBlog(post)} className="text-primary font-bold text-xs uppercase hover:underline">
+                            Edit Post
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div
+                    onClick={openAddBlog}
+                    className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors min-h-[300px]"
+                  >
+                    <span className="material-symbols-outlined text-4xl mb-2">add_circle</span>
+                    <span className="font-bold uppercase tracking-widest text-sm">Create New Post</span>
+                  </div>
+                </div>
+              )}
+
+              {/* View: Add/Edit Blog */}
+              {blogView === 'form' && (
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-4xl mx-auto">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-2xl font-black uppercase text-slate-900">{editingBlogPost ? 'Edit Blog Post' : 'Create New Post'}</h3>
+                    <button onClick={() => setBlogView('list')} className="text-slate-400 hover:text-slate-600"><span className="material-symbols-outlined">close</span></button>
+                  </div>
+
+                  <form onSubmit={handleBlogSubmit} className="space-y-8">
+                    {/* Basic Info */}
+                    <section className="grid md:grid-cols-2 gap-6">
+                     <div className="space-y-2">
+                       <label className="text-xs font-black uppercase tracking-widest text-slate-500">Post Title</label>
+                       <input required type="text" value={blogForm.title} onChange={e => setBlogForm({ ...blogForm, title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. 5 Ways to Eat Oats" />
+                     </div>
+                     <div className="space-y-2">
+                       <label className="text-xs font-black uppercase tracking-widest text-slate-500">URL Slug</label>
+                       <input type="text" value={blogForm.slug} onChange={e => setBlogForm({ ...blogForm, slug: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. 5-ways-to-eat-oats" />
+                     </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Category Type</label>
+                        <select required value={blogForm.type} onChange={e => setBlogForm({ ...blogForm, type: e.target.value as any })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white">
+                          <option value="Recipe">Recipe</option>
+                          <option value="Lifestyle">Lifestyle</option>
+                          <option value="News">News</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Author</label>
+                        <input required type="text" value={blogForm.author} onChange={e => setBlogForm({ ...blogForm, author: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Chef Riya" />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Visibility</label>
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setBlogForm({ ...blogForm, isActive: !blogForm.isActive })}
+                            className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${blogForm.isActive !== false ? 'bg-green-50 border-green-200 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
+                          >
+                            <span className="material-symbols-outlined text-lg">{blogForm.isActive !== false ? 'visibility' : 'visibility_off'}</span>
+                            <span className="text-xs font-bold uppercase tracking-widest">{blogForm.isActive !== false ? 'Visible on Site' : 'Hidden from Site'}</span>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Cover Image (Featured)</label>
+                        <div className="flex items-center gap-4">
+                          {blogForm.image && (
+                            <img src={getMediaUrl(blogForm.image)} alt="Cover" className="h-24 w-40 object-cover rounded-xl border border-slate-200" />
+                          )}
+                          <label className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-slate-300 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
+                            <span className="material-symbols-outlined text-slate-400">add_photo_alternate</span>
+                            <span className="text-sm font-medium text-slate-500">{blogForm.image ? 'Change Cover Image' : 'Upload Cover Image'}</span>
+                            <input type="file" accept="image/*" onChange={handleBlogImageUpload} className="hidden" />
+                          </label>
+                        </div>
+                      </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Excerpt</label>
+                        <textarea required value={blogForm.excerpt} onChange={e => setBlogForm({ ...blogForm, excerpt: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={2} placeholder="Short summary for the card..." />
+                      </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Subtitle (Secondary Headline)</label>
+                        <input type="text" value={blogForm.subtitle} onChange={e => setBlogForm({ ...blogForm, subtitle: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Exploring the humble grain that has sustained civilizations..." />
+                      </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Intro Heading (Article Start)</label>
+                        <input type="text" value={blogForm.intro_heading} onChange={e => setBlogForm({ ...blogForm, intro_heading: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. What is Oats? Health Benefits and Easy Recipes" />
+                      </div>
+                      <div className="md:col-span-2 space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Featured Quote (Boxed Content)</label>
+                        <textarea value={blogForm.featured_quote} onChange={e => setBlogForm({ ...blogForm, featured_quote: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={3} placeholder="Quote to highlight in the article..." />
+                      </div>
+                    </section>
+
+                    {/* Dynamic Lists Section */}
+                    <section className="space-y-8">
+                      {/* Facts List */}
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Fun & Fascinating Facts</label>
+                          <button type="button" onClick={() => setBlogForm(prev => ({ ...prev, facts_list: [...(prev.facts_list || []), ''] }))} className="text-primary text-xs font-bold uppercase flex items-center gap-1 hover:underline">
+                            <span className="material-symbols-outlined text-sm">add</span> Add Fact
+                          </button>
+                        </div>
+                        <div className="space-y-3">
+                          {(blogForm.facts_list || []).map((fact, idx) => (
+                            <div key={idx} className="flex gap-2">
+                              <input type="text" value={fact} onChange={e => {
+                                const newList = [...(blogForm.facts_list || [])];
+                                newList[idx] = e.target.value;
+                                setBlogForm({ ...blogForm, facts_list: newList });
+                              }} className="flex-1 px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium" placeholder="Fact description..." />
+                              <button type="button" onClick={() => {
+                                const newList = (blogForm.facts_list || []).filter((_, i) => i !== idx);
+                                setBlogForm({ ...blogForm, facts_list: newList });
+                              }} className="text-slate-300 hover:text-red-500"><span className="material-symbols-outlined">delete</span></button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Key Points / Types Grid */}
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Key Points / Product Types</label>
+                          <button type="button" onClick={() => setBlogForm(prev => ({ ...prev, key_points: [...(prev.key_points || []), { title: '', desc: '' }] }))} className="text-primary text-xs font-bold uppercase flex items-center gap-1 hover:underline">
+                            <span className="material-symbols-outlined text-sm">add</span> Add Point
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {(blogForm.key_points || []).map((point, idx) => (
+                            <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 relative group">
+                              <button type="button" onClick={() => {
+                                const newList = (blogForm.key_points || []).filter((_, i) => i !== idx);
+                                setBlogForm({ ...blogForm, key_points: newList });
+                              }} className="absolute top-2 right-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><span className="material-symbols-outlined text-sm">delete</span></button>
+                              <div className="space-y-2">
+                                <input type="text" value={point.title} onChange={e => {
+                                  const newList = [...(blogForm.key_points || [])];
+                                  newList[idx] = { ...newList[idx], title: e.target.value };
+                                  setBlogForm({ ...blogForm, key_points: newList });
+                                }} className="w-full px-3 py-1.5 rounded-lg border border-slate-200 font-bold text-xs" placeholder="Point Title (e.g. Steel-cut)" />
+                                <textarea value={point.desc} onChange={e => {
+                                  const newList = [...(blogForm.key_points || [])];
+                                  newList[idx] = { ...newList[idx], desc: e.target.value };
+                                  setBlogForm({ ...blogForm, key_points: newList });
+                                }} className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-[10px] font-medium" rows={2} placeholder="Description..." />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Health Benefits Section */}
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Health Benefits (Numbered)</label>
+                          <button type="button" onClick={() => setBlogForm(prev => ({ ...prev, health_benefits: [...(prev.health_benefits || []), { title: '', desc: '' }] }))} className="text-primary text-xs font-bold uppercase flex items-center gap-1 hover:underline">
+                            <span className="material-symbols-outlined text-sm">add</span> Add Benefit
+                          </button>
+                        </div>
+                        <div className="space-y-3">
+                          {(blogForm.health_benefits || []).map((benefit, idx) => (
+                            <div key={idx} className="flex gap-3 items-start p-3 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                              <span className="text-xl font-black text-slate-200 pt-1">{(idx + 1).toString().padStart(2, '0')}</span>
+                              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <input type="text" value={benefit.title} onChange={e => {
+                                  const newList = [...(blogForm.health_benefits || [])];
+                                  newList[idx] = { ...newList[idx], title: e.target.value };
+                                  setBlogForm({ ...blogForm, health_benefits: newList });
+                                }} className="px-3 py-1.5 rounded-lg border border-slate-200 font-bold text-xs" placeholder="Benefit Title" />
+                                <input type="text" value={benefit.desc} onChange={e => {
+                                  const newList = [...(blogForm.health_benefits || [])];
+                                  newList[idx] = { ...newList[idx], desc: e.target.value };
+                                  setBlogForm({ ...blogForm, health_benefits: newList });
+                                }} className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium" placeholder="Short explanation..." />
+                              </div>
+                              <button type="button" onClick={() => {
+                                const newList = (blogForm.health_benefits || []).filter((_, i) => i !== idx);
+                                setBlogForm({ ...blogForm, health_benefits: newList });
+                              }} className="text-slate-300 hover:text-red-500 pt-1"><span className="material-symbols-outlined">delete</span></button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </section>
+
+
+
+                    {/* Delicious Ways / Usage Ideas */}
+                    <section className="space-y-4 pt-6 border-t border-slate-100">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Delicious Ways to Enjoy (Bottom Section)</label>
+                        <button type="button" onClick={() => setBlogForm(prev => ({ ...prev, usage_recipes: [...(prev.usage_recipes || []), { title: '', desc: '', image: '' }] }))} className="text-primary text-xs font-bold uppercase flex items-center gap-1 hover:underline">
+                          <span className="material-symbols-outlined text-sm">add</span> Add Idea
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {(blogForm.usage_recipes || []).map((recipe, idx) => (
+                          <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3 relative group">
+                            <button type="button" onClick={() => {
+                              const newList = (blogForm.usage_recipes || []).filter((_, i) => i !== idx);
+                              setBlogForm({ ...blogForm, usage_recipes: newList });
+                            }} className="absolute top-2 right-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><span className="material-symbols-outlined text-sm">delete</span></button>
+                            <div className="w-20 h-20 mx-auto rounded-full bg-white border border-slate-200 overflow-hidden relative">
+                              {recipe.image ? <img src={getMediaUrl(recipe.image)} className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-slate-200 absolute inset-0 flex items-center justify-center">image</span>}
+                              <input type="file" accept="image/*" onChange={(e) => {
+                                if (e.target.files?.[0]) {
+                                  const reader = new FileReader();
+                                  reader.onloadend = () => {
+                                    const newList = [...(blogForm.usage_recipes || [])];
+                                    newList[idx] = { ...newList[idx], image: reader.result as string };
+                                    setBlogForm({ ...blogForm, usage_recipes: newList });
+                                  };
+                                  reader.readAsDataURL(e.target.files[0]);
+                                }
+                              }} className="absolute inset-0 opacity-0 cursor-pointer" title="Upload Recipe Image" />
+                            </div>
+                            <input type="text" value={recipe.title} onChange={e => {
+                              const newList = [...(blogForm.usage_recipes || [])];
+                              newList[idx] = { ...newList[idx], title: e.target.value };
+                              setBlogForm({ ...blogForm, usage_recipes: newList });
+                            }} className="w-full px-2 py-1 rounded border border-slate-200 font-bold text-[10px] text-center" placeholder="Way to Enjoy Title" />
+                            <textarea value={recipe.desc} onChange={e => {
+                              const newList = [...(blogForm.usage_recipes || [])];
+                              newList[idx] = { ...newList[idx], desc: e.target.value };
+                              setBlogForm({ ...blogForm, usage_recipes: newList });
+                            }} className="w-full px-2 py-1 rounded border border-slate-200 text-[9px] text-center" rows={2} placeholder="Brief description..." />
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+
+                    {/* Content Editor */}
+                    <section className="space-y-4 pt-6 border-t border-slate-100">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-black uppercase text-slate-800">Article Content</h4>
+                      </div>
+                      <TiptapEditor
+                        content={blogForm.content || ''}
+                        onChange={(newContent) => setBlogForm({ ...blogForm, content: newContent })}
+                        placeholder="Write your article story here..."
+                      />
+                    </section>
+
+                    <div className="pt-6 flex justify-end gap-4 border-t border-slate-100">
+                      <button type="button" onClick={() => setBlogView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                      <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">{editingBlogPost ? 'Update Post' : 'Publish Post'}</button>
                     </div>
                   </form>
                 </div>
               )}
-
-              {/* View: Form List */}
-              {visitorFormView === 'list' && (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {visitorForms.map(form => (
-                    <div key={form.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden hover:shadow-md transition-shadow">
-                      <div className="p-6 border-b border-slate-50 flex justify-between items-start">
-                        <div>
-                          <h4 className="font-black text-lg text-slate-900 mb-1">{form.title}</h4>
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{form.eventName}</p>
-                        </div>
-                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-[10px] font-black uppercase tracking-wider">{form.status}</span>
-                      </div>
-                      <div className="p-6 grid grid-cols-2 gap-4">
-                        <div className="text-center p-3 bg-slate-50 rounded-xl">
-                          <p className="text-2xl font-black text-primary">{form.submissions.length}</p>
-                          <p className="text-[10px] uppercase font-bold text-slate-400">Submissions</p>
-                        </div>
-                        <button
-                          onClick={() => { setSelectedVisitorForm(form); setVisitorFormView('details'); }}
-                          className="flex flex-col items-center justify-center p-3 bg-slate-900 text-white rounded-xl hover:bg-primary transition-colors"
-                        >
-                          <span className="material-symbols-outlined mb-1">visibility</span>
-                          <span className="text-[10px] uppercase font-bold">View Details</span>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  <button
-                    onClick={() => setVisitorFormView('create')}
-                    className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-400 hover:border-primary hover:text-primary transition-colors min-h-[200px]"
-                  >
-                    <span className="material-symbols-outlined text-4xl mb-2">add_circle</span>
-                    <span className="font-bold uppercase tracking-widest text-sm">Create New Form</span>
-                  </button>
-                </div>
-              )}
-
-              {/* View: Form Details */}
-              {visitorFormView === 'details' && selectedVisitorForm && (
-                <div className="space-y-8 animate-in fade-in duration-300">
-                  <button
-                    onClick={() => { setVisitorFormView('list'); setSelectedVisitorForm(null); }}
-                    className="flex items-center gap-2 text-slate-400 hover:text-slate-900 font-bold text-xs uppercase tracking-widest transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-sm">arrow_back</span> Back to Forms
-                  </button>
-
-                  <div className="grid lg:grid-cols-3 gap-8">
-                    {/* QR Code Panel */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 flex flex-col items-center text-center h-fit">
-                      <h3 className="font-black text-xl text-slate-900 mb-2">{selectedVisitorForm.title}</h3>
-                      <p className="text-sm text-slate-500 font-medium mb-8">{selectedVisitorForm.eventName}</p>
-
-                      <div className="bg-white p-4 rounded-xl border-2 border-slate-900 mb-8">
-                        <img
-                          src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(selectedVisitorForm.link)}`}
-                          alt="QR Code"
-                          className="w-48 h-48"
-                        />
-                      </div>
-
-                      <button
-                        onClick={() => downloadQRCode(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(selectedVisitorForm.link)}`, `${selectedVisitorForm.id}-qr.png`)}
-                        className="w-full py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 mb-4"
-                      >
-                        <span className="material-symbols-outlined text-lg">download</span>
-                        Download QR Code
-                      </button>
-
-                      <div className="w-full bg-slate-50 p-3 rounded-lg border border-slate-100 flex items-center justify-between gap-2">
-                        <p className="text-xs text-slate-500 truncate font-mono">{selectedVisitorForm.link}</p>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(selectedVisitorForm.link);
-                            // Visual feedback could be added here, e.g. toast
-                            alert("Link copied to clipboard!");
-                          }}
-                          className="text-primary hover:text-primary/80"
-                          title="Copy Link"
-                        >
-                          <span className="material-symbols-outlined text-sm">content_copy</span>
-                        </button>
-                      </div>
-
-                      <button
-                        onClick={() => {
-                          onDeleteVisitorForm(selectedVisitorForm.id);
-                          setSelectedVisitorForm(null);
-                          setVisitorFormView('list');
-                        }}
-                        className="mt-6 text-red-500 text-xs font-bold uppercase tracking-widest hover:underline"
-                      >
-                        Delete Form
-                      </button>
-                    </div>
-
-                    {/* Submissions Panel */}
-                    <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-                      <div className="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-                        <div>
-                          <h4 className="font-black uppercase text-slate-900">Visitor Submissions</h4>
-                          <p className="text-xs text-slate-500 font-medium mt-1">Total: {selectedVisitorForm.submissions.length}</p>
-                        </div>
-                        <button onClick={handleExportCSV} className="text-primary font-bold text-xs uppercase tracking-widest hover:underline flex items-center gap-1">
-                          <span className="material-symbols-outlined text-sm">download</span> Export CSV
-                        </button>
-                      </div>
-
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                          <thead className="bg-slate-50 border-b border-slate-100">
-                            <tr>
-                              <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Name</th>
-                              <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Contact</th>
-                              <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest text-right">Time</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-50">
-                            {selectedVisitorForm.submissions.length > 0 ? (
-                              selectedVisitorForm.submissions
-                                .slice((visitorSubmissionPage - 1) * VISITOR_SUBMISSIONS_PER_PAGE, visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE)
-                                .map((sub, i) => (
-                                  <tr key={i} className="hover:bg-slate-50/50">
-                                    <td className="p-4">
-                                      <p className="font-bold text-slate-900 text-sm">{sub.name}</p>
-                                    </td>
-                                    <td className="p-4">
-                                      <p className="text-sm text-slate-600">{sub.email}</p>
-                                      <p className="text-xs text-slate-400 mt-0.5">{sub.phone}</p>
-                                    </td>
-                                    <td className="p-4 text-right">
-                                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">
-                                        {new Date(sub.submittedAt || Date.now()).toLocaleDateString()}
-                                      </p>
-                                    </td>
-                                  </tr>
-                                ))
-                            ) : (
-                              <tr>
-                                <td colSpan={3} className="p-12 text-center text-slate-400 font-medium">
-                                  No submissions yet. Share the QR code to get started!
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-
-
-                      {selectedVisitorForm.submissions.length > VISITOR_SUBMISSIONS_PER_PAGE && (
-                        <div className="p-4 border-t border-slate-50 flex items-center justify-between bg-white">
-                          <p className="text-xs text-slate-500 font-bold">
-                            Showing {(visitorSubmissionPage - 1) * VISITOR_SUBMISSIONS_PER_PAGE + 1} - {Math.min(visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE, selectedVisitorForm.submissions.length)} of {selectedVisitorForm.submissions.length}
-                          </p>
-                          <div className="flex gap-2">
-                            <button
-                              disabled={visitorSubmissionPage === 1}
-                              onClick={() => setVisitorSubmissionPage(p => p - 1)}
-                              className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              Previous
-                            </button>
-                            <button
-                              disabled={visitorSubmissionPage * VISITOR_SUBMISSIONS_PER_PAGE >= selectedVisitorForm.submissions.length}
-                              onClick={() => setVisitorSubmissionPage(p => p + 1)}
-                              className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              Next
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
-          )}
-
-          {/* ----- BLOG MANAGER TAB ----- */}
-          {
-            activeTab === 'blogs' && (
-              <div className="space-y-6 animate-in fade-in duration-300">
-                {/* Toolbar */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                  <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
-                    <button
-                      onClick={() => setBlogView('list')}
-                      className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${blogView === 'list' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                      All Posts
-                    </button>
-                    <button
-                      onClick={openAddBlog}
-                      className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${blogView === 'form' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                      Create New Post
-                    </button>
-                  </div>
-                </div>
-
-                {/* View: List */}
-                {blogView === 'list' && (
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {blogPosts.map(post => (
-                      <div key={post.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col group">
-                        <div className="h-48 overflow-hidden relative">
-                          <img src={post.image} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt={post.title} />
-                          <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-900">
-                            {post.type}
-                          </span>
-                          <div className="absolute top-4 right-4 flex gap-2">
-                            <button onClick={() => onDeleteBlog(post.id)} className="w-8 h-8 rounded-full bg-white text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                              <span className="material-symbols-outlined text-lg">delete</span>
-                            </button>
-                          </div>
-                        </div>
-                        <div className="p-6 flex-1 flex flex-col">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{post.date}</span>
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{post.readTime}</span>
-                          </div>
-                          <h4 className="font-black uppercase text-lg mb-2 leading-tight line-clamp-2 text-primary">{post.title}</h4>
-                          <p className="text-sm text-slate-600 line-clamp-2 mb-4 flex-1">{post.excerpt}</p>
-                          <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-slate-100 overflow-hidden"><img src={`https://ui-avatars.com/api/?name=${post.author}&background=random`} alt={post.author} className="w-full h-full object-cover" /></div>
-                              <span className="text-xs font-bold text-slate-600">{post.author}</span>
-                            </div>
-                            <button onClick={() => openEditBlog(post)} className="text-primary font-bold text-xs uppercase hover:underline">
-                              Edit Post
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    <div
-                      onClick={openAddBlog}
-                      className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors min-h-[300px]"
-                    >
-                      <span className="material-symbols-outlined text-4xl mb-2">add_circle</span>
-                      <span className="font-bold uppercase tracking-widest text-sm">Create New Post</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* View: Add/Edit Blog */}
-                {blogView === 'form' && (
-                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-4xl mx-auto">
-                    <div className="flex items-center justify-between mb-6">
-                      <h3 className="text-2xl font-black uppercase text-slate-900">{editingBlogPost ? 'Edit Blog Post' : 'Create New Post'}</h3>
-                      <button onClick={() => setBlogView('list')} className="text-slate-400 hover:text-slate-600"><span className="material-symbols-outlined">close</span></button>
-                    </div>
-
-                    <form onSubmit={handleBlogSubmit} className="space-y-8">
-                      {/* Basic Info */}
-                      <section className="grid md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Post Title</label>
-                          <input required type="text" value={blogForm.title} onChange={e => setBlogForm({ ...blogForm, title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. 5 Ways to Eat Oats" />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Category Type</label>
-                          <select required value={blogForm.type} onChange={e => setBlogForm({ ...blogForm, type: e.target.value as any })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white">
-                            <option value="Recipe">Recipe</option>
-                            <option value="Lifestyle">Lifestyle</option>
-                            <option value="News">News</option>
-                          </select>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Author</label>
-                          <input required type="text" value={blogForm.author} onChange={e => setBlogForm({ ...blogForm, author: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Chef Riya" />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Read Time</label>
-                          <input required type="text" value={blogForm.readTime} onChange={e => setBlogForm({ ...blogForm, readTime: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. 5 min read" />
-                        </div>
-                        <div className="md:col-span-2 space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Excerpt</label>
-                          <textarea required value={blogForm.excerpt} onChange={e => setBlogForm({ ...blogForm, excerpt: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={2} placeholder="Short summary for the card..." />
-                        </div>
-                      </section>
-
-                      {/* Cover Image */}
-                      <section className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Cover Image</label>
-                        <input type="file" accept="image/*" onChange={handleBlogImageUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                        {blogForm.image && <img src={blogForm.image} alt="Cover" className="h-48 rounded-xl object-cover mt-2 w-full" />}
-                      </section>
-
-                      {/* Content Editor */}
-                      <section className="space-y-4 pt-6 border-t border-slate-100">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-black uppercase text-slate-800">Article Content</h4>
-                          <span className="text-[10px] font-bold text-primary uppercase tracking-widest border border-primary/20 px-2 py-0.5 rounded">HTML Supported</span>
-                        </div>
-                        <p className="text-xs text-slate-500">Enter your article content. You can use HTML tags like &lt;h1&gt;, &lt;h2&gt;, &lt;p&gt;, and &lt;a&gt; for headings and links.</p>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          <button
-                            type="button"
-                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '\n<p>New paragraph here...</p>' })}
-                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
-                          >
-                            <span className="material-symbols-outlined text-sm">segment</span> Paragraph
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '\n<h2>Heading 2</h2>' })}
-                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
-                          >
-                            <span className="material-symbols-outlined text-sm">title</span> Heading
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '<strong>Bold Text</strong>' })}
-                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
-                          >
-                            <span className="material-symbols-outlined text-sm">format_bold</span> Bold
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '<a href="https://example.com">Link Text</a>' })}
-                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
-                          >
-                            <span className="material-symbols-outlined text-sm">link</span> Link
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setBlogForm({ ...blogForm, content: (blogForm.content || '') + '\n<img src="IMAGE_URL_HERE" alt="description" className="w-full rounded-2xl my-6" />' })}
-                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-slate-200"
-                          >
-                            <span className="material-symbols-outlined text-sm">image</span> Add Image
-                          </button>
-                        </div>
-                        <div className="relative">
-                          <textarea
-                            placeholder="Write your article story here... Use HTML for headings and links!"
-                            value={blogForm.content}
-                            onChange={(e) => setBlogForm({ ...blogForm, content: e.target.value })}
-                            rows={15}
-                            className="w-full px-4 py-4 rounded-xl border border-slate-200 text-slate-700 focus:ring-primary focus:border-primary font-mono text-sm leading-relaxed bg-slate-50/30"
-                          />
-                        </div>
-                      </section>
-
-                      <div className="pt-6 flex justify-end gap-4 border-t border-slate-100">
-                        <button type="button" onClick={() => setBlogView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
-                        <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">{editingBlogPost ? 'Update Post' : 'Publish Post'}</button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-              </div>
-            )
+          )
           }
 
           {/* ----- EVENT MANAGER TAB (Keeping existing logic) ----- */}
@@ -2201,7 +2885,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       All Events
                     </button>
                     <button
-                      onClick={() => setEventView('add')}
+                      onClick={openAddEvent}
                       className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${eventView === 'add' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                       Add Event
@@ -2212,36 +2896,87 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* View: List */}
                 {eventView === 'list' && (
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {events.map(event => (
+                    {[...events].reverse().map(event => (
                       <div key={event.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
                         <div className="h-48 overflow-hidden relative">
-                          <img src={event.image} className="w-full h-full object-cover" alt={event.title} />
+                          <img src={getMediaUrl(event.image)} className="w-full h-full object-cover" alt={event.title} />
+                          <div className="absolute top-4 left-4 flex flex-col gap-1.5">
+                            {event.scheduledDate && (() => {
+                              try {
+                                const [y, m, d] = event.scheduledDate.split('-').map(Number);
+                                const scheduled = new Date(y, m - 1, d);
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                                return scheduled > today;
+                              } catch { return false; }
+                            })() && (
+                                <span className="bg-primary/90 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-white w-fit flex items-center gap-1 shadow-lg">
+                                  <span className="material-symbols-outlined text-[12px]">schedule</span>
+                                  Scheduled: {event.scheduledDate}
+                                </span>
+                              )}
+                          </div>
                           <div className="absolute top-4 right-4 flex gap-2">
-                            <button onClick={() => onDeleteEvent(event.id)} className="w-8 h-8 rounded-full bg-white text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onUpdateEvent({ ...event, isActive: event.isActive === false });
+                                showToast(`Event ${event.isActive === false ? 'shown' : 'hidden'}`, 'info');
+                              }}
+                              className={`w-8 h-8 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform ${event.isActive === false ? 'bg-amber-500 text-white' : 'bg-white text-slate-400'}`}
+                              title={event.isActive === false ? "Show Event" : "Hide Event"}
+                            >
+                              <span className="material-symbols-outlined text-lg">{event.isActive === false ? 'visibility' : 'visibility_off'}</span>
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); openEditEvent(event); }} className="w-8 h-8 rounded-full bg-white text-primary flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                              <span className="material-symbols-outlined text-lg">edit</span>
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); onDeleteEvent(event.id); }} className="w-8 h-8 rounded-full bg-white text-red-500 flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
                               <span className="material-symbols-outlined text-lg">delete</span>
                             </button>
                           </div>
                         </div>
                         <div className="p-6 flex-1 flex flex-col">
+                          {event.isActive === false && (
+                            <div className="bg-amber-50 text-amber-700 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                              <span className="material-symbols-outlined text-sm">visibility_off</span>
+                              Hidden from Live Site
+                            </div>
+                          )}
                           <h4 className="font-black uppercase text-lg mb-2 leading-tight">{event.title}</h4>
                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">{event.date} • {event.location}</p>
                           <p className="text-sm text-slate-600 line-clamp-2 mb-4 flex-1">{event.summary}</p>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase">Tagged Products:</span>
-                            <div className="flex -space-x-2">
-                              {event.featuredProducts.map((pid, idx) => (
-                                <div key={idx} className="w-6 h-6 rounded-full bg-slate-200 border-2 border-white overflow-hidden">
-                                  {/* Just a placeholder visually, would match ID in real app */}
-                                  <div className="w-full h-full bg-primary/20"></div>
-                                </div>
-                              ))}
-                            </div>
+                          <div className="flex flex-wrap gap-x-4 gap-y-2 mt-auto pt-4 border-t border-slate-50">
+                            {event.impactParticipants && (
+                              <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Impact</span>
+                                <span className="text-xs font-black text-primary">{event.impactParticipants}</span>
+                              </div>
+                            )}
+                            {event.fuelBarsShared && (
+                              <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Fuel</span>
+                                <span className="text-xs font-black text-primary">{event.fuelBarsShared}</span>
+                              </div>
+                            )}
+                            {event.vibeEnergy && (
+                              <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Vibe</span>
+                                <span className="text-xs font-black text-primary">{event.vibeEnergy}</span>
+                              </div>
+                            )}
+                            {event.scheduledDate && (
+                              <div className="flex flex-col">
+                                <span className="text-[8px] font-black uppercase text-slate-400 tracking-widest">Scheduled</span>
+                                <span className="text-xs font-black text-slate-600">{event.scheduledDate}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
                     ))}
                     <div
-                      onClick={() => setEventView('add')}
+                      onClick={openAddEvent}
                       className="border-2 border-dashed border-slate-300 rounded-2xl flex flex-col items-center justify-center p-8 text-slate-400 cursor-pointer hover:border-primary hover:text-primary transition-colors min-h-[300px]"
                     >
                       <span className="material-symbols-outlined text-4xl mb-2">add_circle</span>
@@ -2253,7 +2988,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* View: Add Event */}
                 {eventView === 'add' && (
                   <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-4xl mx-auto">
-                    <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">Create New Event Story</h3>
+                    <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">{editingEvent ? 'Edit Event Story' : 'Create New Event Story'}</h3>
                     <form onSubmit={handleEventSubmit} className="space-y-8">
                       {/* Basic Info */}
                       <section className="space-y-4">
@@ -2263,14 +2998,53 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <input required type="text" value={eventForm.title} onChange={e => setEventForm({ ...eventForm, title: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Morning Yoga Session" />
                           </div>
                           <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Date</label>
-                            <input required type="text" value={eventForm.date} onChange={e => setEventForm({ ...eventForm, date: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Nov 12, 2023" />
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Event Date</label>
+                            <input required type="date" value={eventForm.date} onChange={e => setEventForm({ ...eventForm, date: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" />
                           </div>
                         </div>
                         <div className="grid md:grid-cols-2 gap-6">
                           <div className="space-y-2">
                             <label className="text-xs font-black uppercase tracking-widest text-slate-500">Location</label>
                             <input required type="text" value={eventForm.location} onChange={e => setEventForm({ ...eventForm, location: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Cubbon Park, Bangalore" />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Post Scheduler (Optional)</label>
+                            <div className="flex items-center gap-3">
+                              <input type="date" value={eventForm.scheduledDate} onChange={e => setEventForm({ ...eventForm, scheduledDate: e.target.value })} className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" />
+                              <span className="material-symbols-outlined text-slate-400">schedule</span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-2">
+                              <button
+                                type="button"
+                                onClick={() => setEventForm({ ...eventForm, isActive: !eventForm.isActive })}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all ${eventForm.isActive !== false ? 'bg-green-50 border-green-200 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}
+                              >
+                                <span className="material-symbols-outlined text-lg">{eventForm.isActive !== false ? 'visibility' : 'visibility_off'}</span>
+                                <span className="text-xs font-bold uppercase tracking-widest">{eventForm.isActive !== false ? 'Visible on Site' : 'Hidden from Site'}</span>
+                              </button>
+                            </div>
+                            <p className="text-[10px] text-slate-400 font-bold">Pick a date to schedule when this story appears on the site.</p>
+                          </div>
+                        </div>
+
+                        {/* Vitals Section */}
+                        <div className="pt-6 mt-6 border-t border-slate-100">
+                          <h4 className="text-sm font-black uppercase text-slate-800 mb-4 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-primary">analytics</span> Event Vitals
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Impact (Participants)</label>
+                              <input type="number" value={eventForm.impactParticipants} onChange={e => setEventForm({ ...eventForm, impactParticipants: e.target.value })} className="w-full px-4 py-2 rounded-lg border border-slate-200 font-bold text-sm" placeholder="e.g. 500" />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Fuel (Bars Shared)</label>
+                              <input type="number" value={eventForm.fuelBarsShared} onChange={e => setEventForm({ ...eventForm, fuelBarsShared: e.target.value })} className="w-full px-4 py-2 rounded-lg border border-slate-200 font-bold text-sm" placeholder="e.g. 1200" />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Vibe (Energy %)</label>
+                              <input type="number" value={eventForm.vibeEnergy} onChange={e => setEventForm({ ...eventForm, vibeEnergy: e.target.value })} className="w-full px-4 py-2 rounded-lg border border-slate-200 font-bold text-sm" placeholder="e.g. 100" />
+                            </div>
                           </div>
                         </div>
                         <div className="space-y-2">
@@ -2305,7 +3079,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <div className="space-y-2">
                             <label className="text-xs font-black uppercase tracking-widest text-slate-500">Cover Image</label>
                             <input type="file" accept="image/*" onChange={(e) => handleEventImageUpload(e, 'cover')} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                            {eventForm.image && <img src={eventForm.image} alt="Cover" className="h-32 rounded-lg object-cover mt-2" />}
+                            {eventForm.image && <img src={getMediaUrl(eventForm.image)} alt="Cover" className="h-32 rounded-lg object-cover mt-2" />}
                           </div>
                           <div className="space-y-2">
                             <label className="text-xs font-black uppercase tracking-widest text-slate-500">Gallery Images</label>
@@ -2313,7 +3087,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <div className="flex flex-wrap gap-2 mt-2">
                               {eventForm.gallery?.map((img, i) => (
                                 <div key={i} className="w-16 h-16 relative">
-                                  <img src={img} className="w-full h-full object-cover rounded-lg" />
+                                  <img src={getMediaUrl(img)} className="w-full h-full object-cover rounded-lg" />
                                 </div>
                               ))}
                             </div>
@@ -2332,7 +3106,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               onClick={() => toggleFeaturedProduct(p.id)}
                               className={`p-3 rounded-lg border-2 cursor-pointer transition-all flex items-center gap-3 ${eventForm.featuredProducts?.includes(p.id) ? 'border-primary bg-primary/5' : 'border-slate-100 hover:border-slate-300'}`}
                             >
-                              <div className="w-8 h-8 rounded bg-white overflow-hidden flex-shrink-0"><img src={p.image} className="w-full h-full object-cover" /></div>
+                              <div className="w-8 h-8 rounded bg-white overflow-hidden flex-shrink-0"><img src={getMediaUrl(p.image)} className="w-full h-full object-cover" /></div>
                               <span className="text-xs font-bold line-clamp-1">{p.name}</span>
                               {eventForm.featuredProducts?.includes(p.id) && <span className="ml-auto material-symbols-outlined text-primary text-sm">check_circle</span>}
                             </div>
@@ -2341,8 +3115,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </section>
 
                       <div className="pt-6 flex justify-end gap-4">
-                        <button type="button" onClick={() => setEventView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
-                        <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Publish Story</button>
+                        <button type="button" onClick={() => { setEventView('list'); setEditingEvent(null); }} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                        <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">{editingEvent ? 'Update Story' : 'Publish Story'}</button>
                       </div>
                     </form>
                   </div>
@@ -2352,59 +3126,70 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }
 
           {/* ----- PRODUCT TAB (Keeping existing logic) ----- */}
-          {
-            activeTab === 'products' && (
-              <div className="space-y-6 animate-in fade-in duration-300">
-                {/* Toolbar */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-                  <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
-                    <button
-                      onClick={() => setProductView('list')}
-                      className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${productView === 'list' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                      Product List
-                    </button>
-                    <button
-                      onClick={() => setProductView('add')}
-                      className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${productView === 'add' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                      Add Product
-                    </button>
-                    <button
-                      onClick={() => setProductView('categories')}
-                      className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${productView === 'categories' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                      Categories
-                    </button>
-                  </div>
-                  {productView === 'list' && (
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg">search</span>
-                      <input type="text" placeholder="Search inventory..." className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-64" />
-                    </div>
-                  )}
+          {activeTab === 'products' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              {/* Toolbar */}
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
+                  <button
+                    onClick={() => setProductView('list')}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${productView === 'list' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Product List
+                  </button>
+                  <button
+                    onClick={() => setProductView('add')}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${productView === 'add' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Add Product
+                  </button>
+                  <button
+                    onClick={() => setProductView('categories')}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${productView === 'categories' ? 'bg-white shadow text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Categories
+                  </button>
                 </div>
-
-                {/* View: Product List */}
                 {productView === 'list' && (
-                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <table className="w-full text-left">
-                      <thead className="bg-slate-50 border-b border-slate-200">
-                        <tr>
-                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Product</th>
-                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Category</th>
-                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Price</th>
-                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Stock Level</th>
-                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {products.map(product => (
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg">search</span>
+                    <input
+                      type="text"
+                      placeholder="Search products..."
+                      value={productSearchQuery}
+                      onChange={(e) => setProductSearchQuery(e.target.value)}
+                      className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-64"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* View: Product List */}
+              {productView === 'list' && (
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-50 border-b border-slate-200">
+                      <tr>
+                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Product</th>
+                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Category</th>
+                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Price</th>
+                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Stock Level</th>
+                        <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {products
+                        .filter(p =>
+                          !productSearchQuery ||
+                          p.name.toLowerCase().includes(productSearchQuery.toLowerCase()) ||
+                          p.category?.toLowerCase().includes(productSearchQuery.toLowerCase())
+                        )
+                        .map(product => (
                           <tr key={product.id} className="hover:bg-slate-50/50 transition-colors group">
                             <td className="p-4">
                               <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0">
-                                  <img src={product.image} className="w-full h-full object-cover" alt={product.name} />
+                                  <img src={getMediaUrl(product.image)} className="w-full h-full object-cover" alt={product.name} />
                                 </div>
                                 <div>
                                   <p className="font-bold text-slate-900 text-sm">{product.name}</p>
@@ -2446,452 +3231,668 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             </td>
                           </tr>
                         ))}
-                      </tbody>
-                    </table>
-                    {products.length === 0 && (
-                      <div className="p-12 text-center">
-                        <p className="text-slate-400 font-medium">No products found. Add one to get started!</p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                    </tbody>
+                  </table>
+                  {products.length === 0 && (
+                    <div className="p-12 text-center">
+                      <p className="text-slate-400 font-medium">No products found. Add one to get started!</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
-                {/* View: Add Product */}
-                {productView === 'add' && (
-                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-3xl mx-auto">
-                    <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">
-                      {editingProduct ? 'Edit Product' : 'Add New Product'}
-                    </h3>
-                    <form onSubmit={handleProductSubmit} className="space-y-6">
+              {/* View: Add Product */}
+              {productView === 'add' && (
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-3xl mx-auto">
+                  <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">
+                    {editingProduct ? 'Edit Product' : 'Add New Product'}
+                  </h3>
+                  <form onSubmit={handleProductSubmit} className="space-y-6">
+                     <div className="space-y-2">
+                       <label className="text-xs font-black uppercase tracking-widest text-slate-500">Product Name</label>
+                       <input required type="text" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Super Oats" />
+                     </div>
+                     <div className="space-y-2">
+                       <label className="text-xs font-black uppercase tracking-widest text-slate-500">URL Slug</label>
+                       <input type="text" value={productForm.slug} onChange={e => setProductForm({ ...productForm, slug: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. super-oats" />
+                     </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Product Name</label>
-                        <input required type="text" value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Super Oats" />
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Discounted Rate (₹) <span className="text-[10px] text-primary font-bold">(Selling Price)</span></label>
+                        <input required type="number" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="499" />
                       </div>
+                    </div>
 
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Actual Rate (₹) <span className="text-[10px] text-slate-400 font-bold">(M.R.P)</span></label>
-                          <input required type="number" value={productForm.originalPrice} onChange={e => setProductForm({ ...productForm, originalPrice: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="699" />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Discounted Rate (₹) <span className="text-[10px] text-primary font-bold">(Selling Price)</span></label>
-                          <input required type="number" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="499" />
-                        </div>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Category</label>
+                        <select required value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white">
+                          <option value="">Select Category...</option>
+                          {categories.map(c => <option key={c.id || c.name} value={c.name}>{c.name}</option>)}
+                        </select>
                       </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Initial Stock</label>
+                        <input required type="number" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="100" />
+                      </div>
+                    </div>
 
-                      <div className="grid md:grid-cols-2 gap-6">
+                    {/* Product Benefits Section */}
+                    <div className="space-y-4 border-t border-slate-100 pt-6">
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-sm font-black uppercase tracking-widest text-slate-900 border-l-4 border-primary pl-3">Key Benefits</h4>
+                        <button type="button" onClick={addBenefit} className="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-1 hover:underline">
+                          <span className="material-symbols-outlined text-sm">add</span> Add Benefit
+                        </button>
+                      </div>
+                      <div className="grid gap-3">
+                        {productForm.benefits?.map((benefit, idx) => (
+                          <div key={idx} className="flex gap-2 animate-in fade-in slide-in-from-left-2 duration-200">
+                            <input
+                              type="text"
+                              value={benefit}
+                              onChange={(e) => updateBenefit(idx, e.target.value)}
+                              className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary"
+                              placeholder="e.g. 27g Protein per 100g 💪"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeBenefit(idx)}
+                              className="w-12 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-all"
+                            >
+                              <span className="material-symbols-outlined text-lg">delete</span>
+                            </button>
+                          </div>
+                        ))}
+                        {(productForm.benefits?.length === 0) && (
+                          <p className="text-xs text-slate-400 italic">No benefits added yet. Click "Add Benefit" to start listing product highlights.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Nutrition & Ingredients Section */}
+                    <div className="space-y-6 border-t border-slate-100 pt-6">
+                      <h4 className="text-sm font-black uppercase tracking-widest text-slate-900 border-l-4 border-primary pl-3">Nutrition & Ingredients</h4>
+
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Category</label>
-                          <select required value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white">
-                            <option value="">Select Category...</option>
-                            {categories.map(c => <option key={c.id || c.name} value={c.name}>{c.name}</option>)}
-                          </select>
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Calories (kcal)</label>
+                          <input type="text" value={productForm.nutrition?.calories} onChange={e => setProductForm({ ...productForm, nutrition: { ...productForm.nutrition!, calories: e.target.value } })} className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary" placeholder="450" />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Initial Stock</label>
-                          <input required type="number" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: Number(e.target.value) })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="100" />
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Protein (gm)</label>
+                          <input type="text" value={productForm.nutrition?.protein} onChange={e => setProductForm({ ...productForm, nutrition: { ...productForm.nutrition!, protein: e.target.value } })} className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary" placeholder="24" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Carbs (gm)</label>
+                          <input type="text" value={productForm.nutrition?.carbs} onChange={e => setProductForm({ ...productForm, nutrition: { ...productForm.nutrition!, carbs: e.target.value } })} className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary" placeholder="12" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Fat (gm)</label>
+                          <input type="text" value={productForm.nutrition?.fat} onChange={e => setProductForm({ ...productForm, nutrition: { ...productForm.nutrition!, fat: e.target.value } })} className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary" placeholder="18" />
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Description</label>
-                        <textarea required value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={4} placeholder="Product details..." />
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Full Ingredients</label>
+                        <textarea value={productForm.ingredients} onChange={e => setProductForm({ ...productForm, ingredients: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={3} placeholder="Peanuts, Sea Salt, etc..." />
                       </div>
+                    </div>
 
-                      {/* Product Benefits Section */}
-                      <div className="space-y-4 border-t border-slate-100 pt-6">
-                        <div className="flex justify-between items-center">
-                          <h4 className="text-sm font-black uppercase tracking-widest text-slate-900 border-l-4 border-primary pl-3">Key Benefits</h4>
-                          <button type="button" onClick={addBenefit} className="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-1 hover:underline">
-                            <span className="material-symbols-outlined text-sm">add</span> Add Benefit
-                          </button>
-                        </div>
-                        <div className="grid gap-3">
-                          {productForm.benefits?.map((benefit, idx) => (
-                            <div key={idx} className="flex gap-2 animate-in fade-in slide-in-from-left-2 duration-200">
+                    {/* Dynamic Ingredient Blend Section */}
+                    <div className="space-y-4 border-t border-slate-100 pt-6">
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-sm font-black uppercase tracking-widest text-slate-900 border-l-4 border-primary pl-3">Ingredient Blend Items</h4>
+                        <button type="button" onClick={addIngredientItem} className="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-1 hover:underline">
+                          <span className="material-symbols-outlined text-sm">add</span> Add Ingredient
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {productForm.ingredientsList?.map((item, idx) => (
+                          <div key={idx} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 relative group flex gap-4 items-center">
+                            <button
+                              type="button"
+                              onClick={() => removeIngredientItem(idx)}
+                              className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-white shadow-md text-slate-400 hover:text-red-500 flex items-center justify-center transition-all z-10 border border-slate-100"
+                            >
+                              <span className="material-symbols-outlined text-lg">close</span>
+                            </button>
+                            <div className="w-16 h-16 rounded-full overflow-hidden bg-white border border-slate-200 flex-shrink-0 relative group">
+                              {item.image ? (
+                                <img src={getMediaUrl(item.image)} alt="Ingredient" className="w-full h-full object-contain p-2" />
+                              ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
+                                  <span className="material-symbols-outlined text-xl">image</span>
+                                </div>
+                              )}
+                              <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer rounded-full">
+                                <span className="material-symbols-outlined text-white text-sm">cloud_upload</span>
+                                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleIngredientImageUpload(e, idx)} />
+                              </label>
+                            </div>
+                            <div className="flex-1 space-y-1">
+                              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400">Ingredient Name</label>
                               <input
                                 type="text"
-                                value={benefit}
-                                onChange={(e) => updateBenefit(idx, e.target.value)}
-                                className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary"
-                                placeholder="e.g. 27g Protein per 100g 💪"
+                                value={item.name}
+                                onChange={(e) => updateIngredientItem(idx, 'name', e.target.value)}
+                                className="w-full px-3 py-1.5 rounded-lg border border-slate-200 font-bold text-xs focus:ring-primary focus:border-primary"
+                                placeholder="e.g. Natural Peanut Butter"
                               />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {(productForm.ingredientsList?.length === 0) && (
+                        <p className="text-xs text-slate-400 italic">No custom blend ingredients added. This product will fall back to displaying the default ingredient blend list.</p>
+                      )}
+                    </div>
+
+                    {/* Usage Ideas Section */}
+                    <div className="space-y-4 border-t border-slate-100 pt-6">
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-sm font-black uppercase tracking-widest text-slate-900 border-l-4 border-primary pl-3">Usage Ideas</h4>
+                        <button type="button" onClick={addUsageIdea} className="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-1 hover:underline">
+                          <span className="material-symbols-outlined text-sm">add</span> Add Idea
+                        </button>
+                      </div>
+                      <div className="grid gap-6">
+                        {productForm.usageIdeas?.map((idea, idx) => (
+                          <div key={idx} className="bg-slate-50 p-4 rounded-2xl border border-slate-200 relative group animate-in zoom-in-95 duration-200">
+                            <button
+                              type="button"
+                              onClick={() => removeUsageIdea(idx)}
+                              className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-white shadow-md text-slate-400 hover:text-red-500 flex items-center justify-center transition-all z-10 border border-slate-100"
+                            >
+                              <span className="material-symbols-outlined text-lg">close</span>
+                            </button>
+                            <div className="flex gap-4">
+                              <div className="w-24 h-24 rounded-xl overflow-hidden bg-white border border-slate-200 flex-shrink-0 relative">
+                                {idea.image ? (
+                                  <img src={getMediaUrl(idea.image)} alt="Idea" className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
+                                    <span className="material-symbols-outlined text-2xl">image</span>
+                                  </div>
+                                )}
+                                <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                  <span className="material-symbols-outlined text-white">cloud_upload</span>
+                                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleUsageIdeaImageUpload(e, idx)} />
+                                </label>
+                              </div>
+                              <div className="flex-1 space-y-3">
+                                <input
+                                  type="text"
+                                  placeholder="Title (e.g. Blend It)"
+                                  value={idea.title}
+                                  onChange={(e) => updateUsageIdea(idx, 'title', e.target.value)}
+                                  className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Description (e.g. Into smoothies)"
+                                  value={idea.description}
+                                  onChange={(e) => updateUsageIdea(idx, 'description', e.target.value)}
+                                  className="w-full px-3 py-2 rounded-lg border border-slate-200 font-medium text-sm focus:ring-primary focus:border-primary text-slate-500"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        {(productForm.usageIdeas?.length === 0) && (
+                          <p className="text-xs text-slate-400 italic text-center py-4 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">No usage ideas added. These help customers visualize how to use the product!</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Image Upload Section */}
+                    <div className="space-y-6 border-t border-slate-100 pt-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-slate-500">Featured Image</label>
+                        <div className="flex items-center gap-4">
+                          <label className="cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl px-4 py-3 hover:bg-slate-100 hover:border-primary transition-all">
+                            <span className="text-sm font-bold text-slate-500 flex items-center gap-2">
+                              <span className="material-symbols-outlined">cloud_upload</span>
+                              Upload Main Image
+                            </span>
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleProductImageUpload(e, 'featured')} />
+                          </label>
+                          {productForm.image && (
+                            <div className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm relative group">
+                              <img src={getMediaUrl(productForm.image)} alt="Preview" className="w-full h-full object-cover" />
                               <button
                                 type="button"
-                                onClick={() => removeBenefit(idx)}
-                                className="w-12 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-all"
+                                onClick={() => setProductForm({ ...productForm, image: '' })}
+                                className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                               >
-                                <span className="material-symbols-outlined text-lg">delete</span>
+                                <span className="material-symbols-outlined text-white">close</span>
                               </button>
                             </div>
-                          ))}
-                          {(productForm.benefits?.length === 0) && (
-                            <p className="text-xs text-slate-400 italic">No benefits added yet. Click "Add Benefit" to start listing product highlights.</p>
                           )}
                         </div>
                       </div>
 
-                      {/* Nutrition & Ingredients Section */}
+                      {/* 3D Model & Aesthetics Section */}
                       <div className="space-y-6 border-t border-slate-100 pt-6">
-                        <h4 className="text-sm font-black uppercase tracking-widest text-slate-900 border-l-4 border-primary pl-3">Nutrition & Ingredients</h4>
-
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid md:grid-cols-2 gap-6">
                           <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Calories (kcal)</label>
-                            <input type="text" value={productForm.nutrition?.calories} onChange={e => setProductForm({ ...productForm, nutrition: { ...productForm.nutrition!, calories: e.target.value } })} className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary" placeholder="450" />
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Theme Color</label>
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="color"
+                                value={productForm.themeColor || '#FF6F00'}
+                                onChange={e => setProductForm({ ...productForm, themeColor: e.target.value })}
+                                className="w-12 h-12 rounded-lg border-0 p-0 cursor-pointer overflow-hidden"
+                              />
+                              <input
+                                type="text"
+                                value={productForm.themeColor || '#FF6F00'}
+                                onChange={e => setProductForm({ ...productForm, themeColor: e.target.value })}
+                                className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary text-sm uppercase"
+                                placeholder="#FF6F00"
+                              />
+                            </div>
                           </div>
                           <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Protein (gm)</label>
-                            <input type="text" value={productForm.nutrition?.protein} onChange={e => setProductForm({ ...productForm, nutrition: { ...productForm.nutrition!, protein: e.target.value } })} className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary" placeholder="24" />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Carbs (gm)</label>
-                            <input type="text" value={productForm.nutrition?.carbs} onChange={e => setProductForm({ ...productForm, nutrition: { ...productForm.nutrition!, carbs: e.target.value } })} className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary" placeholder="12" />
-                          </div>
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Fat (gm)</label>
-                            <input type="text" value={productForm.nutrition?.fat} onChange={e => setProductForm({ ...productForm, nutrition: { ...productForm.nutrition!, fat: e.target.value } })} className="w-full px-3 py-2 rounded-lg border border-slate-200 font-bold text-sm focus:ring-primary focus:border-primary" placeholder="18" />
+                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">3D Orientation</label>
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={productForm.orientation}
+                                onChange={e => setProductForm({ ...productForm, orientation: e.target.value })}
+                                onBlur={e => {
+                                  const fixed = e.target.value.replace(/O/g, '0').replace(/o/g, '0').trim();
+                                  setProductForm({ ...productForm, orientation: fixed });
+                                }}
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 font-mono focus:ring-primary focus:border-primary text-sm bg-slate-50/50"
+                                placeholder="0deg 0deg 0deg"
+                              />
+                              <p className="text-[10px] text-slate-400 mt-1 ml-1 font-medium italic">Format: Xdeg Ydeg Zdeg (e.g., 0deg 0deg -15deg)</p>
+                            </div>
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Full Ingredients</label>
-                          <textarea value={productForm.ingredients} onChange={e => setProductForm({ ...productForm, ingredients: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={3} placeholder="Peanuts, Sea Salt, etc..." />
-                        </div>
-                      </div>
-
-                      {/* Image Upload Section */}
-                      <div className="space-y-6 border-t border-slate-100 pt-6">
-                        <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Featured Image</label>
+                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">3D Model (.glb)</label>
                           <div className="flex items-center gap-4">
                             <label className="cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl px-4 py-3 hover:bg-slate-100 hover:border-primary transition-all">
                               <span className="text-sm font-bold text-slate-500 flex items-center gap-2">
-                                <span className="material-symbols-outlined">cloud_upload</span>
-                                Upload Main Image
+                                <span className="material-symbols-outlined">view_in_ar</span>
+                                {productForm.model3d ? 'Change 3D Model' : 'Upload 3D Model'}
                               </span>
-                              <input type="file" accept="image/*" className="hidden" onChange={(e) => handleProductImageUpload(e, 'featured')} />
+                              <input type="file" accept=".glb,.gltf" className="hidden" onChange={handleProductModel3DUpload} />
                             </label>
-                            {productForm.image && (
-                              <div className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm relative group">
-                                <img src={productForm.image} alt="Preview" className="w-full h-full object-cover" />
-                                <button
-                                  type="button"
-                                  onClick={() => setProductForm({ ...productForm, image: '' })}
-                                  className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                  <span className="material-symbols-outlined text-white">close</span>
+                            {productForm.model3d && (
+                              <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-lg border border-green-100">
+                                <span className="material-symbols-outlined text-sm">check_circle</span>
+                                <span className="text-xs font-bold uppercase">Model Uploaded</span>
+                                <button type="button" onClick={() => setProductForm({ ...productForm, model3d: '' })} className="hover:text-red-500 ml-1">
+                                  <span className="material-symbols-outlined text-sm">close</span>
                                 </button>
                               </div>
                             )}
                           </div>
                         </div>
-
-                        <div className="space-y-2">
-                          <label className="text-xs font-black uppercase tracking-widest text-slate-500">Gallery Images</label>
-                          <div className="flex items-center gap-4 flex-wrap">
-                            <label className="cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl px-4 py-3 hover:bg-slate-100 hover:border-primary transition-all">
-                              <span className="text-sm font-bold text-slate-500 flex items-center gap-2">
-                                <span className="material-symbols-outlined">add_photo_alternate</span>
-                                Add More Images
-                              </span>
-                              <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleProductImageUpload(e, 'gallery')} />
-                            </label>
-                            {productForm.gallery && productForm.gallery.map((img, idx) => (
-                              <div key={idx} className="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm relative group">
-                                <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
-                                <button
-                                  type="button"
-                                  onClick={() => setProductForm(prev => ({ ...prev, gallery: prev.gallery?.filter((_, i) => i !== idx) }))}
-                                  className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                  <span className="material-symbols-outlined text-white">close</span>
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* 3D Model & Aesthetics Section */}
-                        <div className="space-y-6 border-t border-slate-100 pt-6">
-                          <div className="grid md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                              <label className="text-xs font-black uppercase tracking-widest text-slate-500">Theme Color</label>
-                              <div className="flex items-center gap-3">
-                                <input
-                                  type="color"
-                                  value={productForm.themeColor || '#FF6F00'}
-                                  onChange={e => setProductForm({ ...productForm, themeColor: e.target.value })}
-                                  className="w-12 h-12 rounded-lg border-0 p-0 cursor-pointer overflow-hidden"
-                                />
-                                <input
-                                  type="text"
-                                  value={productForm.themeColor || '#FF6F00'}
-                                  onChange={e => setProductForm({ ...productForm, themeColor: e.target.value })}
-                                  className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary text-sm uppercase"
-                                  placeholder="#FF6F00"
-                                />
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <label className="text-xs font-black uppercase tracking-widest text-slate-500">3D Orientation</label>
-                              <div className="relative">
-                                <input
-                                  type="text"
-                                  value={productForm.orientation}
-                                  onChange={e => setProductForm({ ...productForm, orientation: e.target.value })}
-                                  onBlur={e => {
-                                    const fixed = e.target.value.replace(/O/g, '0').replace(/o/g, '0').trim();
-                                    setProductForm({ ...productForm, orientation: fixed });
-                                  }}
-                                  className="w-full px-4 py-3 rounded-xl border border-slate-200 font-mono focus:ring-primary focus:border-primary text-sm bg-slate-50/50"
-                                  placeholder="0deg 0deg 0deg"
-                                />
-                                <p className="text-[10px] text-slate-400 mt-1 ml-1 font-medium italic">Format: Xdeg Ydeg Zdeg (e.g., 0deg 0deg -15deg)</p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest text-slate-500">3D Model (.glb)</label>
-                            <div className="flex items-center gap-4">
-                              <label className="cursor-pointer bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl px-4 py-3 hover:bg-slate-100 hover:border-primary transition-all">
-                                <span className="text-sm font-bold text-slate-500 flex items-center gap-2">
-                                  <span className="material-symbols-outlined">view_in_ar</span>
-                                  {productForm.model3d ? 'Change 3D Model' : 'Upload 3D Model'}
-                                </span>
-                                <input type="file" accept=".glb,.gltf" className="hidden" onChange={handleProductModel3DUpload} />
-                              </label>
-                              {productForm.model3d && (
-                                <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-600 rounded-lg border border-green-100">
-                                  <span className="material-symbols-outlined text-sm">check_circle</span>
-                                  <span className="text-xs font-bold uppercase">Model Uploaded</span>
-                                  <button type="button" onClick={() => setProductForm({ ...productForm, model3d: '' })} className="hover:text-red-500 ml-1">
-                                    <span className="material-symbols-outlined text-sm">close</span>
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
                       </div>
+                    </div>
 
-                      <div className="pt-4 flex justify-end gap-4">
-                        <button type="button" onClick={() => setProductView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
-                        <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">
-                          {editingProduct ? 'Update Product' : 'Create Product'}
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                )}
-
-                {/* View: Categories */}
-                {productView === 'categories' && (
-                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-2xl mx-auto">
-                    <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">Manage Categories</h3>
-
-                    <div className="flex gap-4 mb-8">
-                      <input
-                        type="text"
-                        value={newCategory}
-                        onChange={(e) => setNewCategory(e.target.value)}
-                        placeholder="New Category Name"
-                        className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary"
-                      />
-                      <button
-                        onClick={() => {
-                          if (newCategory) {
-                            onAddCategory({ name: newCategory, image: '' }); // Pass object
-                            setNewCategory('');
-                          }
-                        }}
-                        className="px-6 py-3 bg-slate-900 text-white rounded-xl font-black uppercase"
-                      >
-                        Add
+                    <div className="pt-4 flex justify-end gap-4">
+                      <button type="button" onClick={() => setProductView('list')} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                      <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">
+                        {editingProduct ? 'Update Product' : 'Create Product'}
                       </button>
                     </div>
+                  </form>
+                </div>
+              )}
 
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2 block">Active Categories</label>
-                      <div className="flex flex-wrap gap-3">
-                        {categories.map(c => (
-                          <div key={c.id || c.name} className="px-4 py-2 bg-slate-50 rounded-lg border border-slate-200 flex items-center gap-2">
-                            <span className="font-bold text-slate-700">{c.name}</span>
-                            <button
-                              onClick={() => {
-                                setDeleteCategoryModal({ isOpen: true, categoryId: c.id! });
-                              }}
-                              className="text-slate-400 hover:text-red-500"
-                            >
-                              <span className="material-symbols-outlined text-sm">close</span>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
+              {/* View: Categories */}
+              {productView === 'categories' && (
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 max-w-2xl mx-auto">
+                  <h3 className="text-2xl font-black uppercase text-slate-900 mb-6">Manage Categories</h3>
+
+                  <div className="flex gap-4 mb-8">
+                    <input
+                      type="text"
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      placeholder="New Category Name"
+                      className="flex-1 px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary"
+                    />
+                    <button
+                      onClick={() => {
+                        if (newCategory) {
+                          onAddCategory({ name: newCategory, image: '' }); // Pass object
+                          setNewCategory('');
+                        }
+                      }}
+                      className="px-6 py-3 bg-slate-900 text-white rounded-xl font-black uppercase"
+                    >
+                      Add
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2 block">Active Categories</label>
+                    <div className="flex flex-wrap gap-3">
+                      {categories.map(c => (
+                        <div key={c.id || c.name} className="px-4 py-2 bg-slate-50 rounded-lg border border-slate-200 flex items-center gap-2">
+                          <span className="font-bold text-slate-700">{c.name}</span>
+                          <button
+                            onClick={() => {
+                              setDeleteCategoryModal({ isOpen: true, categoryId: c.id! });
+                            }}
+                            className="text-slate-400 hover:text-red-500"
+                          >
+                            <span className="material-symbols-outlined text-sm">close</span>
+                          </button>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                )}
-              </div>
-            )
+                </div>
+              )}
+            </div>
+          )
           }
 
           {/* ----- ORDERS TAB ----- */}
-          {
-            activeTab === 'orders' && (
-              <div className="space-y-6 animate-in fade-in duration-300">
-                <div className="grid md:grid-cols-4 gap-6">
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Orders</p>
-                    <p className="text-3xl font-black text-slate-900 mt-2">{orders.length}</p>
-                  </div>
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">Pending</p>
-                    <p className="text-3xl font-black text-orange-500 mt-2">{orders.filter(o => o.status === 'Pending' || o.status === 'Processing').length}</p>
-                  </div>
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">Shipped</p>
-                    <p className="text-3xl font-black text-blue-500 mt-2">{orders.filter(o => o.status === 'Shipped').length}</p>
-                  </div>
-                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Revenue</p>
-                    <p className="text-3xl font-black text-green-500 mt-2">₹{orders.reduce((acc, curr) => acc + (curr.status !== 'Cancelled' ? Number(curr.total_amount) : 0), 0).toLocaleString()}</p>
-                  </div>
-                </div>
+          {activeTab === 'orders' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              {/* Analytics Cards */}
+              {(() => {
+                const today = new Date().toDateString();
+                const todayOrders = orders.filter(o => o.created_at?.startsWith?.(today) || new Date(o.created_at).toDateString() === today);
+                const todayRevenue = todayOrders.reduce((acc, o) => acc + (o.status !== 'Cancelled' ? Number(o.total_amount) : 0), 0);
+                const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toDateString();
+                const weekOrders = orders.filter(o => new Date(o.created_at).toDateString() >= weekAgo);
+                const weekRevenue = weekOrders.reduce((acc, o) => acc + (o.status !== 'Cancelled' ? Number(o.total_amount) : 0), 0);
+                const avgOrder = orders.length > 0 ? orders.reduce((acc, o) => acc + Number(o.total_amount), 0) / orders.length : 0;
 
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                  <div className="p-6 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <h3 className="font-black uppercase text-slate-900">Recent Transactions</h3>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg">search</span>
-                      <input
-                        type="text"
-                        placeholder="Search orders..."
-                        value={orderSearchQuery}
-                        onChange={(e) => setOrderSearchQuery(e.target.value)}
-                        className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-64"
-                      />
+                return (
+                  <div className="grid md:grid-cols-4 gap-6">
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                      <p className="text-xs font-black uppercase tracking-widest text-slate-400">Today Revenue</p>
+                      <p className="text-3xl font-black text-green-500 mt-2">₹{todayRevenue.toLocaleString()}</p>
+                      <p className="text-[10px] text-slate-400 mt-1">{todayOrders.length} orders</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                      <p className="text-xs font-black uppercase tracking-widest text-slate-400">This Week</p>
+                      <p className="text-3xl font-black text-green-500 mt-2">₹{weekRevenue.toLocaleString()}</p>
+                      <p className="text-[10px] text-slate-400 mt-1">{weekOrders.length} orders</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                      <p className="text-xs font-black uppercase tracking-widest text-slate-400">Avg Order</p>
+                      <p className="text-3xl font-black text-blue-500 mt-2">₹{Math.round(avgOrder).toLocaleString()}</p>
+                      <p className="text-[10px] text-slate-400 mt-1">per order</p>
+                    </div>
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                      <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Revenue</p>
+                      <p className="text-3xl font-black text-green-500 mt-2">₹{orders.reduce((acc, curr) => acc + (curr.status !== 'Cancelled' ? Number(curr.total_amount) : 0), 0).toLocaleString()}</p>
                     </div>
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                      <thead className="bg-slate-50 border-b border-slate-200">
-                        <tr>
-                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Order ID</th>
-                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Customer</th>
-                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Date</th>
-                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Status</th>
-                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest">Total</th>
-                          <th className="p-4 text-xs font-black uppercase text-slate-500 tracking-widest text-right">Action</th>
+                )
+              })()}
+
+              {/* Status Cards */}
+              <div className="grid md:grid-cols-4 gap-6">
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Total Orders</p>
+                  <p className="text-3xl font-black text-slate-900 mt-2">{orders.length}</p>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Pending</p>
+                  <p className="text-3xl font-black text-orange-500 mt-2">{orders.filter(o => o.status === 'PENDING' || o.status === 'Processing').length}</p>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Shipped</p>
+                  <p className="text-3xl font-black text-blue-500 mt-2">{orders.filter(o => o.status === 'SHIPPED' || o.status === 'Shipped').length}</p>
+                </div>
+                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Delivered</p>
+                  <p className="text-3xl font-black text-green-500 mt-2">{orders.filter(o => o.status === 'DELIVERED' || o.status === 'Delivered').length}</p>
+                </div>
+              </div>
+
+              {/* Order List */}
+              <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                  <h4 className="text-sm font-black uppercase text-slate-800 tracking-tight">All Orders</h4>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg">search</span>
+                    <input
+                      type="text"
+                      placeholder="Search by order ID, email or name..."
+                      className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-72"
+                      value={orderSearchQuery}
+                      onChange={e => setOrderSearchQuery(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-50 border-b border-slate-200">
+                      <tr>
+                        <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Order ID</th>
+                        <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Customer</th>
+                        <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Date</th>
+                        <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Amount</th>
+                        <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Status</th>
+                        <th className="p-4 text-[10px] font-black uppercase text-slate-400 tracking-widest text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100/60">
+                      {filteredOrders.length > 0 ? filteredOrders.map(order => (
+                        <tr key={order.id} className="hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => setViewingOrder(order)}>
+                          <td className="p-4">
+                            <span className="font-black text-slate-900 text-sm">#PB-{order.id}</span>
+                          </td>
+                          <td className="p-4">
+                            <p className="font-bold text-slate-700 text-sm">{order.user_name || `${order.first_name || ''} ${order.last_name || ''}`.trim() || 'Guest'}</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{order.user_email}</p>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-sm font-bold text-slate-600">{new Date(order.created_at).toLocaleDateString()}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className="font-black text-slate-900">₹{Number(order.total_amount).toLocaleString()}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                              order.status === 'DELIVERED' || order.status === 'Delivered' ? 'bg-green-100 text-green-600' :
+                              order.status === 'SHIPPED' || order.status === 'Shipped' ? 'bg-purple-100 text-purple-600' :
+                              order.status === 'PROCESSING' || order.status === 'Processing' ? 'bg-blue-100 text-blue-600' :
+                              order.status === 'PENDING' || order.status === 'Pending' ? 'bg-orange-100 text-orange-600' :
+                              'bg-red-100 text-red-600'
+                            }`}>
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1).toLowerCase()}
+                            </span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <button onClick={(e) => { e.stopPropagation(); setViewingOrder(order); }} className="text-primary font-bold text-xs uppercase hover:underline">
+                              View Details
+                            </button>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {filteredOrders.map(order => (
-                          <tr key={order.id} className="hover:bg-slate-50 transition-colors">
-                            <td className="p-4 font-bold text-slate-900">#{order.id}</td>
-                            <td className="p-4">
-                              <div className="font-bold text-slate-700">{order.user_name}</div>
-                              <div className="text-xs text-slate-400">{order.items.length} Items</div>
-                            </td>
-                            <td className="p-4 text-sm font-medium text-slate-600">{new Date(order.created_at).toLocaleDateString()}</td>
-                            <td className="p-4">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${order.status === 'Delivered' ? 'bg-green-100 text-green-600' :
-                                order.status === 'Processing' ? 'bg-blue-100 text-blue-600' :
-                                  order.status === 'Shipped' ? 'bg-purple-100 text-purple-600' :
-                                    order.status === 'Pending' ? 'bg-orange-100 text-orange-600' :
-                                      'bg-red-100 text-red-600'
-                                }`}>
-                                {order.status}
-                              </span>
-                            </td>
-                            <td className="p-4 font-black text-slate-800">₹{order.total_amount}</td>
-                            <td className="p-4 text-right">
-                              <button
-                                onClick={() => setViewingOrder(order)}
-                                className="text-slate-400 hover:text-primary transition-colors p-2 rounded-full hover:bg-slate-100"
-                                title="View Details"
-                              >
-                                <span className="material-symbols-outlined">visibility</span>
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                        {filteredOrders.length === 0 && (
-                          <tr>
-                            <td colSpan={6} className="p-8 text-center text-slate-400 font-bold">
-                              No orders found matching "{orderSearchQuery}"
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+                      )) : (
+                        <tr>
+                          <td colSpan={6} className="p-12 text-center">
+                            <span className="material-symbols-outlined text-slate-200 text-5xl mb-4">shopping_bag</span>
+                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{orderSearchQuery ? 'No orders match your search.' : 'No orders yet.'}</p>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            )
-          }
+            </div>
+          )}
 
-          {
-            activeTab === 'overview' && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                {/* Stats Grid */}
-                <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
-                  {[
-                    {
-                      label: 'Total Revenue',
-                      value: `₹${orders.reduce((acc, curr) => acc + (curr.status !== 'Cancelled' ? Number(curr.total_amount) : 0), 0).toLocaleString('en-IN')}`,
-                      change: `${orders.length} Orders`,
-                      icon: 'payments',
-                      color: 'bg-green-100 text-green-600'
-                    },
-                    {
-                      label: 'Total SKUs',
-                      value: products.length.toString(),
-                      change: 'Active',
-                      icon: 'inventory_2',
-                      color: 'bg-blue-100 text-blue-600'
-                    },
-                    {
-                      label: 'Low Stock Items',
-                      value: products.filter(p => p.stock < 10).length.toString(),
-                      change: products.filter(p => p.stock < 10).length > 0 ? '- Action Needed' : 'Healthy',
-                      icon: 'warning',
-                      color: products.filter(p => p.stock < 10).length > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
-                    },
-                    {
-                      label: 'Total Events',
-                      value: events.length.toString(),
-                      change: events.length > 0 ? 'Upcoming' : 'None',
-                      icon: 'event',
-                      color: 'bg-purple-100 text-purple-600'
-                    },
-                  ].map((stat, i) => (
-                    <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
-                          <span className="material-symbols-outlined">{stat.icon}</span>
-                        </div>
-                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${stat.change.startsWith('+') || stat.change === 'Healthy' || stat.change === 'Active' || stat.change === 'Total' || stat.change.includes('Orders') ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                          {stat.change}
-                        </span>
+
+          {/* ----- CUSTOMERS TAB ----- */}
+          {activeTab === 'customers' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <h3 className="text-xl font-black uppercase text-slate-800 tracking-tight">User Database</h3>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-lg">search</span>
+                  <input
+                    type="text"
+                    placeholder="Search by name, email or ID..."
+                    className="pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-sm font-bold focus:ring-primary focus:border-primary w-64"
+                    value={customerSearchQuery}
+                    onChange={e => setCustomerSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <table className="w-full text-left">
+                  <thead className="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                      <th className="p-5 text-[10px] font-black uppercase text-slate-400 tracking-widest">Customer Identity</th>
+                      <th className="p-5 text-[10px] font-black uppercase text-slate-400 tracking-widest">Contact</th>
+                      <th className="p-5 text-[10px] font-black uppercase text-slate-400 tracking-widest">Loyalty Status</th>
+                      <th className="p-5 text-[10px] font-black uppercase text-slate-400 tracking-widest">Account State</th>
+                      <th className="p-5 text-[10px] font-black uppercase text-slate-400 tracking-widest text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100/60">
+                    {filteredCustomers.length > 0 ? filteredCustomers.map(customer => (
+                      <tr key={customer.id} className="hover:bg-slate-50/50 transition-colors group">
+                        <td className="p-5">
+                          <div className="flex items-center gap-4">
+                            <div className="w-11 h-11 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-xs shadow-md">
+                              {(customer.first_name?.[0] || customer.username[0]).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-black text-slate-900 text-sm">
+                                {customer.first_name || customer.last_name
+                                  ? `${customer.first_name || ''} ${customer.last_name || ''}`.trim()
+                                  : customer.username}
+                              </p>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Joined: {new Date(customer.date_joined).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-5">
+                          <p className="text-sm font-bold text-slate-700">{customer.email}</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">{customer.profile?.phone || 'No Mobile Linked'}</p>
+                        </td>
+                        <td className="p-5">
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-xs text-yellow-500 fill-yellow-500">stars</span>
+                              <span className="text-xs font-black text-slate-900">{customer.profile?.points || 0} PTS</span>
+                            </div>
+                            <span className="px-2.5 py-1 bg-primary/5 text-primary rounded-lg text-[9px] font-black uppercase tracking-widest w-fit border border-primary/10">
+                              {customer.profile?.tier || 'Member'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-5">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${customer.is_active ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                            <span className={`text-[10px] font-black uppercase tracking-widest ${customer.is_active ? 'text-green-600' : 'text-red-600'}`}>
+                              {customer.is_active ? 'Active' : 'Deactivated'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="p-5 text-right">
+                          <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => onToggleCustomerActive(customer.id)}
+                              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${customer.is_active ? 'bg-orange-50 text-orange-600 hover:bg-orange-100' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}
+                              title={customer.is_active ? 'Deactivate Account' : 'Reactivate Account'}
+                            >
+                              <span className="material-symbols-outlined text-xl">{customer.is_active ? 'block' : 'undo'}</span>
+                            </button>
+                            <button
+                              onClick={() => onDeleteCustomer(customer.id)}
+                              className="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-700 flex items-center justify-center transition-all"
+                              title="Delete Account"
+                            >
+                              <span className="material-symbols-outlined text-xl">delete_forever</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr>
+                        <td colSpan={5} className="p-12 text-center">
+                          <span className="material-symbols-outlined text-slate-200 text-5xl mb-4">group_off</span>
+                          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No customers found</p>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'overview' && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {/* Stats Grid */}
+              <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
+                {[
+                  {
+                    label: 'Total Revenue',
+                    value: `₹${orders.reduce((acc, curr) => acc + (curr.status !== 'Cancelled' ? Number(curr.total_amount) : 0), 0).toLocaleString('en-IN')}`,
+                    change: `${orders.length} Orders`,
+                    icon: 'payments',
+                    color: 'bg-green-100 text-green-600'
+                  },
+                  {
+                    label: 'Total SKUs',
+                    value: products.length.toString(),
+                    change: 'Active',
+                    icon: 'inventory_2',
+                    color: 'bg-blue-100 text-blue-600'
+                  },
+                  {
+                    label: 'Low Stock Items',
+                    value: products.filter(p => p.stock < 10).length.toString(),
+                    change: products.filter(p => p.stock < 10).length > 0 ? '- Action Needed' : 'Healthy',
+                    icon: 'warning',
+                    color: products.filter(p => p.stock < 10).length > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
+                  },
+                  {
+                    label: 'Total Events',
+                    value: events.length.toString(),
+                    change: events.length > 0 ? 'Upcoming' : 'None',
+                    icon: 'event',
+                    color: 'bg-purple-100 text-purple-600'
+                  },
+                ].map((stat, i) => (
+                  <div key={i} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
+                        <span className="material-symbols-outlined">{stat.icon}</span>
                       </div>
-                      <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">{stat.label}</p>
-                      <p className="text-3xl font-black text-slate-900 mt-1">{stat.value}</p>
+                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${stat.change.startsWith('+') || stat.change === 'Healthy' || stat.change === 'Active' || stat.change === 'Total' || stat.change.includes('Orders') ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                        {stat.change}
+                      </span>
                     </div>
-                  ))}
-                </div>
-
-                <div className="bg-blue-50 border border-blue-100 rounded-xl p-6 flex items-start gap-4">
-                  <span className="material-symbols-outlined text-blue-600">info</span>
-                  <div>
-                    <h4 className="font-bold text-blue-900">System Overview</h4>
-                    <p className="text-sm text-blue-700 mt-1">
-                      You are currently managing {products.length} products across {categories.length} categories. {orders.filter(o => o.status === 'Pending').length} orders are awaiting processing.
-                    </p>
+                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">{stat.label}</p>
+                    <p className="text-3xl font-black text-slate-900 mt-1">{stat.value}</p>
                   </div>
+                ))}
+              </div>
+
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-6 flex items-start gap-4">
+                <span className="material-symbols-outlined text-blue-600">info</span>
+                <div>
+                  <h4 className="font-bold text-blue-900">System Overview</h4>
+                  <p className="text-sm text-blue-700 mt-1">
+                    You are currently managing {products.length} products across {categories.length} categories. {orders.filter(o => o.status === 'Pending').length} orders are awaiting processing.
+                  </p>
                 </div>
               </div>
-            )
+            </div>
+          )
           }
 
           {/* ----- ANNOUNCEMENTS TAB ----- */}
@@ -3095,104 +4096,203 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
               </div>
             </div>
-          )
-          }
+          )}
 
-          {
-            activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'events' && activeTab !== 'orders' && activeTab !== 'ui-settings' && activeTab !== 'visitor-forms' && activeTab !== 'blogs' && activeTab !== 'announcements' && activeTab !== 'distributors' && activeTab !== 'rewards' && (
-              <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
-                <span className="material-symbols-outlined text-6xl opacity-20">construction</span>
-                <p className="font-handdrawn text-2xl">This module is under construction</p>
-              </div>
-            )
-          }
+          {activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'events' && activeTab !== 'orders' && activeTab !== 'ui-settings' && activeTab !== 'visitor-forms' && activeTab !== 'blogs' && activeTab !== 'announcements' && activeTab !== 'distributors' && activeTab !== 'rewards' && activeTab !== 'customers' && (
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
+              <span className="material-symbols-outlined text-6xl opacity-20">construction</span>
+              <p className="font-satoshi text-2xl">This module is under construction</p>
+            </div>
+          )}
 
         </div>
-      </main >
+      </main>
 
       {/* Slide Edit/Add Modal */}
       {
         isSlideModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={closeSlideModal} />
-            <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl relative z-10 p-8 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto custom-scroll">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-black uppercase text-slate-900">{editingSlide ? 'Edit Slide' : 'Add New Slide'}</h3>
-                <button onClick={closeSlideModal} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200"><span className="material-symbols-outlined">close</span></button>
+
+            <div className="bg-white w-full max-w-6xl rounded-[40px] shadow-2xl relative z-10 p-0 animate-in zoom-in duration-500 max-h-[96vh] overflow-hidden flex flex-col md:flex-row shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)]">
+              {/* Left Side: Controls (Canvas Style) */}
+              <div className="w-full md:w-[400px] bg-slate-50 border-r border-slate-100 p-8 overflow-y-auto custom-scroll flex flex-col">
+                <div className="flex justify-between items-center mb-10">
+                  <div>
+                    <h3 className="text-xl font-black uppercase text-slate-900 tracking-tighter">{editingSlide ? 'Edit Slide' : 'Add New Slide'}</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Canvas Mode v2.0</p>
+                  </div>
+                  <button onClick={closeSlideModal} className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-100 transition-all shadow-sm"><span className="material-symbols-outlined text-slate-400">close</span></button>
+                </div>
+
+                <form onSubmit={handleSlideSubmit} id="slide-editor-form" className="space-y-8 flex-1">
+                  {/* Image Upload */}
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                      <span className="w-4 h-[1px] bg-primary"></span> 01. Slider Asset
+                    </label>
+                    <div className="relative group overflow-hidden rounded-2xl bg-white border border-slate-200 p-8 shadow-sm transition-all hover:shadow-md cursor-pointer">
+                      <input type="file" accept="image/*" onChange={handleSlideImageUpload} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                      <div className="flex flex-col items-center justify-center gap-4 text-center">
+                        <div className="w-20 h-20 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors border-2 border-dashed border-slate-200">
+                          <span className="material-symbols-outlined text-4xl">upload_file</span>
+                        </div>
+                        <div>
+                          <span className="text-sm font-black uppercase tracking-tight text-slate-900 block">Upload Slider Image</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">PNG, JPG, WEBP (Max 5MB)</span>
+                        </div>
+                      </div>
+                    </div>
+                    {slideForm.image && (
+                      <div className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 group">
+                        <img src={getMediaUrl(slideForm.image)} alt="Preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setSlideForm(prev => ({ ...prev, image: '' }))}
+                          className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <span className="material-symbols-outlined text-white text-3xl">delete</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Mobile Image Upload */}
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                      <span className="w-4 h-[1px] bg-primary"></span> 02. Mobile Asset (Optional)
+                    </label>
+                    <div className="relative group overflow-hidden rounded-2xl bg-white border border-slate-200 p-8 shadow-sm transition-all hover:shadow-md cursor-pointer">
+                      <input type="file" accept="image/*" onChange={handleMobileSlideImageUpload} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                      <div className="flex flex-col items-center justify-center gap-4 text-center">
+                        <div className="w-20 h-20 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors border-2 border-dashed border-slate-200">
+                          <span className="material-symbols-outlined text-4xl">smartphone</span>
+                        </div>
+                        <div>
+                          <span className="text-sm font-black uppercase tracking-tight text-slate-900 block">Upload Mobile Image</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">PNG, JPG, WEBP (Vertical Recommended)</span>
+                        </div>
+                      </div>
+                    </div>
+                    {slideForm.mobileImage && (
+                      <div className="relative aspect-[9/16] w-32 mx-auto rounded-xl overflow-hidden border border-slate-200 group">
+                        <img src={getMediaUrl(slideForm.mobileImage)} alt="Mobile Preview" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setSlideForm(prev => ({ ...prev, mobileImage: '' }))}
+                          className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <span className="material-symbols-outlined text-white text-3xl">delete</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Configuration Section */}
+                  <div className="space-y-4 pt-4 border-t border-slate-100">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                      <span className="w-4 h-[1px] bg-primary"></span> 03. Final Configuration
+                    </label>
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Slide Status</label>
+                        <select
+                          value={slideForm.isActive ? 'active' : 'inactive'}
+                          onChange={e => setSlideForm({ ...slideForm, isActive: e.target.value === 'active' })}
+                          className="w-full px-4 py-3 bg-white rounded-xl border border-slate-200 font-bold text-xs focus:ring-primary focus:border-primary"
+                        >
+                          <option value="active">Live (Visible on Homepage)</option>
+                          <option value="inactive">Draft (Hidden)</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Transition Time (Seconds)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="60"
+                          value={slideForm.displayDuration || 5}
+                          onChange={e => setSlideForm({ ...slideForm, displayDuration: parseInt(e.target.value) || 5 })}
+                          className="w-full px-4 py-3 bg-white rounded-xl border border-slate-200 font-bold text-xs focus:ring-primary focus:border-primary"
+                          placeholder="Duration in seconds"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </form>
+
+                <div className="pt-8 mt-auto flex gap-3">
+                  <button type="button" onClick={closeSlideModal} className="flex-1 px-4 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400 hover:bg-white hover:text-slate-600 transition-all border border-transparent hover:border-slate-200">Cancel</button>
+                  <button type="submit" form="slide-editor-form" className="flex-[2] px-8 py-4 rounded-2xl bg-slate-900 text-white font-black uppercase text-[10px] tracking-[0.2em] shadow-xl hover:bg-primary transition-all hover:-translate-y-1">Confirm Slider</button>
+                </div>
               </div>
 
-              <form onSubmit={handleSlideSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Category Label</label>
-                  <input required type="text" value={slideForm.category} onChange={e => setSlideForm({ ...slideForm, category: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. SUPER MUESLI" />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Headline</label>
-                  <input required type="text" value={slideForm.headline} onChange={e => setSlideForm({ ...slideForm, headline: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="e.g. Crunchy Coffee Madness" />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Description</label>
-                  <textarea required value={slideForm.description} onChange={e => setSlideForm({ ...slideForm, description: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" rows={3} placeholder="Short description..." />
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">CTA Button Text</label>
-                    <input required type="text" value={slideForm.cta} onChange={e => setSlideForm({ ...slideForm, cta: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="SHOP NOW" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-black uppercase tracking-widest text-slate-500">Status</label>
-                    <select value={slideForm.isActive ? 'active' : 'inactive'} onChange={e => setSlideForm({ ...slideForm, isActive: e.target.value === 'active' })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary bg-white">
-                      <option value="active">Published (Active)</option>
-                      <option value="inactive">Draft (Inactive)</option>
-                    </select>
+              {/* Right Side: Live Canvas Preview */}
+              <div className="flex-1 bg-slate-100 relative flex flex-col items-center justify-center p-0 overflow-hidden group/canvas">
+                <div className="absolute top-8 left-8 z-30 pointer-events-none">
+                  <div className="px-3 py-1.5 bg-slate-900/10 backdrop-blur-md rounded-full border border-white/20 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest">Slider Preview</span>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Color Theme</label>
-                  <div className="flex flex-wrap gap-2">
-                    {COLOR_THEMES.map(theme => (
-                      <button
-                        key={theme.name}
-                        type="button"
-                        onClick={() => setSlideForm(prev => ({ ...prev, bgColor: theme.bgColor, accentColor: theme.accentColor, blobColor: theme.blobColor }))}
-                        className={`px-3 py-2 rounded-lg border-2 text-xs font-bold uppercase transition-all flex items-center gap-2 ${slideForm.bgColor === theme.bgColor ? 'border-primary bg-primary/5 text-primary' : 'border-slate-100 hover:border-slate-300 text-slate-500'}`}
-                      >
-                        <span className={`w-3 h-3 rounded-full ${theme.bgColor.replace('bg-', 'bg-')}`}></span>
-                        {theme.name}
-                      </button>
-                    ))}
+                {/* The Actual Preview Container */}
+                <div className="w-full h-full relative overflow-hidden bg-white flex items-center justify-center">
+                  <div className="flex gap-4 absolute top-20 z-30">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewMode('pc')}
+                      className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${previewMode === 'pc' ? 'bg-slate-900 text-white shadow-lg' : 'bg-white/80 text-slate-400 backdrop-blur-md'}`}
+                    >
+                      PC View
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewMode('mobile')}
+                      className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${previewMode === 'mobile' ? 'bg-slate-900 text-white shadow-lg' : 'bg-white/80 text-slate-400 backdrop-blur-md'}`}
+                    >
+                      Mobile View
+                    </button>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Slide Image</label>
-                  <input type="file" accept="image/*" onChange={handleSlideImageUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                  {slideForm.image && (
-                    <div className="mt-2 h-32 w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
-                      <img src={slideForm.image} alt="Preview" className="w-full h-full object-contain" />
+                  {previewMode === 'pc' ? (
+                    <div className="w-full h-full relative flex items-center justify-center">
+                      {slideForm.image ? (
+                        <img src={getMediaUrl(slideForm.image)} alt="PC Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-slate-300">
+                          <span className="material-symbols-outlined text-6xl mb-4">image</span>
+                          <p className="text-xs font-black uppercase tracking-widest">No PC Image</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="w-[300px] h-[533px] relative rounded-[40px] border-[8px] border-slate-900 shadow-2xl overflow-hidden bg-slate-50">
+                      {slideForm.mobileImage ? (
+                        <img src={getMediaUrl(slideForm.mobileImage)} alt="Mobile Preview" className="w-full h-full object-cover" />
+                      ) : slideForm.image ? (
+                        <div className="relative w-full h-full">
+                          <img src={getMediaUrl(slideForm.image)} alt="PC Fallback" className="w-full h-full object-cover blur-[2px] opacity-50" />
+                          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                            <span className="material-symbols-outlined text-4xl text-slate-400 mb-2">smartphone</span>
+                            <p className="text-[10px] font-black text-slate-900 uppercase leading-tight">No specific mobile asset. Desktop image will be used.</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-slate-300">
+                          <span className="material-symbols-outlined text-4xl mb-2">image</span>
+                          <p className="text-[10px] font-black uppercase tracking-widest">No Image</p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Background Image</label>
-                  <input type="file" accept="image/*" onChange={handleSlideBgImageUpload} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
-                  {slideForm.backgroundImage && (
-                    <div className="mt-2 h-32 w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
-                      <img src={slideForm.backgroundImage} alt="Background Preview" className="w-full h-full object-cover" />
-                    </div>
-                  )}
+                <div className="absolute right-8 bottom-8 text-[9px] font-black text-slate-300 uppercase tracking-widest">
+                  Simple Slider Editor
                 </div>
-
-                <div className="pt-4 flex justify-end gap-4 border-t border-slate-100 mt-6">
-                  <button type="button" onClick={closeSlideModal} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
-                  <button type="submit" className="px-8 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Save Slide</button>
-                </div>
-              </form>
+              </div>
             </div>
           </div>
         )
@@ -3220,149 +4320,216 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
                   <p className="text-sm font-bold text-slate-500 mt-1">Order #{viewingOrder.id} • Placed on {new Date(viewingOrder.created_at).toLocaleDateString()}</p>
                 </div>
-                <button
-                  onClick={() => setViewingOrder(null)}
-                  className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-lg">close</span>
-                </button>
+              </div>
+              <button
+                onClick={() => setViewingOrder(null)}
+                className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
+              >
+                <span className="material-symbols-outlined text-lg">close</span>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-8 overflow-y-auto custom-scroll space-y-8">
+
+              {/* Key Stats */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Total Amount</p>
+                  <p className="text-xl font-black text-primary">₹{viewingOrder.total_amount.toLocaleString()}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Payment Status</p>
+                  <p className={`text-sm font-black uppercase ${viewingOrder.razorpay_payment_id ? 'text-green-600' : 'text-orange-500'}`}>{viewingOrder.razorpay_payment_id ? 'Paid' : 'Pending'}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Total Items</p>
+                  <p className="text-xl font-black text-slate-900">{viewingOrder.items.length}</p>
+                </div>
               </div>
 
-              {/* Modal Body */}
-              <div className="p-8 overflow-y-auto custom-scroll space-y-8">
-
-                {/* Key Stats */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Total Amount</p>
-                    <p className="text-xl font-black text-primary">₹{viewingOrder.total_amount.toLocaleString()}</p>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Payment Status</p>
-                    <p className={`text-sm font-black uppercase ${viewingOrder.razorpay_payment_id ? 'text-green-600' : 'text-orange-500'}`}>{viewingOrder.razorpay_payment_id ? 'Paid' : 'Pending'}</p>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Total Items</p>
-                    <p className="text-xl font-black text-slate-900">{viewingOrder.items.length}</p>
-                  </div>
-                </div>
-
-                {/* Customer Info */}
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div>
-                    <h4 className="font-bold text-sm uppercase text-slate-900 mb-4 flex items-center gap-2">
-                      <span className="material-symbols-outlined text-slate-400">person</span> Customer
-                    </h4>
-                    <div className="space-y-1">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Customer</p>
-                      <p className="font-bold text-slate-900">
-                        {viewingOrder.first_name || viewingOrder.last_name
-                          ? `${viewingOrder.first_name || ''} ${viewingOrder.last_name || ''}`.trim()
-                          : viewingOrder.user_name || 'Guest'}
-                      </p>
-                      <p className="text-sm text-slate-500">{viewingOrder.user_email}</p>
-                      {viewingOrder.phone && (
-                        <p className="text-sm text-slate-600 flex items-center gap-1 font-semibold">
-                          <span className="material-symbols-outlined text-xs text-primary">call</span>
-                          Phone: {viewingOrder.phone}
-                        </p>
-                      )}
-                      {(viewingOrder.address || viewingOrder.city) && (
-                        <p className="text-sm text-slate-500 flex items-center gap-1">
-                          <span className="material-symbols-outlined text-xs text-slate-400">location_on</span>
-                          {viewingOrder.address || `${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}`}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm uppercase text-slate-900 mb-4 flex items-center gap-2">
-                      <span className="material-symbols-outlined text-slate-400">local_shipping</span> Shipping To
-                    </h4>
-                    <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                      {viewingOrder.address || `${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}`}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Order Items */}
+              {/* Customer Info */}
+              <div className="grid md:grid-cols-2 gap-8">
                 <div>
-                  <h4 className="font-bold text-sm uppercase text-slate-900 mb-4 pb-2 border-b border-slate-100">Order Items</h4>
-                  <div className="space-y-4">
-                    {viewingOrder.items.map((item, i) => (
-                      <div key={i} className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-slate-100 rounded-lg flex-shrink-0 flex items-center justify-center text-slate-300 overflow-hidden">
-                          {item.product_image ? (
-                            <img src={item.product_image} alt={item.product_name} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="material-symbols-outlined">image</span>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-slate-700 text-sm">{item.product_name}</p>
-                          <p className="text-xs text-slate-400 font-medium">Qty: {item.quantity}</p>
-                        </div>
-                        <p className="font-bold text-slate-900 text-sm">₹{item.price}</p>
+                  <h4 className="font-bold text-sm uppercase text-slate-900 mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-slate-400">person</span> Customer
+                  </h4>
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Customer</p>
+                    <p className="font-bold text-slate-900">
+                      {viewingOrder.first_name || viewingOrder.last_name
+                        ? `${viewingOrder.first_name || ''} ${viewingOrder.last_name || ''}`.trim()
+                        : viewingOrder.user_name || 'Guest'}
+                    </p>
+                    <p className="text-sm text-slate-500">{viewingOrder.user_email}</p>
+                    {viewingOrder.phone && (
+                      <p className="text-sm text-slate-600 flex items-center gap-1 font-semibold">
+                        <span className="material-symbols-outlined text-xs text-primary">call</span>
+                        Phone: {viewingOrder.phone}
+                      </p>
+                    )}
+                    {(viewingOrder.address || viewingOrder.city) && (
+                      <p className="text-sm text-slate-500 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs text-slate-400">location_on</span>
+                        {viewingOrder.address || `${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}`}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm uppercase text-slate-900 mb-4 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-slate-400">local_shipping</span> Shipping To
+                  </h4>
+                  <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                    {viewingOrder.address || `${viewingOrder.city}, ${viewingOrder.state} ${viewingOrder.pin_code}`}
+                  </p>
+                </div>
+              </div>
+
+              {/* Order Items */}
+              <div>
+                <h4 className="font-bold text-sm uppercase text-slate-900 mb-4 pb-2 border-b border-slate-100">Order Items</h4>
+                <div className="space-y-4">
+                  {viewingOrder.items.map((item, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-slate-100 rounded-lg flex-shrink-0 flex items-center justify-center text-slate-300 overflow-hidden">
+                        {item.product_image ? (
+                          <img src={getMediaUrl(item.product_image)} alt={item.product_name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="material-symbols-outlined">image</span>
+                        )}
                       </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-slate-700 text-sm">{item.product_name}</p>
+                        <p className="text-xs text-slate-400 font-medium">Qty: {item.quantity}</p>
+                      </div>
+                      <p className="font-bold text-slate-900 text-sm">₹{item.price}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 relative">
+              <button
+                onClick={handleDownloadInvoice}
+                className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-white hover:shadow-sm transition-all text-sm border border-transparent hover:border-slate-200"
+              >
+                Download Invoice
+              </button>
+
+              <div className="relative">
+                <button
+                  onClick={() => setShowStatusMenu(!showStatusMenu)}
+                  className="px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest bg-slate-900 text-white hover:bg-primary transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+                >
+                  Update Status
+                  <span className="material-symbols-outlined text-sm">{showStatusMenu ? 'expand_less' : 'expand_more'}</span>
+                </button>
+
+                {showStatusMenu && (
+                  <div className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200 z-50">
+                    {ORDER_STATUSES.map(status => (
+                      <button
+                        key={status}
+                        onClick={() => handleStatusUpdate(status)}
+                        className={`w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors flex items-center justify-between ${viewingOrder.status === status ? 'text-primary bg-primary/5' : 'text-slate-600'}`}
+                      >
+                        {status}
+                        {viewingOrder.status === status && <span className="material-symbols-outlined text-sm">check</span>}
+                      </button>
                     ))}
                   </div>
-                </div>
-              </div>
-
-              {/* Modal Footer */}
-              <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 relative">
-                <button
-                  onClick={handleDownloadInvoice}
-                  className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-white hover:shadow-sm transition-all text-sm border border-transparent hover:border-slate-200"
-                >
-                  Download Invoice
-                </button>
-
-                <div className="relative">
-                  <button
-                    onClick={() => setShowStatusMenu(!showStatusMenu)}
-                    className="px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest bg-slate-900 text-white hover:bg-primary transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
-                  >
-                    Update Status
-                    <span className="material-symbols-outlined text-sm">{showStatusMenu ? 'expand_less' : 'expand_more'}</span>
-                  </button>
-
-                  {showStatusMenu && (
-                    <div className="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200 z-50">
-                      {ORDER_STATUSES.map(status => (
-                        <button
-                          key={status}
-                          onClick={() => handleStatusUpdate(status)}
-                          className={`w-full text-left px-4 py-3 text-xs font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors flex items-center justify-between ${viewingOrder.status === status ? 'text-primary bg-primary/5' : 'text-slate-600'}`}
-                        >
-                          {status}
-                          {viewingOrder.status === status && <span className="material-symbols-outlined text-sm">check</span>}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             </div>
           </div>
         )
       }
-      {/* Confirmation Modal */}
+
+      {/* Delete Category Confirmation */}
       <ConfirmationModal
         isOpen={deleteCategoryModal.isOpen}
         onClose={() => setDeleteCategoryModal({ isOpen: false, categoryId: null })}
-        onConfirm={() => {
-          if (deleteCategoryModal.categoryId) {
-            onDeleteCategory(deleteCategoryModal.categoryId);
-          }
-          setDeleteCategoryModal({ isOpen: false, categoryId: null });
-        }}
-        title="Delete Category?"
+        onConfirm={() => deleteCategoryModal.categoryId && onDeleteCategory(deleteCategoryModal.categoryId)}
+        title="Delete Category"
         message="Are you sure you want to delete this category? This action cannot be undone."
         confirmLabel="Delete"
-        isDestructive={true}
+        isDestructive
       />
-    </div >
+
+      {/* Profile Settings Modal */}
+      {showProfileModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowProfileModal(false)}>
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-black uppercase text-slate-900">Profile Settings</h3>
+              <button onClick={() => setShowProfileModal(false)} className="text-slate-400 hover:text-slate-600">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            {profileLoading ? (
+              <div className="py-12 text-center">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                <p className="text-sm text-slate-400 font-bold">Loading profile...</p>
+              </div>
+            ) : (
+              <form onSubmit={handleUpdateProfile} className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Email</label>
+                  <input type="email" value={adminEmail} disabled className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 font-bold" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">First Name</label>
+                  <input required type="text" value={profileForm.first_name} onChange={e => setProfileForm({ ...profileForm, first_name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="First name" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-500">Last Name</label>
+                  <input required type="text" value={profileForm.last_name} onChange={e => setProfileForm({ ...profileForm, last_name: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="Last name" />
+                </div>
+                <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                  <button type="button" onClick={() => setShowProfileModal(false)} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                  <button type="submit" className="px-6 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Save Changes</button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Security Modal */}
+      {showSecurityModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setShowSecurityModal(false)}>
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 mx-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-black uppercase text-slate-900">Change Password</h3>
+              <button onClick={() => setShowSecurityModal(false)} className="text-slate-400 hover:text-slate-600">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <form onSubmit={handleChangePassword} className="space-y-5">
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Current Password</label>
+                <input required type="password" value={passwordForm.current_password} onChange={e => setPasswordForm({ ...passwordForm, current_password: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="Enter current password" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-slate-500">New Password</label>
+                <input required type="password" value={passwordForm.new_password} onChange={e => setPasswordForm({ ...passwordForm, new_password: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="Min 6 characters" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Confirm New Password</label>
+                <input required type="password" value={passwordForm.confirm_password} onChange={e => setPasswordForm({ ...passwordForm, confirm_password: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold focus:ring-primary focus:border-primary" placeholder="Re-enter new password" />
+              </div>
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button type="button" onClick={() => setShowSecurityModal(false)} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                <button type="submit" className="px-6 py-3 rounded-xl bg-primary text-white font-black uppercase tracking-widest hover:shadow-lg transition-all">Change Password</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

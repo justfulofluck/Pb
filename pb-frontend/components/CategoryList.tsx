@@ -1,5 +1,7 @@
 import React from 'react';
 import { CATEGORY_DISPLAY_DATA, Product } from '../types';
+import { API_BASE_URL } from '../config';
+import { getMediaUrl } from '../utils/mediaHelper';
 
 interface CategoryListProps {
   onCategoryClick: (category: string) => void;
@@ -67,17 +69,14 @@ const CategoryList: React.FC<CategoryListProps> = ({
   });
 
   return (
-    <section className="py-16 md:py-32 bg-white relative overflow-hidden">
-      <div className="absolute top-20 left-10 w-64 h-64 bg-slate-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/5 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
-
+    <section className="pt-20 pb-4 md:pb-12 md:pt-24 bg-whiteboard texture-overlay texture-speckles relative z-20 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <div className="text-center mb-16 md:mb-24 relative">
-          <span className="font-handdrawn text-2xl md:text-4xl text-primary transform rotate-6 inline-block mb-2 absolute -top-12 left-1/2 translate-x-[40px] md:translate-x-[200px] drop-shadow-sm">Pick your fav!</span>
-          <h2 className="text-5xl md:text-8xl font-bold text-slate-900 uppercase tracking-normal leading-none font-bebas">
-            Shop By Category
+        <div className="text-center mb-8 md:mb-24 relative">
+          <span className="font-handdrawn text-2xl md:text-3xl text-primary transform rotate-6 inline-block mb-2 absolute -top-10 left-1/2 translate-x-[20px] md:translate-x-[90px] lg:translate-x-[120px] drop-shadow-sm">Pick your fav!</span>
+          <h2 className="font-normal uppercase !font-anton text-textured-green leading-tight tracking-normal [word-spacing:0.05em] text-center text-[40px] lg:text-[100px] lg:leading-[110px] lg:-mb-[12px] lg:pb-[12px] lg:font-bold">
+            Explore What You <span className="font-bold">Love</span>
           </h2>
-          <div className="w-16 md:w-24 h-1.5 md:h-2 bg-primary mx-auto mt-4 md:mt-6 rounded-full"></div>
+          <div className="w-16 md:w-24 h-1.5 md:h-2 bg-[#0b3d2e] mx-auto mt-4 md:mt-6 rounded-full"></div>
         </div>
 
         {/* Desktop View (Large Screens Only) */}
@@ -90,7 +89,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
               style={{ transform: 'translateZ(0)', isolation: 'isolate' }}
             >
               <div className="flex justify-between items-start z-20">
-                <span className={`px-4 py-2 rounded-full bg-white/60 backdrop-blur-md text-xs font-bold uppercase tracking-widest ${item.textClass} shadow-sm font-bebas`}>
+                <span className={`px-4 py-2 rounded-full bg-white/60 backdrop-blur-md text-xs font-bold uppercase tracking-widest ${item.textClass} shadow-sm font-anton`}>
                   {item.count}
                 </span>
                 <div className={`w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300 ${item.textClass}`}>
@@ -99,24 +98,24 @@ const CategoryList: React.FC<CategoryListProps> = ({
               </div>
 
               <div className="relative z-20 mt-8">
-                <h3 className={`text-6xl font-bold uppercase leading-[0.85] tracking-tight ${item.textClass} font-bebas`}>
+                <h3 className={`text-6xl uppercase leading-[1.1] tracking-wider ${item.textClass} !font-anton drop-shadow-[0_2px_8px_rgba(255,255,255,0.8)]`}>
                   {item.display.split(' ').map((word, w) => <span key={w} className="block">{word}</span>)}
                 </h3>
               </div>
 
-              <div className="absolute bottom-0 left-0 w-full h-[65%] z-10 transition-transform duration-700 group-hover:scale-105 group-hover:rotate-1 origin-bottom">
+              <div className="absolute bottom-0 left-0 w-full h-[75%] z-10 transition-transform duration-700 group-hover:scale-105 group-hover:rotate-1 origin-bottom">
                 <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-[140%] h-[120%] bg-white rounded-t-full opacity-40 blur-xl`}></div>
                 <img
-                  src={item.image}
+                  src={getMediaUrl(item.image)}
                   alt={item.display}
-                  className={`w-full h-full object-cover object-center drop-shadow-2xl`}
-                  style={{ maskImage: 'linear-gradient(to top, black 80%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to top, black 80%, transparent 100%)' }}
+                  className={`w-full h-full object-cover ${item.imagePosition || 'object-center'} drop-shadow-2xl`}
+                  style={{ maskImage: 'linear-gradient(to top, black 70%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to top, black 70%, transparent 100%)' }}
                   draggable={false}
                 />
               </div>
 
               <div className="absolute bottom-8 left-0 w-full flex justify-center z-30 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500">
-                <button className={`px-10 py-4 rounded-full text-white font-black uppercase text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-transform ${item.accentClass}`}>
+                <button className={`px-10 py-4 rounded-full !text-white font-black uppercase text-sm tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-transform ${item.accentClass}`}>
                   Shop Collection
                 </button>
               </div>
@@ -124,54 +123,91 @@ const CategoryList: React.FC<CategoryListProps> = ({
           ))}
         </div>
 
-        {/* Mobile & Tablet View (Premium Arched Layout) */}
-        <div className="lg:hidden mt-0">
-          <div className="relative pt-4 pb-20 px-2 overflow-visible">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[300px] bg-gradient-radial from-primary/5 to-transparent rounded-[100%] blur-2xl opacity-60 z-0"></div>
-
+        {/* Mobile & Tablet View (Image-only Banners) */}
+        <div className="lg:hidden mt-4 mb-0 px-4 flex flex-col pb-8 ">
+          {/* Oats */}
+          {categories.filter(c => c.id === 'Oats').map((item) => (
             <div
-              ref={scrollRef}
-              onMouseDown={handleMouseDown}
-              onMouseLeave={handleMouseLeave}
-              onMouseUp={handleMouseUp}
-              onMouseMove={handleMouseMove}
-              className={`relative z-10 flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-3 md:gap-8 px-4 py-10 ${isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'}`}
-              style={{ scrollBehavior: isDragging ? 'auto' : 'smooth' }}
+              key={item.id}
+              className="relative w-full pt-0 pb-2"
             >
-              {categories.map((item, i) => {
-                const isCenter = i === Math.floor(categories.length / 2);
-                return (
-                  <div
-                    key={item.id}
-                    className="flex flex-col items-center group flex-shrink-0 snap-center min-w-[120px]"
-                    onClick={() => handleCategoryClick(item.id)}
-                    style={{
-                      transform: isCenter ? 'translateY(-20px)' : 'translateY(0)',
-                      transition: 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)'
-                    }}
-                  >
-                    <div className={`relative w-24 h-24 md:w-36 md:h-36 rounded-full bg-white shadow-[0_20px_45px_rgba(0,0,0,0.12)] p-1 flex items-center justify-center border-4 border-white transition-all duration-500 group-active:scale-95`}>
-                      <div className="w-full h-full rounded-full overflow-hidden">
-                        <img
-                          src={item.image}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          alt={item.display}
-                          draggable={false}
-                        />
-                      </div>
-                      <div className={`absolute inset-0 rounded-full border-2 border-transparent group-hover:border-primary/20 transition-colors duration-500`}></div>
-                    </div>
-                    <div className={`mt-4 text-center transition-all duration-300`}>
-                      <span className="block text-[11px] md:text-base font-black uppercase tracking-widest text-slate-800 leading-none font-sans">
-                        {item.display.replace('Super ', '')}
-                      </span>
-                      <div className={`w-6 h-1 bg-primary mx-auto mt-2 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300`}></div>
-                    </div>
-                  </div>
-                );
-              })}
+              <img
+                src={getMediaUrl(item.mobileImage || item.image)}
+                alt={item.display}
+                className="block h-auto w-full max-w-full"
+              />
+              {/* Text overlay - You can tweak pt/pb here for perfect vertical alignment */}
+              <div className="absolute inset-0 flex flex-col justify-center pl-6 pr-4 pt-7 pb-0 pointer-events-none">
+                <div
+                  onClick={() => handleCategoryClick(item.id)}
+                  className="pointer-events-auto cursor-pointer self-start active:scale-[0.95] transition-transform duration-300 drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)]"
+                >
+                  <h3 className="text-white text-3xl sm:text-4xl font-normal uppercase tracking-widest font-anton mb-1 leading-none">
+                    {item.display}
+                  </h3>
+                  <p className="text-white/90 text-[13px] sm:text-sm font-bold tracking-wider uppercase font-satoshi mt-1">
+                    Explore {item.count}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+          ))}
+
+          {/* Muesli */}
+          {categories.filter(c => c.id === 'Muesli').map((item) => (
+            <div
+              key={item.id}
+              className="relative w-full pt-0 pb-4 -mt-3"
+            >
+              <img
+                src={getMediaUrl(item.mobileImage || item.image)}
+                alt={item.display}
+                className="block h-auto w-[104%] mx-auto max-w-none"
+              />
+              {/* Text overlay - You can tweak pt/pb here for perfect vertical alignment */}
+              <div className="absolute inset-0 flex flex-col justify-center pl-5 pr-4 pt-2 pb-0 pointer-events-none">
+                <div
+                  onClick={() => handleCategoryClick(item.id)}
+                  className="pointer-events-auto cursor-pointer self-start active:scale-[0.95] transition-transform duration-300 drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)]"
+                >
+                  <h3 className="text-white text-3xl sm:text-4xl font-normal uppercase tracking-widest font-anton mb-1 leading-none">
+                    {item.display}
+                  </h3>
+                  <p className="text-white/90 text-[13px] sm:text-sm font-bold tracking-wider uppercase font-satoshi mt-1">
+                    Explore {item.count}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Peanut Butter */}
+          {categories.filter(c => c.id === 'Peanut Butter').map((item) => (
+            <div
+              key={item.id}
+              className="relative w-full pt-0 pb-0"
+            >
+              <img
+                src={getMediaUrl(item.mobileImage || item.image)}
+                alt={item.display}
+                className="block h-auto w-[108%] mx-auto max-w-none"
+              />
+              {/* Text overlay - You can tweak pt/pb here for perfect vertical alignment */}
+              <div className="absolute inset-0 flex flex-col justify-center pl-4 pr-4 pt-0 pb-11 pointer-events-none">
+                <div
+                  onClick={() => handleCategoryClick(item.id)}
+                  className="pointer-events-auto cursor-pointer self-start active:scale-[0.95] transition-transform duration-300 drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)]"
+                >
+                  <h3 className="text-white text-3xl sm:text-4xl font-normal uppercase tracking-widest font-anton mb-1 leading-none">
+                    {item.display}
+                  </h3>
+                  <p className="text-white/90 text-[13px] sm:text-sm font-bold tracking-wider uppercase font-satoshi mt-1">
+                    Explore {item.count}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

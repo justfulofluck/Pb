@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Product, BlogPost, EventBlog } from '../types';
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 
 interface NavbarProps {
   cartCount: number;
@@ -54,6 +55,19 @@ const Navbar: React.FC<NavbarProps> = ({
   const [currentAnnouncementIdx, setCurrentAnnouncementIdx] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { scrollY } = useScroll();
+  const [hidden, setHidden] = useState(false);
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() || 0;
+    // hide only if scrolled more than 150px and scrolling down
+    if (latest > previous && latest > 150) {
+      setHidden(true);
+    } else {
+      setHidden(false);
+    }
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -122,11 +136,20 @@ const Navbar: React.FC<NavbarProps> = ({
   const hasAnnouncements = announcements.length > 0;
 
   return (
-    <div className="sticky top-0 z-[1000] w-full">
+    <>
+      <motion.div 
+        variants={{
+          visible: { y: 0 },
+          hidden: { y: "-100%" }
+        }}
+        animate={hidden ? "hidden" : "visible"}
+        transition={{ duration: 0.35, ease: "easeInOut" }}
+        className="sticky top-0 z-[1000] w-full"
+      >
       {/* Announcement Band */}
       {hasAnnouncements && (
-        <div className="bg-[#008a45] text-white px-4 text-center overflow-hidden min-h-[40px] md:min-h-[44px] flex items-center justify-center relative">
-          <div className="max-w-7xl mx-auto w-full relative min-h-[40px] md:min-h-[44px]">
+        <div className="bg-[#008a45] text-white px-4 text-center overflow-hidden min-h-[40px] lg:min-h-[44px] flex items-center justify-center relative">
+          <div className="max-w-7xl mx-auto w-full relative min-h-[40px] lg:min-h-[44px]">
             {announcements.map((text, idx) => (
               <div
                 key={idx}
@@ -135,7 +158,7 @@ const Navbar: React.FC<NavbarProps> = ({
                   : 'opacity-0 translate-y-2 pointer-events-none'
                   }`}
               >
-                <p className="text-[10px] md:text-[12px] font-black tracking-[0.25em] uppercase whitespace-nowrap pt-1">
+                <p className="text-[10px] lg:text-[12px] font-black tracking-[0.25em] uppercase whitespace-nowrap overflow-hidden text-ellipsis pt-1">
                   {text}
                 </p>
               </div>
@@ -146,18 +169,25 @@ const Navbar: React.FC<NavbarProps> = ({
 
       {/* Main Navbar */}
       <nav className={`bg-white/80 backdrop-blur-md border-b border-slate-200 ${hasAnnouncements ? '' : ''}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           {/* Desktop Layout */}
-          <div className="hidden md:flex justify-between items-center h-24">
+          <div className="hidden lg:grid grid-cols-[1fr_auto_1fr] items-center h-24">
             {/* Left side: Navigation Links */}
-            <div className="flex-1 flex items-center gap-10 font-black text-[13px] tracking-widest text-slate-800 transition-all duration-300">
-              <button onClick={onJourneyClick} className="hover:text-primary transition-colors uppercase font-garet">OUR JOURNEY</button>
+            <div className="flex items-center gap-10 font-black text-[13px] tracking-widest text-slate-800 transition-all duration-300">
+              <button 
+                onClick={onJourneyClick} 
+                className="hover:text-primary transition-colors uppercase force-anton tracking-wide [word-spacing:0.02em]"
+                style={{ fontSize: '22px' }}
+              >
+                OUR JOURNEY
+              </button>
               <div className="relative group/menu" ref={dropdownRef}>
                 <button
                   onClick={() => setIsProductsDropdownOpen(!isProductsDropdownOpen)}
-                  className={`hover:text-primary transition-colors uppercase font-garet flex items-center gap-1 ${isProductsDropdownOpen ? 'text-primary' : ''}`}
+                  className={`hover:text-primary transition-colors uppercase force-anton tracking-wide [word-spacing:0.02em] flex items-center gap-1 ${isProductsDropdownOpen ? 'text-primary' : ''}`}
+                  style={{ fontSize: '22px' }}
                 >
-                  PRODUCTS <span className="material-symbols-outlined text-[14px]">expand_more</span>
+                  PRODUCTS <span className="material-symbols-outlined text-[18px] font-bold">expand_more</span>
                 </button>
 
                 {/* Products Dropdown */}
@@ -191,7 +221,7 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Center: Logo */}
-            <div className="absolute left-1/2 -translate-x-1/2 transition-all duration-300 z-[60]">
+            <div className="flex justify-center transition-all duration-300 z-[60]">
               <button
                 onClick={onLogoClick}
                 className="flex items-center group pointer-events-auto"
@@ -205,206 +235,219 @@ const Navbar: React.FC<NavbarProps> = ({
             </div>
 
             {/* Right side: Actions */}
-            <div className="flex-1 flex items-center justify-end gap-6">
+            <div className="flex items-center justify-end gap-6">
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${isSearchOpen ? 'bg-primary text-white shadow-lg' : 'hover:bg-slate-100 text-slate-800'} group`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${isSearchOpen ? '!bg-primary !text-white shadow-lg' : 'hover:bg-slate-100 !text-slate-800'} group`}
                 aria-label="Search"
               >
                 <span className="material-symbols-outlined text-[24px]">search</span>
               </button>
               <button
                 onClick={onAccountClick}
-                className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${isLoggedIn ? 'text-primary bg-primary/10' : 'hover:bg-slate-100'}`}
+                className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors ${isLoggedIn ? '!text-primary bg-primary/10' : '!text-slate-800 hover:bg-slate-100'}`}
               >
                 <span className="material-symbols-outlined text-[24px]">{isLoggedIn ? 'account_circle' : 'person'}</span>
               </button>
               <button
                 onClick={onCartClick}
-                className="flex items-center gap-2 bg-[#b8e843] text-slate-900 border-2 border-black px-6 py-2.5 rounded-[4px] font-black text-[12px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-x-1 hover:-translate-y-1 transition-all active:shadow-none active:translate-x-0 active:translate-y-0"
-                style={{ fontFamily: '"Garet", sans-serif' }}
+                className="bg-[#c5f82a] text-[#0b3d2e] px-5 py-2.5 rounded-lg force-anton text-[22px] leading-none tracking-wide hover:brightness-95 transition-all uppercase flex items-center justify-center min-w-[120px]"
               >
                 CART ({cartCount})
               </button>
             </div>
           </div>
 
-          {/* Mobile Layout (as requested) */}
-          <div className="md:hidden flex items-center justify-between h-20">
-            {/* Logo Left */}
-            <button
-              onClick={onLogoClick}
-            >
-              <img
-                src="/logos/Pinobite-logo.png"
-                alt="Pinobite Logo"
-                className="h-10 w-auto object-contain"
-              />
-            </button>
-
-            {/* Right Group: Actions + Menu */}
-            <div className="flex items-center gap-3">
+          {/* Mobile/Tablet Layout */}
+          <div className="lg:hidden grid grid-cols-3 items-center h-20 relative">
+            {/* Left: Search */}
+            <div className="flex items-center">
               <button
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className={`flex items-center justify-center w-10 h-10 transition-all duration-300 ${isSearchOpen ? 'text-primary scale-110' : 'text-slate-700'}`}
+                className={`flex items-center justify-center w-10 h-10 transition-all duration-300 ${isSearchOpen ? '!text-primary scale-110' : '!text-slate-700'}`}
                 aria-label="Search"
               >
                 <span className="material-symbols-outlined text-[26px]">{isSearchOpen ? 'close' : 'search'}</span>
               </button>
+            </div>
 
+            {/* Center: Logo */}
+            <div className="flex justify-center">
+              <button
+                onClick={onLogoClick}
+                className="flex items-center"
+              >
+                <img
+                  src="/logos/Pinobite-logo.png"
+                  alt="Pinobite Logo"
+                  className="h-12 w-auto object-contain"
+                />
+              </button>
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center justify-end gap-3">
               {/* Hamburger Button (Colored Square) */}
               <button
                 onClick={() => setIsMenuOpen(true)}
-                className="w-11 h-11 bg-primary text-white rounded-lg flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+                className="w-11 h-11 bg-[#0b3d2e] texture-overlay texture-speckles !text-white rounded-lg flex items-center justify-center shadow-lg active:scale-95 transition-transform relative overflow-hidden"
                 aria-label="Open menu"
               >
-                <span className="material-symbols-outlined text-[28px]">menu</span>
+                <span className="material-symbols-outlined text-[28px] relative z-10 !text-white">menu</span>
               </button>
             </div>
           </div>
 
-          {/* Integrated Search Row (Slides down) */}
-          <div className={`
-            overflow-hidden transition-all duration-500 ease-in-out border-t border-slate-50
-            ${isSearchOpen ? 'max-h-[800px] opacity-100 py-8' : 'max-h-0 opacity-0 pointer-events-none py-0'}
-          `}>
-            <div className="max-w-4xl mx-auto px-4 relative">
-              <form onSubmit={handleSearchSubmit} className="relative flex items-center group">
-                <span className="absolute left-6 material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors">search</span>
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for healthy snacks..."
-                  className="w-full pl-16 pr-24 py-5 bg-white border-2 border-slate-200 focus:border-primary rounded-[28px] text-slate-900 placeholder:text-slate-400 outline-none transition-all font-bold text-xl shadow-lg"
-                />
-                <div className="absolute right-4 flex items-center gap-2">
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setSearchQuery('')}
-                      className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-xl">backspace</span>
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setIsSearchOpen(false)}
-                    className="p-2 hover:bg-primary/10 rounded-full text-slate-400 hover:text-primary transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-2xl">close</span>
-                  </button>
-                </div>
-              </form>
-
-              {/* Universal Search Results - Positioned below the search bar */}
-              <div className={`
-                mt-8 space-y-8 max-h-[50vh] overflow-y-auto custom-scroll pr-2 transition-all duration-300
-                ${hasResults ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none hidden'}
-              `}>
-                {/* Products Section */}
-                {filteredProducts.length > 0 && (
-                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 px-2">
-                      <span className="w-8 h-px bg-slate-100"></span>
-                      Products
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {filteredProducts.map(product => (
-                        <div
-                          key={product.id}
-                          onClick={() => { onProductClick(product); setIsSearchOpen(false); setSearchQuery(''); }}
-                          className="flex items-center gap-4 p-3 bg-white border border-slate-100 rounded-2xl cursor-pointer hover:border-primary/30 hover:shadow-md transition-all group"
+          {/* Integrated Search Row (Framer Motion Animation) */}
+          <AnimatePresence>
+            {isSearchOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                className="overflow-hidden border-t border-slate-50"
+              >
+                <div className="max-w-4xl mx-auto px-4 py-8 relative">
+                  <form onSubmit={handleSearchSubmit} className="relative flex items-center group">
+                    <span className="absolute left-6 material-symbols-outlined !text-slate-400 group-focus-within:!text-primary transition-colors">search</span>
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search for healthy snacks..."
+                      className="w-full pl-16 pr-24 py-5 bg-white border-2 border-slate-200 focus:border-primary rounded-[28px] text-slate-900 placeholder:text-slate-400 placeholder:font-anton outline-none transition-all font-anton text-xl shadow-lg"
+                    />
+                    <div className="absolute right-4 flex items-center gap-2">
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery('')}
+                          className="p-2 hover:bg-slate-100 rounded-full !text-slate-400 transition-colors"
                         >
-                          <div className="w-16 h-16 bg-slate-50 rounded-xl overflow-hidden flex-shrink-0">
-                            <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h5 className="font-bold text-sm uppercase text-slate-900 truncate group-hover:text-primary transition-colors">{product.name}</h5>
-                            <p className="text-primary font-bold text-xs">Rs. {product.price}</p>
-                          </div>
-                          <span className="material-symbols-outlined text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+                          <span className="material-symbols-outlined text-xl">backspace</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setIsSearchOpen(false)}
+                        className="p-2 hover:bg-primary/10 rounded-full !text-slate-400 hover:!text-primary transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-2xl">close</span>
+                      </button>
+                    </div>
+                  </form>
+
+                  {/* Universal Search Results */}
+                  <div className={`
+                    mt-8 space-y-8 max-h-[50vh] overflow-y-auto custom-scroll pr-2 transition-all duration-300
+                    ${hasResults ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none hidden'}
+                  `}>
+                    {/* Products Section */}
+                    {filteredProducts.length > 0 && (
+                      <div className="space-y-4">
+                        <h4 className="text-[12px] font-anton uppercase tracking-[0.2em] !text-slate-400 flex items-center gap-2 px-2">
+                          <span className="w-8 h-px bg-slate-100"></span>
+                          Products
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {filteredProducts.map(product => (
+                            <div
+                              key={product.id}
+                              onClick={() => { onProductClick(product); setIsSearchOpen(false); setSearchQuery(''); }}
+                              className="flex items-center gap-4 p-3 bg-white border border-slate-100 rounded-2xl cursor-pointer hover:border-primary/30 hover:shadow-md transition-all group"
+                            >
+                              <div className="w-16 h-16 bg-slate-50 rounded-xl overflow-hidden flex-shrink-0">
+                                <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h5 className="font-bold text-sm uppercase text-slate-900 truncate group-hover:text-primary transition-colors">{product.name}</h5>
+                                <p className="text-primary font-bold text-xs">Rs. {product.price}</p>
+                              </div>
+                              <span className="material-symbols-outlined !text-slate-300 group-hover:!text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Blogs Section */}
+                      {filteredBlogs.length > 0 && (
+                        <div className="space-y-4">
+                          <h4 className="text-[12px] font-anton uppercase tracking-[0.2em] !text-slate-400 flex items-center gap-2 px-2">
+                            <span className="w-8 h-px bg-slate-100"></span>
+                            Insights
+                          </h4>
+                          <div className="space-y-2">
+                            {filteredBlogs.map(post => (
+                              <div
+                                key={post.id}
+                                onClick={() => { onBlogClick(post); setIsSearchOpen(false); setSearchQuery(''); }}
+                                className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl cursor-pointer transition-all group"
+                              >
+                                <div className="w-10 h-10 bg-slate-100 rounded-lg overflow-hidden flex-shrink-0">
+                                  <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h5 className="font-bold text-[13px] text-slate-900 truncate">{post.title}</h5>
+                                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{post.type} • {post.readTime}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Events Section */}
+                      {filteredEvents.length > 0 && (
+                        <div className="space-y-4">
+                          <h4 className="text-[12px] font-anton uppercase tracking-[0.2em] !text-slate-400 flex items-center gap-2 px-2">
+                            <span className="w-8 h-px bg-slate-100"></span>
+                            Community
+                          </h4>
+                          <div className="space-y-2">
+                            {filteredEvents.map(event => (
+                              <div
+                                key={event.id}
+                                onClick={() => { onEventClick(event); setIsSearchOpen(false); setSearchQuery(''); }}
+                                className="p-3 bg-slate-50/50 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-100 transition-all"
+                              >
+                                <h5 className="font-bold text-[13px] text-slate-900 mb-1">{event.title}</h5>
+                                <div className="flex justify-between items-center">
+                                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[12px]">location_on</span>
+                                    {event.location}
+                                  </p>
+                                  <span className="text-[9px] font-black text-primary uppercase">{event.date}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
+
+                    {!hasResults && searchQuery.length > 1 && (
+                      <div className="text-center py-12">
+                        <span className="material-symbols-outlined text-6xl text-slate-100 mb-4 font-variation-settings: 'wght' 200">sentiment_dissatisfied</span>
+                        <p className="text-slate-400 font-bold text-lg">No results found for "{searchQuery}"</p>
+                        <p className="text-slate-300 text-[10px] font-black uppercase tracking-widest mt-2">Try different keywords</p>
+                      </div>
+                    )}
                   </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Blogs Section */}
-                  {filteredBlogs.length > 0 && (
-                    <div className="space-y-4">
-                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 px-2">
-                        <span className="w-8 h-px bg-slate-100"></span>
-                        Insights
-                      </h4>
-                      <div className="space-y-2">
-                        {filteredBlogs.map(post => (
-                          <div
-                            key={post.id}
-                            onClick={() => { onBlogClick(post); setIsSearchOpen(false); setSearchQuery(''); }}
-                            className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl cursor-pointer transition-all group"
-                          >
-                            <div className="w-10 h-10 bg-slate-100 rounded-lg overflow-hidden flex-shrink-0">
-                              <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h5 className="font-bold text-[13px] text-slate-900 truncate">{post.title}</h5>
-                              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{post.type} • {post.readTime}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Events Section */}
-                  {filteredEvents.length > 0 && (
-                    <div className="space-y-4">
-                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 px-2">
-                        <span className="w-8 h-px bg-slate-100"></span>
-                        Community
-                      </h4>
-                      <div className="space-y-2">
-                        {filteredEvents.map(event => (
-                          <div
-                            key={event.id}
-                            onClick={() => { onEventClick(event); setIsSearchOpen(false); setSearchQuery(''); }}
-                            className="p-3 bg-slate-50/50 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-100 transition-all"
-                          >
-                            <h5 className="font-bold text-[13px] text-slate-900 mb-1">{event.title}</h5>
-                            <div className="flex justify-between items-center">
-                              <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1">
-                                <span className="material-symbols-outlined text-[12px]">location_on</span>
-                                {event.location}
-                              </p>
-                              <span className="text-[9px] font-black text-primary uppercase">{event.date}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
-
-                {!hasResults && searchQuery.length > 1 && (
-                  <div className="text-center py-12">
-                    <span className="material-symbols-outlined text-6xl text-slate-100 mb-4">sentiment_dissatisfied</span>
-                    <p className="text-slate-400 font-bold text-lg">No results found for "{searchQuery}"</p>
-                    <p className="text-slate-300 text-[10px] font-black uppercase tracking-widest mt-2">Try different keywords</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </nav>
+      </motion.div>
 
       {/* Mobile Side Menu */}
       <div
-        className={`md:hidden fixed inset-0 z-[9999] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        className={`lg:hidden fixed inset-0 z-[9999] transition-opacity duration-500 ${isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       >
         {/* Overlay */}
         <div
@@ -414,8 +457,9 @@ const Navbar: React.FC<NavbarProps> = ({
         ></div>
 
         {/* Menu Panel - Coming from RIGHT */}
-        <div className={`absolute top-0 right-0 bottom-0 w-full max-w-[340px] bg-[#1daa61] text-white shadow-2xl transition-transform duration-500 ease-out z-10 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-          <div className="flex flex-col h-full relative px-8 pt-12 pb-10">
+        <div className={`absolute top-0 right-0 bottom-0 w-full max-w-[340px] bg-[#0b3d2e] text-white shadow-2xl transition-transform duration-500 ease-out z-10 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+          <div className="!absolute inset-0 texture-overlay texture-speckles pointer-events-none z-0"></div>
+          <div className="flex flex-col h-full relative z-20 px-8 pt-12 pb-10">
 
             {/* Sidebar Top Header */}
             <div className="flex items-center justify-between mb-12">
@@ -437,30 +481,11 @@ const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
 
-            {/* Primary Navigation Items */}
-            <div className="space-y-6 mb-12 overflow-y-auto pr-4 custom-scrollbar">
-              <button
-                onClick={() => { onProductsClick(); closeMenu(); }}
-                className="flex items-center justify-between w-full group"
-              >
-                <span className="font-black text-[22px] tracking-tight group-hover:translate-x-2 transition-transform duration-300">PRODUCTS</span>
-                <span className="material-symbols-outlined text-[20px] text-white/60">chevron_right</span>
-              </button>
-
-
-              <button
-                onClick={() => { onJourneyClick(); closeMenu(); }}
-                className="flex items-center justify-between w-full group"
-              >
-                <span className="font-black text-[22px] tracking-tight group-hover:translate-x-2 transition-transform duration-300">OUR JOURNEY</span>
-                <span className="material-symbols-outlined text-[20px] text-white/60">chevron_right</span>
-              </button>
-
-            </div>
+            {/* Primary Navigation Items removed as per user request */}
 
             {/* Secondary Navigation Section */}
             <div className="flex-1 space-y-4">
-              <p className="text-white/50 font-black text-[10px] tracking-[0.2em] mb-4">COLLECTIONS</p>
+              <p className="text-white/50 font-anton text-[10px] tracking-[0.2em] mb-4 uppercase">COLLECTIONS</p>
               <div className="space-y-3">
                 {categories.map((cat: any) => (
                   <button
@@ -483,35 +508,23 @@ const Navbar: React.FC<NavbarProps> = ({
                 >
                   {isLoggedIn ? 'ACCOUNT SETTINGS' : 'LOG IN / SIGN UP'}
                 </button>
-                <button
-                  onClick={() => { onCartClick(); closeMenu(); }}
-                  className="block font-bold text-base text-white/80 hover:text-white transition-colors"
-                >
-                  VIEW CART ({cartCount})
-                </button>
               </div>
             </div>
 
             {/* Footer Social Icons */}
             <div className="flex items-center gap-8 pt-8 border-t border-white/10 mt-auto">
-              <a href="#" className="text-white/70 hover:text-white active:scale-90 transition-all">
+              <a href="https://www.facebook.com/profile.php?id=61574254086582" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white active:scale-90 transition-all">
                 <i className="fa-brands fa-facebook-f text-xl"></i>
               </a>
-              <a href="#" className="text-white/70 hover:text-white active:scale-90 transition-all">
-                <i className="fa-brands fa-twitter text-xl"></i>
-              </a>
-              <a href="#" className="text-white/70 hover:text-white active:scale-90 transition-all">
-                <i className="fa-brands fa-linkedin-in text-xl"></i>
-              </a>
-              <a href="#" className="text-white/70 hover:text-white active:scale-90 transition-all">
-                <i className="fa-brands fa-youtube text-xl"></i>
+              <a href="https://www.instagram.com/pino.bite/" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white active:scale-90 transition-all">
+                <i className="fa-brands fa-instagram text-xl"></i>
               </a>
             </div>
 
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -1,6 +1,5 @@
 
 import React from 'react';
-import Breadcrumbs from './Breadcrumbs';
 
 const TIMELINE_EVENTS = [
   { year: '2021', title: 'The Spark', description: "It started in a small kitchen in Mumbai. Tired of 'healthy' snacks loaded with hidden sugars, our founders Riya and Arjun decided to bake their own batch of muesli." },
@@ -32,14 +31,12 @@ const JourneyPage: React.FC<JourneyPageProps> = ({ onShopClick, onHomeClick }) =
           />
           <div className="absolute inset-0 bg-slate-900/60" />
         </div>
-        <div className="max-w-7xl mx-auto px-4 w-full pt-10 relative z-20">
-          <Breadcrumbs onHomeClick={onHomeClick} steps={[{ label: 'Our Journey' }]} className="text-white/60 !py-0" />
-        </div>
+
         <div className="relative z-10 flex-1 flex items-center justify-center text-center text-white px-4 max-w-4xl mx-auto">
           <div className="space-y-4">
             <span className="font-handdrawn text-3xl text-secondary transform -rotate-2 inline-block">From our kitchen to yours</span>
-            <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none">
-              The Pinobite Story
+            <h1 className="text-5xl md:text-8xl font-normal uppercase tracking-tight md:tracking-wide [word-spacing:0.05em] leading-[1.1] !font-anton">
+              The Pinobite story
             </h1>
             <p className="text-xl md:text-2xl font-medium text-slate-200 max-w-2xl mx-auto">
               Fueling ambition with honest ingredients, one spoonful at a time.
@@ -59,7 +56,7 @@ const JourneyPage: React.FC<JourneyPageProps> = ({ onShopClick, onHomeClick }) =
             </div>
           </div>
           <div className="order-1 md:order-2 space-y-8">
-            <h2 className="text-4xl md:text-5xl font-black uppercase text-slate-900 leading-tight">It started with a label reading obsession.</h2>
+            <h2 className="text-4xl md:text-5xl font-normal uppercase text-slate-900 leading-[1.15] !font-anton tracking-tight md:tracking-wide [word-spacing:0.02em]">It started with a label reading obsession.</h2>
             <div className="prose prose-lg text-slate-600 font-medium">
               <p>
                 Back in 2021, walking down the supermarket aisle was frustrating. Every "healthy" granola bar or peanut butter jar we picked up had sugar as the second ingredient. Or palm oil. Or preservatives with numbers we couldn't memorize.

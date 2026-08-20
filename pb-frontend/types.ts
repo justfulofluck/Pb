@@ -1,16 +1,18 @@
 export interface Product {
   id: string;
+  slug: string;
   name: string;
   price: number;
-  originalPrice?: number;
+  description?: string;
+  original_price?: number;
   rating: number;
   reviewCount: number;
   image: string;
-  gallery?: string[];
-  description: string;
   benefits: string[];
   nutrients: { label: string; value: string }[];
   ingredients?: string;
+  ingredientsList?: { name: string; image: string }[];
+  detailedNutrition?: { n: string; v100: string; v32: string; r: string; b?: boolean; i?: boolean }[];
   nutrition?: {
     calories: string;
     protein: string;
@@ -25,6 +27,7 @@ export interface Product {
   orientation?: string;
   mainIngredient?: string;
   mainIngredientImage?: string;
+  usageIdeas?: UsageIdea[];
 }
 
 export interface CartItem extends Product {
@@ -76,114 +79,153 @@ export interface EventBlog {
   gallery: string[];
   featuredProducts: string[]; // IDs of products
   date: string;
+  impactParticipants?: string;
+  fuelBarsShared?: string;
+  vibeEnergy?: string;
+  scheduledDate?: string;
+  isActive?: boolean;
 }
 
 export interface HeroSlide {
   id: string;
   category: string;
   headline: string;
-  description: string;
   image: string;
   backgroundImage?: string;
   cta: string;
+  ctaLink?: string;
+  secondaryCta?: string;
+  secondaryCtaLink?: string;
   bgColor: string;
   accentColor: string;
   blobColor: string;
+  productId?: string;
+  transitionType?: string;
   isActive: boolean;
+  order?: number;
+  backgroundImage?: string;
+  mobileImage?: string;
+  displayDuration?: number;
 }
 
 export interface CategoryDisplay {
   id: string;
   display: string;
   image: string;
+  mobileImage?: string;
   count: string;
   bgClass: string;
   borderClass: string;
   textClass: string;
   accentClass: string;
   rotation: string;
+  imagePosition?: string;
 }
 
 export interface BlogPost {
   id: string;
+  slug: string;
   type: 'Recipe' | 'Lifestyle' | 'News';
   title: string;
   excerpt: string;
   image: string;
+  imageFile?: File;
   date: string;
   readTime: string;
   author: string;
   content: string; // HTML content from editor
+  subtitle?: string;
+  intro_heading?: string;
+  featured_quote?: string;
+  author_image?: string;
+  author_role?: string;
+  secondary_image?: string;
+  tertiary_image?: string;
+  facts_list?: string[];
+  key_points?: { title: string; desc: string }[];
+  health_benefits?: { title: string; desc: string }[];
+  usage_recipes?: { title: string; desc: string; image: string }[];
   tags?: string[];
+  scheduledDate?: string;
+  isActive?: boolean;
 }
 
 export interface Story {
   id: string;
   mediaUrl: string;
+  posterUrl?: string;
+  fullVideoUrl?: string;
   originalDriveUrl?: string;
   mediaType: 'image' | 'video';
   productId: string;
 }
 
+export interface UsageIdea {
+  id: string;
+  productId: string;
+  title: string;
+  description: string;
+  image: string;
+  order: number;
+}
+
 export const CATEGORY_DISPLAY_DATA: CategoryDisplay[] = [
-  {
-    id: "Peanut Butter",
-    display: "Peanut Butter",
-    image: "https://images.unsplash.com/photo-1590301157890-4810ed352733?q=80&w=600&auto=format&fit=crop",
-    count: "0 Flavors",
-    bgClass: "bg-[#fff7ed]",
-    borderClass: "border-orange-100 hover:border-orange-300",
-    textClass: "text-orange-950",
-    accentClass: "bg-orange-600",
-    rotation: "rotate-2"
-  },
-  {
-    id: "Muesli",
-    display: "Muesli",
-    image: "https://images.unsplash.com/photo-1517673132405-a56a62b18caf?q=80&w=600&auto=format&fit=crop",
-    count: "0 Blends",
-    bgClass: "bg-[#fefce8]",
-    borderClass: "border-yellow-100 hover:border-yellow-300",
-    textClass: "text-yellow-950",
-    accentClass: "bg-yellow-500",
-    rotation: "-rotate-2"
-  },
   {
     id: "Oats",
     display: "Oats",
-    image: "https://images.unsplash.com/photo-1613769049987-b31b641f25b1?q=80&w=600&auto=format&fit=crop",
+    image: "/assets/oats-display.jpg",
+    mobileImage: "homepage/oats.png",
     count: "0 Varieties",
     bgClass: "bg-[#f0fdf4]",
     borderClass: "border-green-100 hover:border-green-300",
     textClass: "text-green-950",
     accentClass: "bg-green-600",
-    rotation: "rotate-1"
+    rotation: "rotate-1",
+    imagePosition: "object-bottom"
+  },
+  {
+    id: "Muesli",
+    display: "Muesli",
+    image: "/assets/muesli-display.jpg",
+    mobileImage: "homepage/musli.png",
+    count: "0 Blends",
+    bgClass: "bg-[#fefce8]",
+    borderClass: "border-yellow-100 hover:border-yellow-300",
+    textClass: "text-yellow-950",
+    accentClass: "bg-yellow-500",
+    rotation: "-rotate-2",
+    imagePosition: "object-bottom"
+  },
+  {
+    id: "Peanut Butter",
+    display: "Peanut Butter",
+    image: "/assets/peanut-butter-display.jpg",
+    mobileImage: "homepage/peanutbutter.png",
+    count: "0 Flavors",
+    bgClass: "bg-[#fff7ed]",
+    borderClass: "border-orange-100 hover:border-orange-300",
+    textClass: "text-orange-950",
+    accentClass: "bg-orange-600",
+    rotation: "rotate-2",
+    imagePosition: "object-center"
   }
 ];
 export interface VisitorSubmission {
   id: string;
   form: string;
-  name: string;
-  email: string;
-  phone: string;
-  submittedAt?: string;
-  addressDetails?: string;
-  buyingSource?: string;
-  brandAwareness?: boolean;
-  currentUsage?: string;
-  flavorPreferences?: string; // Comma separated
-  reviewedProduct?: string;
-  reviewContent?: string;
-  marketingConsent?: boolean;
+  submission_data: Record<string, any>;
+  submitted_at: string;
 }
 
 export interface VisitorForm {
   id: string;
   title: string;
-  eventName: string;
+  event_name: string;
   status: 'Draft' | 'Published';
-  createdAt: string;
-  link: string;
+  form_schema: Record<string, any>;
+  require_email_verification?: boolean;
+  created_at: string;
+  updated_at: string;
   submissions: VisitorSubmission[];
 }
 
@@ -258,3 +300,26 @@ export interface RewardTransaction {
   reason: string;
   timestamp: string;
 }
+
+export interface Customer {
+  id: string;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  is_active: boolean;
+  is_staff: boolean;
+  date_joined: string;
+  profile: {
+    points: number;
+    tier: string;
+    savings: number;
+    phone: string;
+    address: string;
+    city: string;
+    state: string;
+    pin_code: string;
+    birth_date: string;
+  };
+}
+

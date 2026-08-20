@@ -1,15 +1,26 @@
 from django.contrib import admin
-from .models import Category, Product, Review, Event, BlogPost, Story, HeroSlide, Order, OrderItem, UserProfile, VisitorForm, VisitorSubmission, Announcement, RewardRule, RewardTransaction
+from .models import Category, Product, Review, Event, BlogPost, Story, HeroSlide, Order, OrderItem, UserProfile, VisitorForm, VisitorSubmission, Announcement, RewardRule, RewardTransaction, UsageIdea
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name',)
+
+class UsageIdeaInline(admin.TabularInline):
+    model = UsageIdea
+    extra = 1
+
+@admin.register(UsageIdea)
+class UsageIdeaAdmin(admin.ModelAdmin):
+    list_display = ('title', 'product', 'order')
+    list_filter = ('product',)
+    search_fields = ('title', 'description')
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'price', 'category', 'stock', 'is_top_rated')
     list_filter = ('category', 'is_top_rated')
     search_fields = ('name', 'description')
+    inlines = [UsageIdeaInline]
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
@@ -62,6 +73,17 @@ class AnnouncementAdmin(admin.ModelAdmin):
 class RewardRuleAdmin(admin.ModelAdmin):
     list_display = ('event_name', 'points', 'is_enabled')
     list_filter = ('is_enabled',)
+    
+    def has_delete_permission(self, request, obj=None):
+        # Admins cannot delete reward rules
+        return False
+
+    def has_add_permission(self, request):
+        # Admins cannot add new reward rules (they are fixed in code)
+        return False
+
+    # Optional: make event_name read-only so it can't be changed to something non-existent
+    readonly_fields = ('event_name',)
 
 @admin.register(RewardTransaction)
 class RewardTransactionAdmin(admin.ModelAdmin):

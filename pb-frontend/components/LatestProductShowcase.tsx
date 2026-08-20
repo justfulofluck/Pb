@@ -1,40 +1,64 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
+import { throttle } from '../utils/performance';
+import { Product } from '../types';
+import { getMediaUrl, getDynamic3DModel } from '../utils/mediaHelper';
 
-const ModelViewerTag = 'model-viewer' as any;
+interface LatestProductShowcaseProps {
+  product?: Product;
+}
 
-const LatestProductShowcase: React.FC = () => {
+const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }) => {
   const jarContainerRef = useRef<HTMLDivElement>(null);
+  const viewerRef = useRef<HTMLElement | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     const container = jarContainerRef.current;
     if (!container) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const xTo = gsap.quickTo(container, "x", { duration: 1, ease: 'power2.out' });
+    const yTo = gsap.quickTo(container, "y", { duration: 1, ease: 'power2.out' });
+    const rotateXTo = gsap.quickTo(container, "rotateX", { duration: 1, ease: 'power2.out' });
+    const rotateYTo = gsap.quickTo(container, "rotateY", { duration: 1, ease: 'power2.out' });
+
+    // Floating Animation in GSAP to avoid conflict with Mouse interaction
+    const floatTl = gsap.to(container, {
+      y: "-=35",
+      rotateX: "+=2",
+      duration: 3,
+      ease: "sine.inOut",
+      yoyo: true,
+      repeat: -1
+    });
+
+    const handleMouseMove = throttle((e: MouseEvent) => {
       const { clientX, clientY } = e;
       const { left, top, width, height } = container.getBoundingClientRect();
 
       const x = (clientX - (left + width / 2)) / 25;
       const y = (clientY - (top + height / 2)) / 25;
 
-      gsap.to(container, {
-        rotateY: x,
-        rotateX: -y,
-        x: x * 0.5,
-        y: y * 0.5,
-        duration: 1,
-        ease: 'power2.out'
-      });
-    };
+      xTo(x * 0.5);
+      yTo(y * 0.5);
+      rotateXTo(-y);
+      rotateYTo(x);
+    }, 16);
 
     const handleMouseLeave = () => {
+      xTo(0);
+      yTo(0);
+      rotateXTo(0);
+      rotateYTo(0);
+
       gsap.to(container, {
         rotateY: 0,
         rotateX: 0,
         x: 0,
         y: 0,
         duration: 1.5,
-        ease: 'elastic.out(1, 0.3)'
+        ease: 'elastic.out(1, 0.3)',
+        overwrite: true
       });
     };
 
@@ -42,10 +66,26 @@ const LatestProductShowcase: React.FC = () => {
     container.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
+      floatTl.kill();
       window.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mouseleave', handleMouseLeave);
     };
   }, []);
+
+  // Use the provided product's 3D model, or fallback to dynamic naming logic
+  const modelSrc = product?.model3d ? getMediaUrl(product.model3d) : getDynamic3DModel(product?.name);
+
+  useEffect(() => {
+    setLoadError(false);
+  }, [modelSrc]);
+
+  useEffect(() => {
+    const el = viewerRef.current;
+    if (!el || !modelSrc) return;
+    const onError = () => setLoadError(true);
+    el.addEventListener('error', onError);
+    return () => el.removeEventListener('error', onError);
+  }, [modelSrc]);
 
   const benefitsLeft = [
     {
@@ -78,16 +118,10 @@ const LatestProductShowcase: React.FC = () => {
   ];
 
   return (
-    <section className="pt-12 pb-24 bg-[#f2f2ec] overflow-hidden relative">
-      {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-primary/10 rounded-full blur-[150px] pointer-events-none"></div>
+    <section className="py-[60px] relative overflow-hidden bg-whiteboard texture-overlay texture-speckles">
+      {/* Background Glow Removed to maintain board texture */}
 
       <style>{`
-        @keyframes floatJarLarge {
-          0% { transform: translateY(0px) rotateX(0deg); }
-          50% { transform: translateY(-35px) rotateX(2deg); }
-          100% { transform: translateY(0px) rotateX(0deg); }
-        }
         @keyframes floatShadowLarge {
           0% { transform: scale(1); opacity: 0.3; }
           50% { transform: scale(0.7); opacity: 0.1; }
@@ -97,22 +131,26 @@ const LatestProductShowcase: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-0 relative">
-          <span className="font-handdrawn text-3xl md:text-4xl lg:text-2xl text-secondary/80 transform -rotate-3 inline-block absolute -top-8 md:-top-12 lg:-top-8 left-1/2 -translate-x-1/2 md:-translate-x-[220px] lg:-translate-x-[200px] z-10 whitespace-nowrap">
+        <div className="text-center mb-16 md:mb-30 relative">
+          <span className="font-handdrawn text-2xl md:text-3xl lg:text-2xl text-secondary/80 transform -rotate-3 inline-block absolute -top-8 md:-top-12 lg:-top-10 left-1/2 -translate-x-1/2 md:-translate-x-[130px] lg:-translate-x-[110px] z-10 whitespace-nowrap">
             Our New Flavor
           </span>
-          <div className="relative inline-block">
-            <h2 className="text-6xl md:text-7xl lg:text-8xl font-bold text-primary uppercase tracking-normal leading-tight md:leading-none font-bebas">latest Product</h2>
+          <div className="relative inline-block px-10">
+            <h2
+              className="font-normal text-textured-green tracking-normal [word-spacing:0.05em] !font-anton uppercase text-[40px] lg:text-[100px] lg:leading-[110px] lg:-mb-[12px] lg:pb-[12px] lg:font-bold"
+            >
+              Latest product
+            </h2>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 md:gap-12 lg:gap-32 items-center mt-[-1rem] md:mt-[-2rem]">
+        <div className="grid lg:grid-cols-3 gap-8 md:gap-12 lg:gap-20 items-center mt-[-1rem] md:mt-[-2rem]">
           {/* Left Column */}
-          <div className="space-y-8 md:space-y-16 text-center lg:text-right order-2 lg:order-1">
+          <div className="space-y-12 md:space-y-24 text-center lg:text-right order-2 lg:order-1">
             {benefitsLeft.map((item, idx) => (
-              <div key={idx} className="group px-4 md:px-0">
-                <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-1 md:mb-2 font-garet">{item.title}</h3>
-                <p className="text-[11px] md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:ml-auto">
+              <div key={idx} className="group px-4 md:px-0 flex flex-col items-center lg:items-end">
+                <h3 className="text-[22px] lg:text-[26px] force-anton text-[#0b3d2e] mb-1 md:mb-2 uppercase leading-tight md:leading-none md:whitespace-nowrap text-center lg:text-right">{item.title}</h3>
+                <p className="text-[16px] text-slate-500 font-medium leading-relaxed font-satoshi text-center lg:text-right max-w-[320px]">
                   {item.desc}
                 </p>
               </div>
@@ -126,13 +164,18 @@ const LatestProductShowcase: React.FC = () => {
               className="w-full max-w-[650px]"
               style={{
                 transformStyle: 'preserve-3d',
-                animation: 'floatJarLarge 6s ease-in-out infinite',
                 position: 'relative',
                 zIndex: 2
               }}
             >
-              <ModelViewerTag
-                src="/3D-assets/AmericanNuts-v1.glb"
+              {loadError ? (
+                <div className="flex items-center justify-center h-[400px] md:h-[500px] lg:h-[600px]">
+                  <img src={getMediaUrl(product?.image || '')} alt={product?.name || 'Product'} className="max-w-full max-h-full object-contain" />
+                </div>
+              ) : (
+              <model-viewer
+                ref={viewerRef}
+                src={modelSrc}
                 alt="3D Interactive Jar"
                 shadow-intensity="0"
                 camera-controls
@@ -141,8 +184,7 @@ const LatestProductShowcase: React.FC = () => {
                 disable-zoom
                 disable-tap
                 interaction-prompt="auto"
-                ar
-                ar-modes="webxr scene-viewer quick-look"
+                reveal="auto"
                 touch-action="pan-y"
                 style={{ width: '100%', outline: 'none' }}
                 className="h-[400px] md:h-[500px] lg:h-[600px]"
@@ -151,7 +193,8 @@ const LatestProductShowcase: React.FC = () => {
                 <div slot="poster" className="flex flex-col items-center justify-center h-full">
                   <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 </div>
-              </ModelViewerTag>
+              </model-viewer>
+              )}
 
               {/* Dynamic Light Sweep Overlay */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-full opacity-30 mix-blend-overlay">
@@ -176,11 +219,11 @@ const LatestProductShowcase: React.FC = () => {
           </div>
 
           {/* Right Column */}
-          <div className="space-y-8 md:space-y-16 text-center lg:text-left order-3">
+          <div className="space-y-12 md:space-y-24 text-center lg:text-left order-3">
             {benefitsRight.map((item, idx) => (
-              <div key={idx} className="group px-4 md:px-0">
-                <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-1 md:mb-2 font-garet">{item.title}</h3>
-                <p className="text-[11px] md:text-sm text-slate-500 font-medium leading-relaxed max-w-xs mx-auto lg:mr-auto">
+              <div key={idx} className="group px-4 md:px-0 flex flex-col items-center lg:items-start">
+                <h3 className="text-[22px] lg:text-[26px] force-anton text-[#0b3d2e] mb-1 md:mb-2 uppercase leading-tight md:leading-none md:whitespace-nowrap text-center lg:text-left">{item.title}</h3>
+                <p className="text-[16px] text-slate-500 font-medium leading-relaxed font-satoshi text-center lg:text-left max-w-[320px]">
                   {item.desc}
                 </p>
               </div>
