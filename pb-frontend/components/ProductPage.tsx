@@ -263,8 +263,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
   useSnaxxoAnimations();
 
   const [quantity, setQuantity] = useState(1);
-  const [showIngredients, setShowIngredients] = useState(false);
-  const [activeTab, setActiveTab] = useState<'nutrition' | 'ingredients'>('nutrition');
   const [packSize, setPackSize] = useState("");
   const [isHovering, setIsHovering] = useState(false);
   const [proteinCount, setProteinCount] = useState(0);
@@ -279,8 +277,6 @@ const ProductPage: React.FC<ProductPageProps> = ({
     // Reset defaults on product change
     setQuantity(1);
     setPackSize("");
-    setShowIngredients(false);
-    onPopupToggle?.(false);
 
     // Add initial entry animations
     const tl = gsap.timeline();
@@ -332,18 +328,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
     return () => { observer.disconnect(); cancelAnimationFrame(animFrame); };
   }, [product?.id]);
 
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setShowIngredients(false);
-        onPopupToggle?.(false);
-      }
-    };
-    if (showIngredients) {
-      window.addEventListener('keydown', handleEscape);
-    }
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [showIngredients, onPopupToggle]);
+
 
   const getProductColor = (name: string) => {
     const lowerName = name.toLowerCase();
@@ -425,20 +410,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
               </h1>
             </div>
             <div className="product-page-hero-bottom-content flex flex-col lg:flex-row items-center lg:items-end justify-between relative px-2 md:px-0 mt-[-1rem] md:mt-0 pb-16 lg:pb-32 z-20">
-              <div className="content-block pdp-01 w-full lg:w-[22%] order-2 lg:order-1 mt-2 lg:mt-[-40px] flex flex-col items-center lg:items-start">
-                <div className="hidden md:block text-box pdp-description text-center lg:text-left mx-auto lg:mx-0 px-2 sm:px-4 md:px-0" data-snaxxo-animate>
-                  <div className="pdp-ingredients-popup-container flex justify-center lg:justify-start">
-                    <a onClick={(e) => { e.preventDefault(); setShowIngredients(true); onPopupToggle?.(true); }} style={{ borderColor: '#ffffff', cursor: 'pointer' }} className="pdp-nutrition-popup-toggle inline-flex items-center justify-center gap-2 hover:bg-white/10 transition-colors py-2 px-4 border rounded-full">
-                      <span style={{ color: '#ffffff' }} className="paragraph no-margin !text-[10px] sm:!text-xs uppercase tracking-widest font-bold">Nutrition &amp; Ingredients</span>
-                      <div className="pdp-plus w-embed w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" style={{ width: 'inherit', height: 'inherit' }} fill="#ffffff" viewBox="0 0 256 256">
-                          <path d="M228,128a12,12,0,0,1-12,12H140v76a12,12,0,0,1-24,0V140H40a12,12,0,0,1,0-24h76V40a12,12,0,0,1,24,0v76h76A12,12,0,0,1,228,128Z" />
-                        </svg>
-                      </div>
-                    </a>
-                  </div>
-                </div>
-              </div>
+              <div className="content-block pdp-01 hidden lg:block lg:w-[22%] order-2 lg:order-1" />
               {/* position of 3D object */}
               <div className="content-block pdp-02 w-full lg:flex-1 order-1 lg:order-2 relative flex justify-center items-center pt-0 pb-0 sm:pb-2 lg:py-0">
                 <div ref={imageRef} className="image-wrapper main-product-image w-full" style={{ pointerEvents: 'auto', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto' }}>
@@ -496,120 +468,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
 
 
-          {/* Updated Nutrition & Ingredients Popup - Mobile Bottom Drawer & Desktop Side Drawer */}
-          <div
-            style={{
-              visibility: showIngredients ? 'visible' : 'hidden',
-              pointerEvents: showIngredients ? 'auto' : 'none',
-              zIndex: 1000
-            }}
-            className="fixed inset-0 z-[1000] font-satoshi transition-all duration-300"
-          >
-            {/* Backdrop */}
-            <div
-              style={{ opacity: showIngredients ? 1 : 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
-              onClick={() => { setShowIngredients(false); onPopupToggle?.(false); }}
-            />
 
-            {/* Popup Container */}
-            <div
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.85)',
-                transform: showIngredients
-                  ? (window.innerWidth < 1024 ? 'translateY(0)' : 'translateX(0)')
-                  : (window.innerWidth < 1024 ? 'translateY(110%)' : 'translateX(110%)'),
-                transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                backdropFilter: 'blur(16px)'
-              }}
-              className="absolute bottom-0 left-0 w-full lg:top-0 lg:left-auto lg:right-0 lg:w-[450px] lg:h-full lg:rounded-l-[40px] rounded-t-[40px] p-8 pb-10 lg:pb-8 shadow-2xl flex flex-col"
-              onClick={(e) => e.stopPropagation()}
-            >
-
-
-              {/* Tabs Switcher */}
-              <div className="flex bg-[#f1f5f9] p-1.5 rounded-[20px] mb-8">
-                <button
-                  onClick={() => setActiveTab('nutrition')}
-                  className={`flex-1 py-3 px-4 rounded-[16px] font-bold transition-all ${activeTab === 'nutrition' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
-                >
-                  Nutrition
-                </button>
-                <button
-                  onClick={() => setActiveTab('ingredients')}
-                  className={`flex-1 py-3 px-4 rounded-[16px] font-bold transition-all ${activeTab === 'ingredients' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
-                >
-                  Ingredients
-                </button>
-              </div>
-
-              {/* Conditional Content */}
-              <div className="flex-1 overflow-y-auto mb-8 pr-2 custom-scrollbar">
-                {activeTab === 'nutrition' ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Calories Card */}
-                    <div className="bg-[#f8fafc] rounded-[24px] p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
-                          <i className="fa-solid fa-fire text-sm"></i>
-                        </div>
-                        <span className="text-amber-500 font-anton text-[14px] uppercase">Calories</span>
-                      </div>
-                      <div className="text-3xl font-black text-slate-900">{product.nutrition?.calories || "450"} <span className="text-[10px] font-medium text-slate-400">KCAL</span></div>
-                    </div>
-
-                    {/* Protein Card */}
-                    <div className="bg-[#f8fafc] rounded-[24px] p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-sky-50 flex items-center justify-center text-sky-500">
-                          <i className="fa-solid fa-dumbbell text-sm"></i>
-                        </div>
-                        <span className="text-sky-500 font-anton text-[14px] uppercase">Protein</span>
-                      </div>
-                      <div className="text-3xl font-black text-slate-900">{product.nutrition?.protein || "24"} <span className="text-[10px] font-medium text-slate-400">GM</span></div>
-                    </div>
-
-                    {/* Carbs Card */}
-                    <div className="bg-[#f8fafc] rounded-[24px] p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-purple-500">
-                          <i className="fa-solid fa-bread-slice text-sm"></i>
-                        </div>
-                        <span className="text-purple-500 font-anton text-[14px] uppercase">Carbs</span>
-                      </div>
-                      <div className="text-3xl font-black text-slate-900">{product.nutrition?.carbs || "12"} <span className="text-[10px] font-medium text-slate-400">GM</span></div>
-                    </div>
-
-                    {/* Fat Card */}
-                    <div className="bg-[#f8fafc] rounded-[24px] p-5 shadow-sm border border-slate-100 flex flex-col justify-between">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
-                          <i className="fa-solid fa-droplet text-sm"></i>
-                        </div>
-                        <span className="text-emerald-500 font-anton text-[14px] uppercase">Fat</span>
-                      </div>
-                      <div className="text-3xl font-black text-slate-900">{product.nutrition?.fat || "18"} <span className="text-[10px] font-medium text-slate-400">GM</span></div>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <h3 className="font-anton uppercase text-slate-800 mb-3 text-xl">Detailed Ingredients</h3>
-                    <p className="text-slate-500 text-sm leading-relaxed">
-                      {product.ingredients || "Premium roasted peanuts, organic sweetener, heart-healthy flaxseeds, and a pinch of pink Himalayan salt. No artificial preservatives or flavorings."}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Done Action Button */}
-              <button
-                onClick={() => { setShowIngredients(false); onPopupToggle?.(false); }}
-                className="w-full bg-slate-900/90 text-white rounded-[18px] py-3.5 font-bold text-base active:scale-95 transition-all shadow-lg hover:shadow-xl hover:translate-y-[-1px] tracking-wide"
-              >
-                DONE
-              </button>
-            </div>
-          </div>
         </div>
         <div className="absolute bottom-[-1px] left-0 w-full h-[100px] z-[5] pointer-events-none">
           <MultiLayerWave fill="#f2f2ec" className="h-full" />
