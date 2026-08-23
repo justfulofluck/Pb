@@ -91,6 +91,7 @@ export interface HeroSlide {
   category: string;
   headline: string;
   image: string;
+  backgroundImage?: string;
   cta: string;
   ctaLink?: string;
   secondaryCta?: string;

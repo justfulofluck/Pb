@@ -40,10 +40,11 @@ Dockerfile.prod
 nginx.conf
 nginx-prod.conf
 
-# Docs & Scripts
-*.md
-docs/
-*.sh
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # Debug & Temp
 *.txt

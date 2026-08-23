@@ -945,6 +945,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
       category: '',
       headline: '',
       image: '',
+      backgroundImage: '',
       cta: 'SHOP NOW',
       ctaLink: '/shop',
       secondaryCta: '',
@@ -973,7 +974,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setEditingSlide(null);
   };
 
-  const deleteSlide = (id: string) => {
+  const deleteSlide = async (id: string) => {
     if (confirm('Are you sure you want to delete this slide?')) {
       onDeleteSlide(id);
     }

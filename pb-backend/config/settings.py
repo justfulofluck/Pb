@@ -223,7 +223,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "pinobites@gmail.com"
 EMAIL_HOST_PASSWORD = "cwkrporemlfzmywo"
 
-# Yagmail Configuration
+# Yagmail Configuration 
 YAGMAIL_USER = EMAIL_HOST_USER
 YAGMAIL_PASSWORD = EMAIL_HOST_PASSWORD
 
