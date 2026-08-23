@@ -8,7 +8,6 @@ pb-backend/venv/
 .env
 *.log
 *.sqlite3
-media/
 staticfiles/
 pb-backend/frontend_build/
 pb-backend/gunicorn.pid
