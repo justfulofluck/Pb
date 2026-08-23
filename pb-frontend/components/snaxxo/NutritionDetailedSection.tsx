@@ -29,6 +29,11 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
         style={{ backgroundColor: limeGreen }}
       />
 
+      {/* Top wave transition — clean solid wave with no contour artifacts */}
+      <svg className="absolute left-0 w-full z-[6] pointer-events-none" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style={{ top: '-2px', height: '82px' }}>
+        <path d="M0,40 C180,100 360,110 540,80 C720,50 900,20 1080,50 C1200,70 1320,100 1440,80 L1440,0 L0,0 Z" fill={peachBg} />
+      </svg>
+
       {/* Grain texture overlay */}
       <div
         className="absolute inset-0 z-[4] pointer-events-none opacity-[0.03]"
@@ -61,7 +66,7 @@ const NutritionDetailedSection: React.FC<NutritionDetailedSectionProps> = ({ pro
 
       {/* ── Content ── */}
       <div className="relative z-10 w-full">
-        <div className="max-w-[1300px] mx-auto px-4 sm:px-10 lg:px-16 pt-[60px] sm:pt-[140px] lg:pt-[200px] pb-[60px] sm:pb-20 md:pb-24">
+        <div className="max-w-[1300px] mx-auto px-4 sm:px-10 lg:px-16 pt-[110px] sm:pt-[140px] lg:pt-[200px] pb-[60px] sm:pb-20 md:pb-24">
 
           {/* Two-column grid — stacks on mobile */}
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-10">

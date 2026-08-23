@@ -168,19 +168,7 @@ const ProductComparison: React.FC<ProductComparisonProps> = ({ product }) => {
                 }
             `}</style>
 
-            {/* Grain texture overlay */}
-            <div
-                className="absolute inset-0 pointer-events-none opacity-[0.03] z-[1]"
-                style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                }}
-            />
-
-            {/* Animated decorative aura */}
-            <div
-                className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full pointer-events-none blur-3xl z-[0]"
-                style={{ backgroundColor: bgColor, animation: 'glowPulse 4s ease-in-out infinite' }}
-            />
+            {/* Grain texture and aura removed to match background color with other sections */}
 
             {/* DESKTOP LAYOUT */}
             <motion.div
@@ -438,8 +426,7 @@ const ProductComparison: React.FC<ProductComparisonProps> = ({ product }) => {
                                 className="h-20 object-contain mb-3 drop-shadow-xl"
                             />
                             <span
-                                className="font-black text-[11px] uppercase tracking-wide text-center leading-tight"
-                                style={{ color: bgColor }}
+                                className="font-black text-[11px] uppercase tracking-wide text-center leading-tight text-white"
                             >
                                 {product.name}
                             </span>
@@ -469,19 +456,19 @@ const ProductComparison: React.FC<ProductComparisonProps> = ({ product }) => {
                                     
                                     {/* Values */}
                                     <div className="flex w-full min-h-[50px] items-stretch">
-                                        <div className="w-1/2 flex items-center justify-center px-3 py-3 text-center text-[13px] text-slate-600 font-medium leading-snug gap-1.5">
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" className="text-red-500 shrink-0">
+                                        <div className="w-1/2 flex flex-col items-center justify-start px-2 py-3 text-center text-[13px] text-slate-600 font-medium leading-snug gap-1.5">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-red-500 shrink-0">
                                                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
                                                 <path d="M15 9L9 15M9 9L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                                             </svg>
-                                            {row.others}
+                                            <span>{row.others}</span>
                                         </div>
-                                        <div className="w-1/2 flex items-center justify-center px-3 py-3 text-center text-[13px] font-bold text-white leading-snug gap-1.5">
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ color: '#9cd92a' }} className="shrink-0">
+                                        <div className="w-1/2 flex flex-col items-center justify-start px-2 py-3 text-center text-[13px] font-bold text-white leading-snug gap-1.5">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ color: '#9cd92a' }} className="shrink-0">
                                                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="currentColor" fillOpacity="0.15" />
                                                 <path d="M8 12L11 15L16 9" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                                             </svg>
-                                            {row.highlight}
+                                            <span>{row.highlight}</span>
                                         </div>
                                     </div>
                                 </div>

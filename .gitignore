@@ -59,3 +59,4 @@ nginx-prod.conf
 pb-backend/db_dump.json
 pb-frontend/webflow_assets/
 pb-frontend/src/vendor/webflow.*.js
+.aider*

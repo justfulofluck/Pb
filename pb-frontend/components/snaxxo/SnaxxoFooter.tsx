@@ -105,7 +105,7 @@ const SnaxxoFooter: React.FC<SnaxxoFooterProps> = ({
 
             {/* Wave Transition - Cutout above wave reveals cream background */}
             <div className="relative z-30 w-full overflow-hidden pointer-events-none" style={{ height: '140px', marginBottom: '-1px' }}>
-                <MultiLayerWave inverseBg="#fbf9f4" className="flex items-end h-full" />
+                <MultiLayerWave inverseBg="#f2f2ec" className="flex items-end h-full" />
             </div>
 
             <section className="section relative z-20 overflow-hidden bg-transparent">

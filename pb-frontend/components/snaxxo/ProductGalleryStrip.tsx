@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Product } from '../../types';
@@ -19,6 +19,8 @@ const FALLBACK_IMAGES = [
 export const ProductGalleryStrip: React.FC<ProductGalleryStripProps> = ({ product }) => {
     const [selectedImage, setSelectedImage] = useState<{ url: string; title: string } | null>(null);
     const [imageErrors, setImageErrors] = useState<Record<number, boolean>>({});
+    const [activeIndex, setActiveIndex] = useState(0);
+    const sliderRef = useRef<HTMLDivElement>(null);
 
     const usageImages = (product.usageIdeas || [])
         .map(u => ({ url: u.image, title: u.title }))
@@ -59,11 +61,63 @@ export const ProductGalleryStrip: React.FC<ProductGalleryStripProps> = ({ produc
         setImageErrors(prev => ({ ...prev, [index]: true }));
     };
 
+    const handleScroll = () => {
+        const el = sliderRef.current;
+        if (!el) return;
+        const scrollLeft = el.scrollLeft;
+        const itemWidth = el.scrollWidth / galleryItems.length;
+        const index = Math.round(scrollLeft / itemWidth);
+        setActiveIndex(Math.max(0, Math.min(galleryItems.length - 1, index)));
+    };
+
+    // Auto-scroll loop effect with user interaction pause
+    useEffect(() => {
+        const el = sliderRef.current;
+        if (!el) return;
+
+        let isInteracting = false;
+        let autoplayInterval: NodeJS.Timeout;
+
+        const startAutoplay = () => {
+            autoplayInterval = setInterval(() => {
+                if (isInteracting) return;
+                setActiveIndex((prev) => {
+                    const nextIndex = (prev + 1) % galleryItems.length;
+                    const itemWidth = el.scrollWidth / galleryItems.length;
+                    el.scrollTo({
+                        left: nextIndex * itemWidth,
+                        behavior: 'smooth'
+                    });
+                    return nextIndex;
+                });
+            }, 3000);
+        };
+
+        const handleTouchStart = () => {
+            isInteracting = true;
+        };
+
+        const handleTouchEnd = () => {
+            isInteracting = false;
+        };
+
+        el.addEventListener('touchstart', handleTouchStart, { passive: true });
+        el.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+        startAutoplay();
+
+        return () => {
+            clearInterval(autoplayInterval);
+            el.removeEventListener('touchstart', handleTouchStart);
+            el.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, [galleryItems.length]);
+
     return (
-        <section className="w-full py-8 md:py-14 bg-[#f2f2ec] font-satoshi">
+        <section className="w-full py-8 md:py-14 bg-[#f2f2ec] font-satoshi overflow-hidden">
             <div className="w-full max-w-7xl mx-auto px-4 md:px-8">
-                {/* 5-Column Responsive Grid that displays all 5 images on screen without clipping */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 md:gap-5 lg:gap-6 w-full">
+                {/* Desktop Grid Layout (hidden on mobile/phones, visible on md and up) */}
+                <div className="hidden md:grid md:grid-cols-5 gap-4 md:gap-5 lg:gap-6 w-full">
                     {galleryItems.map((item, idx) => {
                         const isFailed = imageErrors[idx];
                         const srcUrl = isFailed ? FALLBACK_IMAGES[idx % FALLBACK_IMAGES.length] : getMediaUrl(item.url);
@@ -71,7 +125,7 @@ export const ProductGalleryStrip: React.FC<ProductGalleryStripProps> = ({ produc
                         return (
                             <motion.div
                                 key={idx}
-                                className="w-full aspect-square rounded-2xl md:rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer relative group bg-white"
+                                className="w-full aspect-square rounded-3xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer relative group bg-white"
                                 whileHover={{ scale: 1.04, y: -4 }}
                                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                                 onClick={() => setSelectedImage({ url: srcUrl, title: item.title })}
@@ -82,15 +136,52 @@ export const ProductGalleryStrip: React.FC<ProductGalleryStripProps> = ({ produc
                                     onError={() => handleImageError(idx)}
                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                 />
-                                {/* Hover overlay with title */}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3.5 md:p-4">
-                                    <span className="text-white font-bold text-xs sm:text-sm md:text-base tracking-wide drop-shadow-md leading-tight">
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                                    <span className="text-white font-bold text-sm tracking-wide drop-shadow-md leading-tight">
                                         {item.title}
                                     </span>
                                 </div>
                             </motion.div>
                         );
                     })}
+                </div>
+
+                {/* Mobile Slider Layout (visible only on mobile/phones) */}
+                <div className="block md:hidden w-full relative">
+                    <div
+                        ref={sliderRef}
+                        onScroll={handleScroll}
+                        className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 px-4 -mx-4 scrollbar-none"
+                        style={{
+                            scrollbarWidth: 'none',
+                            msOverflowStyle: 'none',
+                            WebkitOverflowScrolling: 'touch',
+                        }}
+                    >
+                        {/* Hidden scrollbar styling */}
+                        <style>{`
+                            .scrollbar-none::-webkit-scrollbar { display: none; }
+                        `}</style>
+                        {galleryItems.map((item, idx) => {
+                            const isFailed = imageErrors[idx];
+                            const srcUrl = isFailed ? FALLBACK_IMAGES[idx % FALLBACK_IMAGES.length] : getMediaUrl(item.url);
+
+                            return (
+                                <div
+                                    key={idx}
+                                    className="w-[78vw] sm:w-[60vw] aspect-square rounded-2xl overflow-hidden shadow-md snap-center flex-shrink-0 bg-white relative cursor-pointer"
+                                    onClick={() => setSelectedImage({ url: srcUrl, title: item.title })}
+                                >
+                                    <img
+                                        src={srcUrl}
+                                        alt={item.title}
+                                        onError={() => handleImageError(idx)}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
 
@@ -115,9 +206,9 @@ export const ProductGalleryStrip: React.FC<ProductGalleryStripProps> = ({ produc
                             >
                                 <button
                                     onClick={() => setSelectedImage(null)}
-                                    className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-colors"
+                                    className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-colors font-bold text-lg"
                                 >
-                                    <span className="material-symbols-outlined text-[20px]">close</span>
+                                    ✕
                                 </button>
                                 <div className="aspect-square w-full bg-black">
                                     <img
@@ -125,10 +216,6 @@ export const ProductGalleryStrip: React.FC<ProductGalleryStripProps> = ({ produc
                                         alt={selectedImage.title}
                                         className="w-full h-full object-cover"
                                     />
-                                </div>
-                                <div className="p-5 bg-white flex items-center justify-between">
-                                    <h4 className="text-lg font-bold text-slate-900">{selectedImage.title}</h4>
-                                    <span className="text-xs font-semibold text-emerald-600 uppercase tracking-widest">Pinobite</span>
                                 </div>
                             </motion.div>
                         </motion.div>

@@ -621,7 +621,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
 
 
-      <section className="section overflow-hidden flex flex-col items-center w-full relative" style={{ backgroundColor: '#f2f2ec' }}>
+      <section className="section overflow-hidden flex flex-col items-center w-full relative pt-12 md:pt-20" style={{ backgroundColor: '#f2f2ec' }}>
         {/* Subtle radial glow behind center */}
         <div className="hidden md:block absolute pointer-events-none" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '700px', height: '700px', borderRadius: '50%', background: `radial-gradient(circle, ${bgColor}08 0%, transparent 70%)` }} />
         <div className="w-layout-blockcontainer container product-page-intro w-container mx-auto">
@@ -878,46 +878,77 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
             </div>
 
-            <div className="benefit-circles grid grid-cols-2 md:flex md:flex-nowrap justify-items-center md:justify-center gap-x-4 md:gap-x-8 gap-y-8 md:gap-y-12 mt-4 md:mt-16 mb-8 py-4" data-snaxxo-animate>
+            <div className="w-full max-w-5xl mx-auto mt-6 md:mt-16 mb-8 px-2 sm:px-4" data-snaxxo-animate>
               {(() => {
                 const filtered = (product.benefits || []).filter(b => b && b.trim() !== "");
                 const displayBenefits = filtered.length > 0 ? filtered : ["100% Roasted Peanuts", "High Protein Power", "Rich In Dietary Fiber", "Zero Trans Fat"];
 
+                const benefitMetaList = [
+                  { subtitle: "Farm Fresh Quality", tag: "Pure & Natural" },
+                  { subtitle: "Clean Muscle Energy", tag: "High Protein" },
+                  { subtitle: "Healthy Digestion", tag: "Dietary Fiber" },
+                  { subtitle: "Clean Nutrition", tag: "Zero Trans Fat" },
+                ];
+
                 const icons = [
                   // 100% Roasted Peanuts (Flame/Fire)
-                  <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <svg key="flame" className="w-full h-full" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17.66 11.2c-.23-.3-.51-.56-.77-.82-.67-.6-1.43-1.03-2.07-1.66C13.33 7.26 13 4.85 13.95 3c-.95.23-1.78.75-2.49 1.32-2.59 2.08-3.61 5.75-2.39 8.9.04.1.08.2.08.33 0 .22-.15.42-.35.5-.22.1-.46.04-.64-.12-.06-.05-.11-.1-.15-.17-1.1-1.43-1.28-3.48-.53-5.12C5.89 10.02 5 12.3 5.14 14.47c.04.5.1 1 .27 1.5.14.6.4 1.2.72 1.73 1.04 1.73 2.87 2.97 4.84 3.22 2.1.27 4.35-.12 5.96-1.6 1.8-1.66 2.49-4.32 1.5-6.6l-.1-.26c-.19-.46-.42-.88-.67-1.26z"/>
                   </svg>,
                   // High Protein Power (Lightning Bolt)
-                  <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <svg key="bolt" className="w-full h-full" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                     <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
                   </svg>,
                   // Rich In Dietary Fiber (Plant)
-                  <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <svg key="plant" className="w-full h-full" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2C11.5 4 9.5 6 9 8.5C8.5 7.5 7.5 7 6.5 7C5 7 4 8.5 5 10C6 11.5 8 11.5 9.5 10.5C9.5 12.5 8 14 7.5 16C7 15 6 14.5 5 14.5C3.5 14.5 2.5 16 3.5 17.5C4.5 19 6.5 19 8 18C8.5 20.5 7.5 21.5 7 22H9C10.5 20.5 11.5 18 12 15C12.5 18 13.5 20.5 15 22H17C16.5 21.5 15.5 20.5 16 18C17.5 19 19.5 19 20.5 17.5C21.5 16 20.5 14.5 19 14.5C18 14.5 17 15 16.5 16C16 14 14.5 12.5 14.5 10.5C16 11.5 18 11.5 19 10C20 8.5 19 7 17.5 7C16.5 7 15.5 7.5 15 8.5C14.5 6 12.5 4 12 2Z" />
                   </svg>,
                   // Zero Trans Fat (Shield Check)
-                  <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <svg key="shield" className="w-full h-full" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
-                  </svg>,
-                  // Extra fallback icon if needed
-                  <svg style={{ height: 'inherit', width: 'inherit' }} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 4C7 4 3 8 3 13H21C21 8 17 4 12 4ZM12 2C12.6 2 13 2.4 13 3C13 3.6 12.6 4 12 4C11.4 4 11 3.6 11 3C11 2.4 11.4 2 12 2ZM2 14C2 14.6 2.4 15 3 15H21C21.6 15 22 14.6 22 14C22 13.4 21.6 13 21 13H3C2.4 13 2 13.4 2 14Z" />
                   </svg>
                 ];
 
-                return displayBenefits.map((benefit, idx) => (
-                  <div key={idx} className="flex flex-col items-center text-center w-28 md:w-36 group cursor-default">
-                    <div className="relative flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full mb-3 shrink-0 transition-transform duration-300 group-hover:scale-110" style={{ backgroundColor: bgColor, boxShadow: `0 8px 25px ${bgColor}40` }}>
-                      <div className="w-8 h-8 md:w-10 md:h-10 text-white flex items-center justify-center">
-                        {icons[idx % icons.length]}
-                      </div>
-                    </div>
-                    <div style={{ color: bgColor }} className="font-satoshi font-bold text-[13px] md:text-[15px] leading-tight transition-colors duration-300">
-                      {benefit}
-                    </div>
+                return (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+                    {displayBenefits.map((benefit, idx) => {
+                      const meta = benefitMetaList[idx % benefitMetaList.length];
+                      return (
+                        <div
+                          key={idx}
+                          className="group relative bg-white/75 hover:bg-white backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1 flex flex-col items-center text-center justify-between cursor-default overflow-hidden"
+                        >
+                          {/* Subtle top ambient glow */}
+                          <div
+                            className="absolute -top-6 -right-6 w-16 h-16 rounded-full blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-300 pointer-events-none"
+                            style={{ backgroundColor: bgColor }}
+                          />
+
+                          {/* Glowing Icon Badge */}
+                          <div
+                            className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110 shadow-md text-white shrink-0 p-3"
+                            style={{
+                              background: `linear-gradient(135deg, ${bgColor} 0%, ${bgColor}ee 100%)`,
+                              boxShadow: `0 6px 18px ${bgColor}30`,
+                            }}
+                          >
+                            {icons[idx % icons.length]}
+                          </div>
+
+                          {/* Titles */}
+                          <div className="flex flex-col items-center w-full">
+                            <span className="font-satoshi font-black text-[13px] sm:text-[14px] text-slate-800 uppercase tracking-tight leading-tight mb-1">
+                              {benefit}
+                            </span>
+                            <span className="font-satoshi font-semibold text-[10px] sm:text-[11px] text-slate-400 uppercase tracking-wider">
+                              {meta.subtitle}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ));
+                );
               })()}
             </div>
           </div>
