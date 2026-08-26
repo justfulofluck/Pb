@@ -226,8 +226,12 @@ const PRODUCT_HERO_MAP: Record<string, { desktop: string, mobile: string } | nul
     desktop: '/productpageimg/mango-with-chia-seeds-peanut-butter-desktop.png',
     mobile: '/productpageimg/mango-with-chia-seeds-peanut-butter-mobile.png'
   },
+  'American Nuts Crunchy High Protein Peanut Butter': {
+    desktop: '/productpageimg/american-nuts-crunchy-peanut-butter-mobile.png',
+    mobile: '/productpageimg/american-nuts-crunchy-peanut-butter-mobile.png'
+  },
   'American Nuts Crunchy Peanut Butter': {
-    desktop: '/productpageimg/american-nuts-crunchy-peanut-butter-desktop.png',
+    desktop: '/productpageimg/american-nuts-crunchy-peanut-butter-mobile.png',
     mobile: '/productpageimg/american-nuts-crunchy-peanut-butter-mobile.png'
   },
   'Pineapple Crunchy Peanut Butter': {
@@ -335,7 +339,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
     if (lowerName.includes('dark chocolate') || lowerName.includes('chocolate')) return '#4a2e15'; // Rich Dark Chocolate Brown
     if (lowerName.includes('natural')) return '#188a67'; // Forest Green (Matches Footer)
     if (lowerName.includes('mango')) return '#eab308'; // Golden Mango
-    if (lowerName.includes('american')) return '#1d4ed8'; // Vibrant American Blue
+    if (lowerName.includes('american')) return '#002866'; // Vibrant American Blue
     if (lowerName.includes('pineapple')) return '#d97706'; // Pineapple Gold
     if (lowerName.includes('chia') || lowerName.includes('strawberry')) return '#a62427'; // Dark Strawberry Red
     if (lowerName.includes('onion')) return 'hsla(259.4594594594595, 100.00%, 61.83%, 1.00)';
@@ -391,16 +395,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
     <div className="page-wrapper" style={{ opacity: 1, backgroundColor: tintColor }}>
 
       <section ref={heroRef} style={{ backgroundColor: bgColor }} className="section overflow-hidden min-h-[85vh] md:min-h-[95vh] flex flex-col items-center pt-4 md:pt-0 pb-20 md:pb-10 texture-blend relative">
-        {/* Dynamic Silk WebGL Background Shader */}
-        <div className="absolute inset-0 w-full h-full z-0 pointer-events-none opacity-90">
-          <Silk
-            speed={5}
-            scale={1}
-            color={bgColor}
-            noiseIntensity={1.5}
-            rotation={0}
-          />
-        </div>
+        {/* Dynamic Silk WebGL Background Shader is disabled to use solid colors */}
 
         <div className="w-layout-blockcontainer container product-page-hero w-container !pt-2 md:!pt-6 !mt-0 relative z-10">
           <div className="content-wrapper product-page-hero">
@@ -586,7 +581,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
             </div>
 
             {/* DESKTOP SPOTLIGHT LAYOUT (Center Product + 4 Surrounding Glass Cards & SVG Pointers) */}
-            <div ref={statsSectionRef} className="hidden md:block relative w-full max-w-[1180px] mx-auto py-8" style={{ minHeight: '740px' }}>
+            <div ref={statsSectionRef} className="hidden md:block relative w-full max-w-[1180px] mx-auto pt-24 pb-8" style={{ minHeight: '740px' }}>
 
               {/* CENTRAL PRODUCT CONTAINER */}
               <div className="absolute inset-0 flex justify-center items-center pointer-events-none" style={{ zIndex: 10 }}>

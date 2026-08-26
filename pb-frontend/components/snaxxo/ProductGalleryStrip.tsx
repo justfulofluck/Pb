@@ -28,32 +28,38 @@ export const ProductGalleryStrip: React.FC<ProductGalleryStripProps> = ({ produc
 
     const galleryItems = [
         {
-            url: (product.mainIngredientImage && product.mainIngredientImage.length > 5 && (product.mainIngredientImage.startsWith('http') || product.mainIngredientImage.startsWith('/')))
-                ? product.mainIngredientImage
-                : FALLBACK_IMAGES[0],
-            title: product.mainIngredient || "100% Roasted Peanuts",
-        },
-        {
             url: (usageImages[0]?.url && usageImages[0].url.length > 5)
                 ? usageImages[0].url
-                : FALLBACK_IMAGES[1],
-            title: usageImages[0]?.title || "Velvety Spread Toast",
-        },
-        {
-            url: (product.image && (product.image.startsWith('http') || product.image.startsWith('/')))
-                ? product.image
-                : FALLBACK_IMAGES[2],
-            title: product.name,
+                : (product.mainIngredientImage && product.mainIngredientImage.length > 5 && (product.mainIngredientImage.startsWith('http') || product.mainIngredientImage.startsWith('/')))
+                    ? product.mainIngredientImage
+                    : FALLBACK_IMAGES[0],
+            title: usageImages[0]?.title || product.mainIngredient || "100% Roasted Peanuts",
         },
         {
             url: (usageImages[1]?.url && usageImages[1].url.length > 5)
                 ? usageImages[1].url
-                : FALLBACK_IMAGES[3],
-            title: usageImages[1]?.title || "High Protein Fuel",
+                : FALLBACK_IMAGES[1],
+            title: usageImages[1]?.title || "Velvety Spread Toast",
         },
         {
-            url: FALLBACK_IMAGES[4],
-            title: "Zero Preservatives",
+            url: (usageImages[2]?.url && usageImages[2].url.length > 5)
+                ? usageImages[2].url
+                : (product.image && (product.image.startsWith('http') || product.image.startsWith('/')))
+                    ? product.image
+                    : FALLBACK_IMAGES[2],
+            title: usageImages[2]?.title || product.name,
+        },
+        {
+            url: (usageImages[3]?.url && usageImages[3].url.length > 5)
+                ? usageImages[3].url
+                : FALLBACK_IMAGES[3],
+            title: usageImages[3]?.title || "High Protein Fuel",
+        },
+        {
+            url: (usageImages[4]?.url && usageImages[4].url.length > 5)
+                ? usageImages[4].url
+                : FALLBACK_IMAGES[4],
+            title: usageImages[4]?.title || "Zero Preservatives",
         }
     ];
 
@@ -114,8 +120,8 @@ export const ProductGalleryStrip: React.FC<ProductGalleryStripProps> = ({ produc
     }, [galleryItems.length]);
 
     return (
-        <section className="w-full py-8 md:py-14 bg-[#f2f2ec] font-satoshi overflow-hidden">
-            <div className="w-full max-w-7xl mx-auto px-4 md:px-8">
+        <section className="w-full py-12 md:py-20 bg-[#f2f2ec] font-satoshi overflow-hidden">
+            <div className="w-full max-w-[98vw] lg:max-w-[1800px] mx-auto px-2 md:px-4">
                 {/* Desktop Grid Layout (hidden on mobile/phones, visible on md and up) */}
                 <div className="hidden md:grid md:grid-cols-5 gap-4 md:gap-5 lg:gap-6 w-full">
                     {galleryItems.map((item, idx) => {
@@ -136,11 +142,6 @@ export const ProductGalleryStrip: React.FC<ProductGalleryStripProps> = ({ produc
                                     onError={() => handleImageError(idx)}
                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
-                                    <span className="text-white font-bold text-sm tracking-wide drop-shadow-md leading-tight">
-                                        {item.title}
-                                    </span>
-                                </div>
                             </motion.div>
                         );
                     })}
