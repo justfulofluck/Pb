@@ -501,42 +501,41 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
 
 
-            {/* MOBILE LAYOUT - OVERLAPPING SPOTLIGHT MATCHING PC */}
-            <div className="flex flex-col md:hidden items-center relative z-10 px-2 py-4">
+            {/* MOBILE LAYOUT - MINIMAL OVERLAPPING SPOTLIGHT */}
+            <div className="flex flex-col md:hidden items-center relative z-10 px-3 py-4">
               
               {/* TOP 2 CARDS (Overlapping Top of Plate) */}
               <div className="w-full grid grid-cols-2 gap-2.5 sm:gap-4 relative z-20 -mb-6 sm:-mb-10">
                 {/* Top-Left Card */}
-                <div className="glass-card-framer rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 relative overflow-hidden shadow-lg border border-white/90 flex flex-col justify-between">
-                  <div className="absolute top-0 left-0 w-1.5 h-full" style={{ backgroundColor: bgColor }} />
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded" style={{ backgroundColor: `${bgColor}15`, color: bgColor }}>
-                      HIGH PROTEIN
+                <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-white/90 flex flex-col justify-center">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-lg sm:text-xl">💪</span>
+                    <span className="font-satoshi font-black text-lg sm:text-2xl leading-none" style={{ color: bgColor }}>
+                      {proteinCount || 30}g
                     </span>
-                    <span className="text-base sm:text-xl">💪</span>
+                    <span className="text-[9px] font-black uppercase text-gray-400">/ 100g</span>
                   </div>
-                  <h3 className="font-satoshi font-black text-base sm:text-2xl leading-none mb-1" style={{ color: bgColor }}>
-                    <span className="tabular-nums">{proteinCount || 30}g</span> <span className="text-[9px] sm:text-xs font-extrabold text-gray-700 uppercase">/ 100g</span>
-                  </h3>
-                  <p className="font-satoshi font-medium text-[10px] sm:text-xs text-gray-600 leading-snug">
-                    Supports muscle recovery & strength.
+                  <h4 className="text-[11px] sm:text-xs font-black uppercase text-slate-900 tracking-tight leading-tight">
+                    High Protein
+                  </h4>
+                  <p className="text-[10px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">
+                    Muscle recovery & energy.
                   </p>
                 </div>
 
                 {/* Top-Right Card */}
-                <div className="glass-card-framer rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 relative overflow-hidden shadow-lg border border-white/90 text-right flex flex-col justify-between">
-                  <div className="absolute top-0 right-0 w-1.5 h-full" style={{ backgroundColor: bgColor }} />
-                  <div className="flex items-center justify-between mb-1.5 flex-row-reverse">
-                    <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded" style={{ backgroundColor: `${bgColor}15`, color: bgColor }}>
-                      100% CLEAN
+                <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-white/90 flex flex-col justify-center">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-lg sm:text-xl">🌿</span>
+                    <span className="font-satoshi font-black text-xs sm:text-base leading-tight uppercase" style={{ color: bgColor }}>
+                      100% Clean
                     </span>
-                    <span className="text-base sm:text-xl">🌿</span>
                   </div>
-                  <h3 className="font-satoshi font-black text-xs sm:text-base leading-tight mb-1 uppercase" style={{ color: bgColor }}>
-                    No Added Sugar,<br />Salt, or Palm Oil
-                  </h3>
-                  <p className="font-satoshi font-medium text-[10px] sm:text-xs text-gray-600 leading-snug">
-                    Purely roasted for clean nutrition.
+                  <h4 className="text-[11px] sm:text-xs font-black uppercase text-slate-900 tracking-tight leading-tight">
+                    Zero Palm Oil
+                  </h4>
+                  <p className="text-[10px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">
+                    Pure honest ingredients.
                   </p>
                 </div>
               </div>
@@ -564,36 +563,34 @@ const ProductPage: React.FC<ProductPageProps> = ({
               {/* BOTTOM 2 CARDS (Overlapping Bottom of Plate) */}
               <div className="w-full grid grid-cols-2 gap-2.5 sm:gap-4 relative z-20 -mt-6 sm:-mt-10">
                 {/* Bottom-Left Card */}
-                <div className="glass-card-framer rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 relative overflow-hidden shadow-lg border border-white/90 flex flex-col justify-between">
-                  <div className="absolute top-0 left-0 w-1.5 h-full" style={{ backgroundColor: bgColor }} />
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded" style={{ backgroundColor: `${bgColor}15`, color: bgColor }}>
-                      HEART HEALTH
+                <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-white/90 flex flex-col justify-center">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-lg sm:text-xl">❤️</span>
+                    <span className="font-satoshi font-black text-xs sm:text-base leading-tight uppercase" style={{ color: bgColor }}>
+                      Healthy Fats
                     </span>
-                    <span className="text-base sm:text-xl">❤️</span>
                   </div>
-                  <h3 className="font-satoshi font-black text-xs sm:text-base leading-tight mb-1 uppercase" style={{ color: bgColor }}>
-                    Rich in<br />Healthy Fats
-                  </h3>
-                  <p className="font-satoshi font-medium text-[10px] sm:text-xs text-gray-600 leading-snug">
-                    Essential omegas for heart wellness.
+                  <h4 className="text-[11px] sm:text-xs font-black uppercase text-slate-900 tracking-tight leading-tight">
+                    Heart Wellness
+                  </h4>
+                  <p className="text-[10px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">
+                    Rich in natural omegas.
                   </p>
                 </div>
 
                 {/* Bottom-Right Card */}
-                <div className="glass-card-framer rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 relative overflow-hidden shadow-lg border border-white/90 text-right flex flex-col justify-between">
-                  <div className="absolute top-0 right-0 w-1.5 h-full" style={{ backgroundColor: bgColor }} />
-                  <div className="flex items-center justify-between mb-1.5 flex-row-reverse">
-                    <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded" style={{ backgroundColor: `${bgColor}15`, color: bgColor }}>
-                      FARM FRESH
+                <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-white/90 flex flex-col justify-center">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span className="text-lg sm:text-xl">🥜</span>
+                    <span className="font-satoshi font-black text-xs sm:text-base leading-tight uppercase" style={{ color: bgColor }}>
+                      Best Peanuts
                     </span>
-                    <span className="text-base sm:text-xl">🥜</span>
                   </div>
-                  <h3 className="font-satoshi font-black text-xs sm:text-base leading-tight mb-1 uppercase" style={{ color: bgColor }}>
-                    The World's<br />Best Peanuts
-                  </h3>
-                  <p className="font-satoshi font-medium text-[10px] sm:text-xs text-gray-600 leading-snug">
-                    Slow-roasted for rich, nutty crunch.
+                  <h4 className="text-[11px] sm:text-xs font-black uppercase text-slate-900 tracking-tight leading-tight">
+                    Slow-Roasted
+                  </h4>
+                  <p className="text-[10px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">
+                    Rich aroma & crunch.
                   </p>
                 </div>
               </div>
