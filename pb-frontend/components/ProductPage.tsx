@@ -769,26 +769,20 @@ const ProductPage: React.FC<ProductPageProps> = ({
                 ];
 
                 return (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
                     {displayBenefits.map((benefit, idx) => {
                       const meta = benefitMetaList[idx % benefitMetaList.length];
                       return (
                         <div
                           key={idx}
-                          className="group relative bg-white/75 hover:bg-white backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/80 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1 flex flex-col items-center text-center justify-between cursor-default overflow-hidden"
+                          className="group relative bg-white hover:bg-white/95 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-100/80 shadow-[0_8px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1 flex flex-col items-center text-center justify-between cursor-default overflow-hidden"
                         >
-                          {/* Subtle top ambient glow */}
+                          {/* Clean Tinted Icon Badge */}
                           <div
-                            className="absolute -top-6 -right-6 w-16 h-16 rounded-full blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-300 pointer-events-none"
-                            style={{ backgroundColor: bgColor }}
-                          />
-
-                          {/* Glowing Icon Badge */}
-                          <div
-                            className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110 shadow-md text-white shrink-0 p-3"
+                            className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center mb-2.5 sm:mb-3 transition-transform duration-300 group-hover:scale-110 shrink-0 p-2.5"
                             style={{
-                              background: `linear-gradient(135deg, ${bgColor} 0%, ${bgColor}ee 100%)`,
-                              boxShadow: `0 6px 18px ${bgColor}30`,
+                              color: bgColor,
+                              backgroundColor: `${bgColor}14`,
                             }}
                           >
                             {icons[idx % icons.length]}
@@ -796,10 +790,10 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
                           {/* Titles */}
                           <div className="flex flex-col items-center w-full">
-                            <span className="font-satoshi font-black text-[13px] sm:text-[14px] text-slate-800 uppercase tracking-tight leading-tight mb-1">
+                            <span className="font-satoshi font-black text-xs sm:text-[14px] text-slate-900 uppercase tracking-tight leading-tight mb-1">
                               {benefit}
                             </span>
-                            <span className="font-satoshi font-semibold text-[10px] sm:text-[11px] text-slate-400 uppercase tracking-wider">
+                            <span className="font-satoshi font-bold text-[8px] sm:text-[10px] text-slate-400 uppercase tracking-wider">
                               {meta.subtitle}
                             </span>
                           </div>
