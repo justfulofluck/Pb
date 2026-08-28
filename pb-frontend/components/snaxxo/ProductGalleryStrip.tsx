@@ -26,42 +26,37 @@ export const ProductGalleryStrip: React.FC<ProductGalleryStripProps> = ({ produc
         ? product.gallery.filter(g => typeof g === 'string' && g.trim() !== '' && !g.includes('undefined'))
         : [];
 
-    const galleryItems = [
-        {
-            url: (galleryImages[0] && galleryImages[0].length > 5)
-                ? galleryImages[0]
-                : (product.mainIngredientImage && product.mainIngredientImage.length > 5 && (product.mainIngredientImage.startsWith('http') || product.mainIngredientImage.startsWith('/')))
+    const galleryItems = galleryImages.length > 0
+        ? galleryImages.map((img, idx) => ({
+            url: img,
+            title: `Product Highlight ${idx + 1}`
+        }))
+        : [
+            {
+                url: (product.mainIngredientImage && product.mainIngredientImage.length > 5 && (product.mainIngredientImage.startsWith('http') || product.mainIngredientImage.startsWith('/')))
                     ? product.mainIngredientImage
                     : FALLBACK_IMAGES[0],
-            title: product.mainIngredient || "100% Roasted Peanuts",
-        },
-        {
-            url: (galleryImages[1] && galleryImages[1].length > 5)
-                ? galleryImages[1]
-                : FALLBACK_IMAGES[1],
-            title: "Product Highlights",
-        },
-        {
-            url: (galleryImages[2] && galleryImages[2].length > 5)
-                ? galleryImages[2]
-                : (product.image && (product.image.startsWith('http') || product.image.startsWith('/')))
+                title: product.mainIngredient || "100% Roasted Peanuts",
+            },
+            {
+                url: FALLBACK_IMAGES[1],
+                title: "Product Highlights",
+            },
+            {
+                url: (product.image && (product.image.startsWith('http') || product.image.startsWith('/')))
                     ? product.image
                     : FALLBACK_IMAGES[2],
-            title: product.name,
-        },
-        {
-            url: (galleryImages[3] && galleryImages[3].length > 5)
-                ? galleryImages[3]
-                : FALLBACK_IMAGES[3],
-            title: "Rich Nutrition",
-        },
-        {
-            url: (galleryImages[4] && galleryImages[4].length > 5)
-                ? galleryImages[4]
-                : FALLBACK_IMAGES[4],
-            title: "Zero Preservatives",
-        }
-    ];
+                title: product.name,
+            },
+            {
+                url: FALLBACK_IMAGES[3],
+                title: "Rich Nutrition",
+            },
+            {
+                url: FALLBACK_IMAGES[4],
+                title: "Zero Preservatives",
+            }
+        ];
 
     const handleImageError = (index: number) => {
         setImageErrors(prev => ({ ...prev, [index]: true }));
@@ -123,7 +118,7 @@ export const ProductGalleryStrip: React.FC<ProductGalleryStripProps> = ({ produc
         <section className="w-full py-12 md:py-20 bg-[#f2f2ec] font-satoshi overflow-hidden">
             <div className="w-full max-w-[98vw] lg:max-w-[1800px] mx-auto px-2 md:px-4">
                 {/* Desktop Grid Layout (hidden on mobile/phones, visible on md and up) */}
-                <div className="hidden md:grid md:grid-cols-5 gap-4 md:gap-5 lg:gap-6 w-full">
+                <div className={`hidden md:grid gap-4 md:gap-5 lg:gap-6 w-full justify-center ${galleryItems.length === 4 ? 'md:grid-cols-4 max-w-[1500px] mx-auto' : 'md:grid-cols-5'}`}>
                     {galleryItems.map((item, idx) => {
                         const isFailed = imageErrors[idx];
                         const srcUrl = isFailed ? FALLBACK_IMAGES[idx % FALLBACK_IMAGES.length] : getMediaUrl(item.url);
