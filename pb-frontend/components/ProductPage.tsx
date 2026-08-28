@@ -501,42 +501,35 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
 
 
-            {/* MOBILE LAYOUT - MINIMAL OVERLAPPING SPOTLIGHT */}
+            {/* MOBILE LAYOUT - MINIMAL OVERLAPPING SPOTLIGHT MATCHING REFERENCE */}
             <div className="flex flex-col md:hidden items-center relative z-10 px-3 py-4">
               
               {/* TOP 2 CARDS (Overlapping Top of Plate) */}
               <div className="w-full grid grid-cols-2 gap-2.5 sm:gap-4 relative z-20 -mb-6 sm:-mb-10">
-                {/* Top-Left Card */}
-                <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-white/90 flex flex-col justify-center">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="text-lg sm:text-xl">💪</span>
-                    <span className="font-satoshi font-black text-lg sm:text-2xl leading-none" style={{ color: bgColor }}>
-                      {proteinCount || 30}g
-                    </span>
-                    <span className="text-[9px] font-black uppercase text-gray-400">/ 100g</span>
+                {/* Top-Left Card: High Protein Power */}
+                <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-[0_10px_25px_rgba(0,0,0,0.06)] border border-slate-100/80 flex flex-col items-center text-center justify-center">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-white text-lg sm:text-xl shadow-md mb-2 sm:mb-2.5 shrink-0" style={{ backgroundColor: bgColor }}>
+                    ⚡
                   </div>
-                  <h4 className="text-[11px] sm:text-xs font-black uppercase text-slate-900 tracking-tight leading-tight">
-                    High Protein
+                  <h4 className="font-satoshi font-black text-xs sm:text-sm text-slate-900 tracking-tight uppercase leading-tight">
+                    High Protein Power
                   </h4>
-                  <p className="text-[10px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">
-                    Muscle recovery & energy.
-                  </p>
+                  <span className="font-satoshi font-bold text-[8px] sm:text-[10px] uppercase tracking-wider text-slate-400 mt-1 block">
+                    Clean Muscle Energy
+                  </span>
                 </div>
 
-                {/* Top-Right Card */}
-                <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-white/90 flex flex-col justify-center">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="text-lg sm:text-xl">🌿</span>
-                    <span className="font-satoshi font-black text-xs sm:text-base leading-tight uppercase" style={{ color: bgColor }}>
-                      100% Clean
-                    </span>
+                {/* Top-Right Card: 100% Clean Source */}
+                <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-[0_10px_25px_rgba(0,0,0,0.06)] border border-slate-100/80 flex flex-col items-center text-center justify-center">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-white text-lg sm:text-xl shadow-md mb-2 sm:mb-2.5 shrink-0" style={{ backgroundColor: bgColor }}>
+                    🌿
                   </div>
-                  <h4 className="text-[11px] sm:text-xs font-black uppercase text-slate-900 tracking-tight leading-tight">
-                    Zero Palm Oil
+                  <h4 className="font-satoshi font-black text-xs sm:text-sm text-slate-900 tracking-tight uppercase leading-tight">
+                    100% Clean Source
                   </h4>
-                  <p className="text-[10px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">
-                    Pure honest ingredients.
-                  </p>
+                  <span className="font-satoshi font-bold text-[8px] sm:text-[10px] uppercase tracking-wider text-slate-400 mt-1 block">
+                    Zero Added Sugar
+                  </span>
                 </div>
               </div>
 
@@ -562,36 +555,30 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
               {/* BOTTOM 2 CARDS (Overlapping Bottom of Plate) */}
               <div className="w-full grid grid-cols-2 gap-2.5 sm:gap-4 relative z-20 -mt-6 sm:-mt-10">
-                {/* Bottom-Left Card */}
-                <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-white/90 flex flex-col justify-center">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="text-lg sm:text-xl">❤️</span>
-                    <span className="font-satoshi font-black text-xs sm:text-base leading-tight uppercase" style={{ color: bgColor }}>
-                      Healthy Fats
-                    </span>
+                {/* Bottom-Left Card: Heart Healthy Fats */}
+                <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-[0_10px_25px_rgba(0,0,0,0.06)] border border-slate-100/80 flex flex-col items-center text-center justify-center">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-white text-lg sm:text-xl shadow-md mb-2 sm:mb-2.5 shrink-0" style={{ backgroundColor: bgColor }}>
+                    ❤️
                   </div>
-                  <h4 className="text-[11px] sm:text-xs font-black uppercase text-slate-900 tracking-tight leading-tight">
-                    Heart Wellness
+                  <h4 className="font-satoshi font-black text-xs sm:text-sm text-slate-900 tracking-tight uppercase leading-tight">
+                    Heart Healthy Fats
                   </h4>
-                  <p className="text-[10px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">
-                    Rich in natural omegas.
-                  </p>
+                  <span className="font-satoshi font-bold text-[8px] sm:text-[10px] uppercase tracking-wider text-slate-400 mt-1 block">
+                    Essential Omegas
+                  </span>
                 </div>
 
-                {/* Bottom-Right Card */}
-                <div className="bg-white/95 backdrop-blur-md rounded-2xl p-3.5 sm:p-4 shadow-[0_8px_20px_rgba(0,0,0,0.06)] border border-white/90 flex flex-col justify-center">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="text-lg sm:text-xl">🥜</span>
-                    <span className="font-satoshi font-black text-xs sm:text-base leading-tight uppercase" style={{ color: bgColor }}>
-                      Best Peanuts
-                    </span>
+                {/* Bottom-Right Card: Farm Fresh Peanuts */}
+                <div className="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-[0_10px_25px_rgba(0,0,0,0.06)] border border-slate-100/80 flex flex-col items-center text-center justify-center">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-white text-lg sm:text-xl shadow-md mb-2 sm:mb-2.5 shrink-0" style={{ backgroundColor: bgColor }}>
+                    🥜
                   </div>
-                  <h4 className="text-[11px] sm:text-xs font-black uppercase text-slate-900 tracking-tight leading-tight">
-                    Slow-Roasted
+                  <h4 className="font-satoshi font-black text-xs sm:text-sm text-slate-900 tracking-tight uppercase leading-tight">
+                    Farm Fresh Peanuts
                   </h4>
-                  <p className="text-[10px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">
-                    Rich aroma & crunch.
-                  </p>
+                  <span className="font-satoshi font-bold text-[8px] sm:text-[10px] uppercase tracking-wider text-slate-400 mt-1 block">
+                    Slow Roasted Crunch
+                  </span>
                 </div>
               </div>
 
