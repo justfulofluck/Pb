@@ -75,7 +75,7 @@ const UsageIdeas: React.FC<UsageIdeasProps> = ({ ideas, bgColor = '#0b3d2e' }) =
 
     const scrollContainerClasses = isGridOnDesktop
         ? "usage-ideas-scroll flex gap-5 md:gap-8 overflow-x-auto pb-6 snap-x snap-mandatory scroll-smooth lg:grid lg:grid-cols-3 lg:gap-8 lg:max-w-5xl lg:mx-auto lg:overflow-x-visible lg:justify-center"
-        : "usage-ideas-scroll flex gap-5 md:gap-8 overflow-x-auto pb-6 snap-x snap-mandatory scroll-smooth";
+        : "usage-ideas-scroll flex gap-5 md:gap-8 overflow-x-auto pb-6 snap-x snap-mandatory scroll-smooth justify-start md:justify-center px-4 max-w-[1600px] mx-auto";
 
     const cardClasses = isGridOnDesktop
         ? "flex-none w-[270px] md:w-[300px] lg:w-auto group/card snap-center lg:snap-align-none usage-idea-card"
@@ -84,11 +84,11 @@ const UsageIdeas: React.FC<UsageIdeasProps> = ({ ideas, bgColor = '#0b3d2e' }) =
     return (
         <section className="py-[60px] md:py-24 px-0 overflow-hidden bg-[#f2f2ec]">
             {/* Constrained Header Container */}
-            <div className="max-w-7xl mx-auto px-4 md:px-8 mb-12 md:mb-16">
+            <div className="w-full max-w-7xl mx-auto px-4 md:px-8 mb-12 md:mb-16 flex justify-center text-center">
                 {/* Section Header with dynamic brand color & chalkboard texture */}
-                <div className="flex justify-center">
+                <div className="flex justify-center text-center mx-auto">
                     <h2
-                        className="font-anton uppercase text-textured-any text-center leading-[1.1] tracking-wider py-1 px-4"
+                        className="font-anton uppercase text-textured-any text-center leading-[1.1] tracking-wider py-1 px-4 mx-auto"
                         style={{
                             backgroundColor: bgColor,
                             fontSize: 'clamp(2.5rem, 8vw, 5rem)',
