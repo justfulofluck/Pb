@@ -22,44 +22,44 @@ export const ProductGalleryStrip: React.FC<ProductGalleryStripProps> = ({ produc
     const [activeIndex, setActiveIndex] = useState(0);
     const sliderRef = useRef<HTMLDivElement>(null);
 
-    const usageImages = (product.usageIdeas || [])
-        .map(u => ({ url: u.image, title: u.title }))
-        .filter(u => u.url && u.url.trim() !== '' && !u.url.includes('undefined') && (u.url.startsWith('http') || u.url.startsWith('/')));
+    const galleryImages = (product.gallery && Array.isArray(product.gallery))
+        ? product.gallery.filter(g => typeof g === 'string' && g.trim() !== '' && !g.includes('undefined'))
+        : [];
 
     const galleryItems = [
         {
-            url: (usageImages[0]?.url && usageImages[0].url.length > 5)
-                ? usageImages[0].url
+            url: (galleryImages[0] && galleryImages[0].length > 5)
+                ? galleryImages[0]
                 : (product.mainIngredientImage && product.mainIngredientImage.length > 5 && (product.mainIngredientImage.startsWith('http') || product.mainIngredientImage.startsWith('/')))
                     ? product.mainIngredientImage
                     : FALLBACK_IMAGES[0],
-            title: usageImages[0]?.title || product.mainIngredient || "100% Roasted Peanuts",
+            title: product.mainIngredient || "100% Roasted Peanuts",
         },
         {
-            url: (usageImages[1]?.url && usageImages[1].url.length > 5)
-                ? usageImages[1].url
+            url: (galleryImages[1] && galleryImages[1].length > 5)
+                ? galleryImages[1]
                 : FALLBACK_IMAGES[1],
-            title: usageImages[1]?.title || "Velvety Spread Toast",
+            title: "Product Highlights",
         },
         {
-            url: (usageImages[2]?.url && usageImages[2].url.length > 5)
-                ? usageImages[2].url
+            url: (galleryImages[2] && galleryImages[2].length > 5)
+                ? galleryImages[2]
                 : (product.image && (product.image.startsWith('http') || product.image.startsWith('/')))
                     ? product.image
                     : FALLBACK_IMAGES[2],
-            title: usageImages[2]?.title || product.name,
+            title: product.name,
         },
         {
-            url: (usageImages[3]?.url && usageImages[3].url.length > 5)
-                ? usageImages[3].url
+            url: (galleryImages[3] && galleryImages[3].length > 5)
+                ? galleryImages[3]
                 : FALLBACK_IMAGES[3],
-            title: usageImages[3]?.title || "High Protein Fuel",
+            title: "Rich Nutrition",
         },
         {
-            url: (usageImages[4]?.url && usageImages[4].url.length > 5)
-                ? usageImages[4].url
+            url: (galleryImages[4] && galleryImages[4].length > 5)
+                ? galleryImages[4]
                 : FALLBACK_IMAGES[4],
-            title: usageImages[4]?.title || "Zero Preservatives",
+            title: "Zero Preservatives",
         }
     ];
 

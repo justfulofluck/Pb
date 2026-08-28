@@ -28,6 +28,7 @@ export interface Product {
   mainIngredient?: string;
   mainIngredientImage?: string;
   usageIdeas?: UsageIdea[];
+  gallery?: string[];
 }
 
 export interface CartItem extends Product {

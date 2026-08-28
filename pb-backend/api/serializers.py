@@ -281,6 +281,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             "model_3d",
             "orientation",
             "usage_ideas",
+            "gallery",
         ]
 
 
