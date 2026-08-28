@@ -501,83 +501,103 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
 
 
-            {/* MOBILE LAYOUT */}
-            <div className="flex flex-col md:hidden items-center gap-4 relative z-10 px-1 py-4">
-              <div className="w-full grid grid-cols-2 gap-2.5 sm:gap-4">
-                <div className="glass-card-framer rounded-2xl p-3.5 sm:p-5 relative overflow-hidden flex flex-col justify-between">
-                  <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                    <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-xs sm:text-base shadow-sm shrink-0" style={{ backgroundColor: bgColor }}>
-                      💪
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-base sm:text-2xl font-black leading-none block truncate" style={{ color: bgColor }}>{proteinCount || 30}g</span>
-                      <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider text-gray-400 block truncate">PROTEIN / 100g</span>
-                    </div>
+            {/* MOBILE LAYOUT - OVERLAPPING SPOTLIGHT MATCHING PC */}
+            <div className="flex flex-col md:hidden items-center relative z-10 px-2 py-4">
+              
+              {/* TOP 2 CARDS (Overlapping Top of Plate) */}
+              <div className="w-full grid grid-cols-2 gap-2.5 sm:gap-4 relative z-20 -mb-6 sm:-mb-10">
+                {/* Top-Left Card */}
+                <div className="glass-card-framer rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 relative overflow-hidden shadow-lg border border-white/90 flex flex-col justify-between">
+                  <div className="absolute top-0 left-0 w-1.5 h-full" style={{ backgroundColor: bgColor }} />
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded" style={{ backgroundColor: `${bgColor}15`, color: bgColor }}>
+                      HIGH PROTEIN
+                    </span>
+                    <span className="text-base sm:text-xl">💪</span>
                   </div>
-                  <p className="text-[10px] sm:text-xs font-semibold text-gray-600 leading-snug">Supports muscle recovery and steady all-day energy.</p>
+                  <h3 className="font-satoshi font-black text-base sm:text-2xl leading-none mb-1" style={{ color: bgColor }}>
+                    <span className="tabular-nums">{proteinCount || 30}g</span> <span className="text-[9px] sm:text-xs font-extrabold text-gray-700 uppercase">/ 100g</span>
+                  </h3>
+                  <p className="font-satoshi font-medium text-[10px] sm:text-xs text-gray-600 leading-snug">
+                    Supports muscle recovery & strength.
+                  </p>
                 </div>
 
-                <div className="glass-card-framer rounded-2xl p-3.5 sm:p-5 relative overflow-hidden flex flex-col justify-between">
-                  <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                    <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-xs sm:text-base shadow-sm shrink-0" style={{ backgroundColor: bgColor }}>
-                      🌿
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs sm:text-base font-black leading-tight block uppercase truncate" style={{ color: bgColor }}>100% Clean</span>
-                      <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider text-gray-400 block truncate">NO SUGAR / SALT</span>
-                    </div>
+                {/* Top-Right Card */}
+                <div className="glass-card-framer rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 relative overflow-hidden shadow-lg border border-white/90 text-right flex flex-col justify-between">
+                  <div className="absolute top-0 right-0 w-1.5 h-full" style={{ backgroundColor: bgColor }} />
+                  <div className="flex items-center justify-between mb-1.5 flex-row-reverse">
+                    <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded" style={{ backgroundColor: `${bgColor}15`, color: bgColor }}>
+                      100% CLEAN
+                    </span>
+                    <span className="text-base sm:text-xl">🌿</span>
                   </div>
-                  <p className="text-[10px] sm:text-xs font-semibold text-gray-600 leading-snug">Purely roasted peanuts for clean, honest eating.</p>
+                  <h3 className="font-satoshi font-black text-xs sm:text-base leading-tight mb-1 uppercase" style={{ color: bgColor }}>
+                    No Added Sugar,<br />Salt, or Palm Oil
+                  </h3>
+                  <p className="font-satoshi font-medium text-[10px] sm:text-xs text-gray-600 leading-snug">
+                    Purely roasted for clean nutrition.
+                  </p>
                 </div>
               </div>
 
-              {/* Center Product Display */}
-              <div className="w-full flex justify-center relative my-2 sm:my-4">
-                <div className="absolute inset-0 rounded-full blur-2xl opacity-30" style={{ background: `radial-gradient(circle, ${bgColor} 0%, transparent 70%)` }} />
+              {/* CENTER PLATE / PRODUCT DISPLAY */}
+              <div className="w-full flex justify-center relative my-0 z-10">
+                <div className="absolute inset-0 rounded-full blur-3xl opacity-30" style={{ background: `radial-gradient(circle, ${bgColor} 0%, transparent 70%)` }} />
                 {PRODUCT_HERO_MAP[product.name] ? (
                   <img
                     src={getMediaUrl(PRODUCT_HERO_MAP[product.name]!.mobile)}
                     alt={product.name}
-                    className="w-full h-auto object-contain drop-shadow-2xl relative z-10 scale-[1.15] sm:scale-[1.3]"
-                    style={{ maxWidth: '95%', maxHeight: '380px' }}
+                    className="w-full h-auto object-contain drop-shadow-2xl relative z-10 scale-[1.12] sm:scale-[1.25]"
+                    style={{ maxWidth: '98%', maxHeight: '420px' }}
                   />
                 ) : (
                   <img
                     src={getMediaUrl(product.image)}
                     alt={product.name}
-                    className="w-full h-auto object-contain drop-shadow-2xl relative z-10 scale-[1.15] sm:scale-[1.3]"
-                    style={{ maxWidth: '300px' }}
+                    className="w-full h-auto object-contain drop-shadow-2xl relative z-10 scale-[1.12] sm:scale-[1.25]"
+                    style={{ maxWidth: '340px' }}
                   />
                 )}
               </div>
 
-              <div className="w-full grid grid-cols-2 gap-2.5 sm:gap-4">
-                <div className="glass-card-framer rounded-2xl p-3.5 sm:p-5 relative overflow-hidden flex flex-col justify-between">
-                  <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                    <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-xs sm:text-base shadow-sm shrink-0" style={{ backgroundColor: bgColor }}>
-                      ❤️
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs sm:text-base font-black leading-tight block uppercase truncate" style={{ color: bgColor }}>Healthy Fats</span>
-                      <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider text-gray-400 block truncate">ESSENTIAL OMEGAS</span>
-                    </div>
+              {/* BOTTOM 2 CARDS (Overlapping Bottom of Plate) */}
+              <div className="w-full grid grid-cols-2 gap-2.5 sm:gap-4 relative z-20 -mt-6 sm:-mt-10">
+                {/* Bottom-Left Card */}
+                <div className="glass-card-framer rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 relative overflow-hidden shadow-lg border border-white/90 flex flex-col justify-between">
+                  <div className="absolute top-0 left-0 w-1.5 h-full" style={{ backgroundColor: bgColor }} />
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded" style={{ backgroundColor: `${bgColor}15`, color: bgColor }}>
+                      HEART HEALTH
+                    </span>
+                    <span className="text-base sm:text-xl">❤️</span>
                   </div>
-                  <p className="text-[10px] sm:text-xs font-semibold text-gray-600 leading-snug">Promotes heart health and natural vitality.</p>
+                  <h3 className="font-satoshi font-black text-xs sm:text-base leading-tight mb-1 uppercase" style={{ color: bgColor }}>
+                    Rich in<br />Healthy Fats
+                  </h3>
+                  <p className="font-satoshi font-medium text-[10px] sm:text-xs text-gray-600 leading-snug">
+                    Essential omegas for heart wellness.
+                  </p>
                 </div>
 
-                <div className="glass-card-framer rounded-2xl p-3.5 sm:p-5 relative overflow-hidden flex flex-col justify-between">
-                  <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                    <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-xs sm:text-base shadow-sm shrink-0" style={{ backgroundColor: bgColor }}>
-                      🥜
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs sm:text-base font-black leading-tight block uppercase truncate" style={{ color: bgColor }}>Best Peanuts</span>
-                      <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider text-gray-400 block truncate">FARM FRESH</span>
-                    </div>
+                {/* Bottom-Right Card */}
+                <div className="glass-card-framer rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 relative overflow-hidden shadow-lg border border-white/90 text-right flex flex-col justify-between">
+                  <div className="absolute top-0 right-0 w-1.5 h-full" style={{ backgroundColor: bgColor }} />
+                  <div className="flex items-center justify-between mb-1.5 flex-row-reverse">
+                    <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded" style={{ backgroundColor: `${bgColor}15`, color: bgColor }}>
+                      FARM FRESH
+                    </span>
+                    <span className="text-base sm:text-xl">🥜</span>
                   </div>
-                  <p className="text-[10px] sm:text-xs font-semibold text-gray-600 leading-snug">Hand-selected peanuts for rich flavor and crunch.</p>
+                  <h3 className="font-satoshi font-black text-xs sm:text-base leading-tight mb-1 uppercase" style={{ color: bgColor }}>
+                    The World's<br />Best Peanuts
+                  </h3>
+                  <p className="font-satoshi font-medium text-[10px] sm:text-xs text-gray-600 leading-snug">
+                    Slow-roasted for rich, nutty crunch.
+                  </p>
                 </div>
               </div>
+
             </div>
 
             {/* DESKTOP SPOTLIGHT LAYOUT (Center Product + 4 Surrounding Glass Cards & SVG Pointers) */}
