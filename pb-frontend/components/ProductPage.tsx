@@ -502,80 +502,80 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
 
             {/* MOBILE LAYOUT */}
-            <div className="flex flex-col md:hidden items-center gap-5 relative z-10 px-2 py-4">
-              <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="glass-card-framer rounded-2xl p-5 relative overflow-hidden">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-md" style={{ backgroundColor: bgColor }}>
+            <div className="flex flex-col md:hidden items-center gap-4 relative z-10 px-1 py-4">
+              <div className="w-full grid grid-cols-2 gap-2.5 sm:gap-4">
+                <div className="glass-card-framer rounded-2xl p-3.5 sm:p-5 relative overflow-hidden flex flex-col justify-between">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+                    <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-xs sm:text-base shadow-sm shrink-0" style={{ backgroundColor: bgColor }}>
                       💪
                     </div>
-                    <div>
-                      <span className="text-2xl font-black leading-none block" style={{ color: bgColor }}>{proteinCount}g</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">PROTEIN / 100g</span>
+                    <div className="min-w-0">
+                      <span className="text-base sm:text-2xl font-black leading-none block truncate" style={{ color: bgColor }}>{proteinCount || 30}g</span>
+                      <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider text-gray-400 block truncate">PROTEIN / 100g</span>
                     </div>
                   </div>
-                  <p className="text-xs font-semibold text-gray-600 leading-relaxed">Supports muscle recovery and keeps you energized all day.</p>
+                  <p className="text-[10px] sm:text-xs font-semibold text-gray-600 leading-snug">Supports muscle recovery and steady all-day energy.</p>
                 </div>
 
-                <div className="glass-card-framer rounded-2xl p-5 relative overflow-hidden">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-md" style={{ backgroundColor: bgColor }}>
+                <div className="glass-card-framer rounded-2xl p-3.5 sm:p-5 relative overflow-hidden flex flex-col justify-between">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+                    <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-xs sm:text-base shadow-sm shrink-0" style={{ backgroundColor: bgColor }}>
                       🌿
                     </div>
-                    <div>
-                      <span className="text-base font-black leading-tight block uppercase" style={{ color: bgColor }}>100% Clean</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">NO SUGAR / SALT</span>
+                    <div className="min-w-0">
+                      <span className="text-xs sm:text-base font-black leading-tight block uppercase truncate" style={{ color: bgColor }}>100% Clean</span>
+                      <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider text-gray-400 block truncate">NO SUGAR / SALT</span>
                     </div>
                   </div>
-                  <p className="text-xs font-semibold text-gray-600 leading-relaxed">Purely roasted peanuts for clean and nutritious eating.</p>
+                  <p className="text-[10px] sm:text-xs font-semibold text-gray-600 leading-snug">Purely roasted peanuts for clean, honest eating.</p>
                 </div>
               </div>
 
               {/* Center Product Display */}
-              <div className="w-full flex justify-center relative my-4">
+              <div className="w-full flex justify-center relative my-2 sm:my-4">
                 <div className="absolute inset-0 rounded-full blur-2xl opacity-30" style={{ background: `radial-gradient(circle, ${bgColor} 0%, transparent 70%)` }} />
                 {PRODUCT_HERO_MAP[product.name] ? (
                   <img
                     src={getMediaUrl(PRODUCT_HERO_MAP[product.name]!.mobile)}
                     alt={product.name}
-                    className="w-full h-auto object-contain drop-shadow-2xl relative z-10 scale-[1.3]"
-                    style={{ maxWidth: '95%', maxHeight: '400px' }}
+                    className="w-full h-auto object-contain drop-shadow-2xl relative z-10 scale-[1.15] sm:scale-[1.3]"
+                    style={{ maxWidth: '95%', maxHeight: '380px' }}
                   />
                 ) : (
                   <img
                     src={getMediaUrl(product.image)}
                     alt={product.name}
-                    className="w-full h-auto object-contain drop-shadow-2xl relative z-10 scale-[1.3]"
-                    style={{ maxWidth: '340px' }}
+                    className="w-full h-auto object-contain drop-shadow-2xl relative z-10 scale-[1.15] sm:scale-[1.3]"
+                    style={{ maxWidth: '300px' }}
                   />
                 )}
               </div>
 
-              <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="glass-card-framer rounded-2xl p-5 relative overflow-hidden">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-md" style={{ backgroundColor: bgColor }}>
+              <div className="w-full grid grid-cols-2 gap-2.5 sm:gap-4">
+                <div className="glass-card-framer rounded-2xl p-3.5 sm:p-5 relative overflow-hidden flex flex-col justify-between">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+                    <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-xs sm:text-base shadow-sm shrink-0" style={{ backgroundColor: bgColor }}>
                       ❤️
                     </div>
-                    <div>
-                      <span className="text-base font-black leading-tight block uppercase" style={{ color: bgColor }}>Healthy Fats</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">ESSENTIAL OMEGAS</span>
+                    <div className="min-w-0">
+                      <span className="text-xs sm:text-base font-black leading-tight block uppercase truncate" style={{ color: bgColor }}>Healthy Fats</span>
+                      <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider text-gray-400 block truncate">ESSENTIAL OMEGAS</span>
                     </div>
                   </div>
-                  <p className="text-xs font-semibold text-gray-600 leading-relaxed">Promotes heart health and overall natural vitality.</p>
+                  <p className="text-[10px] sm:text-xs font-semibold text-gray-600 leading-snug">Promotes heart health and natural vitality.</p>
                 </div>
 
-                <div className="glass-card-framer rounded-2xl p-5 relative overflow-hidden">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-md" style={{ backgroundColor: bgColor }}>
+                <div className="glass-card-framer rounded-2xl p-3.5 sm:p-5 relative overflow-hidden flex flex-col justify-between">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+                    <div className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-white font-bold text-xs sm:text-base shadow-sm shrink-0" style={{ backgroundColor: bgColor }}>
                       🥜
                     </div>
-                    <div>
-                      <span className="text-base font-black leading-tight block uppercase" style={{ color: bgColor }}>Best Peanuts</span>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">FARM FRESH</span>
+                    <div className="min-w-0">
+                      <span className="text-xs sm:text-base font-black leading-tight block uppercase truncate" style={{ color: bgColor }}>Best Peanuts</span>
+                      <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-wider text-gray-400 block truncate">FARM FRESH</span>
                     </div>
                   </div>
-                  <p className="text-xs font-semibold text-gray-600 leading-relaxed">Hand-selected peanuts for rich flavor and perfect crunch.</p>
+                  <p className="text-[10px] sm:text-xs font-semibold text-gray-600 leading-snug">Hand-selected peanuts for rich flavor and crunch.</p>
                 </div>
               </div>
             </div>
