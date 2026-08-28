@@ -77,25 +77,6 @@ const JourneyPage: React.FC<JourneyPageProps> = ({ onShopClick, onHomeClick }) =
           </div>
         </div>
       </section>
-
-      {/* Values Section */}
-      <section className="py-16 bg-white/60 border-t border-b border-slate-200/60">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <h3 className="text-2xl md:text-3xl font-normal uppercase text-slate-900 !font-anton tracking-wide">Our Core Pillars</h3>
-            <p className="text-sm text-slate-500 mt-2 font-medium">Uncompromising standards in every batch we craft.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {VALUES.map((val, idx) => (
-              <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-start">
-                <span className="material-symbols-outlined text-primary text-3xl mb-3">{val.icon}</span>
-                <h4 className="text-lg font-bold text-slate-800 mb-2">{val.title}</h4>
-                <p className="text-sm text-slate-600 leading-relaxed">{val.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
     </div>
   );
 };
