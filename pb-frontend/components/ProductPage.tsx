@@ -473,26 +473,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
       {/* Product Gallery Strip */}
       <ProductGalleryStrip product={product} />
 
-      {/* Tailored SEO Product Description Section with Wave Background */}
-      {product.description && (
-        <section className="relative overflow-hidden pt-14 pb-16 md:pt-20 md:pb-24 px-4" style={{ backgroundColor: bgColor }}>
-          {/* Top Wave */}
-          <div className="absolute top-[-1px] left-0 w-full h-[50px] md:h-[75px] z-[5] pointer-events-none rotate-180">
-            <MultiLayerWave fill="#f2f2ec" className="h-full" />
-          </div>
 
-          <div className="max-w-[1550px] w-full mx-auto relative z-10 my-4 sm:my-8 px-6 sm:px-10 lg:px-16 text-center">
-            <p className="text-white text-base sm:text-xl md:text-2xl lg:text-[26px] xl:text-[28px] font-medium font-satoshi leading-relaxed lg:leading-[1.6] drop-shadow-md text-center">
-              {product.description}
-            </p>
-          </div>
-
-          {/* Bottom Wave */}
-          <div className="absolute bottom-[-1px] left-0 w-full h-[50px] md:h-[75px] z-[5] pointer-events-none">
-            <MultiLayerWave fill="#f2f2ec" className="h-full" />
-          </div>
-        </section>
-      )}
 
       <section className="section overflow-hidden flex flex-col items-center w-full relative pt-12 md:pt-20" style={{ backgroundColor: '#f2f2ec' }}>
         {/* Subtle radial glow behind center */}
