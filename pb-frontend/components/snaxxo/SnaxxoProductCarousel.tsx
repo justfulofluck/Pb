@@ -132,23 +132,26 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
         : products.slice(0, 6);
 
     return (
-        <section className="bg-whiteboard texture-overlay texture-speckles relative overflow-hidden pb-4 w-full lg:hidden">
-            <div className="pt-6 pb-6 relative">
+        <section className="bg-whiteboard texture-overlay texture-speckles relative overflow-hidden pb-6 w-full lg:hidden">
+            <div className="pt-4 pb-4 relative">
                 <div className="flex flex-col items-center justify-center relative z-10 px-4">
-                    <h2 className="text-textured-green font-normal uppercase tracking-wide [word-spacing:0.05em] !font-anton text-center">
+                    <div className="bg-[#0b3d2e] text-white font-black text-[10px] sm:text-xs uppercase tracking-widest px-3 py-1 rounded-sm -rotate-2 mb-2 inline-block shadow-sm">
+                        Flavors you Love
+                    </div>
+                    <h2 className="text-textured-green font-normal uppercase tracking-wide [word-spacing:0.05em] !font-anton text-center text-[40px] sm:text-[52px] leading-[1.05]">
                         Customer's<br />Favorite
                     </h2>
-                    <div className="w-16 md:w-24 h-1.5 md:h-2 bg-[#0b3d2e] mt-2 rounded-full mb-2"></div>
-                    <p className="font-handdrawn text-2xl md:text-3xl text-[#0b3d2e]/70 mt-3 text-center mb-2">
+                    <div className="w-20 sm:w-28 h-2 bg-[#0b3d2e] mt-3 rounded-full mb-2"></div>
+                    <p className="font-handdrawn text-2xl sm:text-3xl text-[#0b3d2e]/80 mt-1 text-center mb-3">
                         Join 100k+ happy healthy eaters! 🥳
                     </p>
-                    <div className="mt-6 mb-12">
+                    <div className="mt-2 mb-6">
                         <button
                             onClick={() => {
                                 if (onShopClick) onShopClick();
                                 else window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
-                            className="btn-greenboard text-white px-6 py-2.5 rounded-full font-bold text-xs uppercase tracking-widest transition-all shadow-md active:scale-95"
+                            className="btn-greenboard text-white px-7 py-3 rounded-full font-bold text-xs uppercase tracking-widest transition-all shadow-md active:scale-95 cursor-pointer"
                         >
                             SHOP ALL
                         </button>
@@ -184,9 +187,9 @@ const SnaxxoProductCarousel: React.FC<SnaxxoProductCarouselProps> = ({
                                 ) : <div />}
                                 <button
                                     onClick={(e) => toggleWishlist(e, String(product.id))}
-                                    className={`bg-white/80 backdrop-blur-sm p-1.5 rounded-full transition-colors shadow-sm ${isWishlisted ? 'text-red-500' : 'text-[#008a45] hover:text-red-500'}`}
+                                    className={`w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center transition-all shadow-sm shrink-0 cursor-pointer active:scale-90 ${isWishlisted ? 'text-red-500 bg-red-50' : 'text-[#008a45] hover:text-red-500'}`}
                                 >
-                                    <span className={`material-symbols-outlined text-[20px] ${isWishlisted ? 'fill-1' : ''}`}>favorite</span>
+                                    <span className={`material-symbols-outlined text-[18px] leading-none select-none ${isWishlisted ? 'fill-1' : ''}`}>favorite</span>
                                 </button>
                             </div>
 

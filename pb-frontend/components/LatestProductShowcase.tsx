@@ -118,7 +118,7 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
   ];
 
   return (
-    <section className="py-[60px] relative overflow-hidden bg-whiteboard texture-overlay texture-speckles">
+    <section className="py-8 md:py-12 lg:py-[60px] relative overflow-hidden bg-whiteboard texture-overlay texture-speckles">
       {/* Background Glow Removed to maintain board texture */}
 
       <style>{`
@@ -131,13 +131,13 @@ const LatestProductShowcase: React.FC<LatestProductShowcaseProps> = ({ product }
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         {/* Header */}
-        <div className="text-center mb-16 md:mb-30 relative">
-          <span className="font-handdrawn text-2xl md:text-3xl lg:text-2xl text-secondary/80 transform -rotate-3 inline-block absolute -top-8 md:-top-12 lg:-top-10 left-1/2 -translate-x-1/2 md:-translate-x-[130px] lg:-translate-x-[110px] z-10 whitespace-nowrap">
+        <div className="text-center mb-6 md:mb-16 lg:mb-24 relative pt-4">
+          <span className="font-handdrawn text-2xl sm:text-3xl text-primary transform -rotate-3 inline-block absolute -top-3 sm:-top-6 md:-top-10 left-1/2 -translate-x-1/2 md:-translate-x-[130px] lg:-translate-x-[110px] z-10 whitespace-nowrap drop-shadow-sm font-bold">
             Our New Flavor
           </span>
-          <div className="relative inline-block px-10">
+          <div className="relative inline-block px-2 sm:px-6">
             <h2
-              className="font-normal text-textured-green tracking-normal [word-spacing:0.05em] !font-anton uppercase text-[40px] lg:text-[100px] lg:leading-[110px] lg:-mb-[12px] lg:pb-[12px] lg:font-bold"
+              className="font-normal text-textured-green tracking-tight sm:tracking-normal [word-spacing:0.05em] !font-anton uppercase text-[46px] sm:text-[60px] md:text-[80px] lg:text-[100px] leading-[1.05] lg:leading-[110px]"
             >
               Latest product
             </h2>

@@ -384,7 +384,7 @@ const SnaxxoProductWheel: React.FC<SnaxxoProductWheelProps> = ({ products, onAdd
     }
 
     return (
-        <section className="product-slider-section bg-whiteboard texture-overlay texture-speckles py-[60px] pb-[200px]">
+        <section className="product-slider-section bg-whiteboard texture-overlay texture-speckles py-8 pb-8 lg:py-[60px] lg:pb-[200px]">
             {/* Desktop Header */}
             <div className="hidden lg:flex flex-col items-center justify-center text-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4 relative z-10">
                 <div className="bg-[#0b3d2e] texture-overlay texture-speckles text-white font-black text-[10px] sm:text-xs md:text-sm uppercase tracking-widest px-3 py-1 md:px-4 md:py-1.5 rounded-sm -rotate-3 mb-1 inline-block shadow-sm z-10" style={{ transformOrigin: 'center' }}>
