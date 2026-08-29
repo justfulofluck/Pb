@@ -118,7 +118,7 @@ export const ProductGalleryStrip: React.FC<ProductGalleryStripProps> = ({ produc
         <section className="w-full py-12 md:py-20 bg-[#f2f2ec] font-satoshi overflow-hidden">
             <div className="w-full max-w-[98vw] lg:max-w-[1800px] mx-auto px-2 md:px-4">
                 {/* Desktop Grid Layout (hidden on mobile/phones, visible on md and up) */}
-                <div className={`hidden md:grid gap-4 md:gap-5 lg:gap-6 w-full justify-center ${galleryItems.length === 4 ? 'md:grid-cols-4 max-w-[1500px] mx-auto' : 'md:grid-cols-5'}`}>
+                <div className={`hidden md:grid gap-4 md:gap-5 lg:gap-6 w-full justify-center ${galleryItems.length === 4 ? 'md:grid-cols-4 max-w-[1500px] mx-auto' : 'md:grid-cols-5 max-w-[1800px] mx-auto'}`}>
                     {galleryItems.map((item, idx) => {
                         const isFailed = imageErrors[idx];
                         const srcUrl = isFailed ? FALLBACK_IMAGES[idx % FALLBACK_IMAGES.length] : getMediaUrl(item.url);
