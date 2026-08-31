@@ -14,6 +14,7 @@ import SnaxxoProductComparison from './snaxxo/ProductComparison';
 import IngredientShowcase from './snaxxo/IngredientShowcase';
 import UsageIdeas from './UsageIdeas';
 import NutritionDetailedSection from './snaxxo/NutritionDetailedSection';
+import ProductBenefitsGrid from './snaxxo/ProductBenefitsGrid';
 import YouMightAlsoLike from './snaxxo/YouMightAlsoLike';
 import { formatPrice } from '../utils/formatters';
 import { analytics } from '../utils/analytics';
@@ -810,6 +811,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
       <IngredientShowcase ingredients={product.ingredientsList} bgColor={bgColor} productId={product.id} />
       <SnaxxoProductComparison product={product} />
+
+      <ProductBenefitsGrid product={product} bgColor={bgColor} />
 
       <NutritionDetailedSection product={product} onAddToCart={onAddToCart} bgColor={bgColor} />
 
