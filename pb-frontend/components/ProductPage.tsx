@@ -21,6 +21,7 @@ import { analytics } from '../utils/analytics';
 import { Silk } from './snaxxo/Silk';
 import ProductGalleryStrip from './snaxxo/ProductGalleryStrip';
 import ProductAccordionSection from './snaxxo/ProductAccordionSection';
+import ProductDescriptionSection from './snaxxo/ProductDescriptionSection';
 
 interface ProductPageProps {
   product: Product;
@@ -811,6 +812,8 @@ const ProductPage: React.FC<ProductPageProps> = ({
 
       <IngredientShowcase ingredients={product.ingredientsList} bgColor={bgColor} productId={product.id} />
       <SnaxxoProductComparison product={product} />
+
+      <ProductDescriptionSection product={product} bgColor={bgColor} />
 
       <ProductBenefitsGrid product={product} bgColor={bgColor} />
 
