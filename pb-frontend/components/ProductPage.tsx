@@ -151,6 +151,8 @@ const StableModelViewer = React.memo(({ product }: { product: Product }) => {
           reveal="auto"
           rotation-speed="20deg"
           orientation={product.orientation || '0deg 0deg -15deg'}
+          power-preference="high-performance"
+          render-scale="1"
           style={{
             width: '100%',
             maxWidth: '880px',
@@ -414,14 +416,53 @@ const ProductPage: React.FC<ProductPageProps> = ({
                   <StableModelViewer product={product} />
                 </div>
               </div>
-              <div className="content-block pdp-03 w-full lg:w-[25%] order-3 lg:order-3 mt-[-2rem] sm:mt-[-2rem] lg:mt-[-40px] flex flex-col items-center lg:items-end justify-center lg:justify-end mx-auto lg:mx-0" data-snaxxo-animate>
-                <div className="pdp-hero-right-block-content mb-0 flex flex-col items-center lg:items-end w-full mx-auto lg:mx-0">
-                  <div className="flex items-baseline justify-center lg:justify-end gap-3 overflow-visible whitespace-nowrap">
-                    <span style={{ color: '#FFF', textShadow: '0 4px 20px rgba(0,0,0,0.2)' }} className="text-6xl sm:text-7xl lg:text-8xl font-black tracking-wide [word-spacing:-0.15em] !font-anton whitespace-nowrap">
-                      {formatPrice(product.price)}
-                    </span>
-                  </div>
-                  <p style={{ color: 'rgba(255, 255, 255, 0.6)' }} className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] mt-0 text-center lg:text-right force-satoshi">MRP (Inclusive of all taxes)</p>
+              <div className="content-block pdp-03 w-full lg:w-auto order-3 lg:order-3 mt-2 sm:mt-3 lg:mt-[-40px] flex flex-col items-center lg:items-end justify-center lg:justify-end mx-auto lg:mx-0 overflow-visible" data-snaxxo-animate>
+                <div className="pdp-hero-right-block-content mb-0 flex flex-col items-center lg:items-end w-full mx-auto lg:mx-0 overflow-visible">
+                  {(() => {
+                    const basePrice = product.original_price || product.originalPrice;
+                    const hasDiscount = basePrice && Number(basePrice) > Number(product.price);
+                    const discountPercent = hasDiscount ? Math.round(((Number(basePrice) - Number(product.price)) / Number(basePrice)) * 100) : 0;
+
+                    return (
+                      <>
+                        <div className="flex flex-col items-center lg:items-end w-full overflow-visible">
+                          {/* Single Row: Selling Price + Inline Base Price (STRICTLY NO WRAP) */}
+                          <div className="flex flex-row items-baseline justify-center lg:justify-end gap-2.5 sm:gap-4 lg:gap-4 overflow-visible whitespace-nowrap flex-nowrap">
+                            {/* Selling Price with Badge strictly anchored to 'Rs.' */}
+                            <div className="relative inline-block pt-3 sm:pt-4">
+                              {hasDiscount && discountPercent > 0 && (
+                                <div className="absolute top-0 sm:top-0.5 left-0 sm:-left-1.5 transform -rotate-6 hover:rotate-0 transition-transform duration-300 z-30">
+                                  <span className="bg-[#00b074] text-white text-[10px] sm:text-xs font-extrabold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full uppercase tracking-wider shadow-[0_4px_12px_rgba(0,0,0,0.25)] border-2 border-white inline-block">
+                                    {discountPercent}% OFF
+                                  </span>
+                                </div>
+                              )}
+                              <span style={{ color: '#FFF', textShadow: '0 4px 20px rgba(0,0,0,0.2)' }} className="text-5xl sm:text-7xl lg:text-7xl xl:text-8xl font-black tracking-wide [word-spacing:-0.15em] !font-anton whitespace-nowrap">
+                                {formatPrice(product.price)}
+                              </span>
+                            </div>
+
+                            {/* Original Price with Catchy Red Marker Strikethrough */}
+                            {hasDiscount && (
+                              <span 
+                                style={{ 
+                                  color: 'rgba(255, 255, 255, 0.55)', 
+                                  textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                                  textDecorationColor: '#ff4747',
+                                  textDecorationThickness: '3.5px'
+                                }} 
+                                className="text-2xl sm:text-3xl lg:text-3xl xl:text-4xl font-bold line-through !font-anton whitespace-nowrap tracking-wide select-none"
+                              >
+                                {formatPrice(basePrice)}
+                              </span>
+                            )}
+                          </div>
+
+                          <p style={{ color: 'rgba(255, 255, 255, 0.6)' }} className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.2em] mt-1 text-center lg:text-right force-satoshi">MRP (Inclusive of all taxes)</p>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
                 <div className="add-to-cart-block-wrapper _02 w-full max-w-sm mx-auto lg:mx-0">
                   <form onSubmit={handleAddToCart} className="w-commerce-commerceaddtocartform default-state w-full">

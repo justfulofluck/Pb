@@ -67,6 +67,8 @@ const fetchProducts = async () => {
     id: String(p.id),
     slug: p.slug || '',
     price: parseFloat(p.price),
+    original_price: p.original_price ? parseFloat(p.original_price) : (p.originalPrice ? parseFloat(p.originalPrice) : undefined),
+    originalPrice: p.original_price ? parseFloat(p.original_price) : (p.originalPrice ? parseFloat(p.originalPrice) : undefined),
     reviewCount: p.review_count || 0,
     isTopRated: p.is_top_rated,
     model3d: p.model_3d || null,
