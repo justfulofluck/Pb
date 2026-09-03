@@ -1729,6 +1729,69 @@ def _clean_product_desc(desc: str, product_name: str) -> str:
     return f"{product_name} — a premium product from Pinobite, made with carefully selected natural ingredients."
 
 
+def _product_body_block(product):
+    """Build static, crawlable HTML body content for a product page from DB fields.
+    This makes full product content (description, benefits, nutrition, ingredients,
+    price) visible to search engines without requiring client-side JS rendering.
+    """
+    name = _escape(product.name or "")
+    desc = _escape(_clean_product_desc(product.description or "", product.name))
+    price = product.price or 0
+    price_display = f"₹{price}"
+    stock_line = "In Stock" if getattr(product, "stock", 0) > 0 else "Out of Stock"
+
+    parts = []
+    parts.append('<div class="seo-product-content" style="margin:0;padding:0">')
+    parts.append(f"<h1>{name}</h1>")
+    parts.append(f'<p>{price_display} · {stock_line}</p>')
+    if desc:
+        parts.append(f"<p>{desc}</p>")
+
+    benefits = product.benefits or []
+    benefits = [b for b in benefits if b and str(b).strip()]
+    if benefits:
+        parts.append("<h2>Key Benefits</h2>")
+        parts.append("<ul>")
+        for b in benefits:
+            parts.append(f"<li>{_escape(str(b))}</li>")
+        parts.append("</ul>")
+
+    nutrients = product.nutrients or []
+    if nutrients:
+        parts.append("<h2>Quick Nutrition Facts</h2>")
+        parts.append("<ul>")
+        for n in nutrients:
+            label = _escape(str(n.get("label", "")))
+            value = _escape(str(n.get("value", "")))
+            if label and value:
+                parts.append(f"<li>{label}: {value}</li>")
+        parts.append("</ul>")
+
+    detailed = product.detailed_nutrition or []
+    if detailed:
+        parts.append("<h2>Nutritional Information</h2>")
+        parts.append('<table style="border-collapse:collapse;width:100%;max-width:640px">')
+        parts.append("<thead><tr>")
+        for header in ("Nutrient", "Per 100g", "Per 32g", "% Daily Value*"):
+            parts.append(
+                f'<th style="border:1px solid #ccc;padding:6px 10px;text-align:left">{header}</th>'
+            )
+        parts.append("</tr></thead><tbody>")
+        for row in detailed:
+            n = _escape(str(row.get("n", "")))
+            v100 = _escape(str(row.get("v100", "")))
+            v32 = _escape(str(row.get("v32", "")))
+            r = _escape(str(row.get("r", "")))
+            parts.append("<tr>")
+            for cell in (n, v100, v32, r):
+                parts.append(f'<td style="border:1px solid #ccc;padding:6px 10px">{cell}</td>')
+            parts.append("</tr>")
+        parts.append("</tbody></table>")
+        parts.append("<p>*as per RDA for Indians, ICMR-NIN 2020 (approx values).</p>")
+
+    return "\n".join(parts) + "\n</div>"
+
+
 _SHIPPING_DETAILS = {
     "@type": "OfferShippingDetails",
     "shippingRate": {
@@ -1784,6 +1847,16 @@ fbq('track', 'PageView');
 src="https://www.facebook.com/tr?id=1051641060621997&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->"""
+
+GTAG_CODE = """<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Q8E1G3FFXC"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-Q8E1G3FFXC');
+</script>"""
 
 @never_cache
 def _inject_meta_view(request):
@@ -2075,7 +2148,26 @@ def _inject_meta_view(request):
     html = template.render({}, request)
 
     html = _re.sub(r"<title>[^<]*</title>", "", html, count=1, flags=_re.IGNORECASE)
-    html = html.replace("<head>", "<head>\n" + meta_block + schema_block + PIXEL_CODE)
+
+    prod_names = list(Product.objects.values_list("name", "slug").order_by("name"))
+    nav_links = ['<a href="{}">Home</a>'.format(site_url)]
+    nav_links.append('<a href="{}">Shop</a>'.format(site_url + "/shop"))
+    for pname, pslug in prod_names:
+        nav_links.append('<a href="{}">{}</a>'.format(site_url + "/product/" + pslug, _escape(pname)))
+    for page_path, label in (("/faq", "FAQ"), ("/journey", "Our Journey"), ("/events", "Events"), ("/blogs", "Blog")):
+        nav_links.append('<a href="{}">{}</a>'.format(site_url + page_path, label))
+    nav_block = (
+        '<nav aria-label="Internal navigation" style="position:absolute;left:-9999px;top:auto;'
+        'width:1px;height:1px;overflow:hidden" aria-hidden="true">\n'
+        + "\n".join(nav_links)
+        + "\n</nav>\n"
+    )
+
+    html = html.replace("<head>", "<head>\n" + meta_block + schema_block + PIXEL_CODE + GTAG_CODE + nav_block)
+
+    if product:
+        body_block = _product_body_block(product)
+        html = html.replace('<div id="root"></div>', f'<div id="root">{body_block}</div>', 1)
 
     response = HttpResponse(html, content_type="text/html; charset=utf-8")
     response["Cache-Control"] = "no-cache, no-store, must-revalidate"
